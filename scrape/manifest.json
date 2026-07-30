@@ -1,0 +1,5061 @@
+{
+ "kffws": {
+  "title": "CAMERAS",
+  "slug": "cameras",
+  "file": "39e78d_3b21e50cfb2aa8d482f66ec4bf11db4b_366",
+  "texts": [],
+  "images": [
+   {
+    "id": "kffws_desktop_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   },
+   {
+    "id": "kffws_mobile_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 2
+ },
+ "nzvgo": {
+  "title": "EMULSION CHAIRS",
+  "slug": "emulsion-chairs",
+  "file": "39e78d_fc21fdc56388d7b32bc92b9f6f4ddc98_367",
+  "texts": [
+   {
+    "id": "dataItem-ieiqnc5a",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">EMULSION</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2011)</span></h4>\n",
+    "text": "EMULSION (2011)"
+   },
+   {
+    "id": "dataItem-ieiqntb51",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">CHAIRS</span></h4>\n",
+    "text": "CHAIRS"
+   },
+   {
+    "id": "dataItem-ieiqodn91",
+    "html": "<p class=\"font_8\"><b>Polaroid 59 emulsion lift inside plexiglass</b></p>\n\n<p class=\"font_8\">&nbsp;</p>\n\n<p class=\"font_8\"><b>20x30x3cm</b></p>\n",
+    "text": "Polaroid 59 emulsion lift inside plexiglass 20x30x3cm"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-idw6393r",
+    "uri": "39e78d_d24b446f7e9845aeba812f79e544ff27.jpg",
+    "title": "1chairs_edited",
+    "description": "",
+    "alt": "",
+    "width": 692,
+    "height": 433
+   },
+   {
+    "id": "dataItem-ieiqmamv",
+    "uri": "39e78d_597d51e3495b4d5ab7f2ec48cb9604b4.jpg",
+    "title": "1chairs",
+    "description": "",
+    "alt": "",
+    "width": 3260,
+    "height": 2042
+   },
+   {
+    "id": "dataItem-ieiqmamv1",
+    "uri": "39e78d_9b5de4b2dc34440b89871a2ed311732e.jpg",
+    "title": "1chairs2",
+    "description": "",
+    "alt": "",
+    "width": 3260,
+    "height": 2042
+   },
+   {
+    "id": "nzvgo_desktop_mediaRef",
+    "uri": "39e78d_267ad003bc3b43d18bf963ec0650566f.jpg",
+    "title": "polaback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1056,
+    "height": 784
+   },
+   {
+    "id": "nzvgo_mobile_mediaRef",
+    "uri": "39e78d_382e1aa2780141ddb53d4611bbba760c.jpg",
+    "title": "09_edited.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 601,
+    "height": 457
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 5
+ },
+ "at8yh": {
+  "title": "STREETGALL",
+  "slug": "streetgall",
+  "file": "39e78d_c679ee871b90e9736afbde8dfe7a4643_367",
+  "texts": [],
+  "images": [
+   {
+    "id": "at8yh_desktop_mediaRef",
+    "uri": "39e78d_6ff234e6e8ae4548a39ade57e961017a.jpg",
+    "title": "IMG_2449.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1224,
+    "height": 1632
+   },
+   {
+    "id": "at8yh_mobile_mediaRef",
+    "uri": "41d000_ba815af2009c1d1e54a402e7b682c43a.jpg",
+    "title": "",
+    "description": "",
+    "alt": "",
+    "width": 1200,
+    "height": 800
+   },
+   {
+    "id": "dataItem-idrvt9i2",
+    "uri": "39e78d_fbf89c69ae88465d8fdca21fbfa22076.jpg",
+    "title": "IMG_1429",
+    "description": "",
+    "alt": "",
+    "width": 2322,
+    "height": 1548
+   },
+   {
+    "id": "dataItem-idrvt9i3",
+    "uri": "39e78d_e229977677d046b998c1ac457f52a38f.jpg",
+    "title": "IMG_1440",
+    "description": "",
+    "alt": "",
+    "width": 460,
+    "height": 691
+   },
+   {
+    "id": "dataItem-idrvt9i31",
+    "uri": "39e78d_ae8e578e22d748139afa517fbec110ca.jpg",
+    "title": "IMG_1442",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 1728
+   },
+   {
+    "id": "dataItem-idrvt9i32",
+    "uri": "39e78d_1dace367a84e4cb39b040a522c9dccfa.jpg",
+    "title": "IMG_1441",
+    "description": "",
+    "alt": "",
+    "width": 1728,
+    "height": 2592
+   },
+   {
+    "id": "dataItem-idrvt9i4",
+    "uri": "39e78d_5be615ac504a4383a7e5eeb79757b26d.jpg",
+    "title": "IMG_1443",
+    "description": "",
+    "alt": "",
+    "width": 1728,
+    "height": 2592
+   },
+   {
+    "id": "dataItem-idrvt9i41",
+    "uri": "39e78d_98e1e687b2e449b984c8ddc683827840.jpg",
+    "title": "IMG_1439",
+    "description": "",
+    "alt": "",
+    "width": 1728,
+    "height": 2592
+   },
+   {
+    "id": "dataItem-idrw8bwq",
+    "uri": "39e78d_5acb4be95523435b8362814819226278.jpg",
+    "title": "IMG_0241",
+    "description": "",
+    "alt": "",
+    "width": 1945,
+    "height": 1295
+   },
+   {
+    "id": "dataItem-idrw8bwq1",
+    "uri": "39e78d_38a345d07b5e4ecdbe4353851a020d4a.jpg",
+    "title": "IMG_1495",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 1728
+   },
+   {
+    "id": "dataItem-idrw8bwq2",
+    "uri": "39e78d_ad77578592e2443c9bb32a936f1295de.jpg",
+    "title": "IMG_1494",
+    "description": "",
+    "alt": "",
+    "width": 399,
+    "height": 265
+   },
+   {
+    "id": "dataItem-idrw8bwq3",
+    "uri": "39e78d_1b1ca5667aa447f0bebae1429c26de6a.jpg",
+    "title": "IMG_1484",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 1728
+   },
+   {
+    "id": "dataItem-idrw8bwr",
+    "uri": "39e78d_cdf33fd6ac5e41b3a2e8f15429429a3f.jpg",
+    "title": "IMG_1487",
+    "description": "",
+    "alt": "",
+    "width": 2346,
+    "height": 1564
+   },
+   {
+    "id": "dataItem-idypgfhj",
+    "uri": "39e78d_97573f85fc5e45589b6ccebd14155f8e.jpg",
+    "title": "IMG_2451",
+    "description": "",
+    "alt": "",
+    "width": 1224,
+    "height": 1632
+   },
+   {
+    "id": "dataItem-idypgfhj1",
+    "uri": "39e78d_d6874f43e1e24f968a19e031a0490ddc.jpg",
+    "title": "IMG_2453",
+    "description": "",
+    "alt": "",
+    "width": 1224,
+    "height": 1632
+   },
+   {
+    "id": "dataItem-idypgfhj2",
+    "uri": "39e78d_faebe3c9e5af4c008423eeed94b17290.jpg",
+    "title": "IMG_2458",
+    "description": "",
+    "alt": "",
+    "width": 1224,
+    "height": 1632
+   },
+   {
+    "id": "dataItem-idypgfhk",
+    "uri": "39e78d_c2afad7e6ffe4f9b809ef06ec62cee39.jpg",
+    "title": "IMG_2454",
+    "description": "",
+    "alt": "",
+    "width": 1224,
+    "height": 1632
+   },
+   {
+    "id": "dataItem-idypgfhk1",
+    "uri": "39e78d_e89470d12866456baf5c4dcd69b6c954.jpg",
+    "title": "IMG_2674",
+    "description": "",
+    "alt": "",
+    "width": 1538,
+    "height": 1025
+   },
+   {
+    "id": "dataItem-idypgfhk2",
+    "uri": "39e78d_037f81d77264405193bd872f30d965e1.jpg",
+    "title": "IMG_2661",
+    "description": "",
+    "alt": "",
+    "width": 1067,
+    "height": 1602
+   },
+   {
+    "id": "dataItem-idypgfhk3",
+    "uri": "39e78d_1c79cdded1e84195af7cd9fce5f2f223.jpg",
+    "title": "IMG_2678",
+    "description": "",
+    "alt": "",
+    "width": 1087,
+    "height": 1632
+   },
+   {
+    "id": "dataItem-idypgfhk4",
+    "uri": "39e78d_7f1fed6e30c247d7ad6027f37c9fb35e.jpg",
+    "title": "IMG_2666",
+    "description": "",
+    "alt": "",
+    "width": 1082,
+    "height": 1623
+   },
+   {
+    "id": "dataItem-idypgfhk5",
+    "uri": "39e78d_0e2a0810c547497398e9ac81924c87a4.jpg",
+    "title": "IMG_2672",
+    "description": "",
+    "alt": "",
+    "width": 1087,
+    "height": 1632
+   },
+   {
+    "id": "dataItem-idypgfhl",
+    "uri": "39e78d_68c3191a07134ac397fed331dfcaaa10.jpg",
+    "title": "IMG_2669",
+    "description": "",
+    "alt": "",
+    "width": 1088,
+    "height": 1632
+   },
+   {
+    "id": "dataItem-idypgfhl1",
+    "uri": "39e78d_5daefeacc4344791b4eb615539c135c8.jpg",
+    "title": "IMG_2667",
+    "description": "",
+    "alt": "",
+    "width": 1087,
+    "height": 1632
+   },
+   {
+    "id": "dataItem-idypgfhl2",
+    "uri": "39e78d_b48406d1b2c04268980552bccef9a353.jpg",
+    "title": "IMG_2681",
+    "description": "",
+    "alt": "",
+    "width": 1183,
+    "height": 1577
+   },
+   {
+    "id": "dataItem-idypgfhl3",
+    "uri": "39e78d_513f79dec3bd4bf68f0faaf58c88b2cf.jpg",
+    "title": "IMG_2659",
+    "description": "",
+    "alt": "",
+    "width": 1204,
+    "height": 1605
+   },
+   {
+    "id": "dataItem-idypgfhl4",
+    "uri": "39e78d_d3213d756f0d4260bf0527301c19bf1d.jpg",
+    "title": "IMG_2680",
+    "description": "",
+    "alt": "",
+    "width": 1171,
+    "height": 1561
+   },
+   {
+    "id": "dataItem-idypr3ca",
+    "uri": "39e78d_079ca2dd48b64a2987ab9eac730fc03b.jpg",
+    "title": "IMG_2682",
+    "description": "",
+    "alt": "",
+    "width": 1224,
+    "height": 1632
+   },
+   {
+    "id": "dataItem-idypvq9l",
+    "uri": "39e78d_86671534f55e4289a78d80efb7fe34be.jpg",
+    "title": "IMG_2688_edited",
+    "description": "",
+    "alt": "",
+    "width": 600,
+    "height": 800
+   },
+   {
+    "id": "dataItem-idyq253t",
+    "uri": "39e78d_110c10caf5e942e6bc72bf75c5b8baec.jpg",
+    "title": "IMG_2685",
+    "description": "",
+    "alt": "",
+    "width": 2448,
+    "height": 3264
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 30
+ },
+ "q1d8c": {
+  "title": "AROUND ME",
+  "slug": "around-me",
+  "file": "39e78d_2ee85e8d192eccb0a41d1f567fe8bdb7_367",
+  "texts": [
+   {
+    "id": "dataItem-iere1lp51",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><b>esperienza videocon supporto video analogico super8 mm</b></p>\n",
+    "text": "esperienza videocon supporto video analogico super8 mm"
+   },
+   {
+    "id": "dataItem-iere1lpf",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">AROUND ME</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2001)</span></h4>\n",
+    "text": "AROUND ME (2001)"
+   }
+  ],
+  "images": [
+   {
+    "id": "q1d8c_desktop_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   },
+   {
+    "id": "q1d8c_mobile_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   }
+  ],
+  "videos": [
+   {
+    "id": "dataItem-idrtgj921",
+    "videoId": "qfsfJYg99ZU",
+    "videoType": "YOUTUBE"
+   }
+  ],
+  "links": [],
+  "n_images": 2
+ },
+ "ccly": {
+  "title": "Single Post",
+  "slug": "single-post",
+  "file": "39e78d_e7586a38eaf462a972171a305c07823a_368",
+  "texts": [
+   {
+    "id": "c1jky",
+    "html": "<h6 style='line-height: 1.4em;' class='font_6'><span style='line-height: 1.4em;'>Follow Us</span></h6>\n",
+    "text": "Follow Us"
+   },
+   {
+    "id": "cbc2",
+    "html": "<h6 style='line-height: 1.4em;' class='font_6'><span style='line-height: 1.4em;'>Featured Posts</span></h6>\n",
+    "text": "Featured Posts"
+   },
+   {
+    "id": "cflw",
+    "html": "<h6 style='line-height: 1.4em;' class='font_6'><span style='line-height: 1.4em;'>Recent Posts</span></h6>\n",
+    "text": "Recent Posts"
+   },
+   {
+    "id": "cyxv",
+    "html": "<h6 style='line-height: 1.4em;' class='font_6'><span style='line-height: 1.4em;'>Search By Tags</span></h6>\n",
+    "text": "Search By Tags"
+   }
+  ],
+  "images": [
+   {
+    "id": "ccly_desktop_mediaRef",
+    "uri": "41d000_ba815af2009c1d1e54a402e7b682c43a.jpg",
+    "title": "",
+    "description": "",
+    "alt": "",
+    "width": 1200,
+    "height": 800
+   },
+   {
+    "id": "ccly_mobile_mediaRef",
+    "uri": "41d000_ba815af2009c1d1e54a402e7b682c43a.jpg",
+    "title": "",
+    "description": "",
+    "alt": "",
+    "width": 1200,
+    "height": 800
+   },
+   {
+    "id": "i0w2j",
+    "uri": "b1cd13f9d4dfb1450bbb325285106177.png",
+    "title": "Facebook Classic",
+    "description": "",
+    "alt": "",
+    "width": 128,
+    "height": 128
+   },
+   {
+    "id": "i11h3m",
+    "uri": "01113281ebb7dfb57a8dc2a02eb1cb92.png",
+    "title": "Twitter Classic",
+    "description": "",
+    "alt": "",
+    "width": 128,
+    "height": 128
+   },
+   {
+    "id": "i21059",
+    "uri": "806f5f56d9a7b8849f2f2ea71ff5c0cc.png",
+    "title": "Google Classic",
+    "description": "",
+    "alt": "",
+    "width": 128,
+    "height": 128
+   }
+  ],
+  "videos": [],
+  "links": [
+   {
+    "url": "http://www.twitter.com/wix"
+   },
+   {
+    "url": "https://plus.google.com/117167403531518744294/posts"
+   },
+   {
+    "url": "http://www.facebook.com/wix"
+   }
+  ],
+  "n_images": 5
+ },
+ "adspq": {
+  "title": "PAINTINGS",
+  "slug": "paintings",
+  "file": "39e78d_c273acb5a119fdd940a7388022a55334_366",
+  "texts": [],
+  "images": [
+   {
+    "id": "adspq_desktop_mediaRef",
+    "uri": "39e78d_658a9f4d7cb944efab0c97709547e36e.jpg",
+    "title": "paintback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1223,
+    "height": 1212
+   },
+   {
+    "id": "adspq_mobile_mediaRef",
+    "uri": "39e78d_658a9f4d7cb944efab0c97709547e36e.jpg",
+    "title": "paintback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1223,
+    "height": 1212
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 2
+ },
+ "fvzij": {
+  "title": "APERITIVO STENOPEICO",
+  "slug": "aperitivo-stenopeico",
+  "file": "39e78d_91d69a40d6d382b29f503d5cfd5a3e1a_367",
+  "texts": [
+   {
+    "id": "dataItem-ie00j99a",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">21 fine art prints inside plexiglass</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">50x50cm each</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">Offro un \"Aperitivo stenopeico\" (dal greco stenos opaios, dotato di un foro) che stimola la vista, la quale viene attirata da una percezione ogni volta nuova e modificata. Si instaura una vera e propria complicità sensoriale tra l’opera e il fruitore, che, come ogni complicità attiva, induce la curiosità di sperimentare le infinite illusioni ottiche offerte dal mutevole e molteplice punto di vista.</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">La luce si colora attraverso ciò che appare come un mutevole corpo celeste, in uno spazio indefinito.&nbsp;<br>\nLa luce che crea movimento, definisce il tempo che non sembra scorrere, ma che sembra passare con un ritmo irregolare e stabilito dall' osservatore..</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">I offer a “aperitivo stenopeico” (from the Greek stenos opaios, provided with a hole) that stimulates sight, which is attracted by an ever changing, new perception. A true, genuine complicity is established between the work and the observer, which as in any active complicities, induces the curiosity of experimenting the infinite optical delusions offered by the many and changing points of view.<br>\nLight takes colour through what appears like a changing celestial body, in an indefinite space. Light that creates movement defines a time which seems not to flow but rather pass at an irregular pace, determined by the observer.</span></p>\n",
+    "text": "21 fine art prints inside plexiglass 50x50cm each Offro un \"Aperitivo stenopeico\" (dal greco stenos opaios, dotato di un foro) che stimola la vista, la quale viene attirata da una percezione ogni volta nuova e modificata. Si instaura una vera e propria complicità sensoriale tra l’opera e il fruitore, che, come ogni complicità attiva, induce la curiosità di sperimentare le infinite illusioni ottiche offerte dal mutevole e molteplice punto di vista. La luce si colora attraverso ciò che appare come un mutevole corpo celeste, in uno spazio indefinito. La luce che crea movimento, definisce il tempo che non sembra scorrere, ma che sembra passare con un ritmo irregolare e stabilito dall' osservatore.. I offer a “aperitivo stenopeico” (from the Greek stenos opaios, provided with a hole) that stimulates sight, which is attracted by an ever changing, new perception. A true, genuine complicity is established between the work and the observer, which as in any active complicities, induces the curiosity of experimenting the infinite optical delusions offered by the many and changing points of view. Light takes colour through what appears like a changing celestial body, in an indefinite space. Light that creates movement defines a time which seems not to flow but rather pass at an irregular pace, determined by the observer."
+   },
+   {
+    "id": "dataItem-ie4i0phy1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">APERITIVO </span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2004)</span></h4>\n",
+    "text": "APERITIVO (2004)"
+   },
+   {
+    "id": "dataItem-ieik1pwt",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">STENOPEICO</span></h4>\n",
+    "text": "STENOPEICO"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-idrsxx0q",
+    "uri": "39e78d_f18d34d654a041b5aab8d704844f6606.jpg",
+    "title": "APERITIVO STENOPEICO (print edition)",
+    "description": "21 fine art prints\n\n50x50cm each\n\n2004",
+    "alt": "",
+    "width": 4134,
+    "height": 4134
+   },
+   {
+    "id": "dataItem-idrsxx0q1",
+    "uri": "39e78d_e0ab3df8c4774f3e9d9915b23c14a243.jpg",
+    "title": "aurum",
+    "description": "",
+    "alt": "",
+    "width": 5112,
+    "height": 3408
+   },
+   {
+    "id": "fvzij_desktop_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   },
+   {
+    "id": "fvzij_mobile_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 4
+ },
+ "zz9p1": {
+  "title": "PINK PHANTER",
+  "slug": "pink-phanter",
+  "file": "39e78d_f77adc674d585a474e6528ddae38bf89_367",
+  "texts": [
+   {
+    "id": "dataItem-iejwu21q",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\">PINK PHANTER</h4>\n",
+    "text": "PINK PHANTER"
+   },
+   {
+    "id": "dataItem-iejww8gl1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">polaroid pinhole conversion</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">material:</span> painted polaroid, metal, laser pinhole<br>\n<span style=\"font-weight:bold;\">focal length:</span> 70mm<br>\n<span style=\"font-weight:bold;\">angle of view:</span> 60º<br>\n<span style=\"font-weight:bold;\">f-stop:</span> 233<br>\n<span style=\"font-weight:bold;\">pinhole:</span> 0,3µ<br>\n&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">film accepted: polaroid 80 series 3.25\" x 3.38\" inches</span></p>\n",
+    "text": "polaroid pinhole conversion material: painted polaroid, metal, laser pinhole focal length: 70mm angle of view: 60º f-stop: 233 pinhole: 0,3µ film accepted: polaroid 80 series 3.25\" x 3.38\" inches"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-iejxc634",
+    "uri": "39e78d_d3b47782674141a69e1784cc4574a5e1.jpg",
+    "title": "DSC_0119",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iejxc636",
+    "uri": "39e78d_763759415dbd4c5bae924ccd9040b19f.jpg",
+    "title": "DSC_0120",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iejxc6361",
+    "uri": "39e78d_af1eae852dc84e79987624d98798f246.jpg",
+    "title": "DSC_0118",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iejxfcil",
+    "uri": "39e78d_396a638518a94e1e8e732bba61609561.jpg",
+    "title": "DSC_01192",
+    "description": "",
+    "alt": "",
+    "width": 1600,
+    "height": 2390
+   },
+   {
+    "id": "zz9p1_desktop_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   },
+   {
+    "id": "zz9p1_mobile_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 6
+ },
+ "y05w3": {
+  "title": "RED CHAIR",
+  "slug": "red-chair",
+  "file": "39e78d_5c6e5f3015b9edc2df9d91fe70829a3e_367",
+  "texts": [
+   {
+    "id": "dataItem-ie0191f7",
+    "html": "<p class=\"font_8\"><span style=\"font-weight:bold;\">Fine art print epoxy resin finish</span></p>\n\n<p class=\"font_8\">&nbsp;</p>\n",
+    "text": "Fine art print epoxy resin finish"
+   },
+   {
+    "id": "dataItem-ie4il5dm1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">RED CHAIRS&nbsp;</span><span style=\"font-size:16px;\">(2005-2007)</span></h4>\n",
+    "text": "RED CHAIRS (2005-2007)"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-idrss0j0",
+    "uri": "39e78d_4a3f2efa3f2f4adb86b2b046ad4e6f0c.jpg",
+    "title": "\"RED CHAIR\"",
+    "description": "2005-2007",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j01",
+    "uri": "39e78d_89d5c0b8054d47eba3d0a251cfbe1df5.jpg",
+    "title": "io 027",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j02",
+    "uri": "39e78d_ec44dae6a03f4dec81af781c6cc5f77d.jpg",
+    "title": "io 028",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j1",
+    "uri": "39e78d_a20258ebfeee428a825e382c634f733d.jpg",
+    "title": "io 029",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j11",
+    "uri": "39e78d_ad9d83a2f2ae46528a51e8d60a302526.jpg",
+    "title": "io 025",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j12",
+    "uri": "39e78d_fe0e622ebcd14e27a6b96665bac6b20a.jpg",
+    "title": "io 030",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j13",
+    "uri": "39e78d_3d851ebdbec14ae580613efe7c992cda.jpg",
+    "title": "io 026",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j14",
+    "uri": "39e78d_d85c20cfda0d471c94b651d98030e36c.jpg",
+    "title": "io 033",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j15",
+    "uri": "39e78d_8d1419ee53c74002a6322220362f8429.jpg",
+    "title": "io 031",
+    "description": "",
+    "alt": "",
+    "width": 1181,
+    "height": 1496
+   },
+   {
+    "id": "dataItem-idrss0j2",
+    "uri": "39e78d_79e107c7b67e435dbcc0d9a52ec52aae.jpg",
+    "title": "redpost 0004",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j21",
+    "uri": "39e78d_0588d5d1637940548db0750067352e66.jpg",
+    "title": "redpost 0003",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j22",
+    "uri": "39e78d_c8184ecfa3444b37b613b0cb9e6ab755.jpg",
+    "title": "redpost 003",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j23",
+    "uri": "39e78d_ed0c6a85fc054e8a925aa0b505fb33b4.jpg",
+    "title": "redpost 007",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j24",
+    "uri": "39e78d_1cb0fbebee5c48a9a19e162b84c32d07.jpg",
+    "title": "redpost 0005",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j25",
+    "uri": "39e78d_e354fbbdf3474255b3ba4ade06038df3.jpg",
+    "title": "redpost 005",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j3",
+    "uri": "39e78d_5baf918dc93541a8bd38d67cbae12e6e.jpg",
+    "title": "redpost 004",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j31",
+    "uri": "39e78d_262a16598fab4d72a1f84be6bf6a5d3b.jpg",
+    "title": "redpost 014",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j32",
+    "uri": "39e78d_7a38736b5fab4df88b346feca9bef80e.jpg",
+    "title": "redpost 013",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j33",
+    "uri": "39e78d_7acd7d43f0e240e0b17d236568746727.jpg",
+    "title": "redpost 012",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j4",
+    "uri": "39e78d_589cfe2fbed542a09ef89412cbf5788d.jpg",
+    "title": "redpost 011",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j41",
+    "uri": "39e78d_ce142044bb2940b28373bc43e811a555.jpg",
+    "title": "redpost 008",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j42",
+    "uri": "39e78d_241e6b58f5be4b1bba65bfd3dd08c88a.jpg",
+    "title": "redpost 021",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j43",
+    "uri": "39e78d_f500a08688ee43a1b90965bf389d56c3.jpg",
+    "title": "redpost 020",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j44",
+    "uri": "39e78d_1624ac60613448889066af0219f91479.jpg",
+    "title": "redpost 019",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "dataItem-idrss0j45",
+    "uri": "39e78d_0bfaa5631bc34bccaa5413ebc814900d.jpg",
+    "title": "redpost 015",
+    "description": "",
+    "alt": "",
+    "width": 3996,
+    "height": 5060
+   },
+   {
+    "id": "y05w3_desktop_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   },
+   {
+    "id": "y05w3_mobile_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 27
+ },
+ "ix8tz": {
+  "title": "MUGSHOT",
+  "slug": "mugshot",
+  "file": "39e78d_2efc0fa0da0128f1392b95e8d5691bb3_367",
+  "texts": [
+   {
+    "id": "dataItem-iessi7kz",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">MUGSHOT&nbsp;</span><span style=\"font-size:16px;\">(2008-2013)</span></h4>\n",
+    "text": "MUGSHOT (2008-2013)"
+   },
+   {
+    "id": "dataItem-iessi7lc",
+    "html": "<p class=\"font_8\"><span style=\"font-weight:bold;\">Fine art print epoxy resin finish</span></p>\n\n<p class=\"font_8\">&nbsp;</p>\n",
+    "text": "Fine art print epoxy resin finish"
+   }
+  ],
+  "images": [
+   {
+    "id": "ix8tz_desktop_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   },
+   {
+    "id": "ix8tz_mobile_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 2
+ },
+ "zqkgo": {
+  "title": "EMULSION BALL",
+  "slug": "emulsion-ball-zqkgo",
+  "file": "39e78d_4970143b23933a4375d76339ab942a28_367",
+  "texts": [
+   {
+    "id": "dataItem-iere211w1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><b>emulsione</b></p>\n",
+    "text": "emulsione"
+   },
+   {
+    "id": "dataItem-iere21271",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">EMULSION BALL</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2001)</span></h4>\n",
+    "text": "EMULSION BALL (2001)"
+   }
+  ],
+  "images": [
+   {
+    "id": "zqkgo_desktop_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   },
+   {
+    "id": "zqkgo_mobile_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   }
+  ],
+  "videos": [
+   {
+    "id": "dataItem-idrtg99a1",
+    "videoId": "fkucFKcKVyE",
+    "videoType": "YOUTUBE"
+   }
+  ],
+  "links": [],
+  "n_images": 2
+ },
+ "c66t": {
+  "title": "ABOUT",
+  "slug": "about",
+  "file": "39e78d_f1027e22146a27de35079224770d7d4c_367",
+  "texts": [
+   {
+    "id": "1cvh",
+    "html": "<h1 style=\"text-align: center; font-size: 37px;\" class=\"font_0\"><span style=\"font-size:37px;\">GIAMPIERO PAGNINI</span></h1>\n",
+    "text": "GIAMPIERO PAGNINI"
+   },
+   {
+    "id": "1fk",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\">Nel corso della propria ricerca Giampiero Pagnini indaga sulle molteplici forme di espressione contemporanee quali digital art, video, fotografia e modellazione 3d, forte di una profonda passione e conoscenza delle tecniche più classiche.&nbsp;<br>\nSi incontra nelle sue opere una forte commistione tra la tradizione e la più innovativa ricerca tecnologica: la pittura, in taluni casi, o la fotografia analogica in altri, vengono immerse in un contesto fortemente dominato da materiali innovativi e da tecniche sperimentali. Tutto unito da un unico filo conduttore rappresentato dalla luce, intesa sia come forma di rappresentazione attraverso<br>\nl'incisione fotografica, sia come strumento per illudere, incuriosire e celebrare.</span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\">Throughout his research work Giampiero Pagnini investigates the many forms of contemporary expression, such as digital art, video, photography and 3D modelling, strong of a deep passion and knowledge of the most classical techniques.<br>\nIn is work one can find tradition intertwined with the most innovative technological research: painting in some cases, or analogue photography in others, are immersed in a context strongly dominated by innovative materials and experimental techniques. All is linked by a single red wire [common element] represented by light, seen both as a form of representation through photographic etching, and as an instrument of delusion, curiosity and celebration.</span></p>\n",
+    "text": "Nel corso della propria ricerca Giampiero Pagnini indaga sulle molteplici forme di espressione contemporanee quali digital art, video, fotografia e modellazione 3d, forte di una profonda passione e conoscenza delle tecniche più classiche. Si incontra nelle sue opere una forte commistione tra la tradizione e la più innovativa ricerca tecnologica: la pittura, in taluni casi, o la fotografia analogica in altri, vengono immerse in un contesto fortemente dominato da materiali innovativi e da tecniche sperimentali. Tutto unito da un unico filo conduttore rappresentato dalla luce, intesa sia come forma di rappresentazione attraverso l'incisione fotografica, sia come strumento per illudere, incuriosire e celebrare. Throughout his research work Giampiero Pagnini investigates the many forms of contemporary expression, such as digital art, video, photography and 3D modelling, strong of a deep passion and knowledge of the most classical techniques. In is work one can find tradition intertwined with the most innovative technological research: painting in some cases, or analogue photography in others, are immersed in a context strongly dominated by innovative materials and experimental techniques. All is linked by a single red wire [common element] represented by light, seen both as a form of representation through photographic etching, and as an instrument of delusion, curiosity and celebration."
+   },
+   {
+    "id": "1pb",
+    "html": "<h2 class=\"font_2\">ABOUT</h2>\n",
+    "text": "ABOUT"
+   }
+  ],
+  "images": [
+   {
+    "id": "c1kmj",
+    "uri": "39e78d_80567956e77d4c8cb488d7d7e9affcfd.jpg",
+    "title": "L1010336 (1).jpg",
+    "description": "",
+    "alt": "",
+    "width": 2521,
+    "height": 3783
+   },
+   {
+    "id": "c66t_desktop_mediaRef",
+    "uri": "39e78d_793a266327194cc6bc702994e21fab78.jpg",
+    "title": "po po po ....jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 3256,
+    "height": 2171
+   },
+   {
+    "id": "c66t_mobile_mediaRef",
+    "uri": "39e78d_80567956e77d4c8cb488d7d7e9affcfd.jpg",
+    "title": "L1010336 (1).jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2521,
+    "height": 3783
+   }
+  ],
+  "videos": [],
+  "links": [
+   {
+    "pageId": "#xbzvr"
+   }
+  ],
+  "n_images": 3
+ },
+ "wmmgi": {
+  "title": "AMBIENT EXHIBITION",
+  "slug": "ambient-exhibition",
+  "file": "39e78d_520fd123d00ef14e5a1cd727ecd28b0a_367",
+  "texts": [
+   {
+    "id": "dataItem-ier79v5z1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">AMBIENT</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2010)</span></h4>\n",
+    "text": "AMBIENT (2010)"
+   },
+   {
+    "id": "dataItem-ier7a83m",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\">ART&amp;ARCHITECTURE</h4>\n",
+    "text": "ART&ARCHITECTURE"
+   },
+   {
+    "id": "dataItem-ier7aq8c",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">27 agosto - 26 settembre 2010<br>\nAmbient art&amp;architecture<br>\narsenale tesa 90 alle nappe<br>\nVenezia</span></p>\n",
+    "text": "27 agosto - 26 settembre 2010 Ambient art&architecture arsenale tesa 90 alle nappe Venezia"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-ier7jhed",
+    "uri": "39e78d_79813c1f1b37490ab9bf6edc8dccd3d9.jpg",
+    "title": "venezia_ark5",
+    "description": "",
+    "alt": "",
+    "width": 2126,
+    "height": 1196
+   },
+   {
+    "id": "dataItem-ier7jhee",
+    "uri": "39e78d_114a18ef7490418182c1e7f3cbe7782a.jpg",
+    "title": "venezia_ark4",
+    "description": "",
+    "alt": "",
+    "width": 1791,
+    "height": 1046
+   },
+   {
+    "id": "dataItem-ier7jhee1",
+    "uri": "39e78d_19fd13bc3d3e4a4aaa7f2ef98b429cbb.jpg",
+    "title": "venezia_ark1",
+    "description": "",
+    "alt": "",
+    "width": 1843,
+    "height": 1036
+   },
+   {
+    "id": "dataItem-ier84vna",
+    "uri": "39e78d_e72c7d76e9a64cb99f31e1926940c198.jpg",
+    "title": "P1000869bl",
+    "description": "",
+    "alt": "",
+    "width": 1328,
+    "height": 747
+   },
+   {
+    "id": "dataItem-ier84vne",
+    "uri": "39e78d_b6562b89ca544a799b2c65d9ad4d1c10.jpg",
+    "title": "P1000867b",
+    "description": "",
+    "alt": "",
+    "width": 2814,
+    "height": 1581
+   },
+   {
+    "id": "dataItem-ier84vne1",
+    "uri": "39e78d_d9ec58a64952475a8d81ac1cbb411b1a.jpg",
+    "title": "P1000866b",
+    "description": "",
+    "alt": "",
+    "width": 2815,
+    "height": 1582
+   },
+   {
+    "id": "dataItem-ier84vnf",
+    "uri": "39e78d_7fd36f591d3f44e4925fbcb31ef64cc3.jpg",
+    "title": "P1000855",
+    "description": "",
+    "alt": "",
+    "width": 2794,
+    "height": 1570
+   },
+   {
+    "id": "dataItem-ier84vnf1",
+    "uri": "39e78d_6558b31eac7c4fd49dc6e06887d1bcb9.jpg",
+    "title": "P1000873b",
+    "description": "",
+    "alt": "",
+    "width": 1877,
+    "height": 2816
+   },
+   {
+    "id": "dataItem-iespvy5w2",
+    "uri": "39e78d_96d3915aaa924df989052d8014847397.png",
+    "title": "Family12_normal_04.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-iespvy5x",
+    "uri": "39e78d_306df44c91a14b53a4de1934d9cba096.png",
+    "title": "Family12_hover_04.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-iespvy5x1",
+    "uri": "39e78d_04add4c9bcfb40c7ab7a1064ba450f11.png",
+    "title": "Family12_hover_04.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "wmmgi_desktop_mediaRef",
+    "uri": "39e78d_793a266327194cc6bc702994e21fab78.jpg",
+    "title": "po po po ....jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 3256,
+    "height": 2171
+   },
+   {
+    "id": "wmmgi_mobile_mediaRef",
+    "uri": "39e78d_80567956e77d4c8cb488d7d7e9affcfd.jpg",
+    "title": "L1010336 (1).jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2521,
+    "height": 3783
+   }
+  ],
+  "videos": [],
+  "links": [
+   {
+    "pageId": "#xbzvr"
+   }
+  ],
+  "n_images": 13
+ },
+ "cjuf4": {
+  "title": "APERITIVO STENOPEICO POLA",
+  "slug": "aperitivo-stenopeico-pola",
+  "file": "39e78d_a870c7c93662e468b8859fb7f46d28b8_367",
+  "texts": [
+   {
+    "id": "dataItem-ie4ibh99",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">APERITIVO&nbsp;</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:20px;\">(POLA EDITION)</span><span style=\"font-size:29px;\">&nbsp;</span><span style=\"font-size:16px;\">(2006)</span></h4>\n",
+    "text": "APERITIVO (POLA EDITION) (2006)"
+   },
+   {
+    "id": "dataItem-ieg6qqbn1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">&nbsp;STENOPEICO</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\">&nbsp;</h4>\n",
+    "text": "STENOPEICO"
+   }
+  ],
+  "images": [
+   {
+    "id": "cjuf4_desktop_mediaRef",
+    "uri": "39e78d_267ad003bc3b43d18bf963ec0650566f.jpg",
+    "title": "polaback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1056,
+    "height": 784
+   },
+   {
+    "id": "cjuf4_mobile_mediaRef",
+    "uri": "39e78d_382e1aa2780141ddb53d4611bbba760c.jpg",
+    "title": "09_edited.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 601,
+    "height": 457
+   },
+   {
+    "id": "dataItem-idvzdyu5",
+    "uri": "39e78d_4ca6bf5ab64e476a8913e6d4f7976262.jpg",
+    "title": "01",
+    "description": "",
+    "alt": "",
+    "width": 1044,
+    "height": 1259
+   },
+   {
+    "id": "dataItem-idvzdyu51",
+    "uri": "39e78d_65834d6db4664da28b7abc2245887c7b.jpg",
+    "title": "03",
+    "description": "",
+    "alt": "",
+    "width": 1044,
+    "height": 1259
+   },
+   {
+    "id": "dataItem-idvzdyu52",
+    "uri": "39e78d_ccf69efcd82842efa5a7d850b3be9435.jpg",
+    "title": "02",
+    "description": "",
+    "alt": "",
+    "width": 1044,
+    "height": 1259
+   },
+   {
+    "id": "dataItem-idvzdyu6",
+    "uri": "39e78d_615c14054ae74769ab43fc833ca8c840.jpg",
+    "title": "04",
+    "description": "",
+    "alt": "",
+    "width": 1044,
+    "height": 1259
+   },
+   {
+    "id": "dataItem-idvzdyu61",
+    "uri": "39e78d_6d7c952d1109464e8103986efd425a6c.jpg",
+    "title": "05",
+    "description": "",
+    "alt": "",
+    "width": 1044,
+    "height": 1259
+   },
+   {
+    "id": "dataItem-idvzdyu62",
+    "uri": "39e78d_7da7e0c583eb44afb8bd86f8069216ff.jpg",
+    "title": "06",
+    "description": "",
+    "alt": "",
+    "width": 1044,
+    "height": 1259
+   },
+   {
+    "id": "dataItem-idvzdyu63",
+    "uri": "39e78d_37b27d04fc44400c83dff7e815dda487.jpg",
+    "title": "07",
+    "description": "",
+    "alt": "",
+    "width": 1044,
+    "height": 1259
+   },
+   {
+    "id": "dataItem-idvzdyu7",
+    "uri": "39e78d_bd10b24bb02a4790b5152f4feca3ddda.jpg",
+    "title": "08",
+    "description": "",
+    "alt": "",
+    "width": 1044,
+    "height": 1259
+   },
+   {
+    "id": "dataItem-idvzdyu71",
+    "uri": "39e78d_860172e8553e459cb2cb748115b14978.jpg",
+    "title": "09",
+    "description": "",
+    "alt": "",
+    "width": 1044,
+    "height": 1259
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 11
+ },
+ "wv4aw": {
+  "title": "INDEX",
+  "slug": "index",
+  "file": "39e78d_692f3c3ce8c39e396e6d1b1067b95c64_367",
+  "texts": [
+   {
+    "id": "dataItem-idyzd5xz",
+    "html": "<h4 class=\"font_4\"><span style=\"font-size:29px;\">INDEX</span>&nbsp;<span style=\"font-size:14px;\">(2006)</span></h4>\n",
+    "text": "INDEX (2006)"
+   },
+   {
+    "id": "dataItem-idyzlvx11",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_8\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">lightbox model scale 1:2</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_8\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_8\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">plexiglass, pvc , high power LED stripe</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_8\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_8\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">20x20x20cm</span></span></p>\n",
+    "text": "lightbox model scale 1:2 plexiglass, pvc , high power LED stripe 20x20x20cm"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-idyz58jf",
+    "uri": "39e78d_ca2f35c255eb4fe09626227da9d3f751.jpg",
+    "title": "_DSC0232_edited",
+    "description": "",
+    "alt": "",
+    "width": 252,
+    "height": 336
+   },
+   {
+    "id": "dataItem-idyz58jf1",
+    "uri": "39e78d_bc8d662ebab14477b6e63eeee47d9400.jpg",
+    "title": "_DSC0229_edited",
+    "description": "",
+    "alt": "",
+    "width": 196,
+    "height": 262
+   },
+   {
+    "id": "dataItem-idyzj3k6",
+    "uri": "39e78d_68de3e6c59d24e80869dbb032853eeee.jpg",
+    "title": "_DSC0232_edited",
+    "description": "",
+    "alt": "",
+    "width": 536,
+    "height": 715
+   },
+   {
+    "id": "wv4aw_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "wv4aw_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 5
+ },
+ "xbzvr": {
+  "title": "EXHIBITIONS",
+  "slug": "exhibitions",
+  "file": "39e78d_7a8e65c92b20bb12121e8ce72f8013c2_367",
+  "texts": [
+   {
+    "id": "dataItem-iehl9455",
+    "html": "<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">16-26 maggio 2013<br>\nfestival oodaaq<br>\nRennes<br>\nfrance</span></span></p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">4 - 11 maggio 2013<br>\nesperienze stenopeiche in una camera ludica<br>\nPalazzo Ducale<br>\nUrbino</span></span></p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">27 agosto - 26 settembre 2010<br>\nAmbient art&amp;architecture<br>\narsenale tesa 90 alle nappe<br>\nVenezia</span></span></p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">24 ottobre - 8 novembre 2009<br>\nArte in luce 2009 (contemporary art torino piemonte)<br>\nvillaggio olimpico<br>\nTorino</span></span></p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">20 settembre 2008<br>\n“via Oliveto Scammacca 21/c”<br>\nGATE21 – sismaspace<br>\nCatania</span></span></p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">28 agosto 2008<br>\nperformance-installazione<br>\nall’interno di “Nel segno del tango”&nbsp;<br>\na cura di “Studio calcografico Urbino<br>\nmuseo “ V. Colonna”<br>\npescara</span></span></p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">08 agosto 2008<br>\n“Endless festival”<br>\nExAurum<br>\nPescara</span></span></p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">24 giugno 2008<br>\n\"Made in italy II\"<br>\nGalleria \"Am Roten Hof\"<br>\nPiaristengasse 1/II<br>\nVienna</span></span></p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">28 ottobre 2005<br>\n\"Videomatic 3.1\"<br>\nGalleria dei Serpenti<br>\nvia dei serpenti Roma</span></span></p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px; text-align: right;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">5 luglio 2003<br>\n“Animadversione”&nbsp;<br>\npresso il Museo delle Genti d’Abruzzo</span></span></p>\n",
+    "text": "16-26 maggio 2013 festival oodaaq Rennes france 4 - 11 maggio 2013 esperienze stenopeiche in una camera ludica Palazzo Ducale Urbino 27 agosto - 26 settembre 2010 Ambient art&architecture arsenale tesa 90 alle nappe Venezia 24 ottobre - 8 novembre 2009 Arte in luce 2009 (contemporary art torino piemonte) villaggio olimpico Torino 20 settembre 2008 “via Oliveto Scammacca 21/c” GATE21 – sismaspace Catania 28 agosto 2008 performance-installazione all’interno di “Nel segno del tango” a cura di “Studio calcografico Urbino museo “ V. Colonna” pescara 08 agosto 2008 “Endless festival” ExAurum Pescara 24 giugno 2008 \"Made in italy II\" Galleria \"Am Roten Hof\" Piaristengasse 1/II Vienna 28 ottobre 2005 \"Videomatic 3.1\" Galleria dei Serpenti via dei serpenti Roma 5 luglio 2003 “Animadversione” presso il Museo delle Genti d’Abruzzo"
+   },
+   {
+    "id": "dataItem-iehlee8p",
+    "html": "<p style=\"font-size: 10px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">22 dicembre 2007<br>\n\"Rosso Sedia\"<br>\npresso \"PostPostStudio\"<br>\npescara</span></span></p>\n\n<p style=\"font-size: 10px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">20 febbraio 2004&nbsp;<br>\n” Linguaggi artistici e nuove tecnologie”<br>\npresso \"loSpaccone\"&nbsp;&nbsp;<br>\nPadova</span></span></p>\n\n<p style=\"font-size: 10px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">8 dicembre 2003<br>\n” Linguaggi artistici e nuove tecnologie”<br>\npresso il centro sportivo “S.Alvise” Venezia</span></span></p>\n\n<p style=\"font-size: 10px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">28 ottobre 2003<br>\n“Personalmente”<br>\npresso il locale “vini e oli” club Pescara</span></span></p>\n\n<p style=\"font-size: 10px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">12 ottobre 2003<br>\n” Linguaggi artistici e nuove tecnologie”<br>\npresso il locale “Groove” jazz club Pescara</span></span></p>\n\n<p style=\"font-size: 10px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 10px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:10px;\">29 agosto 2003,<br>\n” Linguaggi artistici e nuove tecnologie”<br>\npresso la sala polivalente “Otello Farias” Loreto Aprutino</span></span></p>\n",
+    "text": "22 dicembre 2007 \"Rosso Sedia\" presso \"PostPostStudio\" pescara 20 febbraio 2004 ” Linguaggi artistici e nuove tecnologie” presso \"loSpaccone\" Padova 8 dicembre 2003 ” Linguaggi artistici e nuove tecnologie” presso il centro sportivo “S.Alvise” Venezia 28 ottobre 2003 “Personalmente” presso il locale “vini e oli” club Pescara 12 ottobre 2003 ” Linguaggi artistici e nuove tecnologie” presso il locale “Groove” jazz club Pescara 29 agosto 2003, ” Linguaggi artistici e nuove tecnologie” presso la sala polivalente “Otello Farias” Loreto Aprutino"
+   },
+   {
+    "id": "dataItem-iehljno5",
+    "html": "<h4 style=\"font-size: 21px; text-align: right;\" class=\"font_4\"><span style=\"font-size:21px;\">GROUP EXHIBITION</span></h4>\n",
+    "text": "GROUP EXHIBITION"
+   },
+   {
+    "id": "dataItem-iehlkvyd1",
+    "html": "<h4 style=\"font-size: 21px;\" class=\"font_4\"><span style=\"font-size:21px;\">SOLO EXHIBITION</span></h4>\n",
+    "text": "SOLO EXHIBITION"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-ier5v0hy1",
+    "uri": "8d13be_2de24072abb84bb6b0acb32658f3c0dc.png",
+    "title": "Family12_normal_06.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-ier5v0hy2",
+    "uri": "8d13be_2b05852f27364eaf8e6b21f09507d8c8.png",
+    "title": "Family12_hover_06.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-ier5v0hz",
+    "uri": "8d13be_2b05852f27364eaf8e6b21f09507d8c8.png",
+    "title": "Family12_hover_06.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-ier5wsxg1",
+    "uri": "8d13be_2de24072abb84bb6b0acb32658f3c0dc.png",
+    "title": "Family12_normal_06.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-ier5wsxg2",
+    "uri": "8d13be_2b05852f27364eaf8e6b21f09507d8c8.png",
+    "title": "Family12_hover_06.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-ier5wsxh",
+    "uri": "8d13be_2b05852f27364eaf8e6b21f09507d8c8.png",
+    "title": "Family12_hover_06.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-ier5xfj41",
+    "uri": "8d13be_2de24072abb84bb6b0acb32658f3c0dc.png",
+    "title": "Family12_normal_06.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-ier5xfj42",
+    "uri": "8d13be_2b05852f27364eaf8e6b21f09507d8c8.png",
+    "title": "Family12_hover_06.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-ier5xfj5",
+    "uri": "8d13be_2b05852f27364eaf8e6b21f09507d8c8.png",
+    "title": "Family12_hover_06.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-iesppfse1",
+    "uri": "39e78d_96d3915aaa924df989052d8014847397.png",
+    "title": "Family12_normal_04.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-iesppfse2",
+    "uri": "39e78d_306df44c91a14b53a4de1934d9cba096.png",
+    "title": "Family12_hover_04.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "dataItem-iesppfsf",
+    "uri": "39e78d_5110466dcf5f46c58d4fcd464705a4f6.png",
+    "title": "Family12_hover_04.png",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "xbzvr_desktop_mediaRef",
+    "uri": "39e78d_793a266327194cc6bc702994e21fab78.jpg",
+    "title": "po po po ....jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 3256,
+    "height": 2171
+   },
+   {
+    "id": "xbzvr_mobile_mediaRef",
+    "uri": "39e78d_80567956e77d4c8cb488d7d7e9affcfd.jpg",
+    "title": "L1010336 (1).jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2521,
+    "height": 3783
+   }
+  ],
+  "videos": [],
+  "links": [
+   {
+    "pageId": "#kodfm"
+   },
+   {
+    "pageId": "#wyfd6"
+   },
+   {
+    "pageId": "#wmmgi"
+   },
+   {
+    "pageId": "#c66t"
+   }
+  ],
+  "n_images": 14
+ },
+ "rja0r": {
+  "title": "RETURN CAM",
+  "slug": "return-cam",
+  "file": "39e78d_0b5fcf636cfdda664464f01944a8130a_367",
+  "texts": [
+   {
+    "id": "dataItem-iejwud3k1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\">RETURN CAM</h4>\n",
+    "text": "RETURN CAM"
+   },
+   {
+    "id": "dataItem-iejwwf1j",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">120 roll &nbsp;film pinhole camera conversion</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">material:</span> pinhole camera conversion<br>\n<span style=\"font-weight:bold;\">focal length: </span>90mm<br>\n<span style=\"font-weight:bold;\">angle of view:</span> 57º<br>\n<span style=\"font-weight:bold;\">f-stop: </span>257<br>\n<span style=\"font-weight:bold;\">pinhole: </span>0,35<br>\n<span style=\"font-weight:bold;\">film accepted: </span>120 / 220 roll film</p>\n",
+    "text": "120 roll film pinhole camera conversion material: pinhole camera conversion focal length: 90mm angle of view: 57º f-stop: 257 pinhole: 0,35 film accepted: 120 / 220 roll film"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-iesolmyi",
+    "uri": "39e78d_b1c62644013944d4818ad5c0194d0c87.jpg",
+    "title": "DSC_02301",
+    "description": "",
+    "alt": "",
+    "width": 2766,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iesolmyj",
+    "uri": "39e78d_a0907bf757b64770813cecc660b76cbf.jpg",
+    "title": "DSC_02302",
+    "description": "",
+    "alt": "",
+    "width": 2890,
+    "height": 4045
+   },
+   {
+    "id": "dataItem-iesolmyj1",
+    "uri": "39e78d_8927bbcbca684e77937f31509187947b.jpg",
+    "title": "DSC_02303",
+    "description": "",
+    "alt": "",
+    "width": 2898,
+    "height": 4058
+   },
+   {
+    "id": "dataItem-iesolmyj2",
+    "uri": "39e78d_17a5046015564d0b8365359ba6dcf303.jpg",
+    "title": "DSC_02304",
+    "description": "",
+    "alt": "",
+    "width": 2765,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iesolmyk",
+    "uri": "39e78d_31b5473821c54ea3968cb65725efe6c0.jpg",
+    "title": "DSC_0230",
+    "description": "",
+    "alt": "",
+    "width": 2877,
+    "height": 4028
+   },
+   {
+    "id": "rja0r_desktop_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   },
+   {
+    "id": "rja0r_mobile_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 7
+ },
+ "na5jn": {
+  "title": "CHEAT CAM",
+  "slug": "cheat-cam",
+  "file": "39e78d_394515c206e81487ad71bd38882d1ca8_367",
+  "texts": [
+   {
+    "id": "dataItem-iejwtrk4",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\">CHEAT PIN</h4>\n",
+    "text": "CHEAT PIN"
+   },
+   {
+    "id": "dataItem-iejww4r01",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">material: painted pvc pipe, metal, laser pinhole</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><br>\n<span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">focal length: </span>from 100mm to 270mm anamorphic<br>\n<span style=\"font-weight:bold;\">angle of view: </span>---<br>\n<span style=\"font-weight:bold;\">f-stop: </span>from 128 to 540<br>\n<span style=\"font-weight:bold;\">pinhole: </span>0,5µ<br>\n<span style=\"font-weight:bold;\">film accepted: </span>2 x 8\"x10\"(20x24cm) foil film</span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">used to make&nbsp;\"cheat your eyes\"&nbsp;series print and lightbox</span></span></p>\n",
+    "text": "material: painted pvc pipe, metal, laser pinhole focal length: from 100mm to 270mm anamorphic angle of view: --- f-stop: from 128 to 540 pinhole: 0,5µ film accepted: 2 x 8\"x10\"(20x24cm) foil film used to make \"cheat your eyes\" series print and lightbox"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-iejx4f7d",
+    "uri": "39e78d_b1b76a3e753a4cd98a8c8d0297b25ce5.jpg",
+    "title": "DSC_0099",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iejx4f7d1",
+    "uri": "39e78d_3784c92eda5c469aac067ac8bdaa4b7f.jpg",
+    "title": "DSC_0098",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iejx4f7d2",
+    "uri": "39e78d_5449b7538f154bc9a20940fe730cf5ad.jpg",
+    "title": "DSC_0094",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "na5jn_desktop_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   },
+   {
+    "id": "na5jn_mobile_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 5
+ },
+ "b1zkc": {
+  "title": "ROSSO SEDIA",
+  "slug": "rosso-sedia",
+  "file": "39e78d_9b578a25515d32618ca322bccd99048c_367",
+  "texts": [
+   {
+    "id": "dataItem-ie4i9eth",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">ROSSO SEDIA&nbsp;</span><span style=\"font-size:16px;\">(2006)</span></h4>\n",
+    "text": "ROSSO SEDIA (2006)"
+   },
+   {
+    "id": "dataItem-ifzqsni51",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><b>9 shoots on polaroid composition by a self made big pinhole camera</b></p>\n",
+    "text": "9 shoots on polaroid composition by a self made big pinhole camera"
+   }
+  ],
+  "images": [
+   {
+    "id": "b1zkc_desktop_mediaRef",
+    "uri": "39e78d_267ad003bc3b43d18bf963ec0650566f.jpg",
+    "title": "polaback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1056,
+    "height": 784
+   },
+   {
+    "id": "b1zkc_mobile_mediaRef",
+    "uri": "39e78d_382e1aa2780141ddb53d4611bbba760c.jpg",
+    "title": "09_edited.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 601,
+    "height": 457
+   },
+   {
+    "id": "dataItem-idvxrkzh",
+    "uri": "39e78d_8916ed59d479418a856bfed33f5fde74.jpg",
+    "title": "08",
+    "description": "",
+    "alt": "",
+    "width": 1701,
+    "height": 1049
+   },
+   {
+    "id": "dataItem-idvxrkzi",
+    "uri": "39e78d_1877a504f575410d9aef3e7d129f78ac.jpg",
+    "title": "02",
+    "description": "",
+    "alt": "",
+    "width": 1701,
+    "height": 1049
+   },
+   {
+    "id": "dataItem-idvxrkzi1",
+    "uri": "39e78d_a83ca4b37c714f98b58cab1aa07a86a6.jpg",
+    "title": "01",
+    "description": "",
+    "alt": "",
+    "width": 1701,
+    "height": 1049
+   },
+   {
+    "id": "dataItem-idvxrkzi2",
+    "uri": "39e78d_660f8ce650ad470e8cf11283213a16aa.jpg",
+    "title": "05",
+    "description": "",
+    "alt": "",
+    "width": 1701,
+    "height": 1049
+   },
+   {
+    "id": "dataItem-idvxrkzi3",
+    "uri": "39e78d_059a9453dcc24f0d965e275edf4c9d4d.jpg",
+    "title": "07",
+    "description": "",
+    "alt": "",
+    "width": 1701,
+    "height": 1049
+   },
+   {
+    "id": "dataItem-idvxrkzj",
+    "uri": "39e78d_259d19ccb7a140c494fc99529b0529f8.jpg",
+    "title": "06",
+    "description": "",
+    "alt": "",
+    "width": 1701,
+    "height": 1049
+   },
+   {
+    "id": "dataItem-idvxrkzj1",
+    "uri": "39e78d_66919b34c53c4ac6b575d268f1a1dcc9.jpg",
+    "title": "04",
+    "description": "",
+    "alt": "",
+    "width": 1701,
+    "height": 1049
+   },
+   {
+    "id": "dataItem-idvxrkzj2",
+    "uri": "39e78d_2b956adef84a43189e5a0b2402eb0012.jpg",
+    "title": "03",
+    "description": "",
+    "alt": "",
+    "width": 1701,
+    "height": 1049
+   },
+   {
+    "id": "dataItem-ifzr3kdr",
+    "uri": "39e78d_3c6ee3c494cf4b9a972be99b882e239c.jpg",
+    "title": "DSCN0410.jpg",
+    "description": "",
+    "alt": "",
+    "width": 1841,
+    "height": 2758
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 11
+ },
+ "ylw7w": {
+  "title": "INNER TRIP",
+  "slug": "inner-trip",
+  "file": "39e78d_99e9808fb90c32639b793b0362ac8453_367",
+  "texts": [
+   {
+    "id": "dataItem-ierdrrub1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">INNER</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2001)</span></h4>\n",
+    "text": "INNER (2001)"
+   },
+   {
+    "id": "dataItem-ierdscco1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">TRIP</span></h4>\n",
+    "text": "TRIP"
+   },
+   {
+    "id": "dataItem-ierdsssj",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">21 fine art prints inside plexiglass</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">50x50cm each</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n",
+    "text": "21 fine art prints inside plexiglass 50x50cm each"
+   }
+  ],
+  "images": [
+   {
+    "id": "ylw7w_desktop_mediaRef",
+    "uri": "39e78d_ea5bb0aaa62046e69455f4ebe799f82c.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   },
+   {
+    "id": "ylw7w_mobile_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   }
+  ],
+  "videos": [
+   {
+    "id": "dataItem-idrth6pn1",
+    "videoId": "idB3R1aPnVg",
+    "videoType": "YOUTUBE"
+   }
+  ],
+  "links": [],
+  "n_images": 2
+ },
+ "kn4u3": {
+  "title": "SPARE PARTS",
+  "slug": "spare-parts",
+  "file": "39e78d_efef0902b56a760a5b5b93a3158c5d73_367",
+  "texts": [
+   {
+    "id": "dataItem-ie4huiga1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">SPARE PARTS&nbsp;</span><span style=\"font-size:16px;\">(2006)</span></h4>\n",
+    "text": "SPARE PARTS (2006)"
+   },
+   {
+    "id": "dataItem-ie4hvo2x1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_8\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">Polaroid type 55 photo series</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_8\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">silver analogue print</span></span></p>\n",
+    "text": "Polaroid type 55 photo series silver analogue print"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-idrrwqnl",
+    "uri": "39e78d_f1bb687c9dff49a6b6b06ed7b447c9e6.jpg",
+    "title": "Senza titolo-5",
+    "description": "",
+    "alt": "",
+    "width": 2105,
+    "height": 2560
+   },
+   {
+    "id": "dataItem-idrrwqnl1",
+    "uri": "39e78d_f492a9491c714af0b0f38ef4a0b91d0b.jpg",
+    "title": "Senza titolo-1",
+    "description": "",
+    "alt": "",
+    "width": 2187,
+    "height": 2582
+   },
+   {
+    "id": "dataItem-idrrwqnl2",
+    "uri": "39e78d_4534c3f961a44ac0ac2a20099c4cfcff.jpg",
+    "title": "Senza titolo-1 (1)",
+    "description": "",
+    "alt": "",
+    "width": 2195,
+    "height": 2656
+   },
+   {
+    "id": "dataItem-idrrwqnm",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare",
+    "description": "",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   },
+   {
+    "id": "kn4u3_desktop_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   },
+   {
+    "id": "kn4u3_mobile_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 6
+ },
+ "n03rb": {
+  "title": "DISAPPERING",
+  "slug": "disappering",
+  "file": "39e78d_4c54b8c87b4f22bedce6a4869276bcaf_367",
+  "texts": [
+   {
+    "id": "dataItem-ieiotgse1",
+    "html": "<h4 class=\"font_4\"><span style=\"font-size:29px;\">DISAPPEARING</span>&nbsp;<span style=\"font-size:14px;\">(2008)</span></h4>\n",
+    "text": "DISAPPEARING (2008)"
+   },
+   {
+    "id": "dataItem-ieioy2co1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">E’ incredibile come la fotografia possa cambiare la nostra percezione del mondo.</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">la visione multipla di 4 punti di vista differenti e simultanei , fa sì che l'attenzione si smarrisca nella riflessione oggettiva della composizione.<br>\nil contatto visivo ottenuto , si traduce in un collaborazione tra realtà e finzione , dove la linea che li separa sembra non essere netta.<br>\nla percezione è quella di una non presenza , dove ad essere fotografata è un'esperienza soggettiva del vissuto.</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">The multiple vision of 4 different yet simultaneous points of view makes it possible for the attention to get lost in the objective reflection of the composition.&nbsp;<br>\nThe visual contact that it's obtained from it gets transformed into a collaboration between reality and fiction in which the line that separes them hardly seems straight.<br>\nThe perception though is the one of a non-presence, where the subjective experience of the lived is the one thing that gets</span></span></p>\n",
+    "text": "E’ incredibile come la fotografia possa cambiare la nostra percezione del mondo. la visione multipla di 4 punti di vista differenti e simultanei , fa sì che l'attenzione si smarrisca nella riflessione oggettiva della composizione. il contatto visivo ottenuto , si traduce in un collaborazione tra realtà e finzione , dove la linea che li separa sembra non essere netta. la percezione è quella di una non presenza , dove ad essere fotografata è un'esperienza soggettiva del vissuto. The multiple vision of 4 different yet simultaneous points of view makes it possible for the attention to get lost in the objective reflection of the composition. The visual contact that it's obtained from it gets transformed into a collaboration between reality and fiction in which the line that separes them hardly seems straight. The perception though is the one of a non-presence, where the subjective experience of the lived is the one thing that gets"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-ieimbp1u",
+    "uri": "39e78d_fb01c3a9a6404f3b8ea88768631c7158.jpg",
+    "title": "_DSC0027",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-ieimihqp",
+    "uri": "39e78d_8fd7a6ecd44747efaa1db2c98129ee3f.jpg",
+    "title": "liftthathad2",
+    "description": "",
+    "alt": "",
+    "width": 1638,
+    "height": 1184
+   },
+   {
+    "id": "dataItem-ieimihqp1",
+    "uri": "39e78d_a8dd8640b79f4c99ad3c490d4c6bfe63.jpg",
+    "title": "liftthatand",
+    "description": "",
+    "alt": "",
+    "width": 1182,
+    "height": 1640
+   },
+   {
+    "id": "dataItem-ieimihqq",
+    "uri": "39e78d_ce457733b790419187295e251a387886.jpg",
+    "title": "lift",
+    "description": "",
+    "alt": "",
+    "width": 1165,
+    "height": 1636
+   },
+   {
+    "id": "dataItem-ieinq35y",
+    "uri": "39e78d_a5ce2ebc94d041f38c15a525e08b46f2.jpg",
+    "title": "",
+    "description": "Polaroid 803 20x25cm (8\"x10\" inches)",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq35y1",
+    "uri": "39e78d_450ac51cf3384d1e83204fe117ecd35b.jpg",
+    "title": "4pin 004",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq35z",
+    "uri": "39e78d_efd6b95fc62747a98fbb8a734114e738.jpg",
+    "title": "4pin 005",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq35z1",
+    "uri": "39e78d_d16c750843bb4c2195d32544ed22a62a.jpg",
+    "title": "4pin 006",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq35z2",
+    "uri": "39e78d_731f80f2f1da44e182e0ac62abe28e3f.jpg",
+    "title": "4pin 007",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq35z3",
+    "uri": "39e78d_e1aae31f41f447799bcd36e2bd88eb9f.jpg",
+    "title": "4pin 008",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq360",
+    "uri": "39e78d_626f610e3c994abb95fda7ec8f41aaa7.jpg",
+    "title": "4pin 009",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq3601",
+    "uri": "39e78d_fbf3c936b4d5495e8d67c68715a62df3.jpg",
+    "title": "4pin 010",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq3602",
+    "uri": "39e78d_f1ed74df2d60495e8139a2d97d091b4c.jpg",
+    "title": "4pin 011",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq3603",
+    "uri": "39e78d_c11d86200913455bb58f629db4143893.jpg",
+    "title": "4pin 012",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq361",
+    "uri": "39e78d_c940f773afdc4be2a937b76c65525214.jpg",
+    "title": "4pin 002",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq3611",
+    "uri": "39e78d_e04aa48811f0437ea7675293ea73c62d.jpg",
+    "title": "4pin 001",
+    "description": "",
+    "alt": "",
+    "width": 5173,
+    "height": 4228
+   },
+   {
+    "id": "dataItem-ieinq3612",
+    "uri": "39e78d_d60a0877d2be4673bdf5be3886356dc4.jpg",
+    "title": "8x10 lift 002",
+    "description": "",
+    "alt": "",
+    "width": 4009,
+    "height": 5587
+   },
+   {
+    "id": "dataItem-ieinq3613",
+    "uri": "39e78d_2d3110c71e8043439da4ce6d53b55d4a.jpg",
+    "title": "8x10 lift 001",
+    "description": "",
+    "alt": "",
+    "width": 5704,
+    "height": 4261
+   },
+   {
+    "id": "dataItem-ieinq362",
+    "uri": "39e78d_a6ccd7bbc07d40249ac98c95e1559c1c.jpg",
+    "title": "4pin 017",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq3621",
+    "uri": "39e78d_efcf125a33aa4e4997f5684c5c9dc10b.jpg",
+    "title": "4pin 015",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq3622",
+    "uri": "39e78d_36fd3ebccfa144bb8f9662dd57dec80f.jpg",
+    "title": "4pin 014",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq3623",
+    "uri": "39e78d_7e60166308764553a5616923319b15f6.jpg",
+    "title": "4pin 013",
+    "description": "",
+    "alt": "",
+    "width": 4228,
+    "height": 5173
+   },
+   {
+    "id": "dataItem-ieinq364",
+    "uri": "39e78d_8a6912b763bc4a95af3c0fa1e156676f.jpg",
+    "title": "002",
+    "description": "",
+    "alt": "",
+    "width": 1713,
+    "height": 2560
+   },
+   {
+    "id": "dataItem-ieinq3641",
+    "uri": "39e78d_a099ca81f76848a8bf3f328760fa2b94.jpg",
+    "title": "001",
+    "description": "",
+    "alt": "",
+    "width": 1708,
+    "height": 2562
+   },
+   {
+    "id": "dataItem-ieinq3642",
+    "uri": "39e78d_abda3fdb46894865aa5c97b81fd79148.jpg",
+    "title": "vertlight3",
+    "description": "",
+    "alt": "",
+    "width": 1708,
+    "height": 2562
+   },
+   {
+    "id": "dataItem-ieinq365",
+    "uri": "39e78d_e2729dc885274d70818de97089c29308.jpg",
+    "title": "vertlight1 (1)",
+    "description": "",
+    "alt": "",
+    "width": 1708,
+    "height": 2562
+   },
+   {
+    "id": "dataItem-ieinq3651",
+    "uri": "39e78d_c24c8ff972ba42dd93592cceb5aee1b2.jpg",
+    "title": "vertlight copia",
+    "description": "",
+    "alt": "",
+    "width": 1708,
+    "height": 2562
+   },
+   {
+    "id": "dataItem-ieinq3652",
+    "uri": "39e78d_045ae4f0a8db4015b37872792d0a3b97.jpg",
+    "title": "003",
+    "description": "",
+    "alt": "",
+    "width": 1708,
+    "height": 2562
+   },
+   {
+    "id": "n03rb_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "n03rb_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 30
+ },
+ "h4opu": {
+  "title": "SEATS",
+  "slug": "seats",
+  "file": "39e78d_da98d4dbce8c390067bdb61314190bce_367",
+  "texts": [
+   {
+    "id": "dataItem-ie4i4t11",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">SEATS&nbsp;</span><span style=\"font-size:16px;\">(2006)</span></h4>\n",
+    "text": "SEATS (2006)"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-idw5cppf",
+    "uri": "39e78d_f84264c6f1824e6f8dc9d01e2a580a9d.jpg",
+    "title": "15",
+    "description": "",
+    "alt": "",
+    "width": 3479,
+    "height": 4502
+   },
+   {
+    "id": "dataItem-idw5cppg",
+    "uri": "39e78d_83fb41f39b4d4010acba1dc264e62d98.jpg",
+    "title": "11",
+    "description": "",
+    "alt": "",
+    "width": 1066,
+    "height": 1302
+   },
+   {
+    "id": "dataItem-idw5cpph",
+    "uri": "39e78d_633058f65e494bb3a8572049860b7c43.jpg",
+    "title": "13",
+    "description": "",
+    "alt": "",
+    "width": 1082,
+    "height": 1303
+   },
+   {
+    "id": "dataItem-idw5cppi",
+    "uri": "39e78d_497fb89a26084f9389e7ac2da67256cd.jpg",
+    "title": "01",
+    "description": "",
+    "alt": "",
+    "width": 1087,
+    "height": 1311
+   },
+   {
+    "id": "dataItem-idw5cppi1",
+    "uri": "39e78d_c1e93e3ddc2b40f89396fcb865d969e3.jpg",
+    "title": "02",
+    "description": "",
+    "alt": "",
+    "width": 1078,
+    "height": 1305
+   },
+   {
+    "id": "dataItem-idw5cppj",
+    "uri": "39e78d_9fa155136f084b48823b42ca38d9ccb0.jpg",
+    "title": "03",
+    "description": "",
+    "alt": "",
+    "width": 1089,
+    "height": 1317
+   },
+   {
+    "id": "dataItem-idw5cppj1",
+    "uri": "39e78d_b582985d593f41329972c7f95ce9d98c.jpg",
+    "title": "05",
+    "description": "",
+    "alt": "",
+    "width": 1074,
+    "height": 1292
+   },
+   {
+    "id": "dataItem-idw5cppk",
+    "uri": "39e78d_bea5a8138dd749668d35a9ba101b6b80.jpg",
+    "title": "06",
+    "description": "",
+    "alt": "",
+    "width": 1082,
+    "height": 1296
+   },
+   {
+    "id": "dataItem-idw5cppk1",
+    "uri": "39e78d_1bafc08e5bde48948777b7cb55990b9a.jpg",
+    "title": "16",
+    "description": "",
+    "alt": "",
+    "width": 3551,
+    "height": 4596
+   },
+   {
+    "id": "dataItem-idw5cppk2",
+    "uri": "39e78d_bbfff572a24b476b897c63114e401d82.jpg",
+    "title": "04",
+    "description": "",
+    "alt": "",
+    "width": 1104,
+    "height": 1318
+   },
+   {
+    "id": "dataItem-idw5cppl",
+    "uri": "39e78d_2d9d0c863a1f44e68d5fdb229f47720c.jpg",
+    "title": "08",
+    "description": "",
+    "alt": "",
+    "width": 1083,
+    "height": 1298
+   },
+   {
+    "id": "dataItem-idw5cppm",
+    "uri": "39e78d_d9ca503403e54ebc9f34b8f31943f5b2.jpg",
+    "title": "14",
+    "description": "",
+    "alt": "",
+    "width": 1071,
+    "height": 1308
+   },
+   {
+    "id": "dataItem-idw5cppm1",
+    "uri": "39e78d_afeadbd2380c46b7814d8ab587bb7e2c.jpg",
+    "title": "10",
+    "description": "",
+    "alt": "",
+    "width": 1085,
+    "height": 1293
+   },
+   {
+    "id": "dataItem-idw5cppm2",
+    "uri": "39e78d_baa94dd4d75f4c23803756bcc60075d0.jpg",
+    "title": "09",
+    "description": "",
+    "alt": "",
+    "width": 1102,
+    "height": 1304
+   },
+   {
+    "id": "dataItem-idw5cppn",
+    "uri": "39e78d_c0931d3667e34bf4bb22f2586df3c821.jpg",
+    "title": "17",
+    "description": "",
+    "alt": "",
+    "width": 3425,
+    "height": 4020
+   },
+   {
+    "id": "dataItem-idw5cppn1",
+    "uri": "39e78d_191494908de04e688b2bbafd1a292941.jpg",
+    "title": "07",
+    "description": "",
+    "alt": "",
+    "width": 1088,
+    "height": 1301
+   },
+   {
+    "id": "dataItem-idw5cppo",
+    "uri": "39e78d_ee2e72dcde09426fba7c88aa48a9c05a.jpg",
+    "title": "12",
+    "description": "",
+    "alt": "",
+    "width": 1077,
+    "height": 1293
+   },
+   {
+    "id": "h4opu_desktop_mediaRef",
+    "uri": "39e78d_267ad003bc3b43d18bf963ec0650566f.jpg",
+    "title": "polaback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1056,
+    "height": 784
+   },
+   {
+    "id": "h4opu_mobile_mediaRef",
+    "uri": "39e78d_382e1aa2780141ddb53d4611bbba760c.jpg",
+    "title": "09_edited.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 601,
+    "height": 457
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 19
+ },
+ "j9g53": {
+  "title": "APERITIVO STENOPEICO LIGHT",
+  "slug": "aperitivo-stenopeico-light",
+  "file": "39e78d_a713eb77b2473d0cd7e2236d6a392a27_367",
+  "texts": [
+   {
+    "id": "dataItem-ieipie6p1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">APERITIVO </span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">light edition&nbsp;(2004)</span></h4>\n",
+    "text": "APERITIVO light edition (2004)"
+   },
+   {
+    "id": "dataItem-ieipir901",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">STENOPEICO</span></h4>\n",
+    "text": "STENOPEICO"
+   },
+   {
+    "id": "dataItem-ieipjc2o1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><b>series of 7 lightboxes</b></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><b>plexiglass, L.E.C. panel , lenticular print xl&nbsp;</b></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">L'opera offre una immagine triplice, bidimensionale e distorta.&nbsp;<br>\nL’osservatore viene catturato dall'ambiguità della visione: l’immagine indefinibile di ciò che potrebbe essere reale ed afferrabile si confonde e sfugge simultaneamente al movimento.&nbsp;</span></span></p>\n\n<p class=\"font_8\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">Offro un \"Aperitivo stenopeico\" (dal greco stenos opaios, dotato di un foro) che stimola la vista, la quale viene attirata da una percezione ogni volta nuova e modificata. Si instaura una vera e propria complicità sensoriale tra l’opera e il fruitore, che, come ogni complicità attiva, induce la curiosità di sperimentare le infinite illusioni ottiche offerte dal mutevole e molteplice punto di vista.</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">La luce si colora attraverso ciò che appare come un mutevole corpo celeste, in uno spazio indefinito.&nbsp;<br>\nLa luce che crea movimento, definisce il tempo che non sembra scorrere, ma che sembra passare con un ritmo irregolare e stabilito dall' osservatore..</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">The work offers a triple image, bi-dimensional and distorted.<br>\nThe observer is captured by the ambiguity of the vision: the un-definable image of what could be real and be grasped blurs and escapes simultaneously with movement.</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">I offer a “aperitivo stenopeico” (from the Greek stenos opaios, provided with a hole) that stimulates sight, which is attracted by an ever changing, new perception. A true, genuine complicity is established between the work and the observer, which as in any active complicities, induces the curiosity of experimenting the infinite optical delusions offered by the many and changing points of view.<br>\nLight takes colour through what appears like a changing celestial body, in an indefinite space. Light that creates movement defines a time which seems not to flow but rather pass at an irregular pace, determined by the observer.</span></p>\n",
+    "text": "series of 7 lightboxes plexiglass, L.E.C. panel , lenticular print xl L'opera offre una immagine triplice, bidimensionale e distorta. L’osservatore viene catturato dall'ambiguità della visione: l’immagine indefinibile di ciò che potrebbe essere reale ed afferrabile si confonde e sfugge simultaneamente al movimento. Offro un \"Aperitivo stenopeico\" (dal greco stenos opaios, dotato di un foro) che stimola la vista, la quale viene attirata da una percezione ogni volta nuova e modificata. Si instaura una vera e propria complicità sensoriale tra l’opera e il fruitore, che, come ogni complicità attiva, induce la curiosità di sperimentare le infinite illusioni ottiche offerte dal mutevole e molteplice punto di vista. La luce si colora attraverso ciò che appare come un mutevole corpo celeste, in uno spazio indefinito. La luce che crea movimento, definisce il tempo che non sembra scorrere, ma che sembra passare con un ritmo irregolare e stabilito dall' osservatore.. The work offers a triple image, bi-dimensional and distorted. The observer is captured by the ambiguity of the vision: the un-definable image of what could be real and be grasped blurs and escapes simultaneously with movement. I offer a “aperitivo stenopeico” (from the Greek stenos opaios, provided with a hole) that stimulates sight, which is attracted by an ever changing, new perception. A true, genuine complicity is established between the work and the observer, which as in any active complicities, induces the curiosity of experimenting the infinite optical delusions offered by the many and changing points of view. Light takes colour through what appears like a changing celestial body, in an indefinite space. Light that creates movement defines a time which seems not to flow but rather pass at an irregular pace, determined by the observer."
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-ifzn8p9z",
+    "uri": "39e78d_deefa1fde2a244b29c66641a3f5e1945.jpg",
+    "title": "_DSC0044 copy",
+    "description": "",
+    "alt": "",
+    "width": 2239,
+    "height": 1257
+   },
+   {
+    "id": "dataItem-ifzo6pyr",
+    "uri": "39e78d_8af1624d2c914a9fbe0e91e45344c910.jpg",
+    "title": "sequenzeaperitivo11",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "dataItem-ifzo6pyt",
+    "uri": "39e78d_3a465670c0b24f868373a8625d37f472.jpg",
+    "title": "sequenzeaperitivo10",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "dataItem-ifzo6pyu",
+    "uri": "39e78d_fe1d617ad3be4780924819d239f719c2.jpg",
+    "title": "sequenzeaperitivo9",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "dataItem-ifzo6pyu1",
+    "uri": "39e78d_9055ab409d0b4aa5a5a0c7cf1c890ca0.jpg",
+    "title": "sequenzeaperitivo8",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "dataItem-ifzo6pyv",
+    "uri": "39e78d_42732dc94e7441cda4844980e88f0eea.jpg",
+    "title": "sequenzeaperitivo7",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "dataItem-ifzo6pyv1",
+    "uri": "39e78d_13a4d6120aff4103b73b93799a7acf8c.jpg",
+    "title": "sequenzeaperitivo6",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "dataItem-ifzo6pyw",
+    "uri": "39e78d_615274c4328a426ea294bc4b5d5c6dbe.jpg",
+    "title": "sequenzeaperitivo5",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "dataItem-ifzo6pyw1",
+    "uri": "39e78d_c53e9ca7a61b4f619326c5be6aea2145.jpg",
+    "title": "sequenzeaperitivo4",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "dataItem-ifzo6pyx",
+    "uri": "39e78d_48eaa017aaf4412b9eb8d6905bd3a999.jpg",
+    "title": "sequenzeaperitivo3",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "dataItem-ifzo6pyx1",
+    "uri": "39e78d_8eed0c3f7a9d4f71af7710f200926ace.jpg",
+    "title": "sequenzeaperitivo2",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "dataItem-ifzo6pyy",
+    "uri": "39e78d_e50d015299804a829495c226401a3068.jpg",
+    "title": "sequenzeaperitivo",
+    "description": "",
+    "alt": "",
+    "width": 750,
+    "height": 750
+   },
+   {
+    "id": "j9g53_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "j9g53_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 14
+ },
+ "c329s": {
+  "title": "P.I.M.P. MY CAMERA",
+  "slug": "p-i-m-p--my-camera",
+  "file": "39e78d_431b02f04d2a1fe17ad5768c601723b5_367",
+  "texts": [
+   {
+    "id": "dataItem-iejwvu0i1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\">P.I.M.P. MY CAMERA</h4>\n",
+    "text": "P.I.M.P. MY CAMERA"
+   },
+   {
+    "id": "dataItem-iejwwpgg1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\">Una box-camera è una macchina fotografica nella sua espressione più semplice.&nbsp;&nbsp;<br>\nErano molto popolari nel XIX secolo ed erano comuni fino alla metà del1950, erano costruite a forma di scatola, da cui il nome, si può paragonare ad una point and shot dell'era moderna.<br>\nQueste camere hanno un obiettivo semplice che di solito è fisso. Generalmente non è possibile regolare la apertura o la velocità dell'otturatore, né modificare la distanza focale.&nbsp;</span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\">l'idea delle boxcamera fu del francese Nicéphore Niépce con l'aiuto dell'amico Louis Jacques Mandé Daguerre., con l'intento di espandere la popolarita della fotografia.</span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\">infatti a partire dagli inizi del 1900 le box camera furono commercialmente prodotte per popolarizzare la fotografia.</span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n",
+    "text": "Una box-camera è una macchina fotografica nella sua espressione più semplice. Erano molto popolari nel XIX secolo ed erano comuni fino alla metà del1950, erano costruite a forma di scatola, da cui il nome, si può paragonare ad una point and shot dell'era moderna. Queste camere hanno un obiettivo semplice che di solito è fisso. Generalmente non è possibile regolare la apertura o la velocità dell'otturatore, né modificare la distanza focale. l'idea delle boxcamera fu del francese Nicéphore Niépce con l'aiuto dell'amico Louis Jacques Mandé Daguerre., con l'intento di espandere la popolarita della fotografia. infatti a partire dagli inizi del 1900 le box camera furono commercialmente prodotte per popolarizzare la fotografia."
+   },
+   {
+    "id": "dataItem-iercgsw9",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">ZEISS IKON BABY-BOX TENGOR&nbsp;</span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">versione originale inizi '900<br>\nGoerz Frontar lens<br>\nmade in Germany</span></p>\n",
+    "text": "ZEISS IKON BABY-BOX TENGOR versione originale inizi '900 Goerz Frontar lens made in Germany"
+   },
+   {
+    "id": "dataItem-iercim9x1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\">il mio è un'omaggio a un'invenzione che adesso caratterizza ogni istante della nostra vita.<br>\nil restauro e il \"pimpaggio\" , è per rendere il vecchio ancora nuovo , ricordandoci le radici e la natura di un invenzione che continua ad incantare ,illudere , ingannare ,il nostro immaginario.</p>\n",
+    "text": "il mio è un'omaggio a un'invenzione che adesso caratterizza ogni istante della nostra vita. il restauro e il \"pimpaggio\" , è per rendere il vecchio ancora nuovo , ricordandoci le radici e la natura di un invenzione che continua ad incantare ,illudere , ingannare ,il nostro immaginario."
+   }
+  ],
+  "images": [
+   {
+    "id": "c329s_desktop_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   },
+   {
+    "id": "c329s_mobile_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   },
+   {
+    "id": "dataItem-iercewir",
+    "uri": "39e78d_78173495589f4051a9360cc09e78d43b.jpg",
+    "title": "56pimp-my-camera-copia.jpg",
+    "description": "",
+    "alt": "",
+    "width": 273,
+    "height": 224
+   },
+   {
+    "id": "dataItem-iesojtdf",
+    "uri": "39e78d_88f821303719431d8a291185b89018c0.jpg",
+    "title": "DSC_0134",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iesojtdg",
+    "uri": "39e78d_6bed4e063f1b4c1980dc5e258d08d3a4.jpg",
+    "title": "DSC_0137",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iesojtdg1",
+    "uri": "39e78d_b5a2cde9340646359fd341529c016a4a.jpg",
+    "title": "DSC_0142",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iesojtdg2",
+    "uri": "39e78d_5e81493f85ce4353a5342fb14da57472.jpg",
+    "title": "DSC_0140",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iesp22jc",
+    "uri": "39e78d_bbfa78d3b7784010af15ac18f85083c8.jpg",
+    "title": "DSC_01631",
+    "description": "",
+    "alt": "",
+    "width": 2766,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iesp22jd",
+    "uri": "39e78d_9308207582444a80882c5d6882c228ad.jpg",
+    "title": "DSC_01632",
+    "description": "",
+    "alt": "",
+    "width": 2766,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iesp22je",
+    "uri": "39e78d_5de297ef751f47589c9ed77efdd6d00c.jpg",
+    "title": "DSC_0163",
+    "description": "",
+    "alt": "",
+    "width": 2766,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iesp22je1",
+    "uri": "39e78d_801777db3a3a46349fdb54dc65ede219.jpg",
+    "title": "DSC_01633",
+    "description": "",
+    "alt": "",
+    "width": 2766,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iesp22je2",
+    "uri": "39e78d_6a8816e5a4554158bca3f58a8a9bbcee.jpg",
+    "title": "DSC_01634",
+    "description": "",
+    "alt": "",
+    "width": 2766,
+    "height": 3872
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 12
+ },
+ "y9qh4": {
+  "title": "CUTTING LIGHT",
+  "slug": "cutting-light",
+  "file": "39e78d_851a6fe0a8b96de6a2366b12785462e9_367",
+  "texts": [
+   {
+    "id": "dataItem-iehdxvkh1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">CUTTING LIGHT</span><span style=\"font-size:16px;\">(2004)</span></h4>\n",
+    "text": "CUTTING LIGHT (2004)"
+   },
+   {
+    "id": "dataItem-ieiq13i7",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><b>lightbox</b></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><b>plexiglass, high power 1W Led ,&nbsp;</b></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><b>60x60x70cm</b></p>\n",
+    "text": "lightbox plexiglass, high power 1W Led , 60x60x70cm"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-iehdr6x0",
+    "uri": "39e78d_4dbe6f9eb7c64df28da9f1b4782fe3ec.jpg",
+    "title": "_DSC0279",
+    "description": "",
+    "alt": "",
+    "width": 2578,
+    "height": 3851
+   },
+   {
+    "id": "dataItem-iehdr6x3",
+    "uri": "39e78d_897bc394620a4f8bb42de7bb70aac960.jpg",
+    "title": "_DSC0280",
+    "description": "",
+    "alt": "",
+    "width": 2600,
+    "height": 3884
+   },
+   {
+    "id": "dataItem-iehdr6x5",
+    "uri": "39e78d_ce69534b3b2647a99915ebbe27323a8b.jpg",
+    "title": "_DSC0280 - Version 3",
+    "description": "",
+    "alt": "",
+    "width": 549,
+    "height": 732
+   },
+   {
+    "id": "dataItem-iehdr6x51",
+    "uri": "39e78d_01eaa9c60ca841d694017627bcbc87ea.jpg",
+    "title": "_DSC0205",
+    "description": "",
+    "alt": "",
+    "width": 2600,
+    "height": 3884
+   },
+   {
+    "id": "dataItem-iehdr6x52",
+    "uri": "39e78d_5065329d3a9c43cfb3951d0a352742ec.jpg",
+    "title": "_DSC0213",
+    "description": "",
+    "alt": "",
+    "width": 2600,
+    "height": 3884
+   },
+   {
+    "id": "y9qh4_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "y9qh4_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 7
+ },
+ "honmh": {
+  "title": "WHERE THE CHILDREN PLAY",
+  "slug": "where-the-children-play",
+  "file": "39e78d_a8a34585b12e4ba91748beaf9424d1cb_367",
+  "texts": [
+   {
+    "id": "dataItem-ierct1mp1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">WHERE THE</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2008)</span></h4>\n",
+    "text": "WHERE THE (2008)"
+   },
+   {
+    "id": "dataItem-ierctnn91",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">CHILDREN PLAY</span></h4>\n",
+    "text": "CHILDREN PLAY"
+   },
+   {
+    "id": "dataItem-iercwtvo1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">lightbox</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">70x8x1,5cm</span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">series of 10</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">plexiglass, l.e.c. panel , polaroid 35mm instant positive film</span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n",
+    "text": "lightbox 70x8x1,5cm series of 10 plexiglass, l.e.c. panel , polaroid 35mm instant positive film"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-ifzmsqwd",
+    "uri": "39e78d_1f2a499a0ef04dafbc93404de54e24c1.jpg",
+    "title": "06 (2)",
+    "description": "",
+    "alt": "",
+    "width": 1302,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-ifzmsqwe",
+    "uri": "39e78d_c70775ea623b45e3bdfe2d805e99862c.jpg",
+    "title": "03 (2)",
+    "description": "",
+    "alt": "",
+    "width": 636,
+    "height": 3307
+   },
+   {
+    "id": "dataItem-ifzmsqwf",
+    "uri": "39e78d_9b56cf56624c4cd7b6b1df48ecf4b0dc.jpg",
+    "title": "02 (2)",
+    "description": "",
+    "alt": "",
+    "width": 636,
+    "height": 3307
+   },
+   {
+    "id": "dataItem-ifzmz3dr",
+    "uri": "39e78d_e3838617ee5f4788aa6b2c260123ac77.jpg",
+    "title": "_DSC2102169 (1)_edited",
+    "description": "",
+    "alt": "",
+    "width": 247,
+    "height": 450
+   },
+   {
+    "id": "dataItem-ifzmz3ds",
+    "uri": "39e78d_e2b9720598c54e98a19b480bbc76fbd9.jpg",
+    "title": "01 (3)",
+    "description": "",
+    "alt": "",
+    "width": 636,
+    "height": 3307
+   },
+   {
+    "id": "honmh_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "honmh_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 7
+ },
+ "dgrvf": {
+  "title": "SXPIN",
+  "slug": "sxpin",
+  "file": "39e78d_bb74a4a390c34729d073d71918382c64_367",
+  "texts": [
+   {
+    "id": "dataItem-iejwvbko",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\">SX PIN</h4>\n",
+    "text": "SX PIN"
+   },
+   {
+    "id": "dataItem-iejwwlvj1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">material: black plexiglass, laser pinhole, sx70, back for Fundus camera</span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><br>\n<span style=\"font-weight:bold;\">focal length: </span>33mm<br>\n<span style=\"font-weight:bold;\">angle of view: </span>145°<br>\n<span style=\"font-weight:bold;\">f-stop: </span>165 or 132º<br>\n<span style=\"font-weight:bold;\">pinhole:</span> 0,2µ or 0,25µ<br>\n<span style=\"font-weight:bold;\">film accepted: </span>any integral pack film (sx70, 600, impossible film)</p>\n",
+    "text": "material: black plexiglass, laser pinhole, sx70, back for Fundus camera focal length: 33mm angle of view: 145° f-stop: 165 or 132º pinhole: 0,2µ or 0,25µ film accepted: any integral pack film (sx70, 600, impossible film)"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-iessxbko",
+    "uri": "39e78d_a502f734f36b4e8c99a8ba44ed671669.jpg",
+    "title": "DSC_0155",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iessxbkp",
+    "uri": "39e78d_980c8470810a43c1b890c2d450a77641.jpg",
+    "title": "sxpin",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iessxbkp1",
+    "uri": "39e78d_eeb2bc53901d4fa58e498ea666aaeb6f.jpg",
+    "title": "sxpin2",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dgrvf_desktop_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   },
+   {
+    "id": "dgrvf_mobile_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 5
+ },
+ "yfnbg": {
+  "title": "POLA COLORS",
+  "slug": "pola-colors",
+  "file": "39e78d_626810fd76e0c69a533fab205a94df44_367",
+  "texts": [
+   {
+    "id": "dataItem-ifzscb58",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">POLA COLORS</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2011)</span></h4>\n",
+    "text": "POLA COLORS (2011)"
+   },
+   {
+    "id": "dataItem-ifzscb591",
+    "html": "<p class=\"font_8\"><b>paintings on polaroid composition</b></p>\n\n<p class=\"font_8\"><b>&nbsp;</b></p>\n",
+    "text": "paintings on polaroid composition"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-ifzscb4u",
+    "uri": "39e78d_8a62293a72884b4ca82c664c7b0970a9.jpg",
+    "title": "L1010718 copy",
+    "description": "",
+    "alt": "",
+    "width": 4272,
+    "height": 2856
+   },
+   {
+    "id": "dataItem-ifzscb4u1",
+    "uri": "39e78d_dd5802d514474bbaa94996ffe77d3c54.jpg",
+    "title": "L1010722 copy",
+    "description": "",
+    "alt": "",
+    "width": 4272,
+    "height": 2856
+   },
+   {
+    "id": "dataItem-ifzscb4u2",
+    "uri": "39e78d_caacd65f3e6c475fad8e4086b2ca066d.jpg",
+    "title": "L1010726 copy",
+    "description": "",
+    "alt": "",
+    "width": 4272,
+    "height": 2856
+   },
+   {
+    "id": "dataItem-ifzscb4u3",
+    "uri": "39e78d_e175f4cc95ad48c6acbd86cc618b26e3.jpg",
+    "title": "L1010728 copy",
+    "description": "",
+    "alt": "",
+    "width": 4272,
+    "height": 2856
+   },
+   {
+    "id": "dataItem-ifzscb4v",
+    "uri": "39e78d_8c545d8f5bcb4f359742b45f68beaf05.jpg",
+    "title": "L1010732 copy",
+    "description": "",
+    "alt": "",
+    "width": 4272,
+    "height": 2856
+   },
+   {
+    "id": "dataItem-ifzscb4v1",
+    "uri": "39e78d_fcd097f74ebd4087b0e10e57f6a0aef8.jpg",
+    "title": "L1010734 copy",
+    "description": "",
+    "alt": "",
+    "width": 4272,
+    "height": 2856
+   },
+   {
+    "id": "yfnbg_desktop_mediaRef",
+    "uri": "39e78d_658a9f4d7cb944efab0c97709547e36e.jpg",
+    "title": "paintback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1223,
+    "height": 1212
+   },
+   {
+    "id": "yfnbg_mobile_mediaRef",
+    "uri": "39e78d_658a9f4d7cb944efab0c97709547e36e.jpg",
+    "title": "paintback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1223,
+    "height": 1212
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 8
+ },
+ "dfle4": {
+  "title": "WALKING",
+  "slug": "walking",
+  "file": "39e78d_fe2c0b54672a9b31b96c1debf007a0c0_367",
+  "texts": [
+   {
+    "id": "dataItem-ie03217m1",
+    "html": "<p class=\"font_8\">Sono un paragrafo. Fai clic qui per aggiungere il tuo testo e modificarmi. È facile.</p>",
+    "text": "Sono un paragrafo. Fai clic qui per aggiungere il tuo testo e modificarmi. È facile."
+   },
+   {
+    "id": "dataItem-ie4ihubm",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">WALKING&nbsp;</span><span style=\"font-size:16px;\">(2006)</span></h4>\n",
+    "text": "WALKING (2006)"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-ie03i73r",
+    "uri": "39e78d_83f4fe2f86b1427c807b791beafe50c2.jpg",
+    "title": "60x60_edited",
+    "description": "",
+    "alt": "",
+    "width": 529,
+    "height": 529
+   },
+   {
+    "id": "dataItem-ie03i73s",
+    "uri": "39e78d_e3123f1e39ba4a4e9bb70c6a333fdeb5.jpg",
+    "title": "60x602_edited",
+    "description": "",
+    "alt": "",
+    "width": 529,
+    "height": 529
+   },
+   {
+    "id": "dataItem-ie03i73s1",
+    "uri": "39e78d_c09f247495ec4371970669227cd4f2db.jpg",
+    "title": "60x604_edited",
+    "description": "",
+    "alt": "",
+    "width": 529,
+    "height": 529
+   },
+   {
+    "id": "dataItem-ie03i73s2",
+    "uri": "39e78d_eafdd06467dc4ae89efb24647d842b4c.jpg",
+    "title": "60x603_edited",
+    "description": "",
+    "alt": "",
+    "width": 529,
+    "height": 529
+   },
+   {
+    "id": "dataItem-ie03i73t",
+    "uri": "39e78d_50bff40ee6e04ba19b75df7e44f7a981.jpg",
+    "title": "60x605_edited",
+    "description": "",
+    "alt": "",
+    "width": 529,
+    "height": 529
+   },
+   {
+    "id": "dfle4_desktop_mediaRef",
+    "uri": "39e78d_658a9f4d7cb944efab0c97709547e36e.jpg",
+    "title": "paintback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1223,
+    "height": 1212
+   },
+   {
+    "id": "dfle4_mobile_mediaRef",
+    "uri": "39e78d_658a9f4d7cb944efab0c97709547e36e.jpg",
+    "title": "paintback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1223,
+    "height": 1212
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 7
+ },
+ "om04t": {
+  "title": "FOUR EYES ",
+  "slug": "four-eyes-",
+  "file": "39e78d_fa2d33a7a1561aeb55da76f33bf04971_367",
+  "texts": [
+   {
+    "id": "dataItem-ieirbrib1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\">FOUR EYES &nbsp;<span style=\"font-size:16px;\">(2011)</span></h4>\n",
+    "text": "FOUR EYES (2011)"
+   },
+   {
+    "id": "dataItem-ieirczgl",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">8x10“ film pinhole camera</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">used to shot&nbsp;\"disappearing\"&nbsp;series</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">photos and transparencies</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">material:</span> black plexiglass, metal, laser pinhole<br>\n<span style=\"font-weight:bold;\">focal length:</span> 85mm x4<br>\n<span style=\"font-weight:bold;\">field of view:</span><br>\n<span style=\"font-weight:bold;\">f-stop: </span>242<br>\n<span style=\"font-weight:bold;\">pinhole:</span> 0,35µ<br>\n<span style=\"font-weight:bold;\">film accepted:</span> any 8\"x10\" foil film</span></p>\n",
+    "text": "8x10“ film pinhole camera used to shot \"disappearing\" series photos and transparencies material: black plexiglass, metal, laser pinhole focal length: 85mm x4 field of view: f-stop: 242 pinhole: 0,35µ film accepted: any 8\"x10\" foil film"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-ieirme1e",
+    "uri": "39e78d_4119015e79194b6f9d565189e1219a13.jpg",
+    "title": "4pin02",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "om04t_desktop_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   },
+   {
+    "id": "om04t_mobile_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 3
+ },
+ "c1oyp": {
+  "title": "POLAROID",
+  "slug": "polaroid",
+  "file": "39e78d_2c8bac9599f9d997dc5453bb22f417ab_366",
+  "texts": [],
+  "images": [
+   {
+    "id": "c1oyp_desktop_mediaRef",
+    "uri": "39e78d_267ad003bc3b43d18bf963ec0650566f.jpg",
+    "title": "polaback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1056,
+    "height": 784
+   },
+   {
+    "id": "c1oyp_mobile_mediaRef",
+    "uri": "39e78d_382e1aa2780141ddb53d4611bbba760c.jpg",
+    "title": "09_edited.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 601,
+    "height": 457
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 2
+ },
+ "zzefj": {
+  "title": "COMPONENT PIN",
+  "slug": "component-pin",
+  "file": "39e78d_29c51215362a1588036eafb6e477b423_367",
+  "texts": [
+   {
+    "id": "dataItem-iejwujtl1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\">COMPONENT PIN</h4>\n",
+    "text": "COMPONENT PIN"
+   },
+   {
+    "id": "dataItem-iejwwibb",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">8x10“ film pinhole camera</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">material:</span> black plexiglass, metal, laser pinhole<br>\n<span style=\"font-weight:bold;\">focal length:</span> 75mm&nbsp;<br>\n<span style=\"font-weight:bold;\">field of view: </span>147°<br>\n<span style=\"font-weight:bold;\">f-stop: </span>242<br>\n<span style=\"font-weight:bold;\">pinhole:</span> 0,35µ<br>\n<span style=\"font-weight:bold;\">film accepted:</span> any 8\"x10\" foil film</span></p>\n",
+    "text": "8x10“ film pinhole camera material: black plexiglass, metal, laser pinhole focal length: 75mm field of view: 147° f-stop: 242 pinhole: 0,35µ film accepted: any 8\"x10\" foil film"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-iest99um",
+    "uri": "39e78d_8f239ef438024441964d566edf76d765.jpg",
+    "title": "DSC_0102",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iest99un",
+    "uri": "39e78d_fe65b310f48b458a9889a76acea7c6b6.jpg",
+    "title": "DSC_0104",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "zzefj_desktop_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   },
+   {
+    "id": "zzefj_mobile_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 4
+ },
+ "c57eq": {
+  "title": "DRIPPING CITY DREAMS POLA",
+  "slug": "dripping-city-dreams-pola",
+  "file": "39e78d_29f29c9b0f724aacbaa5d19f659c818d_367",
+  "texts": [
+   {
+    "id": "dataItem-ie4i6vik1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">DRIPPING CITY </span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2006)</span></h4>\n",
+    "text": "DRIPPING CITY (2006)"
+   },
+   {
+    "id": "dataItem-ieg6v5k21",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">DREAMS</span></h4>\n",
+    "text": "DREAMS"
+   }
+  ],
+  "images": [
+   {
+    "id": "c57eq_desktop_mediaRef",
+    "uri": "39e78d_267ad003bc3b43d18bf963ec0650566f.jpg",
+    "title": "polaback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1056,
+    "height": 784
+   },
+   {
+    "id": "c57eq_mobile_mediaRef",
+    "uri": "39e78d_382e1aa2780141ddb53d4611bbba760c.jpg",
+    "title": "09_edited.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 601,
+    "height": 457
+   },
+   {
+    "id": "dataItem-idvzxx4d",
+    "uri": "39e78d_6b20e17eb55c490089682641392263c7.jpg",
+    "title": "01",
+    "description": "",
+    "alt": "",
+    "width": 1078,
+    "height": 1294
+   },
+   {
+    "id": "dataItem-idvzxx4d1",
+    "uri": "39e78d_a540b95ada8c462098afbf293f8fe301.jpg",
+    "title": "02",
+    "description": "",
+    "alt": "",
+    "width": 1086,
+    "height": 1308
+   },
+   {
+    "id": "dataItem-idvzxx4d2",
+    "uri": "39e78d_3ca29d4a42b544e985c7a2af6e13c23e.jpg",
+    "title": "03",
+    "description": "",
+    "alt": "",
+    "width": 1080,
+    "height": 1299
+   },
+   {
+    "id": "dataItem-idvzxx4e",
+    "uri": "39e78d_0e70dcab3e564bc9b9c4d828de7a2754.jpg",
+    "title": "04",
+    "description": "",
+    "alt": "",
+    "width": 1093,
+    "height": 1305
+   },
+   {
+    "id": "dataItem-idvzxx4e1",
+    "uri": "39e78d_3cb7f034cbeb4a359cbb8f86a3c366cc.jpg",
+    "title": "05",
+    "description": "",
+    "alt": "",
+    "width": 1079,
+    "height": 1291
+   },
+   {
+    "id": "dataItem-idvzxx4e2",
+    "uri": "39e78d_58c2bb3b9c1c4c4f8f8a8745c7b2b2ab.jpg",
+    "title": "06",
+    "description": "",
+    "alt": "",
+    "width": 1083,
+    "height": 1309
+   },
+   {
+    "id": "dataItem-idvzxx4e3",
+    "uri": "39e78d_c7c496b89af64b778a34a6f93dbe6fcd.jpg",
+    "title": "07",
+    "description": "",
+    "alt": "",
+    "width": 1087,
+    "height": 1300
+   },
+   {
+    "id": "dataItem-idvzxx4e4",
+    "uri": "39e78d_291f6b2ddbcf4b39b44114090d925a1f.jpg",
+    "title": "08",
+    "description": "",
+    "alt": "",
+    "width": 1085,
+    "height": 1294
+   },
+   {
+    "id": "dataItem-idvzxx4f",
+    "uri": "39e78d_d618bffe0fb24ba0ae4aef1b4b52ac56.jpg",
+    "title": "09",
+    "description": "",
+    "alt": "",
+    "width": 1074,
+    "height": 1303
+   },
+   {
+    "id": "dataItem-idvzxx4f1",
+    "uri": "39e78d_92d5556495984726aaa9b4f9fcbc3a45.jpg",
+    "title": "10",
+    "description": "",
+    "alt": "",
+    "width": 1084,
+    "height": 1293
+   },
+   {
+    "id": "dataItem-idvzxx4f2",
+    "uri": "39e78d_eaf990c7eacf414f85c3a91b2d1835b2.jpg",
+    "title": "11",
+    "description": "",
+    "alt": "",
+    "width": 1067,
+    "height": 1299
+   },
+   {
+    "id": "dataItem-idvzxx4f3",
+    "uri": "39e78d_40474ed2c9844fb7aa12dc088dbdf377.jpg",
+    "title": "12",
+    "description": "",
+    "alt": "",
+    "width": 1079,
+    "height": 1307
+   },
+   {
+    "id": "dataItem-idvzxx4f4",
+    "uri": "39e78d_8beec02fe61943138f4006cf87df7895.jpg",
+    "title": "13",
+    "description": "",
+    "alt": "",
+    "width": 1076,
+    "height": 1297
+   },
+   {
+    "id": "dataItem-idvzxx4g",
+    "uri": "39e78d_eec76c522d474069aeb2e268494c76ea.jpg",
+    "title": "14",
+    "description": "",
+    "alt": "",
+    "width": 1083,
+    "height": 1308
+   },
+   {
+    "id": "dataItem-idvzxx4g1",
+    "uri": "39e78d_f5187c10cd2445aaa5d33ded6a5cfc0c.jpg",
+    "title": "15",
+    "description": "",
+    "alt": "",
+    "width": 1077,
+    "height": 1290
+   },
+   {
+    "id": "dataItem-idvzxx4g2",
+    "uri": "39e78d_d13ad29b9d5042988f4d6dac887b8d2c.jpg",
+    "title": "16",
+    "description": "",
+    "alt": "",
+    "width": 1085,
+    "height": 1298
+   },
+   {
+    "id": "dataItem-idvzxx4g3",
+    "uri": "39e78d_1efa3a1d2fd64b76aeefd08b1a76bddb.jpg",
+    "title": "17",
+    "description": "",
+    "alt": "",
+    "width": 1073,
+    "height": 1304
+   },
+   {
+    "id": "dataItem-idvzxx4g4",
+    "uri": "39e78d_b1803c5d488d4db4be8d1e4382d38cf6.jpg",
+    "title": "18",
+    "description": "",
+    "alt": "",
+    "width": 1081,
+    "height": 1303
+   },
+   {
+    "id": "dataItem-idvzxx4g5",
+    "uri": "39e78d_f4853c8214ac4983b703771a6474df82.jpg",
+    "title": "19",
+    "description": "",
+    "alt": "",
+    "width": 1080,
+    "height": 1293
+   },
+   {
+    "id": "dataItem-idvzxx4h",
+    "uri": "39e78d_d24b2300780d40d3b90fed0e5e06977c.jpg",
+    "title": "20",
+    "description": "",
+    "alt": "",
+    "width": 1079,
+    "height": 1302
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 22
+ },
+ "r7hgk": {
+  "title": "SK8",
+  "slug": "sk8",
+  "file": "39e78d_3df5131a363487a1d53afbdbec267cc1_366",
+  "texts": [],
+  "images": [
+   {
+    "id": "r7hgk_desktop_mediaRef",
+    "uri": "39e78d_658a9f4d7cb944efab0c97709547e36e.jpg",
+    "title": "paintback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1223,
+    "height": 1212
+   },
+   {
+    "id": "r7hgk_mobile_mediaRef",
+    "uri": "39e78d_658a9f4d7cb944efab0c97709547e36e.jpg",
+    "title": "paintback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1223,
+    "height": 1212
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 2
+ },
+ "obp7m": {
+  "title": "STREET",
+  "slug": "street",
+  "file": "39e78d_25f1c2b48a5375fff9aec641a0f20b44_367",
+  "texts": [],
+  "images": [
+   {
+    "id": "obp7m_desktop_mediaRef",
+    "uri": "39e78d_6ff234e6e8ae4548a39ade57e961017a.jpg",
+    "title": "IMG_2449.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1224,
+    "height": 1632
+   },
+   {
+    "id": "obp7m_mobile_mediaRef",
+    "uri": "39e78d_6ff234e6e8ae4548a39ade57e961017a.jpg",
+    "title": "IMG_2449.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1224,
+    "height": 1632
+   }
+  ],
+  "videos": [],
+  "links": [
+   {
+    "pageId": "#at8yh"
+   }
+  ],
+  "n_images": 2
+ },
+ "f168j": {
+  "title": "SEEK DEEP INSIDE ..",
+  "slug": "seek-deep-inside---",
+  "file": "39e78d_98bdd6dd9417c013a98e67e18bec740a_367",
+  "texts": [
+   {
+    "id": "dataItem-ie00rsh5",
+    "html": "<p class=\"font_8\"><span style=\"font-weight:bold;\">fine art print in a plexiglass monoblock</span></p>\n\n<p class=\"font_8\">&nbsp;</p>\n\n<p class=\"font_8\"><span style=\"font-weight:bold;\">PHOTO SERIES OF 3</span></p>\n\n<p class=\"font_8\">&nbsp;</p>\n\n<p class=\"font_8\">&nbsp;</p>\n",
+    "text": "fine art print in a plexiglass monoblock PHOTO SERIES OF 3"
+   },
+   {
+    "id": "dataItem-iefynoq3",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">SEEK DEEP INSIDE...&nbsp;</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2006)</span></h4>\n",
+    "text": "SEEK DEEP INSIDE... (2006)"
+   },
+   {
+    "id": "dataItem-ieik976f1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">REMEMBER WHAT YOU FIND</span></h4>\n",
+    "text": "REMEMBER WHAT YOU FIND"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-idrt03az",
+    "uri": "39e78d_d9979cb5b09e471bb20f0d6f9c6a349c.jpg",
+    "title": "SEEK DEEP INSIDE ....",
+    "description": "",
+    "alt": "",
+    "width": 2600,
+    "height": 3884
+   },
+   {
+    "id": "dataItem-idrt03b1",
+    "uri": "39e78d_129c66eefa7446349d6c71d445ad2866.jpg",
+    "title": "mm",
+    "description": "",
+    "alt": "",
+    "width": 4206,
+    "height": 5593
+   },
+   {
+    "id": "dataItem-idrt03b2",
+    "uri": "39e78d_8a6b14a5ade4452a97c5240963e2b35c.jpg",
+    "title": "2",
+    "description": "",
+    "alt": "",
+    "width": 3985,
+    "height": 5304
+   },
+   {
+    "id": "dataItem-idrt03b3",
+    "uri": "39e78d_84482fb002d8420fbd121f8c6f01e5dd.jpg",
+    "title": "Senza titolo-1 (2)",
+    "description": "",
+    "alt": "",
+    "width": 4201,
+    "height": 5599
+   },
+   {
+    "id": "dataItem-ie00vyaf",
+    "uri": "39e78d_0ce2ed35c26c4e24b8ebebf27f935482.jpg",
+    "title": "_DSC0625_edited",
+    "description": "",
+    "alt": "",
+    "width": 184,
+    "height": 245
+   },
+   {
+    "id": "f168j_desktop_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   },
+   {
+    "id": "f168j_mobile_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 7
+ },
+ "crkt": {
+  "title": "BLOG",
+  "slug": "blog",
+  "file": "39e78d_d61d37844f3994670fae89b04247cab8_368",
+  "texts": [
+   {
+    "id": "c1cfy",
+    "html": "<h6 style='line-height: 1.4em;' class='font_6'><span style='line-height: 1.4em;'>Follow Us</span></h6>\n",
+    "text": "Follow Us"
+   },
+   {
+    "id": "c1ujz",
+    "html": "<h6 style='line-height: 1.4em;' class='font_6'><span style='line-height: 1.4em;'>Featured Posts</span></h6>\n",
+    "text": "Featured Posts"
+   },
+   {
+    "id": "c9r7",
+    "html": "<h6 style='line-height: 1.4em;' class='font_6'><span style='line-height: 1.4em;'>Recent Posts</span></h6>\n",
+    "text": "Recent Posts"
+   },
+   {
+    "id": "cfra",
+    "html": "<h6 style='line-height: 1.4em;' class='font_6'><span style='line-height: 1.4em;'>Search By Tags</span></h6>\n",
+    "text": "Search By Tags"
+   },
+   {
+    "id": "cuft",
+    "html": "<h2 class=\"font_2\">BLOG</h2>\n",
+    "text": "BLOG"
+   }
+  ],
+  "images": [
+   {
+    "id": "crkt_desktop_mediaRef",
+    "uri": "41d000_ba815af2009c1d1e54a402e7b682c43a.jpg",
+    "title": "",
+    "description": "",
+    "alt": "",
+    "width": 1200,
+    "height": 800
+   },
+   {
+    "id": "crkt_mobile_mediaRef",
+    "uri": "41d000_ba815af2009c1d1e54a402e7b682c43a.jpg",
+    "title": "",
+    "description": "",
+    "alt": "",
+    "width": 1200,
+    "height": 800
+   },
+   {
+    "id": "i0734",
+    "uri": "b1cd13f9d4dfb1450bbb325285106177.png",
+    "title": "Facebook Classic",
+    "description": "",
+    "alt": "",
+    "width": 128,
+    "height": 128
+   },
+   {
+    "id": "i1i5f",
+    "uri": "01113281ebb7dfb57a8dc2a02eb1cb92.png",
+    "title": "Twitter Classic",
+    "description": "",
+    "alt": "",
+    "width": 128,
+    "height": 128
+   },
+   {
+    "id": "i2zzc",
+    "uri": "806f5f56d9a7b8849f2f2ea71ff5c0cc.png",
+    "title": "Google Classic",
+    "description": "",
+    "alt": "",
+    "width": 128,
+    "height": 128
+   }
+  ],
+  "videos": [],
+  "links": [
+   {
+    "url": "http://www.facebook.com/wix"
+   },
+   {
+    "url": "https://plus.google.com/117167403531518744294/posts"
+   },
+   {
+    "url": "http://www.twitter.com/wix"
+   }
+  ],
+  "n_images": 5
+ },
+ "gxu7n": {
+  "title": "5TH SENSE",
+  "slug": "5th-sense",
+  "file": "39e78d_1a3bcfeb00a774d28b7fbb6229fe49ef_367",
+  "texts": [
+   {
+    "id": "dataItem-ieiq8v5y1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">lightbox 110x80x10cm</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">black plexiglass, canvas , uv ink powder , neon uv&nbsp;</span></span></p>\n",
+    "text": "lightbox 110x80x10cm black plexiglass, canvas , uv ink powder , neon uv"
+   },
+   {
+    "id": "dataItem-ieiq98ll1",
+    "html": "<h4 class=\"font_4\"><span style=\"font-size:29px;\">5TH SENSE</span>&nbsp;<span style=\"font-size:14px;\">(2007</span><span style=\"font-size:14px;\">)</span></h4>\n",
+    "text": "5TH SENSE (2007 )"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-iehkscu5",
+    "uri": "39e78d_4111ceded43342c5a519465f8b7057cf.jpg",
+    "title": "_DSC0252",
+    "description": "",
+    "alt": "",
+    "width": 2600,
+    "height": 3884
+   },
+   {
+    "id": "dataItem-iehkscu6",
+    "uri": "39e78d_500e0cd003cb4e7b9693a0fbba1facc6.jpg",
+    "title": "_DSC0253",
+    "description": "",
+    "alt": "",
+    "width": 2600,
+    "height": 3884
+   },
+   {
+    "id": "dataItem-iehkscu7",
+    "uri": "39e78d_061cc99e2d104fa4b0bf3d0fd00f8248.jpg",
+    "title": "_DSC0252_edited",
+    "description": "",
+    "alt": "",
+    "width": 258,
+    "height": 385
+   },
+   {
+    "id": "gxu7n_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "gxu7n_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 5
+ },
+ "sknd4": {
+  "title": "SFERICAMENTE",
+  "slug": "sfericamente",
+  "file": "39e78d_63adbbee544d473dc319552fe0809527_367",
+  "texts": [
+   {
+    "id": "dataItem-ierdxcz8",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><b>Questo video a cura di Giampiero Pagnini e Andrea Di Cesare, creato per la performance allestita per la duplice personale \"Personalmente.</b></p>\n",
+    "text": "Questo video a cura di Giampiero Pagnini e Andrea Di Cesare, creato per la performance allestita per la duplice personale \"Personalmente."
+   },
+   {
+    "id": "dataItem-ierdxczl",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">SFERICAMENTE</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2001)</span></h4>\n",
+    "text": "SFERICAMENTE (2001)"
+   }
+  ],
+  "images": [
+   {
+    "id": "sknd4_desktop_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   },
+   {
+    "id": "sknd4_mobile_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   }
+  ],
+  "videos": [
+   {
+    "id": "dataItem-idrtgpm0",
+    "videoId": "-z44MuqqIcI",
+    "videoType": "YOUTUBE"
+   }
+  ],
+  "links": [],
+  "n_images": 2
+ },
+ "mainPage": {
+  "title": "HOME",
+  "slug": "home",
+  "file": "39e78d_c04613187d3ccab377677873ed4afd31_368",
+  "texts": [],
+  "images": [
+   {
+    "id": "i05g1",
+    "uri": "4f857b2e8a316c4e1ed16717a3d4ec8c.png",
+    "title": "Facebook Clean ",
+    "description": "",
+    "alt": "",
+    "width": 205,
+    "height": 205
+   },
+   {
+    "id": "image1bn1",
+    "uri": "247914b5acebb73d481ff5a8b1fff4f8.png",
+    "title": "Flickr Clean ",
+    "description": "",
+    "alt": "",
+    "width": 205,
+    "height": 205
+   },
+   {
+    "id": "imagesj4",
+    "uri": "50503b14371f4daf4869fe9f06ee6c4b.png",
+    "title": "Instagram Clean ",
+    "description": "",
+    "alt": "",
+    "width": 205,
+    "height": 205
+   },
+   {
+    "id": "mainPage_desktop_mediaRef",
+    "uri": "39e78d_57286a76a6874357a07cf4645488adc2.jpg",
+    "title": "003.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2763,
+    "height": 1842
+   },
+   {
+    "id": "mainPage_mobile_mediaRef",
+    "uri": "39e78d_747700adeb2d4bb1bf1c21a3b6cb4344.jpg",
+    "title": "backphone.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1567,
+    "height": 1548
+   }
+  ],
+  "videos": [],
+  "links": [
+   {
+    "url": "https://www.facebook.com/pages/Giampiero-Pagnini/195855593834689?ref=bookmarks"
+   },
+   {
+    "url": "https://www.flickr.com/photos/giampiero_pagnini/"
+   },
+   {
+    "url": "http://instagram.com/giamps1982"
+   }
+  ],
+  "n_images": 5
+ },
+ "wovmf": {
+  "title": "CHEAT YOUR EYES",
+  "slug": "cheat-your-eyes",
+  "file": "39e78d_59d189291f013747e2b755c0956c3938_367",
+  "texts": [
+   {
+    "id": "dataItem-ierctyef1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">EYES</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\">&nbsp;</h4>\n",
+    "text": "EYES"
+   },
+   {
+    "id": "dataItem-iercvjff",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">composed by</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">13 print on aluminium with epoxy resin finish</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">2 pipe lightbox&nbsp;</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n",
+    "text": "composed by 13 print on aluminium with epoxy resin finish 2 pipe lightbox"
+   },
+   {
+    "id": "dataItem-iercvuhx1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\">CHEAT YOUR</h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2012)</span></h4>\n",
+    "text": "CHEAT YOUR (2012)"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-ifzipefn",
+    "uri": "39e78d_c10628172f2641059bcbdbba9ea2fede.jpg",
+    "title": "11bwpr2",
+    "description": "",
+    "alt": "",
+    "width": 6117,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipefp",
+    "uri": "39e78d_fb23501a127d4b94be44062e9172173f.jpg",
+    "title": "07cpr",
+    "description": "",
+    "alt": "",
+    "width": 6023,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipefq",
+    "uri": "39e78d_693605e77b0b4825a138ed9abe9b72ce.jpg",
+    "title": "05cpr2",
+    "description": "",
+    "alt": "",
+    "width": 6099,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipefq1",
+    "uri": "39e78d_edfd8cbbdea841b3bbd16e79d553bf18.jpg",
+    "title": "05cpr",
+    "description": "",
+    "alt": "",
+    "width": 5880,
+    "height": 2400
+   },
+   {
+    "id": "dataItem-ifzipefr",
+    "uri": "39e78d_5a811bd86a284304bd70032e3e53544e.jpg",
+    "title": "04cpr",
+    "description": "",
+    "alt": "",
+    "width": 6023,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipefr1",
+    "uri": "39e78d_e1d5704b0d5c47e2854a4d559b25419e.jpg",
+    "title": "03pr2c",
+    "description": "",
+    "alt": "",
+    "width": 6117,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipefs",
+    "uri": "39e78d_2951dca897df42df88f342ce0a818616.jpg",
+    "title": "01irpr2",
+    "description": "",
+    "alt": "",
+    "width": 6081,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipeft",
+    "uri": "39e78d_d2c4f55ccae3475888f302c3fd7ca693.jpg",
+    "title": "03irpr2",
+    "description": "",
+    "alt": "",
+    "width": 6111,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipeft1",
+    "uri": "39e78d_1ba453f3b58f4bb9ba472e20b0747947.jpg",
+    "title": "02irpr2",
+    "description": "",
+    "alt": "",
+    "width": 6129,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipeft2",
+    "uri": "39e78d_c655354670784c7296937670adc718b7.jpg",
+    "title": "02cpr",
+    "description": "",
+    "alt": "",
+    "width": 6023,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipefu",
+    "uri": "39e78d_34a803c5424c4c2988dc7bfa72f202d7.jpg",
+    "title": "02bwuljt",
+    "description": "",
+    "alt": "",
+    "width": 6260,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipefu1",
+    "uri": "39e78d_37fcdd6043ac40909efc8bf933c397aa.jpg",
+    "title": "02",
+    "description": "",
+    "alt": "",
+    "width": 6142,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipefv",
+    "uri": "39e78d_d0d8a6bcde744c09ab32db843f7a0333.jpg",
+    "title": "01cpr2",
+    "description": "",
+    "alt": "",
+    "width": 6117,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzipefv1",
+    "uri": "39e78d_96b405a497454a6dac75a829fa0aa7da.jpg",
+    "title": "01bwpr",
+    "description": "",
+    "alt": "",
+    "width": 6023,
+    "height": 2518
+   },
+   {
+    "id": "dataItem-ifzj124e",
+    "uri": "39e78d_8e63c84cab254ad1a3dbcf401954f59d.jpg",
+    "title": "IMGP0879",
+    "description": "",
+    "alt": "",
+    "width": 3134,
+    "height": 4736
+   },
+   {
+    "id": "dataItem-ifzj124g",
+    "uri": "39e78d_0034ec4092064f76917e845852cee7b0.jpg",
+    "title": "IMGP0883",
+    "description": "",
+    "alt": "",
+    "width": 3155,
+    "height": 4767
+   },
+   {
+    "id": "dataItem-ifzj124h",
+    "uri": "39e78d_772960e57bf54a50b8fcfff2dc8bc765.jpg",
+    "title": "IMGP0885",
+    "description": "",
+    "alt": "",
+    "width": 3256,
+    "height": 4920
+   },
+   {
+    "id": "dataItem-ifzj124i",
+    "uri": "39e78d_d6d93c5e7e56480fbd4f706a1f677715.jpg",
+    "title": "IMG_2047",
+    "description": "",
+    "alt": "",
+    "width": 1389,
+    "height": 1389
+   },
+   {
+    "id": "dataItem-ifzj124i1",
+    "uri": "39e78d_74a10e448b534f3388e1f09c7036cc8e.jpg",
+    "title": "IMG_2014",
+    "description": "",
+    "alt": "",
+    "width": 1936,
+    "height": 2592
+   },
+   {
+    "id": "dataItem-ifzj124j",
+    "uri": "39e78d_2d9f028db55e479d8f91af2ed2032d15.jpg",
+    "title": "IMG_2008",
+    "description": "",
+    "alt": "",
+    "width": 1936,
+    "height": 2592
+   },
+   {
+    "id": "wovmf_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "wovmf_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 22
+ },
+ "ibb20": {
+  "title": "LIGHT",
+  "slug": "light",
+  "file": "39e78d_b6757a8e146d9a0621bae4eb93fb9e12_366",
+  "texts": [],
+  "images": [
+   {
+    "id": "ibb20_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "ibb20_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 2
+ },
+ "t20kw": {
+  "title": "EMULSION BALL",
+  "slug": "emulsion-ball-t20kw",
+  "file": "39e78d_11dc8d99f187ef0cb5e13d92621e6af3_367",
+  "texts": [
+   {
+    "id": "dataItem-ieil5od5",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">EMULSION BALL&nbsp;</span><span style=\"font-size:16px;\">(2011)</span></h4>\n",
+    "text": "EMULSION BALL (2011)"
+   },
+   {
+    "id": "dataItem-ieil9mj2",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_8\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">Polaroid 669 type emlsion lifted on a opaline ball and illuminated by 1W high power LED</span></span></p>\n",
+    "text": "Polaroid 669 type emlsion lifted on a opaline ball and illuminated by 1W high power LED"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-ieil2unz",
+    "uri": "39e78d_3392abf9bded49898dd2feba703b2fb2.jpg",
+    "title": "IMG_8928_29_31_tonemapped",
+    "description": "",
+    "alt": "",
+    "width": 3308,
+    "height": 4963
+   },
+   {
+    "id": "dataItem-ieil2uo1",
+    "uri": "39e78d_7fc44b87420e4853be2e6af129b0c268.jpg",
+    "title": "IMG_8935_4_3_tonemapped",
+    "description": "",
+    "alt": "",
+    "width": 3276,
+    "height": 4912
+   },
+   {
+    "id": "dataItem-ieil2uo11",
+    "uri": "39e78d_9d419c40cf9545169600c350b5b2eae4.jpg",
+    "title": "IMG_8937_8_tonemapped",
+    "description": "",
+    "alt": "",
+    "width": 3264,
+    "height": 4897
+   },
+   {
+    "id": "dataItem-ieil2uo3",
+    "uri": "39e78d_2b17436eb81741b1b68f30e2f1706aaa.jpg",
+    "title": "L1010239 - Version 2 (1)",
+    "description": "",
+    "alt": "",
+    "width": 1225,
+    "height": 1838
+   },
+   {
+    "id": "dataItem-ieil2uo31",
+    "uri": "39e78d_638839f7cb954ea8a74eeab7df03a6e5.jpg",
+    "title": "L1010235 - Version 2 (1)",
+    "description": "",
+    "alt": "",
+    "width": 1192,
+    "height": 1788
+   },
+   {
+    "id": "dataItem-ieil2uo32",
+    "uri": "39e78d_2855b1fb01604f02ba9206e0e7486ccf.jpg",
+    "title": "L1010234 - Version 2 (1)",
+    "description": "",
+    "alt": "",
+    "width": 1159,
+    "height": 1738
+   },
+   {
+    "id": "t20kw_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "t20kw_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 8
+ },
+ "p21vu": {
+  "title": "66X CAM",
+  "slug": "66x-cam",
+  "file": "39e78d_c11aaefcb4c4fff20e70cfd1c3535b88_367",
+  "texts": [
+   {
+    "id": "dataItem-iejwu7cn",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\">66x</h4>\n",
+    "text": "66x"
+   },
+   {
+    "id": "dataItem-iejwwbvy",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">polaroid&nbsp;film pinhole camera</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">material: </span>painted plexiglass, metal , laser pinhole , 66x polaroid back<br>\n&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\">focal length:</span> 35mm<br>\n<span style=\"font-weight:bold;\">angle of view:</span> 143º<br>\n<span style=\"font-weight:bold;\">f-stop:</span> 160<br>\n<span style=\"font-weight:bold;\">pinhole: </span>0,25µ<br>\n<span style=\"font-weight:bold;\">film accepted: </span>any 3 1/4 x 4 1/4 peel-apart pack instant film</p>\n",
+    "text": "polaroid film pinhole camera material: painted plexiglass, metal , laser pinhole , 66x polaroid back focal length: 35mm angle of view: 143º f-stop: 160 pinhole: 0,25µ film accepted: any 3 1/4 x 4 1/4 peel-apart pack instant film"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-iejxms6i",
+    "uri": "39e78d_074c618c1d3a44b2b0c238288ac41731.jpg",
+    "title": "66xca02",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iejxms6k",
+    "uri": "39e78d_45697768b76b4a71a6409f8d4507ab92.jpg",
+    "title": "66x01",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "dataItem-iejxms6l",
+    "uri": "39e78d_ca2234408c77437fa8c1d5efc7987afa.jpg",
+    "title": "66x03",
+    "description": "",
+    "alt": "",
+    "width": 2592,
+    "height": 3872
+   },
+   {
+    "id": "p21vu_desktop_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   },
+   {
+    "id": "p21vu_mobile_mediaRef",
+    "uri": "39e78d_c67be1381135444bbeca807d5d6aa70a.jpg",
+    "title": "camback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2000,
+    "height": 1256
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 5
+ },
+ "apkhy": {
+  "title": "TWO",
+  "slug": "two",
+  "file": "39e78d_869fb1b4fb2230d95d99471c4c40272c_367",
+  "texts": [
+   {
+    "id": "dataItem-ie4i5tp81",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">TWO&nbsp;</span><span style=\"font-size:16px;\">(2006)</span></h4>\n",
+    "text": "TWO (2006)"
+   }
+  ],
+  "images": [
+   {
+    "id": "apkhy_desktop_mediaRef",
+    "uri": "39e78d_267ad003bc3b43d18bf963ec0650566f.jpg",
+    "title": "polaback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1056,
+    "height": 784
+   },
+   {
+    "id": "apkhy_mobile_mediaRef",
+    "uri": "39e78d_382e1aa2780141ddb53d4611bbba760c.jpg",
+    "title": "09_edited.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 601,
+    "height": 457
+   },
+   {
+    "id": "dataItem-idw07mp3",
+    "uri": "39e78d_0cf7cf3c79844c928145bbff5e74e8c2.jpg",
+    "title": "01",
+    "description": "",
+    "alt": "",
+    "width": 1088,
+    "height": 1303
+   },
+   {
+    "id": "dataItem-idw07mp4",
+    "uri": "39e78d_5d3956975bac4ef7a7286b25c68bdbec.jpg",
+    "title": "02",
+    "description": "",
+    "alt": "",
+    "width": 1084,
+    "height": 1315
+   },
+   {
+    "id": "dataItem-idw07mp41",
+    "uri": "39e78d_d0de4ef1b2244cbf8f0ef680cf5adb96.jpg",
+    "title": "03",
+    "description": "",
+    "alt": "",
+    "width": 1060,
+    "height": 1296
+   },
+   {
+    "id": "dataItem-idw07mp42",
+    "uri": "39e78d_67b725338a2542058e554389acb7db0d.jpg",
+    "title": "04",
+    "description": "",
+    "alt": "",
+    "width": 1062,
+    "height": 1297
+   },
+   {
+    "id": "dataItem-idw07mp43",
+    "uri": "39e78d_0f5b12330ca244b6bda15685a49fbd65.jpg",
+    "title": "05",
+    "description": "",
+    "alt": "",
+    "width": 1066,
+    "height": 1298
+   },
+   {
+    "id": "dataItem-idw07mp5",
+    "uri": "39e78d_8b1c3c03f71941ae9b611147f52e1e9d.jpg",
+    "title": "06",
+    "description": "",
+    "alt": "",
+    "width": 1065,
+    "height": 1303
+   },
+   {
+    "id": "dataItem-idw07mp51",
+    "uri": "39e78d_584a4b7227d840109d6575c8abf9a0d4.jpg",
+    "title": "07",
+    "description": "",
+    "alt": "",
+    "width": 1063,
+    "height": 1292
+   },
+   {
+    "id": "dataItem-idw07mp52",
+    "uri": "39e78d_d5aef914843442a093639b6f9fe20bb9.jpg",
+    "title": "08",
+    "description": "",
+    "alt": "",
+    "width": 1065,
+    "height": 1299
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 10
+ },
+ "xh909": {
+  "title": "ANGELO GLABRO",
+  "slug": "angelo-glabro",
+  "file": "39e78d_6afbb332178e04951a8db60b31665c34_367",
+  "texts": [
+   {
+    "id": "dataItem-iehcj429",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">ANGELO</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2004)</span></h4>\n",
+    "text": "ANGELO (2004)"
+   },
+   {
+    "id": "dataItem-iehckg7u1",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">GLABRO</span></h4>\n",
+    "text": "GLABRO"
+   },
+   {
+    "id": "dataItem-ieipqb411",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">lightbox</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-size:12px;\"><span style=\"font-weight:bold;\">digital print on plexiglass , neon , steel , aluminium</span></span></p>\n",
+    "text": "lightbox digital print on plexiglass , neon , steel , aluminium"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-iehc2a8y",
+    "uri": "39e78d_9ea564e232264d6bbcf496cfc6bdd542.jpg",
+    "title": "_DSC0265",
+    "description": "",
+    "alt": "",
+    "width": 3478,
+    "height": 2361
+   },
+   {
+    "id": "dataItem-iehc2a8y1",
+    "uri": "39e78d_1ff351302f2b4486a4fb8c0d24e4511c.jpg",
+    "title": "_DSC0274",
+    "description": "",
+    "alt": "",
+    "width": 3884,
+    "height": 2600
+   },
+   {
+    "id": "dataItem-iehcgxq3",
+    "uri": "39e78d_8c598b0b432241c291f522bda3157c05.jpg",
+    "title": "_DSC0271 - Version 2",
+    "description": "",
+    "alt": "",
+    "width": 1105,
+    "height": 828
+   },
+   {
+    "id": "dataItem-iehcgxq31",
+    "uri": "39e78d_4f4bb013a3744b20b614e0b5a59e659d.jpg",
+    "title": "_DSC0265 - Version 5",
+    "description": "",
+    "alt": "",
+    "width": 607,
+    "height": 454
+   },
+   {
+    "id": "dataItem-iehcgxq32",
+    "uri": "39e78d_eb3c1eabf8f646f48a0e75884da119f2.jpg",
+    "title": "_DSC0265 - Version 4",
+    "description": "",
+    "alt": "",
+    "width": 607,
+    "height": 454
+   },
+   {
+    "id": "dataItem-iehcgxq4",
+    "uri": "39e78d_620f6b43ed674bd5982a154ab48e0068.jpg",
+    "title": "_DSC0265 - Version 3",
+    "description": "",
+    "alt": "",
+    "width": 607,
+    "height": 454
+   },
+   {
+    "id": "dataItem-iehcgxq41",
+    "uri": "39e78d_f0c1baa2cd384c71b0215ca64c899e53.jpg",
+    "title": "_DSC0265 - Version 2",
+    "description": "",
+    "alt": "",
+    "width": 607,
+    "height": 454
+   },
+   {
+    "id": "xh909_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "xh909_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 9
+ },
+ "qo3ue": {
+  "title": "PHOTOGRAPHY",
+  "slug": "photography",
+  "file": "39e78d_52484ba9916f28a01773bd90a26a5b70_366",
+  "texts": [],
+  "images": [
+   {
+    "id": "qo3ue_desktop_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   },
+   {
+    "id": "qo3ue_mobile_mediaRef",
+    "uri": "39e78d_e08960ccbf9147a9b89c70e4a76b6ac9.jpg",
+    "title": "spare.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 8842,
+    "height": 7132
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 2
+ },
+ "wyfd6": {
+  "title": "ESPERIENZE STENOPEICHE",
+  "slug": "esperienze-stenopeiche",
+  "file": "39e78d_b9cb8963306e6ce788e5412af6efdc88_367",
+  "texts": [
+   {
+    "id": "dataItem-ieo9fisr",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">ESPERIENZE</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\">&nbsp;</h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2013)</span></h4>\n",
+    "text": "ESPERIENZE (2013)"
+   },
+   {
+    "id": "dataItem-ieo9g0s11",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">STENOPEICHE</span></h4>\n",
+    "text": "STENOPEICHE"
+   },
+   {
+    "id": "dataItem-ieo9gsdr1",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><b>performance-intallation</b></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><b>metal , LED , battery , magnets</b></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><b>Palazzo Ducale sale del Castellare - Urbino 2013</b></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">all’interno di “Nel segno del tango” 2008<br>\nmuseo “ V. Colonna”<br>\npescara</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">Immaginiamo di essere all'interno di una camera oscura con la possibilità di cercare nuovi passaggi che ci permettono di esplorare il quotidiano.&nbsp;<br>\nIl gioco diventa forma di ricerca, la luce diventa tramite tra noi ed il tempo.<br>\nIl risultato é il perfetto connubio tra vita reale ed immaginario.</span></span></p>\n",
+    "text": "performance-intallation metal , LED , battery , magnets Palazzo Ducale sale del Castellare - Urbino 2013 all’interno di “Nel segno del tango” 2008 museo “ V. Colonna” pescara Immaginiamo di essere all'interno di una camera oscura con la possibilità di cercare nuovi passaggi che ci permettono di esplorare il quotidiano. Il gioco diventa forma di ricerca, la luce diventa tramite tra noi ed il tempo. Il risultato é il perfetto connubio tra vita reale ed immaginario."
+   },
+   {
+    "id": "dataItem-ieo9j3vk",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">IN UNA CAMERA</span></h4>\n",
+    "text": "IN UNA CAMERA"
+   },
+   {
+    "id": "dataItem-ieo9jnpv",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">LUDICA</span></h4>\n",
+    "text": "LUDICA"
+   }
+  ],
+  "images": [
+   {
+    "id": "dataItem-iesuapvk",
+    "uri": "39e78d_0affce4b770a41f7a9c3015b0fce1004.jpg",
+    "title": "esp 001",
+    "description": "",
+    "alt": "",
+    "width": 2000,
+    "height": 2000
+   },
+   {
+    "id": "dataItem-iesuapvm",
+    "uri": "39e78d_0d231c2f09ed4f099f1f44f20d259a93.jpg",
+    "title": "esp 002",
+    "description": "",
+    "alt": "",
+    "width": 2000,
+    "height": 2000
+   },
+   {
+    "id": "dataItem-iesuapvn",
+    "uri": "39e78d_84986bea126048878789de0eb40984be.jpg",
+    "title": "esp 004",
+    "description": "",
+    "alt": "",
+    "width": 2000,
+    "height": 2000
+   },
+   {
+    "id": "dataItem-iesuapvn1",
+    "uri": "39e78d_3aee678190f9462a806b57df149e6e2b.jpg",
+    "title": "esp 006",
+    "description": "",
+    "alt": "",
+    "width": 2000,
+    "height": 2000
+   },
+   {
+    "id": "dataItem-iesuapvo",
+    "uri": "39e78d_e6955e643de64e7d8393bf3b7bcca41b.jpg",
+    "title": "esp 010",
+    "description": "",
+    "alt": "",
+    "width": 2000,
+    "height": 2000
+   },
+   {
+    "id": "dataItem-iesuapvp",
+    "uri": "39e78d_6efbe68aec15473393797c75b0f46d75.jpg",
+    "title": "esp 013",
+    "description": "",
+    "alt": "",
+    "width": 2000,
+    "height": 2000
+   },
+   {
+    "id": "dataItem-iesuapvp1",
+    "uri": "39e78d_45f85df4029042b685023f86e3eaf56b.jpg",
+    "title": "esp 014",
+    "description": "",
+    "alt": "",
+    "width": 2000,
+    "height": 2000
+   },
+   {
+    "id": "dataItem-ifzj6iog",
+    "uri": "39e78d_09a13e0435c2474eb0856b52379168fc.jpg",
+    "title": "IMG_0280",
+    "description": "",
+    "alt": "",
+    "width": 2598,
+    "height": 3897
+   },
+   {
+    "id": "dataItem-ifzj6ioh",
+    "uri": "39e78d_8d0c3f10cd524dc9b71e2b63f2dab624.jpg",
+    "title": "L1000775",
+    "description": "",
+    "alt": "",
+    "width": 7271,
+    "height": 4832
+   },
+   {
+    "id": "dataItem-ifzk57cj",
+    "uri": "39e78d_3b3f0f2f9eaa4b80b34e3e4bb072cf4c.jpg",
+    "title": "perf",
+    "description": "",
+    "alt": "",
+    "width": 6684,
+    "height": 2000
+   },
+   {
+    "id": "dataItem-ifzk57cl",
+    "uri": "39e78d_f1f28570d2b242039962b6378fe3cb7e.jpg",
+    "title": "Urbino_403",
+    "description": "",
+    "alt": "",
+    "width": 1800,
+    "height": 1196
+   },
+   {
+    "id": "dataItem-ifzk57cl1",
+    "uri": "39e78d_cf71d92537474e8f90b8782c02719317.jpg",
+    "title": "Urbino_418",
+    "description": "",
+    "alt": "",
+    "width": 1800,
+    "height": 1196
+   },
+   {
+    "id": "dataItem-ifzk57cm",
+    "uri": "39e78d_d9ec9dbcc6644c39b38fa6320da128dc.jpg",
+    "title": "Urbino_429",
+    "description": "",
+    "alt": "",
+    "width": 1800,
+    "height": 1196
+   },
+   {
+    "id": "wyfd6_desktop_mediaRef",
+    "uri": "39e78d_1ab16989eeb54f20a1eb776f06607dc2.jpg",
+    "title": "_DSC0062.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 1296,
+    "height": 1304
+   },
+   {
+    "id": "wyfd6_mobile_mediaRef",
+    "uri": "39e78d_fdb0524fc83a46298ecbb4b9d67ff0c6.jpg",
+    "title": "_DSC2102.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2457,
+    "height": 3673
+   }
+  ],
+  "videos": [
+   {
+    "id": "dataItem-ifzk5uzi",
+    "videoId": "U7aI1SjreOo",
+    "videoType": "YOUTUBE"
+   },
+   {
+    "id": "dataItem-ifzrqyc41",
+    "videoId": "sjMBTIQxiog",
+    "videoType": "YOUTUBE"
+   }
+  ],
+  "links": [],
+  "n_images": 15
+ },
+ "kodfm": {
+  "title": "ARTE IN LUCE",
+  "slug": "arte-in-luce",
+  "file": "39e78d_e9ecbbe6eb238b5d326262c83579257e_367",
+  "texts": [
+   {
+    "id": "dataItem-ierea5bu",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">21 fine art prints inside plexiglass</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\"><span style=\"font-weight:bold;\"><span style=\"font-size:12px;\">50x50cm each</span></span></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n",
+    "text": "21 fine art prints inside plexiglass 50x50cm each"
+   },
+   {
+    "id": "dataItem-ierea5ca",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">ARTE IN LUCE</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2001)</span></h4>\n",
+    "text": "ARTE IN LUCE (2001)"
+   }
+  ],
+  "images": [
+   {
+    "id": "kodfm_desktop_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   },
+   {
+    "id": "kodfm_mobile_mediaRef",
+    "uri": "39e78d_ea5bb0aaa62046e69455f4ebe799f82c.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   }
+  ],
+  "videos": [
+   {
+    "id": "dataItem-ievxxz9b",
+    "videoId": "SDABEgdhZCU",
+    "videoType": "YOUTUBE"
+   }
+  ],
+  "links": [],
+  "n_images": 2
+ },
+ "c2q4": {
+  "title": "CONTACT",
+  "slug": "contact",
+  "file": "39e78d_a5f33b53c35daddf7780bb4c305806ec_367",
+  "texts": [
+   {
+    "id": "15z1",
+    "html": "<h2 class=\"font_2\">CONTACT ME</h2>\n",
+    "text": "CONTACT ME"
+   },
+   {
+    "id": "176e",
+    "html": "<p class=\"font_8\">Like<span style=\"line-height: 1.4em;\"><span style=\"font-family: 'Mr De Haviland'; font-size: 23px;\"><span color=\"color_0\">&nbsp;</span></span><span color=\"color_0\">me on Facebook​</span><span style=\"font-family: 'Mr De Haviland'; font-size: 23px;\"><span color=\"color_0\">​</span></span></span></p>\n",
+    "text": "Like me on Facebook​ ​"
+   },
+   {
+    "id": "1bmy",
+    "html": "<h2 class=\"font_2\">DROP ME A LINE</h2>\n",
+    "text": "DROP ME A LINE"
+   },
+   {
+    "id": "1byf",
+    "html": "<h6 class=\"font_6\">GIAMPIERO PAGNINI</h6>\n\n<p class=\"font_8\">&nbsp;</p>\n\n<p class=\"font_8\">via Elettra 12</p>\n\n<p class=\"font_8\">65126 Pescara</p>\n\n<p class=\"font_8\">Italy</p>\n\n<p class=\"font_8\">+393664290471</p>\n",
+    "text": "GIAMPIERO PAGNINI via Elettra 12 65126 Pescara Italy +393664290471"
+   },
+   {
+    "id": "dataItem-ienclnrw",
+    "html": "<p class=\"font_8\">View&nbsp;<span style=\"line-height: 1.4em;\"><span color=\"color_0\">me on Flickr</span><span style=\"font-family: 'Mr De Haviland'; font-size: 23px;\"><span color=\"color_0\">​</span></span></span></p>\n",
+    "text": "View me on Flickr ​"
+   },
+   {
+    "id": "dataItem-kf5re0cq",
+    "html": "<p dir=\"ltr\" style=\"font-size: 14px;text-align:left\"><span style=\"color:rgba(186,218,85,1);\"><span style=\"font-family:helvetica-w01-roman,helvetica-w02-roman,helvetica-lt-w10-roman,sans-serif;\"><span style=\"font-size:14px;\">I tuoi dati sono stati inviati con successo!</span></span></span></p>",
+    "text": "I tuoi dati sono stati inviati con successo!"
+   },
+   {
+    "id": "rdt",
+    "html": "<p class=\"font_8\">Follow me on Instagram</p>\n",
+    "text": "Follow me on Instagram"
+   },
+   {
+    "id": "t61",
+    "html": "<p class=\"font_8\">View&nbsp;<span style=\"line-height: 1.4em;\"><span color=\"color_0\">me on Flickr</span><span style=\"font-family: 'Mr De Haviland'; font-size: 23px;\"><span color=\"color_0\">​</span></span></span></p>\n",
+    "text": "View me on Flickr ​"
+   }
+  ],
+  "images": [
+   {
+    "id": "c2q4_desktop_mediaRef",
+    "uri": "39e78d_12302aca8f734f6e8c77707094679088.jpg",
+    "title": "contactback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2148,
+    "height": 1588
+   },
+   {
+    "id": "c2q4_mobile_mediaRef",
+    "uri": "39e78d_922009efadd142eea5e5611598c80b97.jpg",
+    "title": "contactback_edited.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 510,
+    "height": 591
+   },
+   {
+    "id": "dataItem-ienclafw1",
+    "uri": "2e743f6485cc888f594f4c2c6fd3fc40.png",
+    "title": "Flickr App Icon",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "i014g5",
+    "uri": "d75821b3625d16f95dfd8ebff761922d.png",
+    "title": "Facebook App Icon",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "i015m9",
+    "uri": "2e743f6485cc888f594f4c2c6fd3fc40.png",
+    "title": "Flickr App Icon",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   },
+   {
+    "id": "i0vhu",
+    "uri": "1668fefe9eca1566d239f5101c2af490.png",
+    "title": "Instagram App Icon",
+    "description": "",
+    "alt": "",
+    "width": 200,
+    "height": 200
+   }
+  ],
+  "videos": [],
+  "links": [
+   {
+    "url": "https://www.flickr.com/photos/giampieropagnini/"
+   },
+   {
+    "url": "https://www.facebook.com/pages/Giampiero-Pagnini/195855593834689?ref=bookmarks"
+   },
+   {
+    "url": "http://instagram.com/giamps1982"
+   },
+   {
+    "url": "https://www.flickr.com/photos/giampiero_pagnini/"
+   }
+  ],
+  "n_images": 6
+ },
+ "pewa6": {
+  "title": "VIDEO",
+  "slug": "video",
+  "file": "39e78d_cf138fda80bf077f3340a81a5d94128b_366",
+  "texts": [],
+  "images": [
+   {
+    "id": "pewa6_desktop_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   },
+   {
+    "id": "pewa6_mobile_mediaRef",
+    "uri": "39e78d_ea5bb0aaa62046e69455f4ebe799f82c.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   }
+  ],
+  "videos": [],
+  "links": [],
+  "n_images": 2
+ },
+ "x64wq": {
+  "title": "SENSIBILI ALLA LUCE",
+  "slug": "sensibili-alla-luce",
+  "file": "39e78d_88869f7acec46b79316906ddb96859f4_367",
+  "texts": [
+   {
+    "id": "dataItem-iere2966",
+    "html": "<p style=\"font-size: 12px;\" class=\"font_7\"><b>una produzione del Dipartimento di Scienze Biomediche Cattedra di Psicologia Clinica - prof. Mario Fulcheri Università degli studi \"G. D'Annunzio\" di Chieti-Pescara</b></p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">&nbsp;</p>\n\n<p style=\"font-size: 12px;\" class=\"font_7\">video sulla ricerca artistica&nbsp;di Giampiero Pagnini</p>\n",
+    "text": "una produzione del Dipartimento di Scienze Biomediche Cattedra di Psicologia Clinica - prof. Mario Fulcheri Università degli studi \"G. D'Annunzio\" di Chieti-Pescara video sulla ricerca artistica di Giampiero Pagnini"
+   },
+   {
+    "id": "dataItem-iere296e",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">LUCE</span></h4>\n",
+    "text": "LUCE"
+   },
+   {
+    "id": "dataItem-iere296f",
+    "html": "<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:29px;\">SENSIBILI ALLA</span></h4>\n\n<h4 style=\"font-size: 29px;\" class=\"font_4\"><span style=\"font-size:16px;\">(2011)</span></h4>\n",
+    "text": "SENSIBILI ALLA (2011)"
+   }
+  ],
+  "images": [
+   {
+    "id": "x64wq_desktop_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   },
+   {
+    "id": "x64wq_mobile_mediaRef",
+    "uri": "39e78d_c3dfce26226c45b4a47de84484e17de0.jpg",
+    "title": "vidback.jpg",
+    "description": "private/allMedia_picture",
+    "alt": "",
+    "width": 2176,
+    "height": 1936
+   }
+  ],
+  "videos": [
+   {
+    "id": "dataItem-idrtbjbj1",
+    "videoId": "DSnXYauajRA",
+    "videoType": "YOUTUBE"
+   }
+  ],
+  "links": [],
+  "n_images": 2
+ }
+}

@@ -1,0 +1,14 @@
+# originali a piena risoluzione: restano in locale (353 MB)
+assets/img/
+assets/thumbs/
+assets/f_*.jpg
+assets/hero-video-raw.mp4
+# build intermedie e dati di scraping
+dist/
+dist-b/
+dist-c/
+sheets/
+scrape/json/
+scrape/*.html
+proposte/
+.DS_Store
