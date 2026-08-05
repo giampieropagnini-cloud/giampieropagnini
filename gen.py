@@ -127,6 +127,47 @@ def make_derivatives(uris, yt_ids):
                 print("yt fail", vid, e)
 
 
+# ---------- icone del sito, dal marchio "Camera Oscura" ----------
+CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+
+def make_icons():
+    """Favicon e icona iOS ricavate dal marchio vettoriale.
+
+    Il favicon è ambra: si vede sia sulle schede chiare sia su quelle scure.
+    L'icona iOS ha il fondo scuro del sito, perché iOS non gestisce bene
+    la trasparenza e appiattirebbe il marchio sul bianco.
+    """
+    img_d = os.path.join(DIST, "img")
+    os.makedirs(img_d, exist_ok=True)
+    mark = os.path.join(ROOT, "assets", "marchio", "marchio.svg")
+    if not os.path.exists(mark) or not os.path.exists(CHROME):
+        print("marchio o Chrome non trovati: icone saltate")
+        return
+    svg = open(mark).read()
+    shutil.copy(mark, os.path.join(img_d, "marchio.svg"))
+
+    jobs = [("favicon.png", 64, "transparent", "#ff9d00", 100),
+            ("apple-touch-icon.png", 180, "#0b0b0d", "#ece7de", 62)]
+    tmp = os.path.join(DIST, "_icon.html")
+    for out, size, bg, fg, pct in jobs:
+        open(tmp, "w").write(
+            f'<meta charset="utf-8"><style>html,body{{margin:0;width:{size}px;height:{size}px;'
+            f'background:{bg};display:grid;place-items:center}}'
+            f'svg{{width:{pct}%;height:{pct}%;display:block;color:{fg}}}</style>{svg}'
+        )
+        subprocess.run(
+            [CHROME, "--headless", "--disable-gpu", "--hide-scrollbars",
+             "--default-background-color=00000000",
+             f"--screenshot={os.path.join(img_d, out)}",
+             f"--window-size={size},{size}", "file://" + tmp],
+            capture_output=True,
+        )
+    if os.path.exists(tmp):
+        os.remove(tmp)
+    print("icone rigenerate dal marchio")
+
+
 # ---------- html helpers ----------
 def esc(s):
     return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -196,8 +237,9 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc or site['intro_it'])}">
-<link rel="icon" href="{r}img/favicon.png">
-<link rel="apple-touch-icon" href="{r}img/favicon.png">
+<link rel="icon" type="image/svg+xml" href="{r}img/marchio.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="{r}img/favicon.png">
+<link rel="apple-touch-icon" href="{r}img/apple-touch-icon.png">
 {seo}
 <link rel="stylesheet" href="{r}css/base.css">
 <link rel="stylesheet" href="{r}css/theme.css">
@@ -280,9 +322,7 @@ def build():
             out = os.path.join(DIST, "img", "hero-" + u)
             if not os.path.exists(out):
                 subprocess.run(["sips", "-Z", "2200", "-s", "format", "jpeg", "-s", "formatOptions", "80", src, "--out", out], capture_output=True)
-        fav = os.path.join(DIST, "img", "favicon.png")
-        if not os.path.exists(fav):
-            subprocess.run(["sips", "-Z", "64", "-s", "format", "png", os.path.join(IMG_SRC, site["logo"]), "--out", fav], capture_output=True)
+        make_icons()
         # anteprime social per progetto: restano JPEG (WhatsApp/Facebook le preferiscono)
         og_d = os.path.join(DIST, "img", "og")
         os.makedirs(og_d, exist_ok=True)
