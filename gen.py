@@ -748,6 +748,66 @@ def build():
 </section>"""
     open(os.path.join(DIST, "404.html"), "w").write(page("Pagina non trovata — Giampiero Pagnini", nf, 0))
 
+    # ---- reindirizzamenti dai vecchi indirizzi Wix
+    # Google ha ancora in elenco gli indirizzi del sito Wix (es. /sxpin): senza
+    # queste paginette rispondono 404 e la visita si perde. GitHub Pages non fa
+    # redirect veri, quindi si usa meta refresh + canonical, che Google accetta.
+    manuali = {
+        "home": "", "blog": "", "single-post": "",
+        "about": "about.html", "exhibitions": "about.html", "contact": "contact.html",
+        "photography": "opere.html#fotografia", "light": "opere.html#luce",
+        "polaroid": "opere.html#polaroid", "cameras": "opere.html#camere",
+        "video": "opere.html#video", "paintings": "opere.html#pittura",
+        "street": "opere.html#street", "streetgall": "progetti/street-gallery.html",
+        "sk8": "opere.html#street", "mugshot": "opere.html",
+        "red-chair": "progetti/red-chairs.html",
+        "disappering": "progetti/disappearing.html",
+        "ambient-exhibition": "progetti/ambient-venezia.html",
+        "dripping-city-dreams-pola": "progetti/dripping-city-dreams.html",
+        "emulsion-ball-zqkgo": "progetti/emulsion-ball.html",
+        "emulsion-ball-t20kw": "progetti/emulsion-ball.html",
+    }
+    # ATTENZIONE: alcuni vecchi indirizzi Wix hanno lo stesso nome delle pagine
+    # vere (/about, /contact). Scriverci sopra una paginetta di rinvio le
+    # distruggerebbe — e per giunta rinvierebbero a se stesse. GitHub Pages già
+    # serve /about da about.html, quindi quei vecchi indirizzi funzionano da soli.
+    RISERVATI = {"index", "opere", "art-direction", "weedgadget", "musica",
+                 "about", "contact", "404", "sitemap", "robots"}
+    slug_norm = {re.sub(r"[^a-z0-9]", "", p["slug"].lower()): p["slug"] for p in visible}
+    esistenti = {p["slug"] for p in visible}
+    old_path = os.path.join(ROOT, "scrape", "site.json")
+    n_red = 0
+    if os.path.exists(old_path):
+        for p in json.load(open(old_path))["pages"].values():
+            s = p["slug"]
+            if s in RISERVATI:
+                continue
+            if s in manuali:
+                dest = manuali[s]
+            elif s in esistenti:
+                dest = f"progetti/{s}.html"
+            elif re.sub(r"[^a-z0-9]", "", s.lower()) in slug_norm:
+                dest = f"progetti/{slug_norm[re.sub(r'[^a-z0-9]', '', s.lower())]}.html"
+            else:
+                dest = ""
+            url = f"{SITE_URL}/{dest}"
+            open(os.path.join(DIST, s + ".html"), "w").write(
+                f"""<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>{esc(p['title'])} — Giampiero Pagnini</title>
+<link rel="canonical" href="{url}">
+<meta http-equiv="refresh" content="0; url={url}">
+<meta name="robots" content="noindex, follow">
+<script>location.replace({json.dumps(url)});</script>
+</head>
+<body style="background:#0b0b0d;color:#eee;font:16px/1.5 system-ui;padding:3rem">
+<p>Questa pagina si è spostata. <a style="color:#ff9d00" href="{url}">Continua qui</a>.</p>
+</body>
+</html>""")
+            n_red += 1
+
     # ---- sitemap / robots / CNAME
     urls = ["", "opere.html", "art-direction.html", "weedgadget.html", "musica.html",
             "about.html", "contact.html"] + [f"progetti/{p['slug']}.html" for p in visible]
@@ -776,7 +836,7 @@ def build():
             capture_output=True,
         )
 
-    print(f"built {len(visible)} project pages, {len(urls)} urls in sitemap, domain {DOMAIN}")
+    print(f"built {n_red} redirect, {len(visible)} project pages, {len(urls)} urls in sitemap, domain {DOMAIN}")
 
 
 if __name__ == "__main__":
