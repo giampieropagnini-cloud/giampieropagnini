@@ -5,12 +5,42 @@ anni** (già scritte, si correggono in `content.json`) e **la griglia**, cioè i
 muro di pezzi presi dall'archivio Instagram.
 
 La griglia è vuota finché non le si danno le immagini. Il motivo è che la sessione
-di lavoro in cloud ha Instagram bloccato dalla rete, quindi lo scarico va fatto dal
-tuo computer. Sono cinque minuti.
+di lavoro in cloud non ha internet aperto — non solo Instagram: qualsiasi indirizzo
+fuori da GitHub è chiuso dalla rete dell'ambiente. Quindi lo scarico va fatto dal
+tuo computer. Sono cinque minuti, e ci sono due strade.
 
 ---
 
-## 1 · Scarica l'archivio da Instagram
+## Strada A · Scaricare direttamente da Instagram, da loggato
+
+Questa non passa da nessun servizio esterno: parla con Instagram usando i cookie del
+browser dove sei già entrato con **@weedgadget**.
+
+1. Apri `instagram.com` nel browser, con l'account WeedGadget.
+2. Copia il cookie **sessionid**:
+   - Chrome: `F12` ▸ **Application** ▸ Cookies ▸ `https://www.instagram.com` ▸ `sessionid`
+   - Safari: **Sviluppo** ▸ Mostra Inspector Web ▸ **Archiviazione** ▸ Cookie
+3. Poi, nella cartella del sito:
+
+```bash
+export IG_SESSIONID='il-valore-copiato'
+python3 scrape/ig_scrape.py --user weedgadget --top 98
+python3 scrape/wg_ingest.py --from-json scrape/ig_weedgadget-grid.json
+python3 gen.py --theme oscura --out docs
+```
+
+Scarica i 98 post più recenti con le loro didascalie, le immagini finiscono in
+`assets/wg/ig/`, i dati grezzi restano in `scrape/ig_weedgadget.json` — così, se
+serve rifare la griglia, non c'è bisogno di riscaricare niente.
+
+Due avvertenze oneste: il cookie è la tua sessione, quindi non va messo dentro il
+repository (l'`export` sta solo nel terminale, e scade da solo); e Instagram cambia
+i suoi indirizzi interni ogni tanto, quindi se un giorno lo script si ferma con un
+errore, la Strada B funziona sempre.
+
+---
+
+## Strada B · L'esportazione dei dati Instagram
 
 Dall'app o dal sito, con l'account **@weedgadget**:
 
@@ -29,9 +59,9 @@ scompattalo, per esempio sulla Scrivania.
 
 ---
 
-## 2 · Riempi la griglia
+## In tutti i casi · Riempi la griglia
 
-Nella cartella del sito:
+Qualunque sia la fonte, il pezzo finale è sempre `wg_ingest.py`. Con l'esportazione:
 
 ```bash
 python3 scrape/wg_ingest.py --from-export ~/Desktop/instagram-weedgadget
@@ -67,7 +97,7 @@ script si arrangia con `sips`, che sul Mac c'è già, ma non fa i `.webp`.
 
 ---
 
-## 3 · Ricostruisci il sito e pubblica
+## E poi · Ricostruisci il sito e pubblica
 
 ```bash
 python3 gen.py --theme oscura --out docs
