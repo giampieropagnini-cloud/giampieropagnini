@@ -410,7 +410,8 @@ def build():
 </section>
 {music_teaser}"""
     open(os.path.join(DIST, "index.html"), "w").write(
-        page("Giampiero Pagnini — Sensibile alla luce", home, 0, active="home", url_path="")
+        page("Giampiero Pagnini — Sensibile alla luce", home, 0, active="home", url_path="",
+             desc=content["descrizioni"]["home"])
     )
 
     # ---- works index
@@ -561,7 +562,7 @@ def build():
     open(os.path.join(DIST, "art-direction.html"), "w").write(
         page("Art Direction — Giampiero Pagnini", adpage, 0, active="ad",
              url_path="art-direction.html",
-             desc="Direzione artistica di Giampiero Pagnini: marchi, fotografia, siti e video per Badasscoast, YOKOZUNA e Panna Bags. Venticinque anni di lavoro, dalla grafica alla fotografia analogica.",
+             desc=content["descrizioni"]["art_direction"],
              og_image=f"ad/{ad['projects'][0]['slug']}.jpg")
     )
 
@@ -717,7 +718,7 @@ def build():
     open(os.path.join(DIST, "musica.html"), "w").write(
         page("Musica — GP The Synth Roller | Giampiero Pagnini", musica, 0, active="musica",
              url_path="musica.html",
-             desc="GP THE SYNTH ROLLER, il progetto musicale di Giampiero Pagnini: downtempo, trip hop ed elettronica ambient costruita su sintetizzatori modulari. Due dischi del 2025.",
+             desc=content["descrizioni"]["musica"],
              og_image=f"music/{mu['releases'][0]['slug']}.jpg")
     )
 
@@ -736,7 +737,7 @@ def build():
 </section>"""
     open(os.path.join(DIST, "contact.html"), "w").write(
         page("Contatti — Giampiero Pagnini", contact, 0, active="contact", url_path="contact.html",
-             desc=f"Contatta Giampiero Pagnini — {site['email']} — studio a Pescara.")
+             desc=content["descrizioni"]["contatti"])
     )
 
     # ---- 404
