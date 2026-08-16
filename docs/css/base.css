@@ -194,6 +194,13 @@ body.nav-open .burger-b i:nth-child(3) { transform: translateY(-8px) rotate(-45d
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1px;
   background: var(--ln); border: 1px solid var(--ln); border-radius: var(--im-r); overflow: hidden; }
 .wg-s { background: var(--bg); padding: clamp(1.1rem, 2.6vw, 1.6rem); }
+.wg-s-im { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: 1.1rem; }
+.wg-s-th img { display: block; width: 3.4rem; height: 3.4rem; object-fit: cover;
+  border-radius: var(--im-r); background: var(--ph-bg); cursor: zoom-in;
+  transition: transform .35s, filter .35s; }
+.wg-s-th img:hover { transform: translateY(-2px); filter: brightness(1.12); }
+/* le immagini oltre la quarta esistono solo per il lightbox */
+.wg-s-more { display: none; }
 .wg-s-n { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .18em; color: var(--ac); }
 .wg-s-t { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .05em;
   font-size: 1.02rem; margin: .5em 0 .4em; }

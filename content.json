@@ -694,6 +694,7 @@
     "sections": [
       {
         "n": "01",
+        "dir": "01-vetro-americano",
         "t_it": "Il vetro americano",
         "t_en": "American glass",
         "d_it": "Rapporti diretti con i glass blower degli Stati Uniti e importazione dei loro pezzi unici, firmati.",
@@ -701,6 +702,7 @@
       },
       {
         "n": "02",
+        "dir": "02-spazio-barcellona",
         "t_it": "Lo spazio a Barcellona",
         "t_en": "The space in Barcelona",
         "d_it": "Un posto dove quel vetro si poteva finalmente vedere dal vivo, invece che in fotografia.",
@@ -708,6 +710,7 @@
       },
       {
         "n": "03",
+        "dir": "03-marchio-insegne",
         "t_it": "Marchio e insegne",
         "t_en": "Brand and signage",
         "d_it": "Il nome, il marchio e tutte le sue applicazioni, dalle insegne dello spazio alle stampe.",
@@ -715,6 +718,7 @@
       },
       {
         "n": "04",
+        "dir": "04-negozio-online",
         "t_it": "Negozio online",
         "t_en": "Online shop",
         "d_it": "Il catalogo messo online: struttura del negozio, schede dei pezzi, immagini.",
@@ -722,6 +726,7 @@
       },
       {
         "n": "05",
+        "dir": "05-fotografia-pezzi",
         "t_it": "Fotografia dei pezzi",
         "t_en": "Photography of the pieces",
         "d_it": "Ogni pezzo fotografato da vicino: la materia, le bolle, i colori dentro il vetro.",
@@ -729,6 +734,7 @@
       },
       {
         "n": "06",
+        "dir": "06-grafiche",
         "t_it": "Grafiche",
         "t_en": "Graphics",
         "d_it": "Le immagini del progetto: annunci, stampati, materiale per i social.",
@@ -736,6 +742,7 @@
       },
       {
         "n": "07",
+        "dir": "07-abbigliamento",
         "t_it": "Abbigliamento",
         "t_en": "Clothing",
         "d_it": "Una linea di abbigliamento con il marchio del progetto.",
@@ -743,6 +750,7 @@
       },
       {
         "n": "08",
+        "dir": "08-espositori",
         "t_it": "Espositori",
         "t_en": "Display stands",
         "d_it": "Gli espositori disegnati per mostrare il vetro, nello spazio e in fiera.",
@@ -750,6 +758,7 @@
       },
       {
         "n": "09",
+        "dir": "09-fiere",
         "t_it": "Fiere",
         "t_en": "Trade fairs",
         "d_it": "I materiali per le fiere di settore: stand, insegne, stampati.",
@@ -757,6 +766,7 @@
       },
       {
         "n": "10",
+        "dir": "10-glass-addiction",
         "t_it": "Glass Addiction",
         "t_en": "Glass Addiction",
         "d_it": "Il libro del progetto, uscito nel 2021: il primo libro d'arte italiano sul vetro funzionale.",
@@ -764,6 +774,7 @@
       },
       {
         "n": "11",
+        "dir": "11-chancho-gadget",
         "t_it": "Chancho Gadget",
         "t_en": "Chancho Gadget",
         "d_it": "La collaborazione in corso con Chancho, e il marchio che ne nasce.",
@@ -771,6 +782,7 @@
       },
       {
         "n": "12",
+        "dir": "12-archivio-instagram",
         "t_it": "L'archivio su Instagram",
         "t_en": "The archive on Instagram",
         "d_it": "Dieci anni di pezzi: banger, water pipe, marble, pendenti, pezzi da collezione.",

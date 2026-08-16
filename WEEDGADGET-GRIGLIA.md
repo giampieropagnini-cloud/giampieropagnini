@@ -106,6 +106,33 @@ git add -A && git commit -m "WeedGadget: la griglia dell'archivio" && git push
 
 ---
 
+## La cartella del progetto
+
+Oltre alla griglia, il progetto ha la sua cartella con una sottocartella per
+ognuna delle dodici sezioni:
+
+    assets/wg/sezioni/01-vetro-americano/
+    assets/wg/sezioni/02-spazio-barcellona/
+    assets/wg/sezioni/03-marchio-insegne/
+    …
+
+Ci si mettono dentro le immagini di quella sezione — insegne, schermate del
+negozio, capi, espositori, stand — numerate `01-`, `02-`, … perché l'ordine è
+quello alfabetico. In ogni cartella c'è un `LEGGIMI.md` che dice cosa ci va.
+
+Poi:
+
+```bash
+python3 scrape/wg_ingest.py --sections     # rimpicciolisce e fa i .webp
+python3 gen.py --theme oscura --out docs
+```
+
+Nella scheda della sezione compaiono le prime quattro come miniature; toccandone
+una si aprono tutte a tutto schermo. Le sezioni senza immagini restano schede di
+solo testo, come sono adesso.
+
+---
+
 ## Le didascalie e i testi
 
 Tutto quello che si legge nella pagina sta in `content.json`, dentro

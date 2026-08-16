@@ -599,16 +599,57 @@ def build():
         f'<dd><span data-lang="it">{esc(f["v_it"])}</span><span data-lang="en" hidden>{esc(f["v_en"])}</span></dd></div>'
         for f in wg["facts"]
     )
-    wg_secs = "".join(
-        f'<li class="wg-s">'
-        f'<span class="wg-s-n">{esc(s["n"])}</span>'
-        f'<h3 class="wg-s-t"><span data-lang="it">{esc(s["t_it"])}</span>'
-        f'<span data-lang="en" hidden>{esc(s["t_en"])}</span></h3>'
-        f'<p class="wg-s-d"><span data-lang="it">{esc(s["d_it"])}</span>'
-        f'<span data-lang="en" hidden>{esc(s["d_en"])}</span></p>'
-        f'</li>'
-        for s in wg.get("sections", [])
-    )
+    # ogni sezione ha una cartella in assets/wg/sezioni/: se dentro ci sono
+    # immagini, la prima fa da copertina e le altre stanno nel lightbox
+    WG_IMG = (".jpg", ".jpeg", ".png", ".webp")
+    SEZ = os.path.join(ROOT, "assets", "wg", "sezioni")
+
+    def sez_images(s):
+        d = os.path.join(SEZ, s.get("dir", ""))
+        if not s.get("dir") or not os.path.isdir(d):
+            return []
+        names = sorted(f for f in os.listdir(d)
+                       if f.lower().endswith(WG_IMG) and not f.startswith("."))
+        # il .webp è la versione leggera del .jpg omonimo, non una foto in più
+        jpgs = [n for n in names if not n.lower().endswith(".webp")]
+        return jpgs or names
+
+    def wg_sec(s):
+        imgs = sez_images(s)
+        cov = ""
+        if imgs:
+            out = os.path.join(DIST, "img", "wg", "sezioni", s["dir"])
+            os.makedirs(out, exist_ok=True)
+            for fn in os.listdir(os.path.join(SEZ, s["dir"])):
+                src = os.path.join(SEZ, s["dir"], fn)
+                if fn.lower().endswith(WG_IMG) and os.path.isfile(src):
+                    shutil.copy2(src, os.path.join(out, fn))
+            tiles = []
+            for i, fn in enumerate(imgs):
+                stem = os.path.splitext(fn)[0]
+                rel = f"img/wg/sezioni/{s['dir']}/{fn}"
+                webp = os.path.exists(os.path.join(SEZ, s["dir"], stem + ".webp"))
+                src = (f'<source srcset="img/wg/sezioni/{s["dir"]}/{stem}.webp" type="image/webp">'
+                       if webp else "")
+                # si vedono le prime quattro, le altre stanno solo nel lightbox
+                cls = "wg-s-th" if i < 4 else "wg-s-more"
+                tiles.append(
+                    f'<picture class="{cls}">{src}<img src="{rel}"'
+                    f' data-cap="{esc(s["t_it"])}" data-cap-en="{esc(s["t_en"])}"'
+                    f' alt="{esc(s["t_it"])}" loading="lazy"></picture>'
+                )
+            cov = f'<div class="wg-s-im">{"".join(tiles)}</div>'
+        return (
+            f'<li class="wg-s">'
+            f'<span class="wg-s-n">{esc(s["n"])}</span>'
+            f'<h3 class="wg-s-t"><span data-lang="it">{esc(s["t_it"])}</span>'
+            f'<span data-lang="en" hidden>{esc(s["t_en"])}</span></h3>'
+            f'<p class="wg-s-d"><span data-lang="it">{esc(s["d_it"])}</span>'
+            f'<span data-lang="en" hidden>{esc(s["d_en"])}</span></p>'
+            f'{cov}</li>'
+        )
+
+    wg_secs = "".join(wg_sec(s) for s in wg.get("sections", []))
     wg_secs_html = f"""
   <section class="wg-block">
     <h2 class="sec-h"><span data-lang="it">{esc(wg.get('sections_title_it', ''))}</span><span data-lang="en" hidden>{esc(wg.get('sections_title_en', ''))}</span></h2>

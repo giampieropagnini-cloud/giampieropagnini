@@ -62,7 +62,11 @@
 
   // lightbox
   var lb = document.getElementById('lb'), lbImg = document.getElementById('lbImg'), lbCap = document.getElementById('lbCap');
-  var shots = Array.prototype.slice.call(document.querySelectorAll('.gal .ph img, .wg-tile img'));
+  // ogni gruppo è una galleria a sé: le frecce restano dentro il gruppo aperto
+  var groups = Array.prototype.slice.call(document.querySelectorAll('.gal, .wg-grid, .wg-s-im'))
+    .map(function (c) { return Array.prototype.slice.call(c.querySelectorAll('img')); })
+    .filter(function (g) { return g.length; });
+  var shots = groups.length ? groups[0] : [];
   var idx = 0;
   function show(i) {
     idx = (i + shots.length) % shots.length;
@@ -74,8 +78,12 @@
     lb.hidden = false; document.body.style.overflow = 'hidden';
   }
   function hide() { lb.hidden = true; document.body.style.overflow = ''; }
-  if (lb && shots.length) {
-    shots.forEach(function (im, i) { im.addEventListener('click', function () { show(i); }); });
+  if (lb && groups.length) {
+    groups.forEach(function (g) {
+      g.forEach(function (im, i) {
+        im.addEventListener('click', function () { shots = g; show(i); });
+      });
+    });
     document.getElementById('lbX').addEventListener('click', hide);
     document.getElementById('lbP').addEventListener('click', function (e) { e.stopPropagation(); show(idx - 1); });
     document.getElementById('lbN').addEventListener('click', function (e) { e.stopPropagation(); show(idx + 1); });

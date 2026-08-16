@@ -26,6 +26,13 @@ e poi aggiorna la voce "grid" di content.json. Dopo, si ricostruisce il sito:
 
 Opzioni: --top N (quanti pezzi, 98 di default) · --sort date|likes|name
          --prefix wg (come si chiamano i file) · --dry-run (non scrive niente)
+
+C'è anche una modalità a parte per la cartella del progetto:
+
+       python3 scrape/wg_ingest.py --sections
+
+che prende le immagini messe a mano dentro assets/wg/sezioni/<sezione>/, le
+rimpicciolisce a 1600 px e ne fa la versione .webp. Non tocca la griglia.
 """
 import argparse
 import json
@@ -174,7 +181,54 @@ def measure(path):
 
 
 # ------------------------------------------------------------------------ main
+SEZ = os.path.join(ROOT, "assets", "wg", "sezioni")
+SEZ_SIDE = 1600
+
+
+def do_sections():
+    """Rimpicciolisce le immagini messe nelle cartelle delle sezioni e ne fa il webp."""
+    if not os.path.isdir(SEZ):
+        sys.exit(f"Non trovo {os.path.relpath(SEZ, ROOT)}.")
+    tot = 0
+    for d in sorted(os.listdir(SEZ)):
+        folder = os.path.join(SEZ, d)
+        if not os.path.isdir(folder):
+            continue
+        files = sorted(f for f in os.listdir(folder)
+                       if f.lower().endswith(EXT) and not f.startswith("."))
+        n = 0
+        for fn in files:
+            src = os.path.join(folder, fn)
+            stem, ext = os.path.splitext(fn)
+            if ext.lower() == ".webp":
+                continue  # è già la versione leggera di un'altra immagine
+            jpg = os.path.join(folder, stem + ".jpg")
+            tmp = os.path.join(folder, "." + stem + ".tmp.jpg")
+            try:
+                # si scrive a parte e poi si sostituisce: l'originale non si tocca
+                # finché la conversione non è andata a buon fine
+                resize(src, tmp, SEZ_SIDE, quality=78)
+                os.replace(tmp, jpg)
+                if PIL:
+                    resize(jpg, os.path.join(folder, stem + ".webp"), SEZ_SIDE, quality=70, webp=True)
+            except Exception as e:
+                if os.path.exists(tmp):
+                    os.remove(tmp)
+                print(f"  salto {d}/{fn}: {e}")
+                continue
+            if ext.lower() not in (".jpg", ".jpeg") and os.path.exists(jpg):
+                os.remove(src)  # l'originale png/heic non serve più
+            n += 1
+        if n:
+            print(f"  {d}: {n} immagini")
+            tot += n
+    print(f"{tot} immagini pronte nelle sezioni")
+    print("ora: python3 gen.py --theme oscura --out docs")
+
+
 def main():
+    if "--sections" in sys.argv:
+        return do_sections()
     ap = argparse.ArgumentParser(description="Riempie la griglia WeedGadget del sito.")
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--from-export", metavar="CARTELLA", help="esportazione dati Instagram")
