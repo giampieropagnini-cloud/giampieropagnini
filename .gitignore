@@ -12,3 +12,4 @@ scrape/json/
 scrape/*.html
 proposte/
 .DS_Store
+__pycache__/
