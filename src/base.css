@@ -21,6 +21,18 @@ button { font: inherit; background: none; border: 0; cursor: pointer; color: inh
 .lang { font-size: .8rem; letter-spacing: .1em; border: 1px solid var(--ln); padding: .3rem .55rem; border-radius: 2rem; opacity: .8; }
 .lang:hover { opacity: 1; border-color: var(--ac); color: var(--ac); }
 
+/* hamburger: nascosto da computer, è la sola voce di menu sotto gli 860px */
+.burger { display: none; }
+.burger-b { display: block; width: 26px; height: 18px; position: relative; }
+.burger-b i { position: absolute; left: 0; width: 100%; height: 2px; background: currentColor; border-radius: 2px;
+  transition: transform .32s cubic-bezier(.2,.7,.2,1), opacity .2s; }
+.burger-b i:nth-child(1) { top: 0; }
+.burger-b i:nth-child(2) { top: 8px; }
+.burger-b i:nth-child(3) { top: 16px; }
+body.nav-open .burger-b i:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+body.nav-open .burger-b i:nth-child(2) { opacity: 0; }
+body.nav-open .burger-b i:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
 /* hero */
 .hero { position: relative; min-height: min(88vh, 60rem); display: grid; align-items: end; overflow: hidden; }
 .hero-im { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: var(--hero-filter); }
@@ -192,13 +204,31 @@ button { font: inherit; background: none; border: 0; cursor: pointer; color: inh
 .lb-x:hover, .lb-p:hover, .lb-n:hover { opacity: 1; color: var(--ac); }
 .lb-cap { position: fixed; bottom: 1rem; left: 0; right: 0; text-align: center; color: #ddd; font-size: .85rem; }
 
+/* ===== menu a scomparsa sotto gli 860px =====
+   NOTA: .hd ha backdrop-filter, che rende .hd il contenitore di riferimento per
+   i figli in position:fixed. Va tolto a menu aperto, altrimenti il pannello si
+   dimensiona sull'altezza dell'intestazione invece che su tutto lo schermo. */
+@media (max-width: 860px) {
+  .burger { display: grid; place-items: center; width: 48px; height: 48px;
+    margin-right: -.7rem; position: relative; z-index: 70; color: var(--tx); }
+  .wordmark { position: relative; z-index: 70; }
+  body.nav-open .hd { backdrop-filter: none; background: transparent; }
+  .nav { position: fixed; inset: 0; z-index: 60; background: var(--bg);
+    flex-direction: column; align-items: flex-start; justify-content: center;
+    gap: 1.5rem; padding: 4.5rem clamp(1.4rem, 8vw, 3rem) 2rem;
+    opacity: 0; visibility: hidden; transform: translateY(-10px);
+    transition: opacity .28s ease, transform .28s ease, visibility .28s; }
+  body.nav-open .nav { opacity: 1; visibility: visible; transform: none; }
+  body.nav-open { overflow: hidden; }
+  .nav a { font-family: var(--font-display); font-size: clamp(1.8rem, 9vw, 2.8rem);
+    letter-spacing: .02em; line-height: 1.02; opacity: 1; }
+  .lang { font-size: .95rem; padding: .6rem 1.1rem; margin-top: .8rem; }
+}
+
 @media (max-width: 700px) {
   .about-cols { grid-template-columns: 1fr; }
   .about-im img { position: static; }
-  .hd { flex-wrap: wrap; padding-top: .8rem; padding-bottom: .8rem; row-gap: .3rem; }
-  .nav { gap: .35rem .9rem; }
-  .nav a { font-size: .78rem; letter-spacing: .06em; }
-  .lang { padding: .2rem .45rem; font-size: .72rem; }
+  .hd { padding-top: .9rem; padding-bottom: .9rem; }
   .gal { columns: 2 9rem; column-gap: .7rem; }
   .ph { margin-bottom: .7rem; }
   .rel { grid-template-columns: 1fr; gap: 1.4rem; }

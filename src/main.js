@@ -1,5 +1,31 @@
-/* lang toggle · works filter · lightbox · video click-to-load */
+/* menu · lang toggle · works filter · lightbox · video click-to-load */
 (function () {
+  // menu a scomparsa
+  var burger = document.getElementById('burger'), nav = document.getElementById('nav');
+  if (burger && nav) {
+    var setMenu = function (open) {
+      document.body.classList.toggle('nav-open', open);
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      burger.setAttribute('aria-label', open ? 'Chiudi il menu' : 'Menu');
+    };
+    burger.addEventListener('click', function () {
+      setMenu(!document.body.classList.contains('nav-open'));
+    });
+    // toccata una voce, il pannello si chiude da solo
+    nav.addEventListener('click', function (e) {
+      if (e.target.closest('a')) setMenu(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && document.body.classList.contains('nav-open')) {
+        setMenu(false); burger.focus();
+      }
+    });
+    // tornando alla larghezza da computer il menu non deve restare "aperto"
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 860) setMenu(false);
+    });
+  }
+
   // language
   var btn = document.getElementById('langBtn');
   function applyLang(l) {

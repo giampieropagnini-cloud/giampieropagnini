@@ -250,7 +250,10 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
 {grain}
 <header class="hd">
   <a class="wordmark" href="{r}index.html">GIAMPIERO<b>PAGNINI</b></a>
-  <nav class="nav">
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="nav">
+    <span class="burger-b" aria-hidden="true"><i></i><i></i><i></i></span>
+  </button>
+  <nav class="nav" id="nav">
     <a href="{r}opere.html" {('class="on"' if active=='opere' else '')}>{'<span data-lang="it">Opere</span><span data-lang="en" hidden>Works</span>'}</a>
     <a href="{r}art-direction.html" {('class="on"' if active=='ad' else '')}>Art Direction</a>
     <a href="{r}musica.html" {('class="on"' if active=='musica' else '')}>{'<span data-lang="it">Musica</span><span data-lang="en" hidden>Music</span>'}</a>
