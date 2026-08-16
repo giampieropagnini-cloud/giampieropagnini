@@ -197,7 +197,8 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
             "image": f"{SITE_URL}/img/hero-{site['portrait']}",
             "email": site["email"],
             "address": {"@type": "PostalAddress", "addressLocality": "Pescara", "addressCountry": "IT"},
-            "sameAs": [social["instagram"], social["facebook"], social["flickr"]],
+            "sameAs": [social["instagram"], social["facebook"], social["flickr"],
+                       content["music"]["bandcamp"], content["music"]["instagram"]],
             "description": site["intro_it"],
         },
         ensure_ascii=False,
@@ -251,6 +252,7 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
   <a class="wordmark" href="{r}index.html">GIAMPIERO<b>PAGNINI</b></a>
   <nav class="nav">
     <a href="{r}opere.html" {('class="on"' if active=='opere' else '')}>{'<span data-lang="it">Opere</span><span data-lang="en" hidden>Works</span>'}</a>
+    <a href="{r}musica.html" {('class="on"' if active=='musica' else '')}>{'<span data-lang="it">Musica</span><span data-lang="en" hidden>Music</span>'}</a>
     <a href="{r}about.html" {('class="on"' if active=='about' else '')}>About</a>
     <a href="{r}contact.html" {('class="on"' if active=='contact' else '')}>{'<span data-lang="it">Contatti</span><span data-lang="en" hidden>Contact</span>'}</a>
     <button class="lang" id="langBtn" title="Language">IT/EN</button>
@@ -263,6 +265,7 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
     <a href="{esc(site['social']['instagram'])}" rel="noopener">Instagram</a>
     <a href="{esc(site['social']['facebook'])}" rel="noopener">Facebook</a>
     <a href="{esc(site['social']['flickr'])}" rel="noopener">Flickr</a>
+    <a href="{esc(content['music']['bandcamp'])}" rel="noopener">Bandcamp</a>
     <a href="mailto:{esc(site['email'])}">{esc(site['email'])}</a>
   </div>
   <div class="ft-note">© {esc(site['name'])} — Pescara, Italia</div>
@@ -300,6 +303,12 @@ def build():
         shutil.rmtree(DIST)
     for d in ("css", "js", "progetti", "img"):
         os.makedirs(os.path.join(DIST, d), exist_ok=True)
+
+    # fogli di stile e script: sempre riallineati dalla cartella src/
+    for name, sub in (("base.css", "css"), ("theme.css", "css"), ("main.js", "js")):
+        s = os.path.join(ROOT, "src", name)
+        if os.path.exists(s):
+            shutil.copy2(s, os.path.join(DIST, sub, name))
 
     cats = {c["slug"]: c for c in content["categories"]}
     projects = content["projects"]
@@ -348,6 +357,27 @@ def build():
         f'<div class="marq" aria-hidden="true"><div class="marq-t"><span>{marq_items}</span><span>{marq_items}</span></div></div>'
         if THEME == "pin" else ""
     )
+    # richiamo al progetto musicale in home
+    mu_home = content["music"]
+    mu_covers = "".join(
+        f'<span class="mu-c"><picture>'
+        f'<source srcset="img/music/{r["slug"]}.webp" type="image/webp">'
+        f'<img src="img/music/{r["slug"]}.jpg" alt="{esc(r["title"])}" loading="lazy" width="1200" height="1200">'
+        f'</picture></span>'
+        for r in mu_home["releases"]
+    )
+    music_teaser = f"""
+<section class="sec sec-mu">
+  <a class="mu-teaser" href="musica.html">
+    <span class="mu-teaser-im">{mu_covers}</span>
+    <span class="mu-teaser-tx">
+      <span class="mu-k">{esc(mu_home['artist'])}</span>
+      <span class="sec-h"><span data-lang="it">Anche musica</span><span data-lang="en" hidden>Music too</span></span>
+      <span class="mu-teaser-p"><span data-lang="it">{esc(mu_home['tagline_it'])} Due dischi, ascoltabili per intero.</span><span data-lang="en" hidden>{esc(mu_home['tagline_en'])} Two records, playable in full.</span></span>
+      <span class="btn btn-s"><span data-lang="it">Ascolta</span><span data-lang="en" hidden>Listen</span></span>
+    </span>
+  </a>
+</section>"""
     hero_media = f'<img class="hero-im" src="img/hero-{site["home_hero"]}" alt="Studio di Giampiero Pagnini">'
     if THEME == "oscura" and os.path.exists(os.path.join(DIST, "img", "hero.mp4")):
         hero_media = (
@@ -372,7 +402,8 @@ def build():
 <section class="sec sec-cats">
   <h2 class="sec-h"><span data-lang="it">Percorsi</span><span data-lang="en" hidden>Paths</span></h2>
   <div class="chips">{cat_links}</div>
-</section>"""
+</section>
+{music_teaser}"""
     open(os.path.join(DIST, "index.html"), "w").write(
         page("Giampiero Pagnini — Sensibile alla luce", home, 0, active="home", url_path="")
     )
@@ -476,6 +507,91 @@ def build():
              desc=content["about"]["bio_it"][0][:155], og_image=f"hero-{site['portrait']}")
     )
 
+    # ---- musica
+    mu = content["music"]
+    os.makedirs(os.path.join(DIST, "img", "music"), exist_ok=True)
+    for rel in mu["releases"]:
+        for ext in ("jpg", "webp"):
+            s = os.path.join(ROOT, "assets", "music", f'{rel["slug"]}.{ext}')
+            if os.path.exists(s):
+                shutil.copy2(s, os.path.join(DIST, "img", "music", f'{rel["slug"]}.{ext}'))
+
+    def release_block(rel):
+        # player Bandcamp: colori del sito, tracklist cliccabile, copertina nostra
+        embed = (
+            f'https://bandcamp.com/EmbeddedPlayer/v=2/album={rel["album_id"]}'
+            f'/size=large/bgcol=111111/linkcol=ff9d00/artwork=none/tracklist=true/transparent=true/'
+        )
+        # la tracklist visibile la disegna già il player di Bandcamp (con le durate,
+        # e cliccabile): qui non va ripetuta. Per i motori di ricerca resta il JSON-LD.
+        return f"""
+<article class="rel" id="{rel['slug']}">
+  <div class="rel-cov">
+    <a href="{esc(rel['url'])}" rel="noopener" target="_blank">
+      <picture>
+        <source srcset="img/music/{rel['slug']}.webp" type="image/webp">
+        <img src="img/music/{rel['slug']}.jpg" alt="Copertina di {esc(rel['title'])}" loading="lazy" width="1200" height="1200">
+      </picture>
+    </a>
+  </div>
+  <div class="rel-tx">
+    <h2 class="rel-t">{esc(rel['title'])}</h2>
+    <p class="rel-d"><span data-lang="it">{esc(rel['date_it'])}</span><span data-lang="en" hidden>{esc(rel['date_en'])}</span> · {len(rel['tracks'])} <span data-lang="it">tracce</span><span data-lang="en" hidden>tracks</span></p>
+    {bi(esc(rel['note_it']), esc(rel['note_en']), 'p', 'rel-n')}
+    <div class="rel-play">
+      <iframe src="{embed}" title="Ascolta {esc(rel['title'])} su Bandcamp" loading="lazy" seamless>
+        <a href="{esc(rel['url'])}">{esc(rel['title'])} — GP THE SYNTH ROLLER</a>
+      </iframe>
+    </div>
+    <a class="btn btn-s" href="{esc(rel['url'])}" rel="noopener" target="_blank"><span data-lang="it">Ascolta e acquista su Bandcamp</span><span data-lang="en" hidden>Listen and buy on Bandcamp</span></a>
+  </div>
+</article>"""
+
+    albums_ld = json.dumps(
+        [
+            {
+                "@context": "https://schema.org",
+                "@type": "MusicAlbum",
+                "name": rel["title"],
+                "byArtist": {"@type": "MusicGroup", "name": mu["artist"], "url": mu["bandcamp"]},
+                "datePublished": rel["year"],
+                "url": rel["url"],
+                "image": f"{SITE_URL}/img/music/{rel['slug']}.jpg",
+                "numTracks": len(rel["tracks"]),
+                "track": [
+                    {"@type": "MusicRecording", "name": t, "position": i}
+                    for i, t in enumerate(rel["tracks"], 1)
+                ],
+            }
+            for rel in mu["releases"]
+        ],
+        ensure_ascii=False,
+    )
+    mu_bio_it = "".join(f"<p>{esc(t)}</p>" for t in mu["bio_it"])
+    mu_bio_en = "".join(f"<p>{esc(t)}</p>" for t in mu["bio_en"])
+    musica = f"""
+<script type="application/ld+json">{albums_ld}</script>
+<section class="sec sec-top musica">
+  <p class="mu-k">{esc(mu['artist'])}</p>
+  <h1 class="pg-h"><span data-lang="it">Musica</span><span data-lang="en" hidden>Music</span></h1>
+  <p class="mu-sub"><span data-lang="it">{esc(mu['tagline_it'])}</span><span data-lang="en" hidden>{esc(mu['tagline_en'])}</span></p>
+  <div class="mu-bio">
+    <div lang="it" data-lang="it">{mu_bio_it}</div>
+    <div lang="en" data-lang="en" hidden>{mu_bio_en}</div>
+  </div>
+  <div class="mu-links">
+    <a href="{esc(mu['bandcamp'])}" rel="noopener" target="_blank">Bandcamp</a>
+    <a href="{esc(mu['instagram'])}" rel="noopener" target="_blank">Instagram</a>
+  </div>
+  <div class="rels">{''.join(release_block(r) for r in mu['releases'])}</div>
+</section>"""
+    open(os.path.join(DIST, "musica.html"), "w").write(
+        page("Musica — GP The Synth Roller | Giampiero Pagnini", musica, 0, active="musica",
+             url_path="musica.html",
+             desc="GP THE SYNTH ROLLER, il progetto musicale di Giampiero Pagnini: downtempo, trip hop ed elettronica ambient costruita su sintetizzatori modulari. Due dischi del 2025.",
+             og_image=f"music/{mu['releases'][0]['slug']}.jpg")
+    )
+
     # ---- contact
     contact = f"""
 <section class="sec sec-top contact">
@@ -504,7 +620,7 @@ def build():
     open(os.path.join(DIST, "404.html"), "w").write(page("Pagina non trovata — Giampiero Pagnini", nf, 0))
 
     # ---- sitemap / robots / CNAME
-    urls = ["", "opere.html", "about.html", "contact.html"] + [f"progetti/{p['slug']}.html" for p in visible]
+    urls = ["", "opere.html", "musica.html", "about.html", "contact.html"] + [f"progetti/{p['slug']}.html" for p in visible]
     entries = "".join(
         f"  <url><loc>{SITE_URL}/{u}</loc><changefreq>monthly</changefreq>"
         f"<priority>{'1.0' if u == '' else '0.8' if '/' not in u else '0.6'}</priority></url>\n"

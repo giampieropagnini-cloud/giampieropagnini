@@ -103,6 +103,56 @@ button { font: inherit; background: none; border: 0; cursor: pointer; color: inh
 .c-rows a { border-bottom: 1px solid var(--ln); }
 .c-rows a:hover { color: var(--ac); border-color: var(--ac); }
 
+/* ===== musica ===== */
+.btn-s { font-size: .82rem; padding: .7em 1.3em; letter-spacing: .12em; }
+.mu-k { font-family: var(--font-mono); font-size: .78rem; text-transform: uppercase; letter-spacing: .22em;
+  color: var(--ac); margin: 0 0 .8em; display: block; }
+.musica { max-width: 78rem; }
+.mu-sub { font-size: clamp(1.05rem, 2.2vw, 1.3rem); max-width: 30em; margin: -0.3em 0 1.6em; opacity: .9; }
+.mu-bio { max-width: 46em; }
+.mu-bio p { margin: 0 0 1.1em; }
+.mu-links { display: flex; flex-wrap: wrap; gap: 1.6rem; margin: 1.8rem 0 0;
+  font-size: .85rem; text-transform: uppercase; letter-spacing: .16em; }
+.mu-links a { border-bottom: 1px solid var(--ln); padding-bottom: .2em; opacity: .8; }
+.mu-links a:hover { color: var(--ac); border-color: var(--ac); opacity: 1; }
+
+.rels { display: grid; gap: clamp(3rem, 8vw, 6rem); margin-top: clamp(2.5rem, 7vw, 5rem); }
+.rel { display: grid; grid-template-columns: minmax(14rem, 1fr) 1.35fr; gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: start; padding-top: clamp(1.5rem, 4vw, 3rem); border-top: 1px solid var(--ln); }
+/* height:auto è obbligatorio: gli attributi width/height dell'<img> vincono
+   sull'aspect-ratio e il riquadro resterebbe alto quanto l'immagine originale */
+.rel-cov img { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: var(--im-r);
+  box-shadow: var(--im-sh); border: var(--im-bd); background: var(--ph-bg);
+  transition: transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .5s; }
+.rel-cov a:hover img { transform: translateY(-4px); box-shadow: var(--im-sh-hov); }
+.rel-t { font-family: var(--font-display); text-transform: uppercase; font-size: clamp(1.5rem, 4vw, 2.4rem);
+  line-height: 1.05; margin: 0 0 .25em; letter-spacing: .01em; }
+.rel-d { font-family: var(--font-mono); font-size: .8rem; text-transform: uppercase; letter-spacing: .14em;
+  opacity: .55; margin: 0 0 1em; }
+.rel-n { max-width: 34em; margin: 0 0 1.5em; }
+.rel-play { margin-bottom: 1.6rem; }
+.rel-play iframe { width: 100%; height: 472px; border: 0; border-radius: var(--im-r); background: var(--ph-bg);
+  box-shadow: var(--im-sh); }
+.rel-l { list-style: none; padding: 0; margin: 0 0 1.8rem; counter-reset: t; }
+.rel-l li { padding: .5em 0; border-bottom: 1px solid var(--ln); font-size: .95rem; display: flex; gap: 1em; }
+.tr-n { font-family: var(--font-mono); font-size: .78rem; opacity: .45; min-width: 2em; padding-top: .25em; }
+
+/* richiamo alla musica in home */
+.sec-mu { padding-top: 0; }
+.mu-teaser { display: grid; grid-template-columns: minmax(12rem, .8fr) 1.4fr; gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center; padding: clamp(1.5rem, 4vw, 3rem) 0; border-top: 1px solid var(--ln); }
+.mu-teaser-im { display: flex; }
+.mu-c { display: block; width: 62%; }
+.mu-c + .mu-c { margin-left: -24%; }
+.mu-c img { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: var(--im-r);
+  box-shadow: var(--im-sh); border: var(--im-bd); transition: transform .5s cubic-bezier(.2,.7,.2,1); }
+.mu-teaser:hover .mu-c:first-child img { transform: translate(-5%, -4px) rotate(-2deg); }
+.mu-teaser:hover .mu-c + .mu-c img { transform: translate(5%, -4px) rotate(2deg); }
+.mu-teaser-tx { display: block; max-width: 36em; }
+.mu-teaser-tx .sec-h { display: block; margin-bottom: .5em; }
+.mu-teaser-p { display: block; margin-bottom: 1.6em; opacity: .85; }
+.mu-teaser:hover .sec-h { color: var(--ac); }
+
 /* footer */
 .ft { padding: clamp(2rem, 6vw, 4rem) clamp(1rem, 4vw, 3rem); border-top: 1px solid var(--ln);
   display: flex; flex-wrap: wrap; gap: 1rem 2.5rem; align-items: baseline; justify-content: space-between; }
@@ -129,4 +179,9 @@ button { font: inherit; background: none; border: 0; cursor: pointer; color: inh
   .lang { padding: .2rem .45rem; font-size: .72rem; }
   .gal { columns: 2 9rem; column-gap: .7rem; }
   .ph { margin-bottom: .7rem; }
+  .rel { grid-template-columns: 1fr; gap: 1.4rem; }
+  .rel-cov { max-width: 20rem; }
+  .rel-play iframe { height: 420px; }
+  .mu-teaser { grid-template-columns: 1fr; gap: 1.4rem; }
+  .mu-teaser-im { max-width: 17rem; }
 }
