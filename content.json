@@ -642,5 +642,68 @@
         ]
       }
     ]
+  },
+  "weedgadget": {
+    "name": "WeedGadget",
+    "instagram": "https://instagram.com/weedgadget",
+    "handle": "@weedgadget",
+    "kicker_it": "Oltre dieci anni · Vetro d'autore",
+    "kicker_en": "Over ten years · Artist glass",
+    "tagline_it": "Il vetro soffiato americano portato in Europa.",
+    "tagline_en": "American blown glass brought to Europe.",
+    "body_it": [
+      "WeedGadget è un progetto durato più di dieci anni, costruito attorno a una cosa sola: il vetro soffiato d'autore.",
+      "Negli Stati Uniti i glass blower lavorano il borosilicato come si lavora una scultura — pezzi unici, firmati, con collezionisti e liste d'attesa. In Europa quel vetro non arrivava. Sono stato il primo a portarlo a Barcellona: rapporti diretti con gli artisti americani, importazione, e uno spazio dove quei pezzi si potevano finalmente vedere dal vivo invece che in fotografia.",
+      "Attorno al vetro è nato tutto il resto, ed è la parte che ho firmato io: il marchio e le sue insegne, il negozio online, la fotografia dei pezzi, le grafiche, una linea di abbigliamento, gli espositori, i materiali per le fiere. Dieci anni di catalogo e di rapporti con chi quel vetro lo soffia.",
+      "Oggi il progetto vive su Instagram, ed è lì che c'è l'archivio: banger, water pipe, marble, pendenti, pezzi da collezione, più la collaborazione con Chileanglass. Oltre ottomila persone lo seguono."
+    ],
+    "body_en": [
+      "WeedGadget is a project that ran for more than ten years, built around one thing only: artist-blown glass.",
+      "In the United States glass blowers work borosilicate the way you work a sculpture — one-off signed pieces, with collectors and waiting lists. That glass wasn't reaching Europe. I was the first to bring it to Barcelona: direct relationships with the American artists, importing, and a space where those pieces could finally be seen in person instead of in photographs.",
+      "Everything else grew around the glass, and that is the part I signed: the brand and its signage, the online shop, the photography of the pieces, the graphics, a clothing line, the display stands, the trade-fair material. Ten years of catalogue and of relationships with the people who blow that glass.",
+      "Today the project lives on Instagram, and that is where the archive is: bangers, water pipes, marbles, pendants, collector pieces, plus the collaboration with Chileanglass. More than eight thousand people follow it."
+    ],
+    "facts": [
+      {
+        "k_it": "Durata",
+        "k_en": "Span",
+        "v_it": "Oltre 10 anni",
+        "v_en": "Over 10 years"
+      },
+      {
+        "k_it": "Dove",
+        "k_en": "Where",
+        "v_it": "Barcellona, poi Italia",
+        "v_en": "Barcelona, then Italy"
+      },
+      {
+        "k_it": "Cosa",
+        "k_en": "What",
+        "v_it": "Importazione e vendita di vetro d'autore",
+        "v_en": "Importing and selling artist glass"
+      },
+      {
+        "k_it": "Il mio ruolo",
+        "k_en": "My role",
+        "v_it": "Fondatore, marchio, fotografia, negozio",
+        "v_en": "Founder, brand, photography, shop"
+      }
+    ],
+    "book": {
+      "title": "Glass Addiction",
+      "subtitle": "Functional Glass Art Book — Vol. 1",
+      "year": "2021",
+      "cover": "glass-addiction-1",
+      "text_it": [
+        "Dal progetto è nato un libro: <em>Glass Addiction — Functional Glass Art Book Vol. 1</em>, uscito nel 2021. Centotrentacinque pagine in formato quadrato, dedicate per intero al vetro funzionale d'autore fotografato da vicino: la materia, le bolle, i colori dentro il vetro, i dettagli che a occhio nudo non si vedono.",
+        "È il primo libro del genere fatto in Italia. Non un catalogo di prodotti: un libro d'arte, in cui i pezzi vengono trattati come sculture."
+      ],
+      "text_en": [
+        "A book came out of the project: <em>Glass Addiction — Functional Glass Art Book Vol. 1</em>, published in 2021. One hundred and thirty-five square-format pages given entirely to artist functional glass photographed close up: the material, the bubbles, the colours inside the glass, the details the naked eye misses.",
+        "It is the first book of its kind made in Italy. Not a product catalogue: an art book, where the pieces are treated as sculptures."
+      ],
+      "next_it": "Il Volume 2 è in lavorazione, realizzato con Chileanglass: oltre trecento pagine.",
+      "next_en": "Volume 2 is in the works, made with Chileanglass: more than three hundred pages."
+    }
   }
 }

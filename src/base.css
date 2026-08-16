@@ -171,6 +171,34 @@ body.nav-open .burger-b i:nth-child(3) { transform: translateY(-8px) rotate(-45d
 .adp-tags li { font-size: .74rem; text-transform: uppercase; letter-spacing: .13em; opacity: .7;
   border: 1px solid var(--ln); border-radius: var(--chip-r); padding: .38em .9em; }
 
+/* ===== weedgadget ===== */
+.wg { max-width: 74rem; }
+.wg-hd { display: grid; grid-template-columns: minmax(7rem, 12rem) 1fr; gap: clamp(1.2rem, 4vw, 2.8rem);
+  align-items: center; margin-bottom: clamp(1.5rem, 4vw, 2.5rem); }
+.wg-mark img { width: 100%; height: auto; }
+.wg-hd-tx .pg-h { margin-bottom: .3em; }
+.wg-hd-tx .mu-sub { margin: 0; }
+.wg-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1.2rem 2rem; margin: clamp(2rem, 5vw, 3rem) 0; padding: clamp(1.2rem, 3vw, 1.8rem) 0;
+  border-top: 1px solid var(--ln); border-bottom: 1px solid var(--ln); }
+.wg-f dt { font-family: var(--font-mono); font-size: .72rem; text-transform: uppercase;
+  letter-spacing: .16em; opacity: .5; margin-bottom: .35em; }
+.wg-f dd { margin: 0; font-size: 1rem; }
+.wg-ig { display: inline-flex; align-items: baseline; gap: .7em; flex-wrap: wrap; }
+.wg-ig b { font-family: var(--font-mono); font-weight: 400; opacity: .7; letter-spacing: .06em; }
+
+/* il libro */
+.book { display: grid; grid-template-columns: minmax(12rem, 1fr) 1.3fr; gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center; margin-top: clamp(3rem, 8vw, 5.5rem);
+  padding-top: clamp(2rem, 5vw, 3.5rem); border-top: 1px solid var(--ln); }
+.book-cov img { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: var(--im-r);
+  box-shadow: var(--im-sh); border: var(--im-bd); }
+.book-sub { font-family: var(--font-mono); font-size: .78rem; text-transform: uppercase;
+  letter-spacing: .13em; opacity: .55; margin: -0.4em 0 1.2em; }
+.book-tx p { max-width: 38em; margin: 0 0 1.1em; }
+.book-next { border-left: 2px solid var(--ac); padding: .5em 0 .5em 1em; margin-top: 1.6em !important;
+  font-size: 1.02rem; }
+
 /* richiamo alla musica in home */
 .sec-mu { padding-top: 0; }
 .mu-teaser { display: grid; grid-template-columns: minmax(12rem, .8fr) 1.4fr; gap: clamp(1.5rem, 4vw, 3.5rem);
@@ -212,9 +240,14 @@ body.nav-open .burger-b i:nth-child(3) { transform: translateY(-8px) rotate(-45d
   .burger { display: grid; place-items: center; width: 48px; height: 48px;
     margin-right: -.7rem; position: relative; z-index: 70; color: var(--tx); }
   .wordmark { position: relative; z-index: 70; }
-  body.nav-open .hd { backdrop-filter: none; background: transparent; }
+  /* il blur va tolto SEMPRE, non solo a menu aperto: finché c'è, il pannello
+     fixed si dimensiona sull'intestazione (104px) invece che sullo schermo */
+  .hd { backdrop-filter: none; }
+  body.nav-open .hd { background: transparent; }
   .nav { position: fixed; inset: 0; z-index: 60; background: var(--bg);
-    flex-direction: column; align-items: flex-start; justify-content: center;
+    /* nowrap obbligatorio: in colonna, con l'altezza vincolata, le voci
+       andrebbero a capo formando altre colonne fuori dallo schermo */
+    flex-wrap: nowrap; flex-direction: column; align-items: flex-start; justify-content: center;
     gap: 1.5rem; padding: 4.5rem clamp(1.4rem, 8vw, 3rem) 2rem;
     opacity: 0; visibility: hidden; transform: translateY(-10px);
     transition: opacity .28s ease, transform .28s ease, visibility .28s; }
@@ -238,4 +271,8 @@ body.nav-open .burger-b i:nth-child(3) { transform: translateY(-8px) rotate(-45d
   .mu-teaser-im { max-width: 17rem; }
   .adp { grid-template-columns: 1fr; gap: 1.3rem; }
   .adp:nth-child(even) .adp-im { order: 0; }
+  .wg-hd { grid-template-columns: 1fr; gap: 1.1rem; }
+  .wg-mark { max-width: 9rem; }
+  .book { grid-template-columns: 1fr; gap: 1.4rem; }
+  .book-cov { max-width: 18rem; }
 }

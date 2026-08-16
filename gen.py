@@ -256,6 +256,7 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
   <nav class="nav" id="nav">
     <a href="{r}opere.html" {('class="on"' if active=='opere' else '')}>{'<span data-lang="it">Opere</span><span data-lang="en" hidden>Works</span>'}</a>
     <a href="{r}art-direction.html" {('class="on"' if active=='ad' else '')}>Art Direction</a>
+    <a href="{r}weedgadget.html" {('class="on"' if active=='wg' else '')}>WeedGadget</a>
     <a href="{r}musica.html" {('class="on"' if active=='musica' else '')}>{'<span data-lang="it">Musica</span><span data-lang="en" hidden>Music</span>'}</a>
     <a href="{r}about.html" {('class="on"' if active=='about' else '')}>About</a>
     <a href="{r}contact.html" {('class="on"' if active=='contact' else '')}>{'<span data-lang="it">Contatti</span><span data-lang="en" hidden>Contact</span>'}</a>
@@ -564,6 +565,77 @@ def build():
              og_image=f"ad/{ad['projects'][0]['slug']}.jpg")
     )
 
+    # ---- weedgadget
+    wg = content["weedgadget"]
+    bk = wg["book"]
+    os.makedirs(os.path.join(DIST, "img", "wg"), exist_ok=True)
+    for base in ("weedgadget", bk["cover"]):
+        for ext in ("png", "jpg", "webp"):
+            s = os.path.join(ROOT, "assets", "wg", f"{base}.{ext}")
+            if os.path.exists(s):
+                shutil.copy2(s, os.path.join(DIST, "img", "wg", f"{base}.{ext}"))
+
+    wg_body_it = "".join(f"<p>{esc(t)}</p>" for t in wg["body_it"])
+    wg_body_en = "".join(f"<p>{esc(t)}</p>" for t in wg["body_en"])
+    # nel testo del libro il corsivo del titolo è voluto, quindi niente esc()
+    bk_it = "".join(f"<p>{t}</p>" for t in bk["text_it"])
+    bk_en = "".join(f"<p>{t}</p>" for t in bk["text_en"])
+    facts = "".join(
+        f'<div class="wg-f"><dt><span data-lang="it">{esc(f["k_it"])}</span><span data-lang="en" hidden>{esc(f["k_en"])}</span></dt>'
+        f'<dd><span data-lang="it">{esc(f["v_it"])}</span><span data-lang="en" hidden>{esc(f["v_en"])}</span></dd></div>'
+        for f in wg["facts"]
+    )
+    wgpage = f"""
+<section class="sec sec-top wg">
+  <div class="wg-hd">
+    <div class="wg-mark">
+      <picture>
+        <source srcset="img/wg/weedgadget.webp" type="image/webp">
+        <img src="img/wg/weedgadget.png" alt="Marchio WeedGadget" width="1200" height="1200">
+      </picture>
+    </div>
+    <div class="wg-hd-tx">
+      <p class="mu-k"><span data-lang="it">{esc(wg['kicker_it'])}</span><span data-lang="en" hidden>{esc(wg['kicker_en'])}</span></p>
+      <h1 class="pg-h">{esc(wg['name'])}</h1>
+      <p class="mu-sub"><span data-lang="it">{esc(wg['tagline_it'])}</span><span data-lang="en" hidden>{esc(wg['tagline_en'])}</span></p>
+    </div>
+  </div>
+
+  <div class="mu-bio">
+    <div lang="it" data-lang="it">{wg_body_it}</div>
+    <div lang="en" data-lang="en" hidden>{wg_body_en}</div>
+  </div>
+
+  <dl class="wg-facts">{facts}</dl>
+
+  <a class="btn wg-ig" href="{esc(wg['instagram'])}" rel="noopener" target="_blank">
+    <span data-lang="it">Guarda l'archivio su Instagram</span><span data-lang="en" hidden>See the archive on Instagram</span>
+    <b>{esc(wg['handle'])}</b>
+  </a>
+
+  <article class="book">
+    <div class="book-cov">
+      <picture>
+        <source srcset="img/wg/{bk['cover']}.webp" type="image/webp">
+        <img src="img/wg/{bk['cover']}.jpg" alt="Copertina di {esc(bk['title'])} volume 1" loading="lazy" width="1812" height="1812">
+      </picture>
+    </div>
+    <div class="book-tx">
+      <p class="adp-k"><span data-lang="it">Il libro</span><span data-lang="en" hidden>The book</span> · {esc(bk['year'])}</p>
+      <h2 class="adp-t">{esc(bk['title'])}</h2>
+      <p class="book-sub">{esc(bk['subtitle'])}</p>
+      <div lang="it" data-lang="it">{bk_it}</div>
+      <div lang="en" data-lang="en" hidden>{bk_en}</div>
+      <p class="book-next"><span data-lang="it">{esc(bk['next_it'])}</span><span data-lang="en" hidden>{esc(bk['next_en'])}</span></p>
+    </div>
+  </article>
+</section>"""
+    open(os.path.join(DIST, "weedgadget.html"), "w").write(
+        page("WeedGadget — Giampiero Pagnini", wgpage, 0, active="wg", url_path="weedgadget.html",
+             desc="WeedGadget: oltre dieci anni di vetro soffiato d'autore. Il primo import del vetro dei glass blower americani a Barcellona, e il libro Glass Addiction.",
+             og_image=f"wg/{bk['cover']}.jpg")
+    )
+
     # ---- musica
     mu = content["music"]
     os.makedirs(os.path.join(DIST, "img", "music"), exist_ok=True)
@@ -677,7 +749,8 @@ def build():
     open(os.path.join(DIST, "404.html"), "w").write(page("Pagina non trovata — Giampiero Pagnini", nf, 0))
 
     # ---- sitemap / robots / CNAME
-    urls = ["", "opere.html", "art-direction.html", "musica.html", "about.html", "contact.html"] + [f"progetti/{p['slug']}.html" for p in visible]
+    urls = ["", "opere.html", "art-direction.html", "weedgadget.html", "musica.html",
+            "about.html", "contact.html"] + [f"progetti/{p['slug']}.html" for p in visible]
     entries = "".join(
         f"  <url><loc>{SITE_URL}/{u}</loc><changefreq>monthly</changefreq>"
         f"<priority>{'1.0' if u == '' else '0.8' if '/' not in u else '0.6'}</priority></url>\n"
