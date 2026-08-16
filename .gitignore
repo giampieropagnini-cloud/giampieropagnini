@@ -12,3 +12,8 @@ scrape/json/
 scrape/*.html
 proposte/
 .DS_Store
+# pagine autonome in attesa di essere copiate in docs/ da gen.py: sono solo una
+# copia di lavoro, gli stessi file finiscono gia' in docs/ che e' quello pubblicato.
+# L'archivio di WeedGadget si rigenera con:
+#   python3 ../weedgadget-brand/scripts/pubblica-sul-sito.py
+static/

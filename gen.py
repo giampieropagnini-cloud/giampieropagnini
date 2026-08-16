@@ -315,6 +315,18 @@ def build():
         if os.path.exists(s):
             shutil.copy2(s, os.path.join(DIST, sub, name))
 
+    # pagine autonome che non passano da qui (per ora: l'archivio di WeedGadget).
+    # Vengono copiate così come sono, anche dopo un --clean.
+    static = os.path.join(ROOT, "static")
+    if os.path.isdir(static):
+        for voce in sorted(os.listdir(static)):
+            src_v = os.path.join(static, voce)
+            dst_v = os.path.join(DIST, voce)
+            if os.path.isdir(src_v):
+                shutil.copytree(src_v, dst_v, dirs_exist_ok=True)
+            else:
+                shutil.copy2(src_v, dst_v)
+
     cats = {c["slug"]: c for c in content["categories"]}
     projects = content["projects"]
     uris = {site["home_hero"], site["portrait"], site["logo"]}
@@ -811,7 +823,8 @@ def build():
 
     # ---- sitemap / robots / CNAME
     urls = ["", "opere.html", "art-direction.html", "weedgadget.html", "musica.html",
-            "about.html", "contact.html"] + [f"progetti/{p['slug']}.html" for p in visible]
+            "about.html", "contact.html", "weedgadget-archivio/"
+            ] + [f"progetti/{p['slug']}.html" for p in visible]
     entries = "".join(
         f"  <url><loc>{SITE_URL}/{u}</loc><changefreq>monthly</changefreq>"
         f"<priority>{'1.0' if u == '' else '0.8' if '/' not in u else '0.6'}</priority></url>\n"
