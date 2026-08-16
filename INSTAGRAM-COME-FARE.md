@@ -1,5 +1,9 @@
 # Portare Instagram sul sito
 
+La pagina da valorizzare è **@gpthesynthroller**: i comandi qui sotto sono già
+pronti per quella, con l'archivio a griglia da 98 post. Per gli altri profili
+(`giamps1982`, `weedgadget`) basta cambiare il nome nei comandi.
+
 Tre comandi in tutto. Il primo scarica l'archivio dal tuo profilo, il secondo
 sceglie i post migliori, il terzo costruisce la pagina.
 
@@ -53,14 +57,14 @@ rifai questa parte.
 ### 1. Scarica l'archivio
 
 ```bash
-python3 scrape/instagram.py giamps1982
+python3 scrape/instagram.py gpthesynthroller
 ```
 
-Al posto di `giamps1982` metti il profilo che vuoi: `weedgadget`,
-`gpthesynthroller`, quello che è.
+Al posto di `gpthesynthroller` metti il profilo che vuoi: `giamps1982`,
+`weedgadget`, quello che è.
 
-Scarica i testi in `scrape/ig/giamps1982.json` e le foto in
-`assets/ig/giamps1982/orig/`. Ci mette qualche minuto: fa una pausa fra una
+Scarica i testi in `scrape/ig/gpthesynthroller.json` e le foto in
+`assets/ig/gpthesynthroller/orig/`. Ci mette qualche minuto: fa una pausa fra una
 pagina e l'altra apposta, per non farsi bloccare da Instagram.
 
 Se hai fretta o vuoi solo provare: `--limit 60` si ferma ai primi 60 post.
@@ -70,8 +74,11 @@ che ci sono già, e i post vecchi restano.
 ### 2. Scegli i migliori
 
 ```bash
-python3 scrape/ig_build.py giamps1982 --top 12
+python3 scrape/ig_build.py gpthesynthroller --top 12 --max 98
 ```
+
+`--max 98` è la griglia da 98: nell'archivio entrano i 98 post più recenti.
+Togli `--max` e ci entrano tutti.
 
 Scrive `instagram.json` nella cartella principale: è il contenuto della
 pagina, ed è un file di testo che puoi correggere a mano quando vuoi.
@@ -80,8 +87,8 @@ In vetrina finiscono i post con più mi piace e commenti.
 Per comandare tu la vetrina:
 
 ```bash
-python3 scrape/ig_build.py giamps1982 --top 12 --pin CxAb12,CyZz34
-python3 scrape/ig_build.py giamps1982 --exclude CxNo99
+python3 scrape/ig_build.py gpthesynthroller --top 12 --pin CxAb12,CyZz34
+python3 scrape/ig_build.py gpthesynthroller --exclude CxNo99
 ```
 
 (il codice del post è quello dopo `/p/` nell'indirizzo di Instagram)
@@ -132,7 +139,7 @@ Se preferisci non toccare i cookie, Instagram può darti tutto lui:
 4. Poi:
 
 ```bash
-python3 scrape/instagram.py giamps1982 --export ~/Downloads/il-file.zip
+python3 scrape/instagram.py gpthesynthroller --export ~/Downloads/il-file.zip
 ```
 
 Vengono le foto e tutte le didascalie, ma **non i mi piace**: in quel caso la
