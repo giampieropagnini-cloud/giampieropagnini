@@ -12,3 +12,8 @@ scrape/json/
 scrape/*.html
 proposte/
 .DS_Store
+# Instagram: la sessione, l'archivio grezzo e le foto originali restano in locale
+scrape/ig-cookies.txt
+scrape/ig/
+assets/ig/
+__pycache__/

@@ -30,6 +30,13 @@ DOMAIN = SITE_URL.split("//", 1)[-1]
 
 content = json.load(open(os.path.join(ROOT, "content.json")))
 site = content["site"]
+
+# archivio Instagram: c'è solo dopo scrape/instagram.py + scrape/ig_build.py.
+# Senza quel file la pagina non viene costruita e il resto del sito non cambia.
+IG_PATH = os.path.join(ROOT, "instagram.json")
+IG = json.load(open(IG_PATH)) if os.path.exists(IG_PATH) else None
+IG_SRC = os.path.join(ROOT, "assets", "ig", IG["handle"], "orig") if IG else ""
+
 scrape = json.load(open(os.path.join(ROOT, "scrape", "site.json")))
 old_pages = {p["slug"]: p for p in scrape["pages"].values()}
 
@@ -125,6 +132,53 @@ def make_derivatives(uris, yt_ids):
                 open(out, "wb").write(urllib.request.urlopen(req, timeout=20).read())
             except Exception as e:
                 print("yt fail", vid, e)
+
+
+def make_ig_derivatives():
+    """Miniature e formato grande per l'archivio Instagram."""
+    if not IG:
+        return
+    thumb_d = os.path.join(DIST, "img", "ig", "thumb")
+    large_d = os.path.join(DIST, "img", "ig", "large")
+    for d in (thumb_d, large_d):
+        os.makedirs(d, exist_ok=True)
+
+    files = [p["media"][0]["file"] for p in IG["posts"] if p.get("media")]
+    foto = IG["profilo"].get("foto")
+    if foto:
+        files.append(foto)
+    fatti = 0
+    for f in files:
+        src = os.path.join(IG_SRC, f)
+        if not os.path.exists(src):
+            print("manca", src)
+            continue
+        for out_d, size, q in ((thumb_d, 640, "78"), (large_d, 1600, "82")):
+            out = os.path.join(out_d, wp(f))
+            if os.path.exists(out):
+                continue
+            tmp = os.path.join(out_d, "_tmp_" + f)
+            subprocess.run(
+                ["sips", "-Z", str(size), "-s", "format", "jpeg", "-s", "formatOptions", "92", src, "--out", tmp],
+                capture_output=True,
+            )
+            if os.path.exists(tmp):
+                subprocess.run(["cwebp", "-quiet", "-q", q, "-m", "5", tmp, "-o", out], capture_output=True)
+                os.remove(tmp)
+                fatti += 1
+    # anteprima social della pagina: il primo dei post in vetrina
+    og_d = os.path.join(DIST, "img", "og")
+    os.makedirs(og_d, exist_ok=True)
+    out = os.path.join(og_d, "instagram.jpg")
+    primo = next((p for c in IG["top"] for p in IG["posts"] if p["code"] == c and p.get("media")), None)
+    if primo and not os.path.exists(out):
+        src = os.path.join(IG_SRC, primo["media"][0]["file"])
+        if os.path.exists(src):
+            subprocess.run(
+                ["sips", "-Z", "1200", "-s", "format", "jpeg", "-s", "formatOptions", "70", src, "--out", out],
+                capture_output=True,
+            )
+    print(f"instagram: {len(files)} immagini, {fatti} nuove derivate")
 
 
 # ---------- icone del sito, dal marchio "Camera Oscura" ----------
@@ -229,6 +283,11 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
   try {{ l = localStorage.getItem('gp-lang'); }} catch(e){{}}
   if (l === 'en') document.documentElement.setAttribute('data-lang','en');
 }})();"""
+    ig_nav = ""
+    if IG:
+        on = ' class="on"' if active == "ig" else ""
+        ig_nav = (f'\n    <a href="{r}instagram.html"{on}>'
+                  '<span data-lang="it">Instagram</span><span data-lang="en" hidden>Instagram</span></a>')
     theme_attr = f' data-theme="{THEME}"' if THEME else ""
     grain = '<div class="grain" aria-hidden="true"></div>' if THEME == "oscura" else ""
     return f"""<!DOCTYPE html>
@@ -257,7 +316,7 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
     <a href="{r}opere.html" {('class="on"' if active=='opere' else '')}>{'<span data-lang="it">Opere</span><span data-lang="en" hidden>Works</span>'}</a>
     <a href="{r}art-direction.html" {('class="on"' if active=='ad' else '')}>Art Direction</a>
     <a href="{r}weedgadget.html" {('class="on"' if active=='wg' else '')}>WeedGadget</a>
-    <a href="{r}musica.html" {('class="on"' if active=='musica' else '')}>{'<span data-lang="it">Musica</span><span data-lang="en" hidden>Music</span>'}</a>
+    <a href="{r}musica.html" {('class="on"' if active=='musica' else '')}>{'<span data-lang="it">Musica</span><span data-lang="en" hidden>Music</span>'}</a>{ig_nav}
     <a href="{r}about.html" {('class="on"' if active=='about' else '')}>About</a>
     <a href="{r}contact.html" {('class="on"' if active=='contact' else '')}>{'<span data-lang="it">Contatti</span><span data-lang="en" hidden>Contact</span>'}</a>
     <button class="lang" id="langBtn" title="Language">IT/EN</button>
@@ -302,6 +361,131 @@ def video_embed(vid, depth=0):
 </div>"""
 
 
+# ---------- Instagram ----------
+def num(n):
+    """1234 → 1.234, alla maniera italiana."""
+    return f"{n:,}".replace(",", ".") if isinstance(n, int) else ""
+
+
+def ig_square(p, r):
+    """Un quadro della griglia: miniatura, distintivi, mi piace all'occhio."""
+    m = p["media"][0]
+    thumb = f'{r}img/ig/thumb/{wp(m["file"])}'
+    large = f'{r}img/ig/large/{wp(m["file"])}'
+    alt = esc(p["title"] or f"Post del {p['date_it']}")
+    bad = ""
+    if p["is_reel"] or p["kind"] == "video":
+        bad = '<span class="ig-b ig-b-v" aria-hidden="true">▶</span>'
+    elif len(p["media"]) > 1:
+        bad = f'<span class="ig-b" aria-hidden="true">{len(p["media"])}</span>'
+    conti = ""
+    if p["likes"]:
+        conti = f'<span class="ig-n">♥ {num(p["likes"])}</span>'
+        if p["comments"]:
+            conti += f'<span class="ig-n">✎ {num(p["comments"])}</span>'
+    velo = f'<span class="ig-velo"><span class="ig-velo-t">{esc(p["title"])}</span>{conti}</span>'
+    cap = esc(p["title"] or p["text"][:120])
+    if p["date_it"]:
+        cap = (cap + " · " if cap else "") + esc(p["date_it"])
+    img = (f'<img src="{thumb}" data-full="{large}" data-code="{esc(p["code"])}" '
+           f'data-cap="{cap}" alt="{alt}" loading="lazy" width="640" height="640">')
+    # i filmati non entrano nella lente: si guardano su Instagram
+    if (p["is_reel"] or p["kind"] == "video") and p["url"]:
+        return f'<a class="ph ig-q" href="{esc(p["url"])}" rel="noopener" target="_blank">{img}{bad}{velo}</a>'
+    return f'<figure class="ph ig-q">{img}{bad}{velo}</figure>'
+
+
+def ig_body():
+    r = ""
+    pr = IG["profilo"]
+    st = IG["stat"]
+    indice = {p["code"]: p for p in IG["posts"]}
+    scelti = [indice[c] for c in IG["top"] if c in indice]
+
+    foto = ""
+    if pr.get("foto"):
+        foto = (f'<img src="{r}img/ig/thumb/{wp(pr["foto"])}" alt="{esc(pr["nome"] or IG["handle"])}" '
+                f'width="320" height="320">')
+    marchio = f'<span class="ig-tondo">{foto}</span>'
+
+    voci = [("Post", "Posts", num(st["post"]))]
+    if pr.get("follower"):
+        voci.append(("Follower", "Followers", num(pr["follower"])))
+    if st.get("mi_piace"):
+        voci.append(("Mi piace", "Likes", num(st["mi_piace"])))
+    if st.get("dal"):
+        voci.append(("Dal", "Since", st["dal"].split()[-1] if st["dal"] else ""))
+    stats = "".join(
+        f'<div class="ig-f"><dt><span data-lang="it">{esc(k_it)}</span>'
+        f'<span data-lang="en" hidden>{esc(k_en)}</span></dt><dd>{esc(v)}</dd></div>'
+        for k_it, k_en, v in voci if v
+    )
+    tag = "".join(
+        f'<a class="chip" href="https://www.instagram.com/explore/tags/{esc(t["tag"].lstrip("#"))}/" '
+        f'rel="noopener" target="_blank">#{esc(t["tag"].lstrip("#"))} <b>{t["n"]}</b></a>'
+        for t in IG["hashtag"][:12]
+    )
+    intro = ""
+    if IG.get("intro_it") or pr.get("bio"):
+        it = esc(IG.get("intro_it") or pr.get("bio"))
+        en = esc(IG.get("intro_en") or IG.get("intro_it") or pr.get("bio"))
+        intro = f'<div class="mu-bio">{bi(it, en)}</div>'
+
+    vetrina = "".join(
+        f'<article class="ig-card">'
+        f'<button class="ig-card-im" data-lb="{esc(p["code"])}" aria-label="Ingrandisci">'
+        f'<img src="{r}img/ig/thumb/{wp(p["media"][0]["file"])}" '
+        f'alt="{esc(p["title"] or "Post")}" loading="lazy" width="640" height="640"></button>'
+        f'<div class="ig-card-tx">'
+        f'<p class="ig-card-t">{esc(p["title"] or p["date_it"])}</p>'
+        f'<p class="ig-card-m">{esc(p["date_it"])}'
+        + (f' · ♥ {num(p["likes"])}' if p["likes"] else "")
+        + (f' · <a href="{esc(p["url"])}" rel="noopener" target="_blank">Instagram</a>' if p["url"] else "")
+        + "</p></div></article>"
+        for p in scelti
+    )
+
+    anni = "".join(
+        f'<button class="chip" data-anno="{esc(a)}">{esc(a)}</button>' for a in st.get("anni", [])
+    )
+    filtri = (f'<div class="chips ig-anni" id="igAnni">'
+              f'<button class="chip on" data-anno="*"><span data-lang="it">Tutti</span>'
+              f'<span data-lang="en" hidden>All</span></button>{anni}</div>') if len(st.get("anni", [])) > 1 else ""
+
+    griglia = "".join(
+        f'<div class="ig-cell" data-anno="{esc(p["year"])}">{ig_square(p, r)}</div>' for p in IG["posts"]
+    )
+
+    return f"""
+<section class="sec sec-top ig">
+  <div class="ig-hd">
+    <div class="ig-mark">{marchio}</div>
+    <div class="ig-hd-tx">
+      <p class="mu-k"><span data-lang="it">{esc(IG.get('kicker_it') or 'Instagram')}</span>
+        <span data-lang="en" hidden>{esc(IG.get('kicker_en') or 'Instagram')}</span></p>
+      <h1 class="pg-h">@{esc(IG['handle'])}</h1>
+      <p class="mu-sub">{esc(pr.get('nome') or IG.get('title') or '')}</p>
+      <dl class="ig-stats">{stats}</dl>
+      <a class="btn ig-follow" href="{esc(IG['url'])}" rel="noopener" target="_blank">
+        <span data-lang="it">Segui su Instagram</span><span data-lang="en" hidden>Follow on Instagram</span>
+        <b>@{esc(IG['handle'])}</b></a>
+    </div>
+  </div>
+
+  {intro}
+  <div class="chips ig-tags">{tag}</div>
+
+  <h2 class="sec-h"><span data-lang="it">I migliori</span><span data-lang="en" hidden>Best of</span></h2>
+  <div class="ig-vetrina">{vetrina}</div>
+
+  <h2 class="sec-h"><span data-lang="it">Tutto l'archivio</span><span data-lang="en" hidden>The whole archive</span></h2>
+  {filtri}
+  <div class="gal ig-grid" id="igGrid">{griglia}</div>
+  <p class="ig-nota"><span data-lang="it">Archivio aggiornato al {esc((IG.get('aggiornato') or '')[:10])} · {num(st['post'])} post</span>
+    <span data-lang="en" hidden>Archive updated {esc((IG.get('aggiornato') or '')[:10])} · {num(st['post'])} posts</span></p>
+</section>"""
+
+
 # ---------- build ----------
 def build():
     if os.path.exists(DIST) and "--clean" in sys.argv:
@@ -331,6 +515,7 @@ def build():
 
     if "--imgs" in sys.argv:
         make_derivatives(uris, yt_ids)
+        make_ig_derivatives()
         for u in (site["home_hero"], site["portrait"]):
             src = os.path.join(IMG_SRC, u)
             out = os.path.join(DIST, "img", "hero-" + u)
@@ -636,6 +821,17 @@ def build():
              og_image=f"wg/{bk['cover']}.jpg")
     )
 
+    # ---- instagram (solo se c'è instagram.json)
+    if IG:
+        titolo = IG.get("title") or f"@{IG['handle']}"
+        desc = (IG.get("intro_it") or IG["profilo"].get("bio")
+                or f"L'archivio di @{IG['handle']}: {IG['stat']['post']} post, dal {IG['stat']['dal']}.")
+        open(os.path.join(DIST, "instagram.html"), "w").write(
+            page(f"Instagram — {titolo}", ig_body(), 0, active="ig",
+                 url_path="instagram.html", desc=desc[:300], og_image="og/instagram.jpg")
+        )
+        print(f"instagram.html: {IG['stat']['post']} post, {len(IG['top'])} in vetrina")
+
     # ---- musica
     mu = content["music"]
     os.makedirs(os.path.join(DIST, "img", "music"), exist_ok=True)
@@ -772,7 +968,7 @@ def build():
     # distruggerebbe — e per giunta rinvierebbero a se stesse. GitHub Pages già
     # serve /about da about.html, quindi quei vecchi indirizzi funzionano da soli.
     RISERVATI = {"index", "opere", "art-direction", "weedgadget", "musica",
-                 "about", "contact", "404", "sitemap", "robots"}
+                 "instagram", "about", "contact", "404", "sitemap", "robots"}
     slug_norm = {re.sub(r"[^a-z0-9]", "", p["slug"].lower()): p["slug"] for p in visible}
     esistenti = {p["slug"] for p in visible}
     old_path = os.path.join(ROOT, "scrape", "site.json")
@@ -809,8 +1005,8 @@ def build():
             n_red += 1
 
     # ---- sitemap / robots / CNAME
-    urls = ["", "opere.html", "art-direction.html", "weedgadget.html", "musica.html",
-            "about.html", "contact.html"] + [f"progetti/{p['slug']}.html" for p in visible]
+    urls = ["", "opere.html", "art-direction.html", "weedgadget.html", "musica.html"] \
+        + (["instagram.html"] if IG else []) + ["about.html", "contact.html"] + [f"progetti/{p['slug']}.html" for p in visible]
     entries = "".join(
         f"  <url><loc>{SITE_URL}/{u}</loc><changefreq>monthly</changefreq>"
         f"<priority>{'1.0' if u == '' else '0.8' if '/' not in u else '0.6'}</priority></url>\n"

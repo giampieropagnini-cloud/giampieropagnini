@@ -66,13 +66,25 @@
   var idx = 0;
   function show(i) {
     idx = (i + shots.length) % shots.length;
-    lbImg.src = shots[idx].src;
-    lbCap.textContent = (idx + 1) + ' / ' + shots.length;
+    var im = shots[idx];
+    // in griglia si carica la miniatura: nella lente serve il formato grande
+    lbImg.src = im.getAttribute('data-full') || im.src;
+    var cap = im.getAttribute('data-cap');
+    lbCap.textContent = cap ? cap + ' · ' + (idx + 1) + '/' + shots.length
+                            : (idx + 1) + ' / ' + shots.length;
     lb.hidden = false; document.body.style.overflow = 'hidden';
   }
   function hide() { lb.hidden = true; document.body.style.overflow = ''; }
   if (lb && shots.length) {
     shots.forEach(function (im, i) { im.addEventListener('click', function () { show(i); }); });
+    // i post in vetrina aprono la lente sullo stesso scatto che sta nell'archivio
+    document.querySelectorAll('[data-lb]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        var code = el.getAttribute('data-lb'), i = -1;
+        shots.forEach(function (im, j) { if (im.getAttribute('data-code') === code) i = j; });
+        if (i >= 0) { e.preventDefault(); show(i); }
+      });
+    });
     document.getElementById('lbX').addEventListener('click', hide);
     document.getElementById('lbP').addEventListener('click', function (e) { e.stopPropagation(); show(idx - 1); });
     document.getElementById('lbN').addEventListener('click', function (e) { e.stopPropagation(); show(idx + 1); });
@@ -82,6 +94,20 @@
       if (e.key === 'Escape') hide();
       if (e.key === 'ArrowLeft') show(idx - 1);
       if (e.key === 'ArrowRight') show(idx + 1);
+    });
+  }
+
+  // archivio Instagram: filtro per anno
+  var anni = document.getElementById('igAnni'), igGrid = document.getElementById('igGrid');
+  if (anni && igGrid) {
+    anni.addEventListener('click', function (e) {
+      var chip = e.target.closest('.chip'); if (!chip) return;
+      anni.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('on'); });
+      chip.classList.add('on');
+      var a = chip.getAttribute('data-anno');
+      igGrid.querySelectorAll('.ig-cell').forEach(function (cell) {
+        cell.style.display = (a === '*' || cell.getAttribute('data-anno') === a) ? '' : 'none';
+      });
     });
   }
 
