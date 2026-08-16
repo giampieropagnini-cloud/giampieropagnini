@@ -127,9 +127,13 @@ python3 scrape/wg_ingest.py --sections     # rimpicciolisce e fa i .webp
 python3 gen.py --theme oscura --out docs
 ```
 
-Nella scheda della sezione compaiono le prime quattro come miniature; toccandone
-una si aprono tutte a tutto schermo. Le sezioni senza immagini restano schede di
-solo testo, come sono adesso.
+Ogni sezione che ha immagini si prende una fascia sua nella pagina: il testo da un
+lato, il mosaico dall'altro — la prima immagine grande, le altre piccole intorno —
+e le fasce si alternano da destra a sinistra. Se ne vedono nove, le altre si
+aprono a tutto schermo toccandone una. Nell'indice in cima, la scheda della
+sezione dice quante immagini ha e ci porta.
+
+Le sezioni senza immagini restano schede di solo testo, come sono adesso.
 
 ---
 

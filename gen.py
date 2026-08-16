@@ -614,31 +614,36 @@ def build():
         jpgs = [n for n in names if not n.lower().endswith(".webp")]
         return jpgs or names
 
-    def wg_sec(s):
-        imgs = sez_images(s)
-        cov = ""
-        if imgs:
-            out = os.path.join(DIST, "img", "wg", "sezioni", s["dir"])
-            os.makedirs(out, exist_ok=True)
-            for fn in os.listdir(os.path.join(SEZ, s["dir"])):
-                src = os.path.join(SEZ, s["dir"], fn)
-                if fn.lower().endswith(WG_IMG) and os.path.isfile(src):
-                    shutil.copy2(src, os.path.join(out, fn))
-            tiles = []
-            for i, fn in enumerate(imgs):
-                stem = os.path.splitext(fn)[0]
-                rel = f"img/wg/sezioni/{s['dir']}/{fn}"
-                webp = os.path.exists(os.path.join(SEZ, s["dir"], stem + ".webp"))
-                src = (f'<source srcset="img/wg/sezioni/{s["dir"]}/{stem}.webp" type="image/webp">'
-                       if webp else "")
-                # si vedono le prime quattro, le altre stanno solo nel lightbox
-                cls = "wg-s-th" if i < 4 else "wg-s-more"
-                tiles.append(
-                    f'<picture class="{cls}">{src}<img src="{rel}"'
-                    f' data-cap="{esc(s["t_it"])}" data-cap-en="{esc(s["t_en"])}"'
-                    f' alt="{esc(s["t_it"])}" loading="lazy"></picture>'
-                )
-            cov = f'<div class="wg-s-im">{"".join(tiles)}</div>'
+    VISIBILI = 9  # oltre la nona, le immagini della sezione restano nel lightbox
+
+    def sez_tiles(s, imgs):
+        """Copia le immagini della sezione nel sito e ne fa le mattonelle."""
+        out = os.path.join(DIST, "img", "wg", "sezioni", s["dir"])
+        os.makedirs(out, exist_ok=True)
+        for fn in os.listdir(os.path.join(SEZ, s["dir"])):
+            src = os.path.join(SEZ, s["dir"], fn)
+            if fn.lower().endswith(WG_IMG) and os.path.isfile(src):
+                shutil.copy2(src, os.path.join(out, fn))
+        tiles = []
+        for i, fn in enumerate(imgs):
+            stem = os.path.splitext(fn)[0]
+            webp = os.path.exists(os.path.join(SEZ, s["dir"], stem + ".webp"))
+            src = (f'<source srcset="img/wg/sezioni/{s["dir"]}/{stem}.webp" type="image/webp">'
+                   if webp else "")
+            tiles.append(
+                f'<picture class="{"wg-b-th" if i < VISIBILI else "wg-s-more"}">{src}'
+                f'<img src="img/wg/sezioni/{s["dir"]}/{fn}"'
+                f' data-cap="{esc(s["t_it"])}" data-cap-en="{esc(s["t_en"])}"'
+                f' alt="{esc(s["t_it"])}" loading="lazy"></picture>'
+            )
+        return "".join(tiles)
+
+    def wg_sec(s, imgs):
+        """La scheda nell'indice delle sezioni. Se ha immagini, porta alla sua fascia."""
+        n_it, n_en = f"{len(imgs)} immagini", f"{len(imgs)} images"
+        vai = (f'<a class="wg-s-go" href="#sez-{s["dir"]}">'
+               f'<span data-lang="it">{n_it}</span>'
+               f'<span data-lang="en" hidden>{n_en}</span></a>') if imgs else ""
         return (
             f'<li class="wg-s">'
             f'<span class="wg-s-n">{esc(s["n"])}</span>'
@@ -646,15 +651,31 @@ def build():
             f'<span data-lang="en" hidden>{esc(s["t_en"])}</span></h3>'
             f'<p class="wg-s-d"><span data-lang="it">{esc(s["d_it"])}</span>'
             f'<span data-lang="en" hidden>{esc(s["d_en"])}</span></p>'
-            f'{cov}</li>'
+            f'{vai}</li>'
         )
 
-    wg_secs = "".join(wg_sec(s) for s in wg.get("sections", []))
+    def wg_band(s, imgs, i):
+        """La fascia della sezione: testo da una parte, mosaico dall'altra."""
+        alt = " alt" if i % 2 else ""
+        return f"""
+  <section class="wg-band{alt}" id="sez-{s['dir']}">
+    <div class="wg-band-tx">
+      <span class="wg-s-n">{esc(s['n'])}</span>
+      <h3 class="adp-t"><span data-lang="it">{esc(s['t_it'])}</span><span data-lang="en" hidden>{esc(s['t_en'])}</span></h3>
+      <p><span data-lang="it">{esc(s['d_it'])}</span><span data-lang="en" hidden>{esc(s['d_en'])}</span></p>
+    </div>
+    <div class="wg-band-im">{sez_tiles(s, imgs)}</div>
+  </section>"""
+
+    sezioni = [(s, sez_images(s)) for s in wg.get("sections", [])]
+    wg_secs = "".join(wg_sec(s, imgs) for s, imgs in sezioni)
+    wg_bands = "".join(wg_band(s, imgs, i)
+                       for i, (s, imgs) in enumerate(x for x in sezioni if x[1]))
     wg_secs_html = f"""
   <section class="wg-block">
     <h2 class="sec-h"><span data-lang="it">{esc(wg.get('sections_title_it', ''))}</span><span data-lang="en" hidden>{esc(wg.get('sections_title_en', ''))}</span></h2>
     <ol class="wg-secs">{wg_secs}</ol>
-  </section>""" if wg_secs else ""
+  </section>{wg_bands}""" if wg_secs else ""
 
     def wg_tile(it):
         f = it["file"]

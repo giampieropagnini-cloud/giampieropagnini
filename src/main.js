@@ -63,7 +63,7 @@
   // lightbox
   var lb = document.getElementById('lb'), lbImg = document.getElementById('lbImg'), lbCap = document.getElementById('lbCap');
   // ogni gruppo è una galleria a sé: le frecce restano dentro il gruppo aperto
-  var groups = Array.prototype.slice.call(document.querySelectorAll('.gal, .wg-grid, .wg-s-im'))
+  var groups = Array.prototype.slice.call(document.querySelectorAll('.gal, .wg-grid, .wg-band-im'))
     .map(function (c) { return Array.prototype.slice.call(c.querySelectorAll('img')); })
     .filter(function (g) { return g.length; });
   var shots = groups.length ? groups[0] : [];
