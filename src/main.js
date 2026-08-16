@@ -62,12 +62,15 @@
 
   // lightbox
   var lb = document.getElementById('lb'), lbImg = document.getElementById('lbImg'), lbCap = document.getElementById('lbCap');
-  var shots = Array.prototype.slice.call(document.querySelectorAll('.gal .ph img'));
+  var shots = Array.prototype.slice.call(document.querySelectorAll('.gal .ph img, .wg-tile img'));
   var idx = 0;
   function show(i) {
     idx = (i + shots.length) % shots.length;
-    lbImg.src = shots[idx].src;
-    lbCap.textContent = (idx + 1) + ' / ' + shots.length;
+    var im = shots[idx];
+    lbImg.src = im.getAttribute('data-full') || im.src;
+    var l = document.documentElement.getAttribute('data-lang') || 'it';
+    var cap = im.getAttribute(l === 'en' ? 'data-cap-en' : 'data-cap') || '';
+    lbCap.textContent = (idx + 1) + ' / ' + shots.length + (cap ? ' · ' + cap : '');
     lb.hidden = false; document.body.style.overflow = 'hidden';
   }
   function hide() { lb.hidden = true; document.body.style.overflow = ''; }

@@ -689,6 +689,100 @@
         "v_en": "Founder, brand, photography, shop"
       }
     ],
+    "sections_title_it": "Le sezioni, in dieci anni",
+    "sections_title_en": "The sections, over ten years",
+    "sections": [
+      {
+        "n": "01",
+        "t_it": "Il vetro americano",
+        "t_en": "American glass",
+        "d_it": "Rapporti diretti con i glass blower degli Stati Uniti e importazione dei loro pezzi unici, firmati.",
+        "d_en": "Direct relationships with glass blowers in the United States, and the import of their signed, one-off pieces."
+      },
+      {
+        "n": "02",
+        "t_it": "Lo spazio a Barcellona",
+        "t_en": "The space in Barcelona",
+        "d_it": "Un posto dove quel vetro si poteva finalmente vedere dal vivo, invece che in fotografia.",
+        "d_en": "A place where that glass could finally be seen in person, instead of in photographs."
+      },
+      {
+        "n": "03",
+        "t_it": "Marchio e insegne",
+        "t_en": "Brand and signage",
+        "d_it": "Il nome, il marchio e tutte le sue applicazioni, dalle insegne dello spazio alle stampe.",
+        "d_en": "The name, the brand and all its applications, from the signage of the space to print."
+      },
+      {
+        "n": "04",
+        "t_it": "Negozio online",
+        "t_en": "Online shop",
+        "d_it": "Il catalogo messo online: struttura del negozio, schede dei pezzi, immagini.",
+        "d_en": "The catalogue put online: shop structure, piece by piece listings, images."
+      },
+      {
+        "n": "05",
+        "t_it": "Fotografia dei pezzi",
+        "t_en": "Photography of the pieces",
+        "d_it": "Ogni pezzo fotografato da vicino: la materia, le bolle, i colori dentro il vetro.",
+        "d_en": "Every piece photographed close up: the material, the bubbles, the colours inside the glass."
+      },
+      {
+        "n": "06",
+        "t_it": "Grafiche",
+        "t_en": "Graphics",
+        "d_it": "Le immagini del progetto: annunci, stampati, materiale per i social.",
+        "d_en": "The images of the project: announcements, printed matter, material for social."
+      },
+      {
+        "n": "07",
+        "t_it": "Abbigliamento",
+        "t_en": "Clothing",
+        "d_it": "Una linea di abbigliamento con il marchio del progetto.",
+        "d_en": "A clothing line carrying the brand of the project."
+      },
+      {
+        "n": "08",
+        "t_it": "Espositori",
+        "t_en": "Display stands",
+        "d_it": "Gli espositori disegnati per mostrare il vetro, nello spazio e in fiera.",
+        "d_en": "The display stands designed to show the glass, in the space and at fairs."
+      },
+      {
+        "n": "09",
+        "t_it": "Fiere",
+        "t_en": "Trade fairs",
+        "d_it": "I materiali per le fiere di settore: stand, insegne, stampati.",
+        "d_en": "The material for the trade fairs: stands, signage, printed matter."
+      },
+      {
+        "n": "10",
+        "t_it": "Glass Addiction",
+        "t_en": "Glass Addiction",
+        "d_it": "Il libro del progetto, uscito nel 2021: il primo libro d'arte italiano sul vetro funzionale.",
+        "d_en": "The book of the project, published in 2021: the first Italian art book on functional glass."
+      },
+      {
+        "n": "11",
+        "t_it": "Chancho Gadget",
+        "t_en": "Chancho Gadget",
+        "d_it": "La collaborazione in corso con Chancho, e il marchio che ne nasce.",
+        "d_en": "The current collaboration with Chancho, and the brand that comes out of it."
+      },
+      {
+        "n": "12",
+        "t_it": "L'archivio su Instagram",
+        "t_en": "The archive on Instagram",
+        "d_it": "Dieci anni di pezzi: banger, water pipe, marble, pendenti, pezzi da collezione.",
+        "d_en": "Ten years of pieces: bangers, water pipes, marbles, pendants, collector pieces."
+      }
+    ],
+    "grid_title_it": "La griglia",
+    "grid_title_en": "The grid",
+    "grid_note_it": "I primi 98 pezzi dell'archivio, nell'ordine in cui stanno sul profilo.",
+    "grid_note_en": "The first 98 pieces of the archive, in the order they sit on the profile.",
+    "grid_max": 98,
+    "grid": [],
     "book": {
       "title": "Glass Addiction",
       "subtitle": "Functional Glass Art Book — Vol. 1",

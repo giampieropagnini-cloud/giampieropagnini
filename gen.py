@@ -575,6 +575,20 @@ def build():
             if os.path.exists(s):
                 shutil.copy2(s, os.path.join(DIST, "img", "wg", f"{base}.{ext}"))
 
+    # la griglia dell'archivio: le immagini le mette scrape/wg_ingest.py
+    wg_grid = wg.get("grid", [])[: wg.get("grid_max", 98)]
+    if wg_grid:
+        for sub in ("grid", os.path.join("grid", "large")):
+            src_dir = os.path.join(ROOT, "assets", "wg", sub)
+            if not os.path.isdir(src_dir):
+                continue
+            out_dir = os.path.join(DIST, "img", "wg", sub)
+            os.makedirs(out_dir, exist_ok=True)
+            for fn in os.listdir(src_dir):
+                s = os.path.join(src_dir, fn)
+                if os.path.isfile(s):
+                    shutil.copy2(s, os.path.join(out_dir, fn))
+
     wg_body_it = "".join(f"<p>{esc(t)}</p>" for t in wg["body_it"])
     wg_body_en = "".join(f"<p>{esc(t)}</p>" for t in wg["body_en"])
     # nel testo del libro il corsivo del titolo è voluto, quindi niente esc()
@@ -585,6 +599,49 @@ def build():
         f'<dd><span data-lang="it">{esc(f["v_it"])}</span><span data-lang="en" hidden>{esc(f["v_en"])}</span></dd></div>'
         for f in wg["facts"]
     )
+    wg_secs = "".join(
+        f'<li class="wg-s">'
+        f'<span class="wg-s-n">{esc(s["n"])}</span>'
+        f'<h3 class="wg-s-t"><span data-lang="it">{esc(s["t_it"])}</span>'
+        f'<span data-lang="en" hidden>{esc(s["t_en"])}</span></h3>'
+        f'<p class="wg-s-d"><span data-lang="it">{esc(s["d_it"])}</span>'
+        f'<span data-lang="en" hidden>{esc(s["d_en"])}</span></p>'
+        f'</li>'
+        for s in wg.get("sections", [])
+    )
+    wg_secs_html = f"""
+  <section class="wg-block">
+    <h2 class="sec-h"><span data-lang="it">{esc(wg.get('sections_title_it', ''))}</span><span data-lang="en" hidden>{esc(wg.get('sections_title_en', ''))}</span></h2>
+    <ol class="wg-secs">{wg_secs}</ol>
+  </section>""" if wg_secs else ""
+
+    def wg_tile(it):
+        f = it["file"]
+        w, h = it.get("w", 1080), it.get("h", 1080)
+        cap_it, cap_en = it.get("cap_it", ""), it.get("cap_en", "") or it.get("cap_it", "")
+        webp = os.path.exists(os.path.join(ROOT, "assets", "wg", "grid", f + ".webp"))
+        src = "".join(
+            [f'<source srcset="img/wg/grid/{f}.webp" type="image/webp">'] if webp else []
+        )
+        full = f"img/wg/grid/large/{f}.jpg" if os.path.exists(
+            os.path.join(ROOT, "assets", "wg", "grid", "large", f + ".jpg")
+        ) else f"img/wg/grid/{f}.jpg"
+        alt = esc(cap_it) or "Pezzo dall&#39;archivio WeedGadget"
+        return (
+            f'<figure class="wg-tile"><picture>{src}'
+            f'<img src="img/wg/grid/{f}.jpg" data-full="{full}"'
+            f' data-cap="{esc(cap_it)}" data-cap-en="{esc(cap_en)}"'
+            f' alt="{alt}" loading="lazy"'
+            f' width="{w}" height="{h}"></picture></figure>'
+        )
+
+    wg_grid_html = f"""
+  <section class="wg-block" id="griglia">
+    <h2 class="sec-h"><span data-lang="it">{esc(wg.get('grid_title_it', ''))}</span><span data-lang="en" hidden>{esc(wg.get('grid_title_en', ''))}</span></h2>
+    <p class="wg-note"><span data-lang="it">{esc(wg.get('grid_note_it', ''))}</span><span data-lang="en" hidden>{esc(wg.get('grid_note_en', ''))}</span> <b>{len(wg_grid)}</b></p>
+    <div class="wg-grid">{''.join(wg_tile(i) for i in wg_grid)}</div>
+  </section>""" if wg_grid else ""
+
     wgpage = f"""
 <section class="sec sec-top wg">
   <div class="wg-hd">
@@ -607,6 +664,8 @@ def build():
   </div>
 
   <dl class="wg-facts">{facts}</dl>
+{wg_secs_html}
+{wg_grid_html}
 
   <a class="btn wg-ig" href="{esc(wg['instagram'])}" rel="noopener" target="_blank">
     <span data-lang="it">Guarda l'archivio su Instagram</span><span data-lang="en" hidden>See the archive on Instagram</span>
