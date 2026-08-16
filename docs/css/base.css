@@ -13,8 +13,10 @@ button { font: inherit; background: none; border: 0; cursor: pointer; color: inh
 .wordmark { font-family: var(--font-display); font-size: clamp(1.15rem, 2.6vw, 1.6rem); letter-spacing: .02em;
   text-transform: uppercase; font-weight: 400; }
 .wordmark b { color: var(--ac); font-weight: inherit; }
-.nav { display: flex; align-items: center; gap: clamp(.8rem, 2.5vw, 2rem); }
-.nav a { font-size: .95rem; text-transform: uppercase; letter-spacing: .12em; opacity: .75; }
+.nav { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end;
+  gap: .4rem clamp(.8rem, 2.5vw, 2rem); }
+/* nowrap obbligatorio: senza, "Art Direction" si spezza a metà parola */
+.nav a { font-size: .95rem; text-transform: uppercase; letter-spacing: .12em; opacity: .75; white-space: nowrap; }
 .nav a:hover, .nav a.on { opacity: 1; color: var(--ac); }
 .lang { font-size: .8rem; letter-spacing: .1em; border: 1px solid var(--ln); padding: .3rem .55rem; border-radius: 2rem; opacity: .8; }
 .lang:hover { opacity: 1; border-color: var(--ac); color: var(--ac); }
@@ -137,6 +139,26 @@ button { font: inherit; background: none; border: 0; cursor: pointer; color: inh
 .rel-l li { padding: .5em 0; border-bottom: 1px solid var(--ln); font-size: .95rem; display: flex; gap: 1em; }
 .tr-n { font-family: var(--font-mono); font-size: .78rem; opacity: .45; min-width: 2em; padding-top: .25em; }
 
+/* ===== direzione artistica ===== */
+.ad { max-width: 82rem; }
+.adps { display: grid; gap: clamp(3rem, 8vw, 6.5rem); margin-top: clamp(2.5rem, 7vw, 5rem); }
+.adp { display: grid; grid-template-columns: 1.25fr 1fr; gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center; padding-top: clamp(1.5rem, 4vw, 3rem); border-top: 1px solid var(--ln); }
+.adp:nth-child(even) .adp-im { order: 2; }
+.adp-im img { width: 100%; height: auto; aspect-ratio: 1440/780; object-fit: cover;
+  border-radius: var(--im-r); box-shadow: var(--im-sh); border: var(--im-bd); background: var(--ph-bg);
+  transition: transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .5s; }
+.adp-im:hover img { transform: translateY(-4px); box-shadow: var(--im-sh-hov); }
+.adp-n { font-family: var(--font-mono); font-size: .78rem; letter-spacing: .18em; color: var(--ac); display: block; margin-bottom: .9em; }
+.adp-k { font-family: var(--font-mono); font-size: .78rem; text-transform: uppercase; letter-spacing: .14em;
+  opacity: .55; margin: 0 0 .4em; }
+.adp-t { font-family: var(--font-display); text-transform: uppercase; font-size: clamp(1.6rem, 4.5vw, 2.6rem);
+  line-height: 1.02; margin: 0 0 .5em; letter-spacing: .01em; }
+.adp-tx p { max-width: 38em; margin: 0 0 1.2em; }
+.adp-tags { list-style: none; padding: 0; margin: 0 0 1.6em; display: flex; flex-wrap: wrap; gap: .5rem; }
+.adp-tags li { font-size: .74rem; text-transform: uppercase; letter-spacing: .13em; opacity: .7;
+  border: 1px solid var(--ln); border-radius: var(--chip-r); padding: .38em .9em; }
+
 /* richiamo alla musica in home */
 .sec-mu { padding-top: 0; }
 .mu-teaser { display: grid; grid-template-columns: minmax(12rem, .8fr) 1.4fr; gap: clamp(1.5rem, 4vw, 3.5rem);
@@ -174,8 +196,8 @@ button { font: inherit; background: none; border: 0; cursor: pointer; color: inh
   .about-cols { grid-template-columns: 1fr; }
   .about-im img { position: static; }
   .hd { flex-wrap: wrap; padding-top: .8rem; padding-bottom: .8rem; row-gap: .3rem; }
-  .nav { gap: .9rem; }
-  .nav a { font-size: .8rem; letter-spacing: .08em; }
+  .nav { gap: .35rem .9rem; }
+  .nav a { font-size: .78rem; letter-spacing: .06em; }
   .lang { padding: .2rem .45rem; font-size: .72rem; }
   .gal { columns: 2 9rem; column-gap: .7rem; }
   .ph { margin-bottom: .7rem; }
@@ -184,4 +206,6 @@ button { font: inherit; background: none; border: 0; cursor: pointer; color: inh
   .rel-play iframe { height: 420px; }
   .mu-teaser { grid-template-columns: 1fr; gap: 1.4rem; }
   .mu-teaser-im { max-width: 17rem; }
+  .adp { grid-template-columns: 1fr; gap: 1.3rem; }
+  .adp:nth-child(even) .adp-im { order: 0; }
 }

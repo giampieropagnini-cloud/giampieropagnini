@@ -252,6 +252,7 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
   <a class="wordmark" href="{r}index.html">GIAMPIERO<b>PAGNINI</b></a>
   <nav class="nav">
     <a href="{r}opere.html" {('class="on"' if active=='opere' else '')}>{'<span data-lang="it">Opere</span><span data-lang="en" hidden>Works</span>'}</a>
+    <a href="{r}art-direction.html" {('class="on"' if active=='ad' else '')}>Art Direction</a>
     <a href="{r}musica.html" {('class="on"' if active=='musica' else '')}>{'<span data-lang="it">Musica</span><span data-lang="en" hidden>Music</span>'}</a>
     <a href="{r}about.html" {('class="on"' if active=='about' else '')}>About</a>
     <a href="{r}contact.html" {('class="on"' if active=='contact' else '')}>{'<span data-lang="it">Contatti</span><span data-lang="en" hidden>Contact</span>'}</a>
@@ -507,6 +508,59 @@ def build():
              desc=content["about"]["bio_it"][0][:155], og_image=f"hero-{site['portrait']}")
     )
 
+    # ---- direzione artistica
+    ad = content["artdirection"]
+    os.makedirs(os.path.join(DIST, "img", "ad"), exist_ok=True)
+    for p in ad["projects"]:
+        for ext in ("jpg", "webp"):
+            s = os.path.join(ROOT, "assets", "ad", f'{p["slug"]}.{ext}')
+            if os.path.exists(s):
+                shutil.copy2(s, os.path.join(DIST, "img", "ad", f'{p["slug"]}.{ext}'))
+
+    def ad_block(p, n):
+        tags = "".join(
+            f'<li><span data-lang="it">{esc(a)}</span><span data-lang="en" hidden>{esc(b)}</span></li>'
+            for a, b in zip(p["tags_it"], p["tags_en"])
+        )
+        host = p["url"].split("//", 1)[-1].rstrip("/")
+        return f"""
+<article class="adp" id="{p['slug']}">
+  <a class="adp-im" href="{esc(p['url'])}" rel="noopener" target="_blank">
+    <picture>
+      <source srcset="img/ad/{p['slug']}.webp" type="image/webp">
+      <img src="img/ad/{p['slug']}.jpg" alt="Il sito di {esc(p['name'])}" loading="lazy" width="1440" height="780">
+    </picture>
+  </a>
+  <div class="adp-tx">
+    <span class="adp-n">{n:02d}</span>
+    <p class="adp-k"><span data-lang="it">{esc(p['kicker_it'])}</span><span data-lang="en" hidden>{esc(p['kicker_en'])}</span> · {esc(p['year'])}</p>
+    <h2 class="adp-t">{esc(p['name'])}</h2>
+    {bi(esc(p['text_it']), esc(p['text_en']))}
+    <ul class="adp-tags">{tags}</ul>
+    <a class="btn btn-s" href="{esc(p['url'])}" rel="noopener" target="_blank">{esc(host)} ↗</a>
+  </div>
+</article>"""
+
+    ad_intro_it = "".join(f"<p>{esc(t)}</p>" for t in ad["intro_it"])
+    ad_intro_en = "".join(f"<p>{esc(t)}</p>" for t in ad["intro_en"])
+    adpage = f"""
+<section class="sec sec-top ad">
+  <p class="mu-k">Art Direction</p>
+  <h1 class="pg-h"><span data-lang="it">{esc(ad['title_it'])}</span><span data-lang="en" hidden>{esc(ad['title_en'])}</span></h1>
+  <p class="mu-sub"><span data-lang="it">{esc(ad['tagline_it'])}</span><span data-lang="en" hidden>{esc(ad['tagline_en'])}</span></p>
+  <div class="mu-bio">
+    <div lang="it" data-lang="it">{ad_intro_it}</div>
+    <div lang="en" data-lang="en" hidden>{ad_intro_en}</div>
+  </div>
+  <div class="adps">{''.join(ad_block(p, i) for i, p in enumerate(ad['projects'], 1))}</div>
+</section>"""
+    open(os.path.join(DIST, "art-direction.html"), "w").write(
+        page("Art Direction — Giampiero Pagnini", adpage, 0, active="ad",
+             url_path="art-direction.html",
+             desc="Direzione artistica di Giampiero Pagnini: marchi, fotografia, siti e video per Badasscoast, YOKOZUNA e Panna Bags. Venticinque anni di lavoro, dalla grafica alla fotografia analogica.",
+             og_image=f"ad/{ad['projects'][0]['slug']}.jpg")
+    )
+
     # ---- musica
     mu = content["music"]
     os.makedirs(os.path.join(DIST, "img", "music"), exist_ok=True)
@@ -620,7 +674,7 @@ def build():
     open(os.path.join(DIST, "404.html"), "w").write(page("Pagina non trovata — Giampiero Pagnini", nf, 0))
 
     # ---- sitemap / robots / CNAME
-    urls = ["", "opere.html", "musica.html", "about.html", "contact.html"] + [f"progetti/{p['slug']}.html" for p in visible]
+    urls = ["", "opere.html", "art-direction.html", "musica.html", "about.html", "contact.html"] + [f"progetti/{p['slug']}.html" for p in visible]
     entries = "".join(
         f"  <url><loc>{SITE_URL}/{u}</loc><changefreq>monthly</changefreq>"
         f"<priority>{'1.0' if u == '' else '0.8' if '/' not in u else '0.6'}</priority></url>\n"

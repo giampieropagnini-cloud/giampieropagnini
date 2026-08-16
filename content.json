@@ -558,5 +558,89 @@
         ]
       }
     ]
+  },
+  "artdirection": {
+    "title_it": "Direzione artistica",
+    "title_en": "Art direction",
+    "tagline_it": "Marchi, immagini, siti. Dall'idea confusa alla cosa che si vede.",
+    "tagline_en": "Brands, images, websites. From the blurry idea to the thing you can see.",
+    "intro_it": [
+      "Faccio il direttore artistico. Vuol dire che prendo un'idea ancora confusa — un marchio che non esiste, un laboratorio che nessuno trova, una crew che vive solo dentro Instagram — e le do una forma: un segno, dei colori, un modo di parlare, le fotografie, e il sito su cui atterra chi la cerca.",
+      "Lo faccio da circa venticinque anni, e lo faccio per intero: grafica e marchi, fotografia analogica e di prodotto, video, siti costruiti da zero riga per riga, musica. Non è che disegno il logo e poi passo la mano: quello che serve lo imparo e lo faccio, fino a quando la cosa è viva e sta in piedi da sola.",
+      "Qui sotto tre progetti a cui sto lavorando. Sono tutti e tre online: si possono aprire e guardare."
+    ],
+    "intro_en": [
+      "I work as an art director. It means I take an idea that is still blurry — a brand that doesn't exist yet, a workshop nobody can find, a crew that only lives inside Instagram — and give it a shape: a mark, colours, a way of speaking, the photographs, and the website people land on when they look for it.",
+      "I have been doing this for about twenty-five years, and I do all of it: graphics and logos, analogue and product photography, video, websites built from scratch line by line, music. I don't just draw the logo and hand it over: whatever is needed, I learn it and I do it, until the thing is alive and stands on its own.",
+      "Three projects I'm working on, below. All three are online: you can open them and look."
+    ],
+    "projects": [
+      {
+        "name": "Badasscoast",
+        "slug": "badasscoast",
+        "url": "https://badasscoast.com",
+        "year": "2026",
+        "kicker_it": "Crew skate — Pescara",
+        "kicker_en": "Skate crew — Pescara",
+        "text_it": "Una crew di skate della costa adriatica che dal 2016 esiste soprattutto su Instagram e in Piazza Garibaldi. Ho preso dieci anni di archivio e ne ho fatto un luogo: il badge rifatto pulito, una palette grigio topo e rosso timbro, un sito che si apre con un film girato dall'alba sul mare fino al cemento, e la prima linea di gadget — i portachiavi li stampo in casa.",
+        "text_en": "A skate crew from the Adriatic coast that since 2016 has lived mostly on Instagram and in Piazza Garibaldi. I took ten years of archive and turned it into a place: the badge redrawn clean, a warm grey and stamp-red palette, a site that opens with a film running from dawn on the sea to the concrete, and the first line of goods — I print the keyrings at home.",
+        "tags_it": [
+          "Identità",
+          "Sito",
+          "Fotografia",
+          "Merchandise"
+        ],
+        "tags_en": [
+          "Identity",
+          "Website",
+          "Photography",
+          "Merchandise"
+        ]
+      },
+      {
+        "name": "YOKOZUNA",
+        "slug": "yokozuna",
+        "url": "https://yokozuna.it",
+        "year": "2026",
+        "kicker_it": "Streetwear e tatuaggio",
+        "kicker_en": "Streetwear and tattoo",
+        "text_it": "Brand nato con un amico tatuatore, compagno di liceo artistico. Il nome è il grado più alto del sumo: il corpo grande come rango, non come difetto. Taglie forti vere, fino alla 5XL, senza pietismo. Ho disegnato il marchio come un sigillo giapponese, deciso come si fotografano i capi — fondo nero, luce di taglio — e costruito il catalogo online prima ancora che esista il primo drop.",
+        "text_en": "A brand started with a tattoo-artist friend, a classmate from art school. The name is the highest rank in sumo: a large body as a rank, not a flaw. Real plus sizes, up to 5XL, with no pity. I drew the mark as a Japanese seal, decided how the garments are photographed — black ground, raking light — and built the online catalogue before the first drop even exists.",
+        "tags_it": [
+          "Marchio",
+          "Direzione fotografica",
+          "Sito",
+          "Prodotto"
+        ],
+        "tags_en": [
+          "Logo",
+          "Photographic direction",
+          "Website",
+          "Product"
+        ]
+      },
+      {
+        "name": "Panna Bags",
+        "slug": "pannabags",
+        "url": "https://pannabags.com",
+        "year": "2026",
+        "kicker_it": "Borse fatte a mano",
+        "kicker_en": "Handmade bags",
+        "text_it": "Il laboratorio di mia madre e della sua socia: borse intrecciate a quattro mani, una per volta. Il nome tiene i loro due nomi dentro. Il vecchio sito non lo trovava nessuno, nemmeno Google; l'ho rifatto da zero, veloce e leggibile, ho impostato la fotografia dei prodotti e un piano di lavoro che possono seguire loro, senza gergo.",
+        "text_en": "My mother's workshop, run with her partner: bags woven four-handed, one at a time. The name holds both their names inside it. Nobody could find the old site, not even Google; I rebuilt it from scratch, fast and legible, set the product photography, and wrote a working plan they can follow themselves, with no jargon.",
+        "tags_it": [
+          "Rebranding",
+          "Sito",
+          "Fotografia",
+          "Marketing"
+        ],
+        "tags_en": [
+          "Rebranding",
+          "Website",
+          "Photography",
+          "Marketing"
+        ]
+      }
+    ]
   }
 }
