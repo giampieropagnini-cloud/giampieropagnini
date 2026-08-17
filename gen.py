@@ -821,6 +821,12 @@ def build():
 </html>""")
             n_red += 1
 
+    # ---- file di verifica per Google Search Console
+    # Va rigenerato a ogni build: se sparisce, Google togli la verifica e il
+    # sito perde l'accesso ai dati di ricerca.
+    for nome in content.get("verifiche", {}).values():
+        open(os.path.join(DIST, nome), "w").write(f"google-site-verification: {nome}\n")
+
     # ---- sitemap / robots / CNAME
     urls = ["", "opere.html", "art-direction.html", "weedgadget.html", "musica.html",
             "about.html", "contact.html", "weedgadget-archivio/"
