@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controllo Telecamere Insta360</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23ffd233'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%230e1116'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="testata">
+  <div class="marchio">
+    <span class="logo" aria-hidden="true"></span>
+    <div>
+      <h1>Controllo Telecamere <em>Insta360</em></h1>
+      <p class="sottotesta">GO 3S · Ace Pro 2 · X6 — solo sul tuo computer</p>
+    </div>
+  </div>
+  <span class="distintivo" id="distintivo-demo" title="Le telecamere qui sotto sono simulate: tutto funziona, ma non serve avere le telecamere accanto.">Modalità demo</span>
+</header>
+
+<main>
+  <section id="griglia" class="griglia" aria-label="Le tue telecamere"></section>
+
+  <section id="pannello" class="pannello nascosto" aria-label="Pannello di controllo"></section>
+
+  <section class="carta carta-telecomando" id="carta-telecomando" aria-label="Telecomando Bluetooth">
+  </section>
+
+  <section class="carta carta-guida" aria-label="Come funziona">
+    <h2>Come funziona (in due parole)</h2>
+    <p>Questo programma nasce con la <strong>modalità demo</strong>: le tre telecamere
+    rispondono a tutti i comandi come se fossero vere, così puoi esplorare ogni funzione
+    con calma. Per comandare le telecamere <strong>vere</strong> ci sono tre strade,
+    spiegate per bene nel file <code>README.md</code> dentro la cartella
+    <code>insta360</code>:</p>
+    <ol>
+      <li><strong>Telecomando Bluetooth virtuale</strong> (il pannello qui sopra):
+      il computer si finge il telecomando ufficiale Insta360. Scatto, cambio modalità,
+      schermo e spegnimento — per tutte e tre le telecamere. Sperimentale.</li>
+      <li><strong>App ufficiale Insta360</strong> sul telefono: resta la via più completa
+      per anteprima dal vivo e ogni impostazione.</li>
+      <li><strong>SDK ufficiale per la X6</strong>: Insta360 dà agli sviluppatori una
+      libreria per il controllo totale delle telecamere 360 dal computer. Va richiesta
+      (gratis) sul loro sito; quando arriva, questo programma è già pronto a ospitarla.</li>
+    </ol>
+  </section>
+</main>
+
+<footer class="piede">
+  <span id="versione"></span>
+  <span>Ascolta solo su 127.0.0.1 — niente esce dal tuo computer.</span>
+</footer>
+
+<div id="avvisi" aria-live="polite"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Componente FACOLTATIVO: serve solo per il telecomando Bluetooth virtuale.
+# Il resto del programma funziona senza installare nulla.
+#
+# Per installarlo:   python3 -m pip install -r requirements-bluetooth.txt
+# (su Mac, alla prima accensione del telecomando, il sistema chiederà il
+#  permesso di usare il Bluetooth: va concesso al Terminale.)
+bless>=0.2.6

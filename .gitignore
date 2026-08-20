@@ -17,3 +17,6 @@ proposte/
 # L'archivio di WeedGadget si rigenera con:
 #   python3 ../weedgadget-brand/scripts/pubblica-sul-sito.py
 static/
+# file temporanei di Python (Controllo Telecamere Insta360)
+__pycache__/
+*.pyc
