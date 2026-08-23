@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>QuantoStampa</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
 <style>
   :root {
     --bg: #F6F4F0;
@@ -695,6 +694,15 @@
     calc();
     saveStore();
   });
+
+  // I caratteri arrivano dopo, senza mai bloccare il disegno della pagina:
+  // se Google Fonts non risponde, restano quelli di sistema.
+  try {
+    var fontLink = document.createElement("link");
+    fontLink.rel = "stylesheet";
+    fontLink.href = "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap";
+    (document.head || document.body).appendChild(fontLink);
+  } catch (e) { /* nessun problema: caratteri di sistema */ }
 })();
 </script>
 </body>
