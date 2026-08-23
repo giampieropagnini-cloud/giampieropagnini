@@ -20,41 +20,13 @@
     --focus: #23201B;
     --shadow: 0 1px 2px rgba(35, 32, 27, 0.06), 0 8px 24px rgba(35, 32, 27, 0.07);
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #1A1815;
-      --surface: #26221C;
-      --surface-2: #2E2A22;
-      --ink: #ECE7DE;
-      --muted: #A59D8E;
-      --line: #3A3529;
-      --fdm: #F08840;
-      --fdm-soft: #3A2A1C;
-      --resin: #9C95F5;
-      --resin-soft: #2B2940;
-      --focus: #ECE7DE;
-      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #1A1815;
-    --surface: #26221C;
-    --surface-2: #2E2A22;
-    --ink: #ECE7DE;
-    --muted: #A59D8E;
-    --line: #3A3529;
-    --fdm: #F08840;
-    --fdm-soft: #3A2A1C;
-    --resin: #9C95F5;
-    --resin-soft: #2B2940;
-    --focus: #ECE7DE;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
-  }
+  /* Aspetto unico, sempre chiaro: su carta si legge, anche col telefono in tema scuro. */
 
   * { box-sizing: border-box; }
 
   body {
     margin: 0;
+    color-scheme: light;
     background: var(--bg);
     color: var(--ink);
     font-family: "Instrument Sans", "Avenir Next", Seravek, system-ui, sans-serif;
