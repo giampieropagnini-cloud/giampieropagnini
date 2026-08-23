@@ -174,6 +174,20 @@
     font-size: 1.05rem;
     margin: 0 0 14px;
   }
+  .results h3 {
+    font-family: "Bricolage Grotesque", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 18px 0 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .row .name small {
+    display: block;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
   .rows { display: grid; gap: 8px; }
   .row {
     display: grid;
@@ -252,13 +266,14 @@
   }
   .sell .sub { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
 
-  .actions {
+  .actions, .q-actions {
     display: flex;
-    gap: 14px;
+    gap: 12px;
     margin-top: 18px;
     flex-wrap: wrap;
   }
-  .actions button {
+  .q-actions { margin: 0 0 18px; }
+  .actions button, .q-actions button {
     appearance: none;
     font: inherit;
     font-size: 0.88rem;
@@ -267,17 +282,135 @@
     border-radius: 9px;
     padding: 8px 14px;
   }
-  .actions .primary {
+  :is(.actions, .q-actions) .primary {
     border: 0;
-    background: var(--ink);
-    color: var(--bg);
+    background: var(--accent);
+    color: #FFFFFF;
   }
-  .actions .quiet {
+  :is(.actions, .q-actions) .quiet {
     border: 1px solid var(--line);
     background: transparent;
     color: var(--muted);
   }
-  .actions .quiet:hover { color: var(--ink); }
+  :is(.actions, .q-actions) .quiet:hover { color: var(--ink); }
+
+  /* ---------- preventivo per il cliente ---------- */
+  #quote {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    overflow: auto;
+    background: var(--bg);
+  }
+  body.quote-open #quote { display: block; }
+  body.quote-open { overflow: hidden; }
+  .q-wrap { max-width: 720px; margin: 0 auto; padding: 26px 20px 60px; }
+  .q-sheet {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 34px 32px 28px;
+  }
+  .q-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .q-title {
+    font-family: "Bricolage Grotesque", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .q-title .dot { color: var(--accent); }
+  .q-date { color: var(--muted); font-size: 0.9rem; }
+  .q-meta { display: grid; gap: 10px; margin: 22px 0 4px; }
+  .q-field {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 10px;
+    align-items: baseline;
+  }
+  @media (max-width: 480px) {
+    .q-field { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  }
+  .q-field > span {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .q-input {
+    border: 0;
+    border-bottom: 1px dashed var(--line);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    padding: 4px 2px;
+    width: 100%;
+    min-width: 0;
+  }
+  .q-input:focus { outline: none; border-bottom: 1px solid var(--accent); }
+  .q-lines { margin-top: 20px; border-top: 2px solid var(--ink); }
+  .q-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .q-line .lab { font-weight: 600; }
+  .q-line .num {
+    font-family: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .q-line .q-input.num { width: 120px; text-align: right; flex: none; }
+  .q-unitwrap { display: flex; align-items: baseline; gap: 4px; flex: none; }
+  .q-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    padding: 14px 0 4px;
+  }
+  .q-total .val {
+    font-family: "Bricolage Grotesque", "Avenir Next Condensed", sans-serif;
+    font-weight: 800;
+    font-size: 1.7rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .q-sync {
+    appearance: none;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 0;
+    border-radius: 999px;
+    padding: 4px 12px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .q-foot {
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+  .q-sign {
+    margin-top: 26px;
+    text-align: right;
+    font-size: 0.95rem;
+  }
+  .q-sign small { display: block; color: var(--muted); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
 
   footer {
     margin-top: 36px;
@@ -303,6 +436,14 @@
     .layout { grid-template-columns: minmax(0, 1fr); }
     fieldset, .results { border-color: #BBBBBB; box-shadow: none; background: #FFFFFF; }
     .results { position: static; }
+    /* col preventivo aperto si stampa SOLO il preventivo, senza i costi interni */
+    body.quote-open .layout, body.quote-open header { display: none; }
+    body.quote-open { overflow: visible; }
+    #quote { position: static; overflow: visible; background: #FFFFFF; }
+    .q-wrap { max-width: none; padding: 0; }
+    .q-sheet { border: 0; box-shadow: none; padding: 12px 0 0; background: #FFFFFF; }
+    .q-actions, .q-sync { display: none; }
+    .q-input { border-bottom-color: transparent; }
   }
 </style>
 </head>
@@ -310,7 +451,7 @@
 <div class="app" id="app" data-mode="fdm">
   <header>
     <h1 class="brand">QuantoStampa<span class="dot">.</span></h1>
-    <p class="tagline">Quanto ti costa davvero una stampa 3D — materiale, corrente, usura della macchina, lavoro e rischio, fino al prezzo di vendita consigliato.</p>
+    <p class="tagline">Quanto ti costa davvero una stampa 3D — materiale, corrente, usura della macchina, lavoro e rischio, fino al prezzo di vendita e al preventivo per il cliente.</p>
     <div class="mode" role="group" aria-label="Tecnologia di stampa">
       <button type="button" id="btn-fdm" aria-pressed="true">Filamento (FDM)</button>
       <button type="button" id="btn-resin" aria-pressed="false">Resina (SLA)</button>
@@ -336,7 +477,7 @@
               <input id="matQty" inputmode="decimal" aria-describedby="hint-matQty">
               <span class="unit" id="unit-matQty">g</span>
             </div>
-            <span class="hint" id="hint-matQty">Lo dice il programma di slicing, supporti inclusi.</span>
+            <span class="hint" id="hint-matQty">Per una stampata, supporti inclusi: lo dice il programma di slicing.</span>
           </div>
         </div>
       </fieldset>
@@ -361,7 +502,7 @@
             <span class="hint">Lo trovi in bolletta; in Italia di solito 0,20–0,35.</span>
           </div>
           <div class="field">
-            <label for="hoursH">Durata della stampa</label>
+            <label for="hoursH">Durata di una stampata</label>
             <div class="control">
               <input id="hoursH" inputmode="numeric" aria-label="Ore di stampa">
               <span class="unit">h</span>
@@ -396,7 +537,7 @@
             <span class="hint">Quante ore di stampa farà prima di sostituirla: 4.000–6.000 è una stima onesta.</span>
           </div>
           <div class="field">
-            <label for="consum" id="lab-consum">Consumabili per stampa</label>
+            <label for="consum" id="lab-consum">Consumabili per stampata</label>
             <div class="control">
               <input id="consum" inputmode="decimal" aria-describedby="hint-consum">
               <span class="unit">€</span>
@@ -415,7 +556,7 @@
               <input id="laborMin" inputmode="decimal" aria-describedby="hint-laborMin">
               <span class="unit">min</span>
             </div>
-            <span class="hint" id="hint-laborMin">Preparazione del file, avvio, rimozione supporti, finitura.</span>
+            <span class="hint" id="hint-laborMin">Per una stampata: preparazione, avvio, rimozione supporti, finitura.</span>
           </div>
           <div class="field">
             <label for="laborRate">Quanto vale la tua ora</label>
@@ -440,26 +581,49 @@
             <span class="hint">Su 10 stampe, quante butti via? Una su dieci = 10%.</span>
           </div>
           <div class="field">
-            <label for="pieces">Pezzi in questa stampa</label>
-            <div class="control">
-              <input id="pieces" inputmode="numeric">
-              <span class="unit">pezzi</span>
-            </div>
-          </div>
-          <div class="field">
             <label for="marginPct">Ricarico per la vendita</label>
             <div class="control">
               <input id="marginPct" inputmode="decimal">
               <span class="unit">%</span>
             </div>
-            <span class="hint">100% = rivendi al doppio del costo. Serve solo per il prezzo consigliato.</span>
+            <span class="hint">100% = rivendi al doppio del costo. Serve per il prezzo consigliato.</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Il lavoro da consegnare</legend>
+        <div class="grid2">
+          <div class="field">
+            <label for="pieces">Pezzi per stampata</label>
+            <div class="control">
+              <input id="pieces" inputmode="numeric">
+              <span class="unit">pezzi</span>
+            </div>
+            <span class="hint">Quanti pezzi entrano insieme sul piatto in una stampata.</span>
+          </div>
+          <div class="field">
+            <label for="orderQty">Pezzi da consegnare in totale</label>
+            <div class="control">
+              <input id="orderQty" inputmode="numeric">
+              <span class="unit">pezzi</span>
+            </div>
+            <span class="hint">Quanti pezzi ti ha chiesto il cliente in tutto.</span>
+          </div>
+          <div class="field">
+            <label for="dayHours">Ore di stampa al giorno</label>
+            <div class="control">
+              <input id="dayHours" inputmode="decimal">
+              <span class="unit">h / giorno</span>
+            </div>
+            <span class="hint">Per quante ore al giorno riesci a far lavorare la stampante.</span>
           </div>
         </div>
       </fieldset>
     </form>
 
     <aside class="results" aria-live="polite">
-      <h2>Costo di questa stampa</h2>
+      <h2>Costo di una stampata</h2>
       <div class="rows">
         <div class="row"><span class="name" id="res-mat-name">Filamento</span><span class="pct" id="pct-mat"></span><span class="val" id="res-mat"></span></div>
         <div class="row"><span class="name">Corrente elettrica</span><span class="pct" id="pct-energy"></span><span class="val" id="res-energy"></span></div>
@@ -469,20 +633,30 @@
         <div class="row"><span class="name">Il tuo lavoro</span><span class="pct" id="pct-labor"></span><span class="val" id="res-labor"></span></div>
       </div>
       <div class="total">
-        <span class="name">Costo totale</span>
+        <span class="name">Costo di una stampata</span>
         <span class="val" id="res-total"></span>
       </div>
       <div class="perpiece" id="row-perpiece" hidden>
         <span id="lab-perpiece">Costo per pezzo</span>
         <span class="val" id="res-perpiece"></span>
       </div>
+
+      <h3>Il piano di lavoro — solo per te</h3>
+      <div class="rows">
+        <div class="row"><span class="name">Stampate necessarie<small id="plan-prints-sub"></small></span><span class="pct"></span><span class="val" id="plan-prints"></span></div>
+        <div class="row"><span class="name">Ore di stampa totali</span><span class="pct"></span><span class="val" id="plan-hours"></span></div>
+        <div class="row" id="row-plan-days"><span class="name">Giorni di stampa<small id="plan-days-sub"></small></span><span class="pct"></span><span class="val" id="plan-days"></span></div>
+        <div class="row" id="row-plan-cost"><span class="name">Costo dell'intero lavoro</span><span class="pct"></span><span class="val" id="plan-cost"></span></div>
+      </div>
+
       <div class="sell">
-        <div class="cap">Prezzo di vendita consigliato</div>
+        <div class="cap" id="sell-cap">Prezzo di vendita consigliato</div>
         <div class="big" id="res-price"></div>
         <div class="sub" id="res-price-piece"></div>
       </div>
       <div class="actions">
-        <button type="button" class="primary" id="btn-print">Stampa / salva PDF</button>
+        <button type="button" class="primary" id="btn-quote">Crea il preventivo per il cliente</button>
+        <button type="button" class="quiet" id="btn-print">Stampa questa scheda</button>
         <button type="button" class="quiet" id="btn-reset">Ripristina esempi</button>
       </div>
     </aside>
@@ -491,7 +665,56 @@
   <footer>
     I valori restano salvati su questo computer, quindi la prossima volta ritrovi i tuoi numeri.
     Il rischio è calcolato sui costi vivi: con il 10% di fallimenti, ogni 9 stampe buone ne paghi una buttata.
+    Le stampate necessarie sono arrotondate per eccesso: l'ultima parte comunque intera.
   </footer>
+
+  <!-- ============ PREVENTIVO PER IL CLIENTE ============ -->
+  <div id="quote" role="dialog" aria-label="Preventivo per il cliente">
+    <div class="q-wrap">
+      <div class="q-actions">
+        <button type="button" class="quiet" id="btn-quote-back">&larr; Torna al calcolatore</button>
+        <button type="button" class="primary" id="btn-quote-print">Stampa / salva PDF</button>
+      </div>
+      <div class="q-sheet">
+        <div class="q-head">
+          <h2 class="q-title">Preventivo<span class="dot">.</span></h2>
+          <span class="q-date" id="q-date"></span>
+        </div>
+        <div class="q-meta">
+          <div class="q-field"><span>Da</span><input class="q-input" id="qFrom"></div>
+          <div class="q-field"><span>Per</span><input class="q-input" id="qClient" placeholder="Nome del cliente"></div>
+          <div class="q-field"><span>Oggetto</span><input class="q-input" id="qDesc"></div>
+        </div>
+        <div class="q-lines">
+          <div class="q-line">
+            <span class="lab">Quantit&agrave;</span>
+            <span class="num" id="q-pieces"></span>
+          </div>
+          <div class="q-line">
+            <span class="lab">Prezzo al pezzo</span>
+            <span class="q-unitwrap"><input class="q-input num" id="qUnit" inputmode="decimal" aria-label="Prezzo al pezzo in euro"><span class="num">&euro;</span></span>
+          </div>
+          <div class="q-line">
+            <span class="lab">Consegna stimata</span>
+            <span class="q-unitwrap"><input class="q-input num" id="qDays" inputmode="numeric" aria-label="Giorni per la consegna"><span class="num">giorni</span></span>
+          </div>
+        </div>
+        <div class="q-total">
+          <span class="lab">Totale</span>
+          <span class="val" id="q-total"></span>
+        </div>
+        <button type="button" class="q-sync" id="btn-q-sync"></button>
+        <div class="q-foot">
+          <div class="q-field" style="margin-bottom:8px"><span>Note</span><input class="q-input" id="qNotes" placeholder="Es. consegna a mano, colore a scelta&hellip;"></div>
+          Preventivo valido 30 giorni dalla data indicata. I giorni di consegna si contano dalla conferma dell'ordine.
+        </div>
+        <div class="q-sign">
+          <small>Firma</small>
+          <span id="q-sign-name"></span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -500,38 +723,41 @@
 
   var FIELDS = ["matPrice", "matQty", "powerW", "kwhPrice", "hoursH", "hoursM",
                 "printerPrice", "lifeHours", "consum", "laborMin", "laborRate",
-                "failPct", "pieces", "marginPct"];
+                "failPct", "marginPct", "pieces", "orderQty", "dayHours"];
+  var QFIELDS = ["qFrom", "qClient", "qDesc", "qUnit", "qDays", "qNotes"];
 
   var DEFAULTS = {
     fdm:   { matPrice: "25",  matQty: "120", powerW: "120", kwhPrice: "0,25",
              hoursH: "6", hoursM: "0", printerPrice: "600",  lifeHours: "5000",
              consum: "0,20", laborMin: "20", laborRate: "15",
-             failPct: "10", pieces: "1", marginPct: "100" },
+             failPct: "10", marginPct: "100", pieces: "1", orderQty: "1", dayHours: "8" },
     resin: { matPrice: "60",  matQty: "80",  powerW: "65",  kwhPrice: "0,25",
              hoursH: "4", hoursM: "0", printerPrice: "5050", lifeHours: "4000",
              consum: "2,50", laborMin: "40", laborRate: "15",
-             failPct: "10", pieces: "1", marginPct: "100" }
+             failPct: "10", marginPct: "100", pieces: "1", orderQty: "1", dayHours: "8" }
   };
+  var QDEFAULTS = { qFrom: "Giampiero Pagnini", qClient: "", qDesc: "Stampa 3D su misura",
+                    qUnit: "", qDays: "", qNotes: "" };
 
   var TEXTS = {
     fdm: {
       legMat: "Materiale — filamento",
       labMatPrice: "Prezzo del filamento", unitMatPrice: "€ / kg",
       hintMatPrice: "Il prezzo della bobina intera diviso per i kg.",
-      labMatQty: "Peso della stampa", unitMatQty: "g",
-      hintMatQty: "Lo dice il programma di slicing, supporti inclusi.",
+      labMatQty: "Peso di una stampata", unitMatQty: "g",
+      hintMatQty: "Supporti inclusi: lo dice il programma di slicing.",
       hintConsum: "Ugelli, piatto di stampa, nastro, lubrificante…",
-      hintLabor: "Preparazione del file, avvio, rimozione supporti, finitura.",
+      hintLabor: "Per una stampata: preparazione, avvio, rimozione supporti, finitura.",
       resMatName: "Filamento"
     },
     resin: {
       legMat: "Materiale — resina",
       labMatPrice: "Prezzo della resina", unitMatPrice: "€ / L",
       hintMatPrice: "Il prezzo del flacone intero diviso per i litri.",
-      labMatQty: "Resina usata", unitMatQty: "ml",
-      hintMatQty: "Lo dice il programma di slicing, supporti inclusi.",
+      labMatQty: "Resina per una stampata", unitMatQty: "ml",
+      hintMatQty: "Supporti inclusi: lo dice il programma di slicing.",
       hintConsum: "Guanti, alcol isopropilico, filtri, film della vaschetta…",
-      hintLabor: "Preparazione, lavaggio, polimerizzazione, rimozione supporti.",
+      hintLabor: "Per una stampata: preparazione, lavaggio, polimerizzazione, supporti.",
       resMatName: "Resina"
     }
   };
@@ -539,7 +765,8 @@
   var STORE_KEY = "quantostampa-v1";
   var app = document.getElementById("app");
   var mode = "fdm";
-  var saved = { fdm: {}, resin: {} };
+  var saved = { fdm: {}, resin: {}, quote: {} };
+  var last = { orderPrice: 0, orderQty: 1, printDays: 1 };
 
   function $(id) { return document.getElementById(id); }
 
@@ -551,6 +778,13 @@
 
   var eur = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" });
   function fmt(n) { return eur.format(Math.round(n * 100) / 100); }
+  function fmtNum(n) { return (Math.round(n * 100) / 100).toFixed(2).replace(".", ","); }
+  function fmtOre(minuti) {
+    var h = Math.floor(minuti / 60), m = Math.round(minuti % 60);
+    if (m === 0) return h + (h === 1 ? " ora" : " ore");
+    if (h === 0) return m + " min";
+    return h + " h " + m + " min";
+  }
 
   function loadStore() {
     try {
@@ -560,6 +794,7 @@
         if (data && typeof data === "object") {
           saved.fdm = data.fdm || {};
           saved.resin = data.resin || {};
+          saved.quote = data.quote || {};
           if (data.mode === "resin") mode = "resin";
         }
       }
@@ -570,13 +805,23 @@
     try {
       saved[mode] = {};
       FIELDS.forEach(function (f) { saved[mode][f] = $(f).value; });
-      localStorage.setItem(STORE_KEY, JSON.stringify({ mode: mode, fdm: saved.fdm, resin: saved.resin }));
+      saved.quote = {};
+      QFIELDS.forEach(function (f) { saved.quote[f] = $(f).value; });
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        mode: mode, fdm: saved.fdm, resin: saved.resin, quote: saved.quote
+      }));
     } catch (e) { /* niente memoria: pazienza */ }
   }
 
   function fillFields(values) {
     FIELDS.forEach(function (f) {
       $(f).value = (values[f] != null && values[f] !== "") ? values[f] : DEFAULTS[mode][f];
+    });
+  }
+
+  function fillQuote(values) {
+    QFIELDS.forEach(function (f) {
+      $(f).value = (values[f] != null && values[f] !== "") ? values[f] : QDEFAULTS[f];
     });
   }
 
@@ -628,7 +873,7 @@
 
     var pieces = Math.max(1, Math.round(num("pieces")) || 1);
     var perPiece = total / pieces;
-    var price = total * (1 + num("marginPct") / 100);
+    var margin = num("marginPct") / 100;
 
     function pct(part) {
       return total > 0 ? Math.round(part / total * 100) + "%" : "";
@@ -643,18 +888,76 @@
     $("res-total").textContent = fmt(total);
 
     $("row-perpiece").hidden = pieces <= 1;
-    $("lab-perpiece").textContent = "Costo per pezzo (" + pieces + " pezzi)";
+    $("lab-perpiece").textContent = "Costo per pezzo (" + pieces + " per stampata)";
     $("res-perpiece").textContent = fmt(perPiece);
 
-    $("res-price").textContent = fmt(price);
-    $("res-price-piece").textContent = pieces > 1
-      ? fmt(price / pieces) + " al pezzo, ricarico del " + Math.round(num("marginPct")) + "% sul costo"
-      : "ricarico del " + Math.round(num("marginPct")) + "% sul costo";
+    // ---- il piano di lavoro: quante stampate, quante ore, quanti giorni ----
+    var order = Math.max(1, Math.round(num("orderQty")) || 1);
+    var prints = Math.max(1, Math.ceil(order / pieces));
+    var totalMin = prints * hours * 60;
+    var dayH = num("dayHours");
+    var days = dayH > 0 ? Math.max(1, Math.ceil((totalMin / 60) / dayH)) : 0;
+
+    var orderCost = total * prints;
+    var orderPrice = orderCost * (1 + margin);
+    var unitPrice = orderPrice / order;
+
+    $("plan-prints").textContent = prints === 1 ? "1 stampata" : prints + " stampate";
+    $("plan-prints-sub").textContent = "per " + order + (order === 1 ? " pezzo" : " pezzi") +
+      (pieces > 1 ? ", " + pieces + " per stampata" : "");
+    $("plan-hours").textContent = fmtOre(totalMin);
+    $("row-plan-days").hidden = dayH <= 0;
+    $("plan-days").textContent = days === 1 ? "1 giorno" : days + " giorni";
+    $("plan-days-sub").textContent = "stampando " + String(dayH).replace(".", ",") + " ore al giorno";
+    $("row-plan-cost").hidden = prints <= 1;
+    $("plan-cost").textContent = fmt(orderCost);
+
+    $("sell-cap").textContent = order > 1
+      ? "Prezzo consigliato per l'ordine (" + order + " pezzi)"
+      : "Prezzo di vendita consigliato";
+    $("res-price").textContent = fmt(orderPrice);
+    $("res-price-piece").textContent = fmt(unitPrice) + " al pezzo · ricarico del " +
+      Math.round(num("marginPct")) + "% sul costo";
+
+    last.orderPrice = orderPrice;
+    last.orderQty = order;
+    last.printDays = days || 1;
+
+    qcalc();
+  }
+
+  // ---- preventivo per il cliente ----
+  function qcalc() {
+    var unitRaw = ($("qUnit").value || "").replace(/\s/g, "").replace(",", ".");
+    var unit = parseFloat(unitRaw);
+    if (!isFinite(unit) || unit < 0) unit = 0;
+    $("q-pieces").textContent = last.orderQty + (last.orderQty === 1 ? " pezzo" : " pezzi");
+    $("q-total").textContent = fmt(unit * last.orderQty);
+    $("q-sign-name").textContent = $("qFrom").value || QDEFAULTS.qFrom;
+    $("btn-q-sync").textContent = "Usa il prezzo consigliato: " + fmt(last.orderPrice / last.orderQty) + " al pezzo";
+  }
+
+  function openQuote() {
+    if (!$("qUnit").value) $("qUnit").value = fmtNum(last.orderPrice / last.orderQty);
+    if (!$("qDays").value) $("qDays").value = String(last.printDays);
+    try {
+      $("q-date").textContent = new Date().toLocaleDateString("it-IT",
+        { day: "numeric", month: "long", year: "numeric" });
+    } catch (e) { $("q-date").textContent = ""; }
+    qcalc();
+    saveStore();
+    document.body.classList.add("quote-open");
+    $("quote").scrollTop = 0;
+  }
+
+  function closeQuote() {
+    document.body.classList.remove("quote-open");
   }
 
   loadStore();
   applyMode();
   fillFields(saved[mode]);
+  fillQuote(saved.quote);
   calc();
 
   $("form").addEventListener("input", function () { calc(); saveStore(); });
@@ -665,6 +968,19 @@
     fillFields(DEFAULTS[mode]);
     calc();
     saveStore();
+  });
+
+  $("btn-quote").addEventListener("click", openQuote);
+  $("btn-quote-back").addEventListener("click", closeQuote);
+  $("btn-quote-print").addEventListener("click", function () { window.print(); });
+  $("btn-q-sync").addEventListener("click", function () {
+    $("qUnit").value = fmtNum(last.orderPrice / last.orderQty);
+    qcalc();
+    saveStore();
+  });
+  $("quote").addEventListener("input", function () { qcalc(); saveStore(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeQuote();
   });
 
   // I caratteri arrivano dopo, senza mai bloccare il disegno della pagina:
