@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>QuantoStampa</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F6F4F0;
+    --surface: #FFFFFF;
+    --surface-2: #EFEBE3;
+    --ink: #23201B;
+    --muted: #6F685D;
+    --line: #E2DCD1;
+    --fdm: #C24E00;
+    --fdm-soft: #F9E9DD;
+    --resin: #5B54D6;
+    --resin-soft: #E9E8FA;
+    --focus: #23201B;
+    --shadow: 0 1px 2px rgba(35, 32, 27, 0.06), 0 8px 24px rgba(35, 32, 27, 0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1A1815;
+      --surface: #26221C;
+      --surface-2: #2E2A22;
+      --ink: #ECE7DE;
+      --muted: #A59D8E;
+      --line: #3A3529;
+      --fdm: #F08840;
+      --fdm-soft: #3A2A1C;
+      --resin: #9C95F5;
+      --resin-soft: #2B2940;
+      --focus: #ECE7DE;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1A1815;
+    --surface: #26221C;
+    --surface-2: #2E2A22;
+    --ink: #ECE7DE;
+    --muted: #A59D8E;
+    --line: #3A3529;
+    --fdm: #F08840;
+    --fdm-soft: #3A2A1C;
+    --resin: #9C95F5;
+    --resin-soft: #2B2940;
+    --focus: #ECE7DE;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Instrument Sans", "Avenir Next", Seravek, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .app {
+    --accent: var(--fdm);
+    --accent-soft: var(--fdm-soft);
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 40px 24px 72px;
+  }
+  .app[data-mode="resin"] {
+    --accent: var(--resin);
+    --accent-soft: var(--resin-soft);
+  }
+
+  /* ---------- intestazione ---------- */
+  header { margin-bottom: 32px; }
+  .brand {
+    font-family: "Bricolage Grotesque", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.1rem, 5vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px;
+    text-wrap: balance;
+  }
+  .brand .dot { color: var(--accent); }
+  .tagline { color: var(--muted); margin: 0; max-width: 46ch; }
+
+  /* ---------- selettore tecnologia ---------- */
+  .mode {
+    display: inline-flex;
+    margin-top: 20px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    padding: 4px;
+    gap: 4px;
+  }
+  .mode button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .mode button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* ---------- impianto ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* ---------- modulo ---------- */
+  form { display: grid; gap: 18px; margin: 0; }
+  fieldset {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    padding: 18px 20px 20px;
+    margin: 0;
+  }
+  legend {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 0 8px;
+  }
+  .grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+  }
+  @media (max-width: 480px) {
+    .grid2 { grid-template-columns: minmax(0, 1fr); }
+  }
+  .field { display: grid; gap: 5px; }
+  .field label { font-size: 0.9rem; font-weight: 600; }
+  .control {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .control:focus-within {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .control input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+    padding: 9px 12px;
+  }
+  .control input:focus { outline: none; }
+  .control .unit {
+    flex: none;
+    color: var(--muted);
+    font-size: 0.82rem;
+    padding: 0 12px 0 4px;
+    white-space: nowrap;
+  }
+  .hint { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+
+  /* ---------- risultati ---------- */
+  .results {
+    position: sticky;
+    top: 20px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    padding: 22px 22px 20px;
+  }
+  .results h2 {
+    font-family: "Bricolage Grotesque", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0 0 14px;
+  }
+  .rows { display: grid; gap: 8px; }
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 0.92rem;
+  }
+  .row .name { color: var(--ink); }
+  .row .pct {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .row .val {
+    font-family: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    text-align: right;
+  }
+  .rows hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 6px 0;
+  }
+
+  .total {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .total .name { font-weight: 600; }
+  .total .val {
+    font-family: "Bricolage Grotesque", "Avenir Next Condensed", sans-serif;
+    font-weight: 800;
+    font-size: 1.9rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .perpiece {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-top: 2px;
+  }
+  .perpiece .val {
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sell {
+    margin-top: 16px;
+    background: var(--accent-soft);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .sell .cap {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .sell .big {
+    font-family: "Bricolage Grotesque", "Avenir Next Condensed", sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .sell .sub { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+
+  .actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  .actions button {
+    appearance: none;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 9px;
+    padding: 8px 14px;
+  }
+  .actions .primary {
+    border: 0;
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .actions .quiet {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+  }
+  .actions .quiet:hover { color: var(--ink); }
+
+  footer {
+    margin-top: 36px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    max-width: 62ch;
+  }
+
+  :is(button, input, a):focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .mode button, .actions button, .control { transition: background-color 0.15s, color 0.15s, border-color 0.15s; }
+  }
+
+  /* ---------- stampa su carta ---------- */
+  @media print {
+    body { background: #FFFFFF; color: #000000; }
+    .app { padding: 0; }
+    .mode, .actions, .hint, footer { display: none; }
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    fieldset, .results { border-color: #BBBBBB; box-shadow: none; background: #FFFFFF; }
+    .results { position: static; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app" data-mode="fdm">
+  <header>
+    <h1 class="brand">QuantoStampa<span class="dot">.</span></h1>
+    <p class="tagline">Quanto ti costa davvero una stampa 3D — materiale, corrente, usura della macchina, lavoro e rischio, fino al prezzo di vendita consigliato.</p>
+    <div class="mode" role="group" aria-label="Tecnologia di stampa">
+      <button type="button" id="btn-fdm" aria-pressed="true">Filamento (FDM)</button>
+      <button type="button" id="btn-resin" aria-pressed="false">Resina (SLA)</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <form id="form" autocomplete="off">
+      <fieldset>
+        <legend id="leg-mat">Materiale</legend>
+        <div class="grid2">
+          <div class="field">
+            <label for="matPrice" id="lab-matPrice">Prezzo del filamento</label>
+            <div class="control">
+              <input id="matPrice" inputmode="decimal" aria-describedby="hint-matPrice">
+              <span class="unit" id="unit-matPrice">€ / kg</span>
+            </div>
+            <span class="hint" id="hint-matPrice">Il prezzo della bobina intera diviso per i kg.</span>
+          </div>
+          <div class="field">
+            <label for="matQty" id="lab-matQty">Materiale usato</label>
+            <div class="control">
+              <input id="matQty" inputmode="decimal" aria-describedby="hint-matQty">
+              <span class="unit" id="unit-matQty">g</span>
+            </div>
+            <span class="hint" id="hint-matQty">Lo dice il programma di slicing, supporti inclusi.</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Corrente elettrica</legend>
+        <div class="grid2">
+          <div class="field">
+            <label for="powerW">Potenza media della stampante</label>
+            <div class="control">
+              <input id="powerW" inputmode="decimal">
+              <span class="unit">W</span>
+            </div>
+            <span class="hint">In media, non il picco: una FDM sta sui 100–150 W, una resina sui 50–80 W.</span>
+          </div>
+          <div class="field">
+            <label for="kwhPrice">Costo dell'energia</label>
+            <div class="control">
+              <input id="kwhPrice" inputmode="decimal">
+              <span class="unit">€ / kWh</span>
+            </div>
+            <span class="hint">Lo trovi in bolletta; in Italia di solito 0,20–0,35.</span>
+          </div>
+          <div class="field">
+            <label for="hoursH">Durata della stampa</label>
+            <div class="control">
+              <input id="hoursH" inputmode="numeric" aria-label="Ore di stampa">
+              <span class="unit">h</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="hoursM">&hellip;e minuti</label>
+            <div class="control">
+              <input id="hoursM" inputmode="numeric" aria-label="Minuti di stampa">
+              <span class="unit">min</span>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Stampante</legend>
+        <div class="grid2">
+          <div class="field">
+            <label for="printerPrice">Prezzo della stampante</label>
+            <div class="control">
+              <input id="printerPrice" inputmode="decimal">
+              <span class="unit">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="lifeHours">Vita utile stimata</label>
+            <div class="control">
+              <input id="lifeHours" inputmode="decimal">
+              <span class="unit">ore</span>
+            </div>
+            <span class="hint">Quante ore di stampa farà prima di sostituirla: 4.000–6.000 è una stima onesta.</span>
+          </div>
+          <div class="field">
+            <label for="consum" id="lab-consum">Consumabili per stampa</label>
+            <div class="control">
+              <input id="consum" inputmode="decimal" aria-describedby="hint-consum">
+              <span class="unit">€</span>
+            </div>
+            <span class="hint" id="hint-consum">Ugelli, piatto, nastro, lubrificante&hellip;</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Il tuo lavoro</legend>
+        <div class="grid2">
+          <div class="field">
+            <label for="laborMin" id="lab-laborMin">Tempo di lavoro manuale</label>
+            <div class="control">
+              <input id="laborMin" inputmode="decimal" aria-describedby="hint-laborMin">
+              <span class="unit">min</span>
+            </div>
+            <span class="hint" id="hint-laborMin">Preparazione del file, avvio, rimozione supporti, finitura.</span>
+          </div>
+          <div class="field">
+            <label for="laborRate">Quanto vale la tua ora</label>
+            <div class="control">
+              <input id="laborRate" inputmode="decimal">
+              <span class="unit">€ / h</span>
+            </div>
+            <span class="hint">Metti 0 se non vuoi contare il tuo tempo.</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Rischio e prezzo</legend>
+        <div class="grid2">
+          <div class="field">
+            <label for="failPct">Stampe che falliscono</label>
+            <div class="control">
+              <input id="failPct" inputmode="decimal">
+              <span class="unit">%</span>
+            </div>
+            <span class="hint">Su 10 stampe, quante butti via? Una su dieci = 10%.</span>
+          </div>
+          <div class="field">
+            <label for="pieces">Pezzi in questa stampa</label>
+            <div class="control">
+              <input id="pieces" inputmode="numeric">
+              <span class="unit">pezzi</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="marginPct">Ricarico per la vendita</label>
+            <div class="control">
+              <input id="marginPct" inputmode="decimal">
+              <span class="unit">%</span>
+            </div>
+            <span class="hint">100% = rivendi al doppio del costo. Serve solo per il prezzo consigliato.</span>
+          </div>
+        </div>
+      </fieldset>
+    </form>
+
+    <aside class="results" aria-live="polite">
+      <h2>Costo di questa stampa</h2>
+      <div class="rows">
+        <div class="row"><span class="name" id="res-mat-name">Filamento</span><span class="pct" id="pct-mat"></span><span class="val" id="res-mat"></span></div>
+        <div class="row"><span class="name">Corrente elettrica</span><span class="pct" id="pct-energy"></span><span class="val" id="res-energy"></span></div>
+        <div class="row"><span class="name">Usura della stampante</span><span class="pct" id="pct-machine"></span><span class="val" id="res-machine"></span></div>
+        <div class="row"><span class="name">Consumabili</span><span class="pct" id="pct-consum"></span><span class="val" id="res-consum"></span></div>
+        <div class="row"><span class="name">Rischio stampe fallite</span><span class="pct" id="pct-risk"></span><span class="val" id="res-risk"></span></div>
+        <div class="row"><span class="name">Il tuo lavoro</span><span class="pct" id="pct-labor"></span><span class="val" id="res-labor"></span></div>
+      </div>
+      <div class="total">
+        <span class="name">Costo totale</span>
+        <span class="val" id="res-total"></span>
+      </div>
+      <div class="perpiece" id="row-perpiece" hidden>
+        <span id="lab-perpiece">Costo per pezzo</span>
+        <span class="val" id="res-perpiece"></span>
+      </div>
+      <div class="sell">
+        <div class="cap">Prezzo di vendita consigliato</div>
+        <div class="big" id="res-price"></div>
+        <div class="sub" id="res-price-piece"></div>
+      </div>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-print">Stampa / salva PDF</button>
+        <button type="button" class="quiet" id="btn-reset">Ripristina esempi</button>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    I valori restano salvati su questo computer, quindi la prossima volta ritrovi i tuoi numeri.
+    Il rischio è calcolato sui costi vivi: con il 10% di fallimenti, ogni 9 stampe buone ne paghi una buttata.
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var FIELDS = ["matPrice", "matQty", "powerW", "kwhPrice", "hoursH", "hoursM",
+                "printerPrice", "lifeHours", "consum", "laborMin", "laborRate",
+                "failPct", "pieces", "marginPct"];
+
+  var DEFAULTS = {
+    fdm:   { matPrice: "25",  matQty: "120", powerW: "120", kwhPrice: "0,25",
+             hoursH: "6", hoursM: "0", printerPrice: "600",  lifeHours: "5000",
+             consum: "0,20", laborMin: "20", laborRate: "15",
+             failPct: "10", pieces: "1", marginPct: "100" },
+    resin: { matPrice: "60",  matQty: "80",  powerW: "65",  kwhPrice: "0,25",
+             hoursH: "4", hoursM: "0", printerPrice: "5050", lifeHours: "4000",
+             consum: "2,50", laborMin: "40", laborRate: "15",
+             failPct: "10", pieces: "1", marginPct: "100" }
+  };
+
+  var TEXTS = {
+    fdm: {
+      legMat: "Materiale — filamento",
+      labMatPrice: "Prezzo del filamento", unitMatPrice: "€ / kg",
+      hintMatPrice: "Il prezzo della bobina intera diviso per i kg.",
+      labMatQty: "Peso della stampa", unitMatQty: "g",
+      hintMatQty: "Lo dice il programma di slicing, supporti inclusi.",
+      hintConsum: "Ugelli, piatto di stampa, nastro, lubrificante…",
+      hintLabor: "Preparazione del file, avvio, rimozione supporti, finitura.",
+      resMatName: "Filamento"
+    },
+    resin: {
+      legMat: "Materiale — resina",
+      labMatPrice: "Prezzo della resina", unitMatPrice: "€ / L",
+      hintMatPrice: "Il prezzo del flacone intero diviso per i litri.",
+      labMatQty: "Resina usata", unitMatQty: "ml",
+      hintMatQty: "Lo dice il programma di slicing, supporti inclusi.",
+      hintConsum: "Guanti, alcol isopropilico, filtri, film della vaschetta…",
+      hintLabor: "Preparazione, lavaggio, polimerizzazione, rimozione supporti.",
+      resMatName: "Resina"
+    }
+  };
+
+  var STORE_KEY = "quantostampa-v1";
+  var app = document.getElementById("app");
+  var mode = "fdm";
+  var saved = { fdm: {}, resin: {} };
+
+  function $(id) { return document.getElementById(id); }
+
+  function num(id) {
+    var raw = ($(id).value || "").replace(/\s/g, "").replace(",", ".");
+    var n = parseFloat(raw);
+    return isFinite(n) && n >= 0 ? n : 0;
+  }
+
+  var eur = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" });
+  function fmt(n) { return eur.format(Math.round(n * 100) / 100); }
+
+  function loadStore() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data && typeof data === "object") {
+          saved.fdm = data.fdm || {};
+          saved.resin = data.resin || {};
+          if (data.mode === "resin") mode = "resin";
+        }
+      }
+    } catch (e) { /* memoria non disponibile: si riparte dagli esempi */ }
+  }
+
+  function saveStore() {
+    try {
+      saved[mode] = {};
+      FIELDS.forEach(function (f) { saved[mode][f] = $(f).value; });
+      localStorage.setItem(STORE_KEY, JSON.stringify({ mode: mode, fdm: saved.fdm, resin: saved.resin }));
+    } catch (e) { /* niente memoria: pazienza */ }
+  }
+
+  function fillFields(values) {
+    FIELDS.forEach(function (f) {
+      $(f).value = (values[f] != null && values[f] !== "") ? values[f] : DEFAULTS[mode][f];
+    });
+  }
+
+  function applyMode() {
+    var t = TEXTS[mode];
+    app.setAttribute("data-mode", mode);
+    $("btn-fdm").setAttribute("aria-pressed", mode === "fdm" ? "true" : "false");
+    $("btn-resin").setAttribute("aria-pressed", mode === "resin" ? "true" : "false");
+    $("leg-mat").textContent = t.legMat;
+    $("lab-matPrice").textContent = t.labMatPrice;
+    $("unit-matPrice").textContent = t.unitMatPrice;
+    $("hint-matPrice").textContent = t.hintMatPrice;
+    $("lab-matQty").textContent = t.labMatQty;
+    $("unit-matQty").textContent = t.unitMatQty;
+    $("hint-matQty").textContent = t.hintMatQty;
+    $("hint-consum").textContent = t.hintConsum;
+    $("hint-laborMin").textContent = t.hintLabor;
+    $("res-mat-name").textContent = t.resMatName;
+  }
+
+  function setMode(next) {
+    if (next === mode) return;
+    saveStore();
+    mode = next;
+    applyMode();
+    fillFields(saved[mode]);
+    calc();
+    saveStore();
+  }
+
+  function calc() {
+    var hours = num("hoursH") + num("hoursM") / 60;
+
+    // materiale: €/kg su grammi, oppure €/L su millilitri — stesso rapporto /1000
+    var material = num("matPrice") / 1000 * num("matQty");
+    var energy = num("powerW") / 1000 * hours * num("kwhPrice");
+    var life = num("lifeHours");
+    var machine = life > 0 ? num("printerPrice") / life * hours : 0;
+    var consum = num("consum");
+
+    var direct = material + energy + machine + consum;
+
+    // p% di fallimenti: in media servono 1/(1-p) tentativi per una stampa buona
+    var p = Math.min(num("failPct"), 95) / 100;
+    var risk = direct * (p / (1 - p));
+
+    var labor = num("laborMin") / 60 * num("laborRate");
+    var total = direct + risk + labor;
+
+    var pieces = Math.max(1, Math.round(num("pieces")) || 1);
+    var perPiece = total / pieces;
+    var price = total * (1 + num("marginPct") / 100);
+
+    function pct(part) {
+      return total > 0 ? Math.round(part / total * 100) + "%" : "";
+    }
+
+    $("res-mat").textContent = fmt(material);      $("pct-mat").textContent = pct(material);
+    $("res-energy").textContent = fmt(energy);     $("pct-energy").textContent = pct(energy);
+    $("res-machine").textContent = fmt(machine);   $("pct-machine").textContent = pct(machine);
+    $("res-consum").textContent = fmt(consum);     $("pct-consum").textContent = pct(consum);
+    $("res-risk").textContent = fmt(risk);         $("pct-risk").textContent = pct(risk);
+    $("res-labor").textContent = fmt(labor);       $("pct-labor").textContent = pct(labor);
+    $("res-total").textContent = fmt(total);
+
+    $("row-perpiece").hidden = pieces <= 1;
+    $("lab-perpiece").textContent = "Costo per pezzo (" + pieces + " pezzi)";
+    $("res-perpiece").textContent = fmt(perPiece);
+
+    $("res-price").textContent = fmt(price);
+    $("res-price-piece").textContent = pieces > 1
+      ? fmt(price / pieces) + " al pezzo, ricarico del " + Math.round(num("marginPct")) + "% sul costo"
+      : "ricarico del " + Math.round(num("marginPct")) + "% sul costo";
+  }
+
+  loadStore();
+  applyMode();
+  fillFields(saved[mode]);
+  calc();
+
+  $("form").addEventListener("input", function () { calc(); saveStore(); });
+  $("btn-fdm").addEventListener("click", function () { setMode("fdm"); });
+  $("btn-resin").addEventListener("click", function () { setMode("resin"); });
+  $("btn-print").addEventListener("click", function () { window.print(); });
+  $("btn-reset").addEventListener("click", function () {
+    fillFields(DEFAULTS[mode]);
+    calc();
+    saveStore();
+  });
+})();
+</script>
+</body>
+</html>
