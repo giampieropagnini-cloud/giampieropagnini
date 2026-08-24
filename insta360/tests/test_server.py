@@ -116,7 +116,8 @@ class ProveServer(unittest.TestCase):
         self.assertIn("stato", stato["sonda"])
 
         # senza collegamento attivo la prova di scatto deve spiegarsi
-        codice, corpo = self._chiedi("POST", "/api/bluetooth", {"azione": "sonda_scatto"})
+        codice, corpo = self._chiedi("POST", "/api/bluetooth",
+                                     {"azione": "sonda_comando", "comando": "scatto"})
         self.assertEqual(codice, 400)
         self.assertIn("errore", json.loads(corpo))
 

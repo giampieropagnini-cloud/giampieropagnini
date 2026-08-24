@@ -424,16 +424,26 @@ function disegnaBluetooth() {
         (s.stato === "errore" ? ' <span class="errore-ble">' + scappa(s.errore) + "</span>" : "") +
         "</div>";
       if (s.stato === "collegata") {
-        html += '<div class="riga-telecomando">' +
-          '<button class="btn btn-primario" data-bluetooth="sonda_scatto"' +
-          (s.canale_comandi ? "" : " disabled") + ">Prova di scatto (esperimento)</button>" +
-          '<button class="btn" data-bluetooth="sonda_scollega">Scollega</button></div>';
+        const puoi = s.scrivibili && s.scrivibili.length;
+        html += '<div class="riga-telecomando"><span class="pulsanti">' +
+          '<button class="btn btn-primario" data-bluetooth="sonda_comando" data-comando="scatto"' +
+          (puoi ? "" : " disabled") + ">Prova scatto</button>" +
+          '<button class="btn" data-bluetooth="sonda_comando" data-comando="modalita"' +
+          (puoi ? "" : " disabled") + ">Prova cambio modalità</button>" +
+          '<button class="btn" data-bluetooth="sonda_comando" data-comando="schermo"' +
+          (puoi ? "" : " disabled") + ">Prova schermo</button>" +
+          "</span></div>" +
+          '<div class="riga-telecomando">' +
+          '<button class="btn" data-bluetooth="sonda_scollega">Scollega</button>' +
+          '<button class="btn" data-copia="diagnostica">📋 Copia per Claude</button>' +
+          "</div>";
       }
       if (s.dettagli && s.dettagli.length) {
-        html += '<div class="dettagli-sonda">' +
+        html += '<div class="dettagli-sonda" id="dettagli-sonda">' +
           s.dettagli.map((riga) => scappa(riga)).join("<br>") + "</div>" +
-          "<p style=\"font-size:12.5px;color:var(--testo-tenue)\">Questa è la diagnostica: " +
-          "se qualcosa non va, falle uno screenshot e mandala a Claude in chat.</p>";
+          "<p style=\"font-size:12.5px;color:var(--testo-tenue)\">Questa è la diagnostica: le tue " +
+          "telecamere raccontano qui come sono fatte. Premi <strong>«Copia per Claude»</strong> e " +
+          "incolla il risultato in chat: da lì taro i comandi sul tuo modello esatto.</p>";
       }
       html += registroHtml(s.registro);
     }
@@ -483,11 +493,27 @@ function disegnaBluetooth() {
 /* ---------------------------------------------------------------- eventi */
 
 document.addEventListener("click", (evento) => {
+  const bottoneCopia = evento.target.closest("[data-copia]");
+  if (bottoneCopia) {
+    const testo = (stato.dati.sonda && stato.dati.sonda.diagnostica) || "";
+    const finito = () => { bottoneCopia.textContent = "✓ Copiato! Ora incollalo in chat"; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(testo).then(finito, () => avviso("Non riesco a copiare: selezionalo a mano."));
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = testo; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); finito(); } catch (e) { avviso("Selezionalo a mano dalla diagnostica."); }
+      ta.remove();
+    }
+    return;
+  }
+
   const bottoneBluetooth = evento.target.closest("[data-bluetooth]");
   if (bottoneBluetooth) {
     const richiesta = { azione: bottoneBluetooth.dataset.bluetooth };
     if (bottoneBluetooth.dataset.indirizzo) richiesta.indirizzo = bottoneBluetooth.dataset.indirizzo;
     if (bottoneBluetooth.dataset.nome) richiesta.nome = bottoneBluetooth.dataset.nome;
+    if (bottoneBluetooth.dataset.comando) richiesta.comando = bottoneBluetooth.dataset.comando;
     comanda("/api/bluetooth", richiesta);
     return;
   }

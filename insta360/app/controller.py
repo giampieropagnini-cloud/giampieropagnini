@@ -74,8 +74,8 @@ class Controller:
                 self.sonda.collega(str(dati.get("indirizzo", "")), str(dati.get("nome", "")))
             elif azione == "sonda_scollega":
                 self.sonda.scollega()
-            elif azione == "sonda_scatto":
-                self.sonda.prova_scatto()
+            elif azione == "sonda_comando":
+                self.sonda.prova_comando(str(dati.get("comando", "scatto")))
             else:
                 raise ErroreTelecamera("Azione sconosciuta: " + azione)
         except RuntimeError as exc:
