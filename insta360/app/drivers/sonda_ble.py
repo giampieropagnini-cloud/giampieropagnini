@@ -41,6 +41,14 @@ COMANDI = {
 _MASSIMO_DETTAGLI = 80
 
 
+def _corto(uuid: str) -> str:
+    """Nome breve di un canale: 0000be81-0000-... -> be81."""
+    u = (uuid or "").lower()
+    if u.startswith("0000") and len(u) >= 8:
+        return u[4:8]
+    return u
+
+
 class SondaBluetooth:
     """Collegamento diretto Mac → telecamera, in un thread dedicato."""
 
@@ -88,7 +96,7 @@ class SondaBluetooth:
             if self._stato != "errore":
                 self._stato = "inattiva"
 
-    def prova_comando(self, comando: str) -> None:
+    def prova_comando(self, comando: str, canale: str = "") -> None:
         if comando not in COMANDI:
             raise RuntimeError("Comando sconosciuto: " + comando)
         with self._lock:
@@ -98,9 +106,13 @@ class SondaBluetooth:
             if not self._scrivibili:
                 raise RuntimeError("Questa telecamera non espone canali scrivibili: "
                                    "mandami la diagnostica con «Copia per Claude».")
-        asyncio.run_coroutine_threadsafe(self._invia_su_tutti(comando), loop)
-        self.registro.scrivi("Provo «%s» su tutti i canali scrivibili: guarda la telecamera!"
-                             % comando)
+            if canale and canale not in self._scrivibili:
+                raise RuntimeError("Canale non scrivibile: " + canale)
+            canali = [canale] if canale else list(self._scrivibili)
+        asyncio.run_coroutine_threadsafe(self._invia(comando, canali), loop)
+        dove = _corto(canale) if canale else "tutti i canali"
+        self.registro.scrivi("Provo «%s» su %s: guarda e ascolta la telecamera!"
+                             % (comando, dove))
 
     # -------------------------------------------------------------- interno
 
@@ -193,13 +205,11 @@ class SondaBluetooth:
             self.registro.scrivi("Collegata, ma nessun canale scrivibile: "
                                  "mandami la diagnostica con «Copia per Claude».")
 
-    async def _invia_su_tutti(self, comando: str) -> None:
+    async def _invia(self, comando: str, canali: List[str]) -> None:
         client = self._client
         if client is None:
             return
         dati = COMANDI[comando]
-        with self._lock:
-            canali = list(self._scrivibili)
         for uuid_c in canali:
             car = client.services.get_characteristic(uuid_c)
             if car is None:
@@ -208,12 +218,11 @@ class SondaBluetooth:
                               and "write" not in car.properties)
             try:
                 await client.write_gatt_char(uuid_c, dati, response=not senza_risposta)
-                self._annota("→ inviato «%s» su %s: %s" % (comando, uuid_c, dati.hex(" ")))
+                self._annota("→ inviato «%s» su %s: %s" % (comando, _corto(uuid_c), dati.hex(" ")))
             except Exception as exc:
-                self._annota("→ %s ha rifiutato: %s" % (uuid_c, str(exc)))
+                self._annota("→ %s ha rifiutato: %s" % (_corto(uuid_c), str(exc)))
             await asyncio.sleep(0.6)
-        self.registro.scrivi("Comando «%s» inviato su tutti i canali. Reazioni nella diagnostica."
-                             % comando)
+        self.registro.scrivi("Comando «%s» inviato. Reazioni nella diagnostica." % comando)
 
     async def _chiudi(self) -> None:
         client = self._client

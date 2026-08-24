@@ -424,16 +424,25 @@ function disegnaBluetooth() {
         (s.stato === "errore" ? ' <span class="errore-ble">' + scappa(s.errore) + "</span>" : "") +
         "</div>";
       if (s.stato === "collegata") {
-        const puoi = s.scrivibili && s.scrivibili.length;
-        html += '<div class="riga-telecomando"><span class="pulsanti">' +
-          '<button class="btn btn-primario" data-bluetooth="sonda_comando" data-comando="scatto"' +
-          (puoi ? "" : " disabled") + ">Prova scatto</button>" +
-          '<button class="btn" data-bluetooth="sonda_comando" data-comando="modalita"' +
-          (puoi ? "" : " disabled") + ">Prova cambio modalità</button>" +
-          '<button class="btn" data-bluetooth="sonda_comando" data-comando="schermo"' +
-          (puoi ? "" : " disabled") + ">Prova schermo</button>" +
-          "</span></div>" +
-          '<div class="riga-telecomando">' +
+        const canali = s.scrivibili || [];
+        if (canali.length) {
+          html += "<p style=\"font-size:13.5px\">La telecamera ha <strong>" + canali.length +
+            " canali</strong> su cui si può scrivere. Proviamoli <strong>uno per uno</strong>: " +
+            "premi «Scatto» sul primo canale e <strong>ascolta</strong> — appena senti il bip o " +
+            "vedi la telecamera reagire, abbiamo trovato quello giusto. Dimmi quale è stato.</p>";
+          canali.forEach((uuid, i) => {
+            const corto = uuid.replace(/^0000/, "").slice(0, 4);
+            html += '<div class="riga-canale"><span class="tag-canale">canale ' + scappa(corto) +
+              "</span>" +
+              '<button class="btn btn-piccolo btn-primario" data-bluetooth="sonda_comando" ' +
+              'data-comando="scatto" data-canale="' + scappa(uuid) + '">Scatto</button>' +
+              '<button class="btn btn-piccolo" data-bluetooth="sonda_comando" ' +
+              'data-comando="modalita" data-canale="' + scappa(uuid) + '">Modalità</button>' +
+              '<button class="btn btn-piccolo" data-bluetooth="sonda_comando" ' +
+              'data-comando="schermo" data-canale="' + scappa(uuid) + '">Schermo</button></div>';
+          });
+        }
+        html += '<div class="riga-telecomando" style="margin-top:10px">' +
           '<button class="btn" data-bluetooth="sonda_scollega">Scollega</button>' +
           '<button class="btn" data-copia="diagnostica">📋 Copia per Claude</button>' +
           "</div>";
