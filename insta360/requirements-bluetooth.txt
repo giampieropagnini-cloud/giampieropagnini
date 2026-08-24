@@ -1,7 +1,9 @@
-# Componente FACOLTATIVO: serve solo per il telecomando Bluetooth virtuale.
-# Il resto del programma funziona senza installare nulla.
+# Componente FACOLTATIVO: serve solo per la parte Bluetooth (ricerca delle
+# telecamere e telecomando virtuale). Il resto funziona senza installare nulla.
+# «CONTROLLA LE TELECAMERE.command» propone da solo questa installazione.
 #
-# Per installarlo:   python3 -m pip install -r requirements-bluetooth.txt
-# (su Mac, alla prima accensione del telecomando, il sistema chiederà il
-#  permesso di usare il Bluetooth: va concesso al Terminale.)
+# A mano:   python3 -m pip install --user -r requirements-bluetooth.txt
+# (su Mac, al primo uso del Bluetooth, il sistema chiederà il permesso:
+#  va concesso al Terminale.)
 bless>=0.2.6
+bleak>=0.21

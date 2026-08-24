@@ -59,3 +59,17 @@ class DriverTelecamera:
 
 def adesso() -> float:
     return time.monotonic()
+
+
+def spiega_errore_bluetooth(testo: str) -> str:
+    """Traduce gli errori Bluetooth del sistema in italiano comprensibile."""
+    t = testo.lower()
+    if "unauthorized" in t or "not authorized" in t or "tcc" in t or "permission" in t:
+        return ("Il Mac non ha dato al Terminale il permesso di usare il Bluetooth. "
+                "Vai in Impostazioni di Sistema → Privacy e Sicurezza → Bluetooth "
+                "e attiva «Terminale», poi riprova.")
+    if "poweredoff" in t or "powered off" in t or "turned off" in t:
+        return "Il Bluetooth del Mac è spento: accendilo dal Centro di Controllo e riprova."
+    if "unsupported" in t:
+        return "Questo computer non sembra avere il Bluetooth necessario (Bluetooth LE)."
+    return testo

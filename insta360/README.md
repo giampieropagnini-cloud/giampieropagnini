@@ -18,6 +18,21 @@ nel browser. Nessun dato esce dal computer (il programma ascolta solo su
 
 Da terminale, in alternativa: `cd insta360 && python3 avvia.py`.
 
+**Se il Mac blocca il file scaricato** ("Apple could not verify…"): è la
+protezione sui file presi da internet. Premi «Done», poi Impostazioni di
+Sistema → Privacy e Sicurezza → in fondo trovi **«Apri comunque»**. Va fatto
+una volta sola. In alternativa, la copia presa con «AGGIORNA CONTROLLO
+TELECAMERE.command» (o con la riga `curl` che Claude ti ha dato in chat) non
+viene bloccata affatto.
+
+## Aggiornare il programma
+
+Quando Claude pubblica una versione nuova, non serve riscaricare lo ZIP:
+doppio clic su **`AGGIORNA CONTROLLO TELECAMERE.command`** (accanto al file
+di avvio): scarica l'ultima versione e sostituisce i file da solo. Poi riapri
+il programma. Bonus: i file portati dall'aggiornamento non subiscono il blocco
+di sicurezza del Mac.
+
 ## Cosa fa la modalità demo
 
 Le tre telecamere nel programma partono **simulate**: rispondono a ogni
@@ -41,27 +56,33 @@ computer: il controllo completo (anteprima dal vivo compresa) ce l'ha solo la
 loro app per telefono. Però le strade percorribili esistono, e questo
 programma è costruito per usarle:
 
-### 1. Il telecomando Bluetooth virtuale (già incluso, sperimentale)
+### 1. Il Bluetooth (già incluso, sperimentale, in due passi)
 
 Le tue tre telecamere supportano tutte il telecomando ufficiale "GPS Action
 Remote". La community ne ha decodificato il linguaggio, e questo programma sa
-parlarlo: il computer **si finge il telecomando**, la telecamera si abbina e
-riceve i comandi veri:
+parlarlo. Il pannello Bluetooth lavora in due passi:
 
-- **Scatto** (foto, oppure avvia/ferma la registrazione)
-- **Cambio modalità**
-- **Schermo acceso/spento**
-- **Spegnimento**
+- **Passo 1 — Ricerca**: il programma ascolta il Bluetooth e ti mostra gli
+  apparecchi intorno a te, evidenziando quelli che sembrano Insta360. Se la
+  tua telecamera accesa compare nell'elenco, il Mac la sente: buon segno.
+- **Passo 2 — Telecomando virtuale**: il computer **si finge il telecomando**,
+  la telecamera si abbina e riceve i comandi veri: **scatto** (foto, oppure
+  avvia/ferma la registrazione), **cambio modalità**, **schermo
+  acceso/spento**, **spegnimento**.
 
 Come si prova:
 
-1. Installa il componente (una volta sola): apri il Terminale e scrivi
-   `python3 -m pip install bless`
-2. Riavvia il programma e premi **«Accendi il telecomando»** nel pannello
-   apposito. Il Mac chiederà il permesso di usare il Bluetooth: concedilo.
-3. Sulla telecamera: **Impostazioni → Telecomando** e scegli
-   «Insta360 GPS Remote».
-4. Usa i quattro pulsanti dal programma.
+1. Al primo avvio, «CONTROLLA LE TELECAMERE.command» ti propone da solo di
+   installare il componente Bluetooth: premi Invio e aspetta un minuto.
+2. Nel programma premi **«Cerca le telecamere vicine»** con le telecamere
+   accese. Il Mac chiederà il permesso di usare il Bluetooth: concedilo al
+   Terminale (se hai detto no, si rimedia da Impostazioni di Sistema →
+   Privacy e Sicurezza → Bluetooth).
+3. Premi **«Accendi il telecomando»**, poi sulla telecamera:
+   **Impostazioni → Telecomando** e scegli «Insta360 GPS Remote».
+4. Usa i quattro pulsanti dal programma. Se la telecamera non trova il
+   telecomando, rinomina il Mac in «Insta360 GPS Remote» (Impostazioni di
+   Sistema → Generali → Info → Nome) e riprova.
 
 È sperimentale: se la telecamera non trova il telecomando, il trucco che
 spesso risolve è rinominare il Mac in «Insta360 GPS Remote» (Impostazioni di

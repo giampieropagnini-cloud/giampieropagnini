@@ -7,6 +7,7 @@ from typing import Any, Dict
 from . import VERSIONE
 from .drivers.base import ErroreTelecamera
 from .drivers.demo import DriverDemo
+from .drivers.ricerca_ble import RicercaBluetooth
 from .drivers.telecomando_ble import TelecomandoVirtuale
 from .registry import TELECAMERE
 
@@ -16,6 +17,7 @@ class Controller:
     def __init__(self):
         self.driver = {id_t: DriverDemo(spec) for id_t, spec in TELECAMERE.items()}
         self.telecomando = TelecomandoVirtuale()
+        self.ricerca = RicercaBluetooth()
 
     # -------------------------------------------------------------- comandi
 
@@ -61,6 +63,16 @@ class Controller:
         except RuntimeError as exc:
             raise ErroreTelecamera(str(exc))
 
+    def azione_bluetooth(self, dati: Dict[str, Any]) -> None:
+        azione = dati.get("azione", "")
+        try:
+            if azione == "cerca":
+                self.ricerca.avvia()
+            else:
+                raise ErroreTelecamera("Azione sconosciuta: " + azione)
+        except RuntimeError as exc:
+            raise ErroreTelecamera(str(exc))
+
     # ---------------------------------------------------------------- stato
 
     def stato(self) -> Dict[str, Any]:
@@ -88,4 +100,5 @@ class Controller:
             "versione": VERSIONE,
             "telecamere": telecamere,
             "telecomando": self.telecomando.stato(),
+            "bluetooth": self.ricerca.stato(),
         }

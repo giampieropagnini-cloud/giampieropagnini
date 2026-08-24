@@ -18,7 +18,7 @@ import asyncio
 import threading
 from typing import Any, Dict, Optional
 
-from .base import Registro
+from .base import Registro, spiega_errore_bluetooth
 
 try:
     from bless import (BlessServer, GATTAttributePermissions,
@@ -126,10 +126,11 @@ class TelecomandoVirtuale:
                                  "(Impostazioni → Telecomando).")
             loop.run_forever()
         except Exception as exc:
+            spiegazione = spiega_errore_bluetooth(str(exc))
             with self._lock:
                 self._stato = "errore"
-                self._errore = str(exc)
-            self.registro.scrivi("Errore Bluetooth: " + str(exc))
+                self._errore = spiegazione
+            self.registro.scrivi("Errore Bluetooth: " + spiegazione)
         finally:
             try:
                 loop.close()

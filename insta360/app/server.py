@@ -83,6 +83,9 @@ class GestoreRichieste(BaseHTTPRequestHandler):
             elif self.path == "/api/telecomando":
                 self.controller.azione_telecomando(dati)
                 self._json({"ok": True})
+            elif self.path == "/api/bluetooth":
+                self.controller.azione_bluetooth(dati)
+                self._json({"ok": True})
             else:
                 self._errore("Pagina non trovata.", 404)
         except ErroreTelecamera as exc:

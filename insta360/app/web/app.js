@@ -343,31 +343,82 @@ function disegnaRegistro(t) {
   });
 }
 
-/* ----------------------------------------------------------- telecomando */
+/* ------------------------------------------------- Bluetooth (vero) */
 
-function disegnaTelecomando() {
+function etichettaSegnale(rssi) {
+  if (rssi == null) return "";
+  if (rssi >= -60) return "segnale forte";
+  if (rssi >= -75) return "segnale medio";
+  return "segnale debole";
+}
+
+function notaInstallazione() {
+  return '<div class="nota-installazione"><strong>Componente Bluetooth non installato.</strong> ' +
+    "Chiudi il programma e riaprilo: alla partenza ti chiederà se installarlo (basta premere Invio). " +
+    "In alternativa, in una finestra nuova del Terminale: " +
+    "<code>python3 -m pip install --user bless bleak</code></div>";
+}
+
+function registroHtml(voci) {
+  if (!voci || !voci.length) return "";
+  return '<ul class="registro">' +
+    voci.slice().reverse().map((v) =>
+      '<li><span class="ora">' + scappa(v.ora) + "</span>" + scappa(v.testo) + "</li>").join("") + "</ul>";
+}
+
+function disegnaBluetooth() {
   const r = stato.dati.telecomando;
+  const b = stato.dati.bluetooth;
   const carta = $("#carta-telecomando");
-  seCambiata("telecomando", r, carta, () => {
-    const testi = { spento: "Spento", avvio: "In avvio…", attivo: "Attivo — in attesa della telecamera", errore: "Errore" };
-    let statoTesto = testi[r.stato] || r.stato;
-    if (r.stato === "attivo" && r.camera_collegata) statoTesto = "Attivo — una telecamera è abbinata!";
+  seCambiata("bluetooth", [r, b], carta, () => {
     let html =
-      "<h2>Telecomando Bluetooth virtuale " +
-      '<span class="distintivo" title="Basato sul protocollo del telecomando GPS ufficiale, decodificato dalla community.">sperimentale</span></h2>' +
-      "<p>Il computer si finge il telecomando ufficiale «" + scappa(r.nome) + "»: le telecamere vere " +
-      "(tutte e tre) possono abbinarsi e ricevere i quattro comandi del telecomando GPS.</p>";
+      "<h2>Telecamere vere via Bluetooth " +
+      '<span class="distintivo" title="Basato sul protocollo del telecomando GPS ufficiale Insta360, decodificato dalla community.">sperimentale</span></h2>';
 
-    if (!r.disponibile) {
-      html += '<div class="nota-installazione"><strong>Componente non installato.</strong> ' +
-        "Per provarlo, apri il Terminale e scrivi:<br>" +
-        "<code>python3 -m pip install bless</code><br>" +
-        "poi chiudi e riavvia questo programma. Tutto il resto funziona anche senza.</div>";
+    /* -- passo 1: ricerca ------------------------------------------- */
+    html += "<h4>Passo 1 · Il Mac sente le telecamere?</h4>" +
+      "<p>Accendi le telecamere, tienile vicino al computer e premi il pulsante: " +
+      "compare l'elenco degli apparecchi Bluetooth intorno a te.</p>";
+    if (!b.disponibile) {
+      html += notaInstallazione();
     } else {
+      html += '<div class="riga-telecomando">' +
+        '<button class="btn btn-primario" data-bluetooth="cerca"' + (b.in_corso ? " disabled" : "") + ">" +
+        (b.in_corso ? "Sto cercando… (6 s)" : "Cerca le telecamere vicine") + "</button>" +
+        (b.quando ? '<span style="color:var(--testo-tenue);font-size:13px">Ultima ricerca: ' + scappa(b.quando) + "</span>" : "") +
+        "</div>";
+      if (b.errore) {
+        html += '<p class="errore-ble">' + scappa(b.errore) + "</p>";
+      }
+      if (b.risultati && b.risultati.length) {
+        html += '<ul class="lista-ble">' +
+          b.risultati.slice(0, 12).map((d) =>
+            '<li class="' + (d.insta ? "insta" : "") + '">' +
+            "<strong>" + scappa(d.nome) + "</strong>" +
+            (d.insta ? ' <span class="badge-insta">sembra una Insta360!</span>' : "") +
+            ' <span class="segnale">' + etichettaSegnale(d.segnale) + "</span></li>").join("") +
+          "</ul>";
+      } else if (b.quando && !b.in_corso && !b.errore) {
+        html += '<p style="color:var(--testo-tenue);font-size:13px">Nessun apparecchio trovato: ' +
+          "controlla che le telecamere siano accese e vicine, poi riprova.</p>";
+      }
+      html += registroHtml(b.registro);
+    }
+
+    /* -- passo 2: telecomando --------------------------------------- */
+    html += "<h4>Passo 2 · Telecomando virtuale</h4>" +
+      "<p>Il computer si finge il telecomando ufficiale «" + scappa(r.nome) + "»: la telecamera " +
+      "si abbina e riceve i comandi veri del telecomando GPS (compatibile con tutte e tre).</p>";
+    if (!r.disponibile) {
+      html += notaInstallazione();
+    } else {
+      const testi = { spento: "Spento", avvio: "In avvio…", attivo: "Attivo — in attesa della telecamera", errore: "Errore" };
+      let statoTesto = testi[r.stato] || r.stato;
+      if (r.stato === "attivo" && r.camera_collegata) statoTesto = "Attivo — una telecamera è abbinata!";
       const pallino = r.stato === "attivo" ? " acceso" : (r.stato === "errore" ? " rec" : "");
       html += '<div class="riga-telecomando">' +
         '<span class="pallino' + pallino + '"></span><strong>' + scappa(statoTesto) + "</strong>" +
-        (r.stato === "errore" ? ' <span style="color:var(--testo-tenue)">' + scappa(r.errore) + "</span>" : "") +
+        (r.stato === "errore" ? ' <span class="errore-ble">' + scappa(r.errore) + "</span>" : "") +
         "</div>" +
         '<div class="riga-telecomando">' +
         (r.stato === "attivo" || r.stato === "avvio"
@@ -378,15 +429,21 @@ function disegnaTelecomando() {
           '<button class="btn" data-telecomando="comando" data-comando="' + c.id + '"' +
           (r.stato === "attivo" ? "" : " disabled") + ">" + scappa(c.nome) + "</button>").join("") +
         "</span></div>" +
-        "<p style=\"font-size:13px\">Per abbinare: accendi il telecomando qui, poi sulla telecamera vai in " +
-        "<strong>Impostazioni → Telecomando</strong> e scegli «" + scappa(r.nome) + "». " +
-        "Su Mac, se la telecamera non lo trova, prova a rinominare il computer in «" + scappa(r.nome) + "» " +
-        "(Impostazioni di Sistema → Generali → Info → Nome).</p>";
-      if (r.registro && r.registro.length) {
-        html += '<ul class="registro">' +
-          r.registro.slice().reverse().map((v) =>
-            '<li><span class="ora">' + scappa(v.ora) + "</span>" + scappa(v.testo) + "</li>").join("") + "</ul>";
-      }
+        "<details><summary>Come si abbina la telecamera (aprimi)</summary>" +
+        "<ol style=\"font-size:13.5px\">" +
+        "<li>Premi «Accendi il telecomando» qui sopra. La prima volta il Mac chiederà il permesso " +
+        "di usare il Bluetooth: concedilo al Terminale.</li>" +
+        "<li>Sulla telecamera apri le <strong>Impostazioni</strong> (icona ingranaggio) e cerca la voce " +
+        "<strong>Telecomando</strong> (su alcune si chiama <em>Remote</em> o sta dentro <em>Bluetooth</em>): " +
+        "<br>· <strong>GO 3S</strong>: dal quadrante dell'Action Pod scorri in basso → Impostazioni → Telecomando" +
+        "<br>· <strong>Ace Pro 2</strong>: scorri in basso → Impostazioni → Telecomando" +
+        "<br>· <strong>X6</strong>: scorri in basso → Impostazioni → Telecomando</li>" +
+        "<li>Scegli «" + scappa(r.nome) + "» quando compare, e usa i pulsanti qui sopra.</li>" +
+        "<li>Se non compare: rinomina il Mac in «" + scappa(r.nome) + "» " +
+        "(Impostazioni di Sistema → Generali → Info → Nome) e riprova — a volte macOS annuncia " +
+        "il nome del computer invece di quello del telecomando.</li>" +
+        "</ol></details>";
+      html += registroHtml(r.registro);
     }
     carta.innerHTML = html;
   });
@@ -395,6 +452,12 @@ function disegnaTelecomando() {
 /* ---------------------------------------------------------------- eventi */
 
 document.addEventListener("click", (evento) => {
+  const bottoneBluetooth = evento.target.closest("[data-bluetooth]");
+  if (bottoneBluetooth) {
+    comanda("/api/bluetooth", { azione: bottoneBluetooth.dataset.bluetooth });
+    return;
+  }
+
   const bottoneTelecomando = evento.target.closest("[data-telecomando]");
   if (bottoneTelecomando) {
     const azione = bottoneTelecomando.dataset.telecomando;
@@ -445,7 +508,7 @@ function disegnaTutto() {
   $("#versione").textContent = "Controllo Telecamere Insta360 — versione " + stato.dati.versione;
   disegnaGriglia();
   disegnaPannello();
-  disegnaTelecomando();
+  disegnaBluetooth();
 }
 
 aggiorna();

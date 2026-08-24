@@ -92,6 +92,23 @@ class ProveServer(unittest.TestCase):
         self.assertIn("disponibile", telecomando)
         self.assertEqual(len(telecomando["comandi"]), 4)
 
+    def test_ricerca_bluetooth_risponde_con_garbo(self):
+        _, contenuto = self._chiedi("GET", "/api/stato")
+        bluetooth = json.loads(contenuto)["bluetooth"]
+        self.assertIn("disponibile", bluetooth)
+        self.assertIn("risultati", bluetooth)
+
+        codice, corpo = self._chiedi("POST", "/api/bluetooth", {"azione": "cerca"})
+        if bluetooth["disponibile"]:
+            self.assertEqual(codice, 200)
+        else:
+            # senza il componente installato deve spiegarsi, non rompersi
+            self.assertEqual(codice, 400)
+            self.assertIn("errore", json.loads(corpo))
+
+        codice, _ = self._chiedi("POST", "/api/bluetooth", {"azione": "boh"})
+        self.assertEqual(codice, 400)
+
 
 if __name__ == "__main__":
     unittest.main()
