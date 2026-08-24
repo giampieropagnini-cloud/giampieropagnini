@@ -109,6 +109,21 @@ class ProveServer(unittest.TestCase):
         codice, _ = self._chiedi("POST", "/api/bluetooth", {"azione": "boh"})
         self.assertEqual(codice, 400)
 
+    def test_sonda_risponde_con_garbo(self):
+        _, contenuto = self._chiedi("GET", "/api/stato")
+        stato = json.loads(contenuto)
+        self.assertIn("sonda", stato)
+        self.assertIn("stato", stato["sonda"])
+
+        # senza collegamento attivo la prova di scatto deve spiegarsi
+        codice, corpo = self._chiedi("POST", "/api/bluetooth", {"azione": "sonda_scatto"})
+        self.assertEqual(codice, 400)
+        self.assertIn("errore", json.loads(corpo))
+
+        # scollegare quando non c'è nulla non deve dare errore
+        codice, _ = self._chiedi("POST", "/api/bluetooth", {"azione": "sonda_scollega"})
+        self.assertEqual(codice, 200)
+
 
 if __name__ == "__main__":
     unittest.main()

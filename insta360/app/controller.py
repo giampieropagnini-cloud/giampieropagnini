@@ -8,6 +8,7 @@ from . import VERSIONE
 from .drivers.base import ErroreTelecamera
 from .drivers.demo import DriverDemo
 from .drivers.ricerca_ble import RicercaBluetooth
+from .drivers.sonda_ble import SondaBluetooth
 from .drivers.telecomando_ble import TelecomandoVirtuale
 from .registry import TELECAMERE
 
@@ -18,6 +19,7 @@ class Controller:
         self.driver = {id_t: DriverDemo(spec) for id_t, spec in TELECAMERE.items()}
         self.telecomando = TelecomandoVirtuale()
         self.ricerca = RicercaBluetooth()
+        self.sonda = SondaBluetooth()
 
     # -------------------------------------------------------------- comandi
 
@@ -68,6 +70,12 @@ class Controller:
         try:
             if azione == "cerca":
                 self.ricerca.avvia()
+            elif azione == "sonda":
+                self.sonda.collega(str(dati.get("indirizzo", "")), str(dati.get("nome", "")))
+            elif azione == "sonda_scollega":
+                self.sonda.scollega()
+            elif azione == "sonda_scatto":
+                self.sonda.prova_scatto()
             else:
                 raise ErroreTelecamera("Azione sconosciuta: " + azione)
         except RuntimeError as exc:
@@ -101,4 +109,5 @@ class Controller:
             "telecamere": telecamere,
             "telecomando": self.telecomando.stato(),
             "bluetooth": self.ricerca.stato(),
+            "sonda": self.sonda.stato(),
         }

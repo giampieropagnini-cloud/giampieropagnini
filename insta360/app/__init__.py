@@ -2,4 +2,4 @@
 # Funziona con le sole librerie standard di Python; il telecomando
 # Bluetooth è un componente facoltativo (vedi README.md).
 
-VERSIONE = "1.1.0"
+VERSIONE = "1.2.0"

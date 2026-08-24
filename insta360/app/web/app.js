@@ -369,16 +369,18 @@ function registroHtml(voci) {
 function disegnaBluetooth() {
   const r = stato.dati.telecomando;
   const b = stato.dati.bluetooth;
+  const s = stato.dati.sonda || {};
   const carta = $("#carta-telecomando");
-  seCambiata("bluetooth", [r, b], carta, () => {
+  seCambiata("bluetooth", [r, b, s], carta, () => {
     let html =
       "<h2>Telecamere vere via Bluetooth " +
       '<span class="distintivo" title="Basato sul protocollo del telecomando GPS ufficiale Insta360, decodificato dalla community.">sperimentale</span></h2>';
 
     /* -- passo 1: ricerca ------------------------------------------- */
-    html += "<h4>Passo 1 · Il Mac sente le telecamere?</h4>" +
-      "<p>Accendi le telecamere, tienile vicino al computer e premi il pulsante: " +
-      "compare l'elenco degli apparecchi Bluetooth intorno a te.</p>";
+    html += "<h4>Passo 1 · Cerca la telecamera</h4>" +
+      "<p><strong>Prima, sulla telecamera:</strong> scorri in basso → Impostazioni (ingranaggio) → " +
+      "<strong>Telecomando Bluetooth</strong> (in inglese <em>Bluetooth Remote</em>) e lascia quella " +
+      "schermata aperta. Poi premi qui il pulsante: compare l'elenco degli apparecchi intorno a te.</p>";
     if (!b.disponibile) {
       html += notaInstallazione();
     } else {
@@ -394,6 +396,8 @@ function disegnaBluetooth() {
         html += '<ul class="lista-ble">' +
           b.risultati.slice(0, 12).map((d) =>
             '<li class="' + (d.insta ? "insta" : "") + '">' +
+            '<button class="btn btn-piccolo" data-bluetooth="sonda" data-indirizzo="' +
+            scappa(d.indirizzo) + '" data-nome="' + scappa(d.nome) + '">Collega</button> ' +
             "<strong>" + scappa(d.nome) + "</strong>" +
             (d.insta ? ' <span class="badge-insta">sembra una Insta360!</span>' : "") +
             ' <span class="segnale">' + etichettaSegnale(d.segnale) + "</span></li>").join("") +
@@ -405,10 +409,39 @@ function disegnaBluetooth() {
       html += registroHtml(b.registro);
     }
 
-    /* -- passo 2: telecomando --------------------------------------- */
-    html += "<h4>Passo 2 · Telecomando virtuale</h4>" +
-      "<p>Il computer si finge il telecomando ufficiale «" + scappa(r.nome) + "»: la telecamera " +
-      "si abbina e riceve i comandi veri del telecomando GPS (compatibile con tutte e tre).</p>";
+    /* -- passo 2: collegamento diretto (sonda) ----------------------- */
+    html += "<h4>Passo 2 · Collegati alla telecamera</h4>" +
+      "<p>Come fa il telecomando vero: è il programma che si collega <strong>lui</strong> alla " +
+      "telecamera. Premi «Collega» accanto alla tua telecamera nell'elenco qui sopra.</p>";
+    if (s && s.stato && s.stato !== "inattiva") {
+      const testiSonda = { connessione: "Mi sto collegando a «" + scappa(s.nome) + "»…",
+                           collegata: "Collegata a «" + scappa(s.nome) + "»",
+                           errore: "Collegamento non riuscito" };
+      const pallinoSonda = s.stato === "collegata" ? " acceso" : (s.stato === "errore" ? " rec" : "");
+      html += '<div class="riga-telecomando">' +
+        '<span class="pallino' + pallinoSonda + '"></span><strong>' +
+        (testiSonda[s.stato] || scappa(s.stato)) + "</strong>" +
+        (s.stato === "errore" ? ' <span class="errore-ble">' + scappa(s.errore) + "</span>" : "") +
+        "</div>";
+      if (s.stato === "collegata") {
+        html += '<div class="riga-telecomando">' +
+          '<button class="btn btn-primario" data-bluetooth="sonda_scatto"' +
+          (s.canale_comandi ? "" : " disabled") + ">Prova di scatto (esperimento)</button>" +
+          '<button class="btn" data-bluetooth="sonda_scollega">Scollega</button></div>';
+      }
+      if (s.dettagli && s.dettagli.length) {
+        html += '<div class="dettagli-sonda">' +
+          s.dettagli.map((riga) => scappa(riga)).join("<br>") + "</div>" +
+          "<p style=\"font-size:12.5px;color:var(--testo-tenue)\">Questa è la diagnostica: " +
+          "se qualcosa non va, falle uno screenshot e mandala a Claude in chat.</p>";
+      }
+      html += registroHtml(s.registro);
+    }
+
+    /* -- passo 3: telecomando virtuale (alternativa) ------------------ */
+    html += "<h4>Passo 3 · In alternativa: il telecomando virtuale</h4>" +
+      "<p>Il computer si finge il telecomando ufficiale «" + scappa(r.nome) + "». " +
+      "Metodo alternativo, da provare se il Passo 2 non dovesse funzionare.</p>";
     if (!r.disponibile) {
       html += notaInstallazione();
     } else {
@@ -433,11 +466,9 @@ function disegnaBluetooth() {
         "<ol style=\"font-size:13.5px\">" +
         "<li>Premi «Accendi il telecomando» qui sopra. La prima volta il Mac chiederà il permesso " +
         "di usare il Bluetooth: concedilo al Terminale.</li>" +
-        "<li>Sulla telecamera apri le <strong>Impostazioni</strong> (icona ingranaggio) e cerca la voce " +
-        "<strong>Telecomando</strong> (su alcune si chiama <em>Remote</em> o sta dentro <em>Bluetooth</em>): " +
-        "<br>· <strong>GO 3S</strong>: dal quadrante dell'Action Pod scorri in basso → Impostazioni → Telecomando" +
-        "<br>· <strong>Ace Pro 2</strong>: scorri in basso → Impostazioni → Telecomando" +
-        "<br>· <strong>X6</strong>: scorri in basso → Impostazioni → Telecomando</li>" +
+        "<li>Sulla telecamera (sulla GO 3S: dal quadrante dell'Action Pod) scorri in basso, apri le " +
+        "<strong>Impostazioni</strong> (icona ingranaggio) e cerca la voce " +
+        "<strong>Telecomando Bluetooth</strong> (in inglese <em>Bluetooth Remote</em>).</li>" +
         "<li>Scegli «" + scappa(r.nome) + "» quando compare, e usa i pulsanti qui sopra.</li>" +
         "<li>Se non compare: rinomina il Mac in «" + scappa(r.nome) + "» " +
         "(Impostazioni di Sistema → Generali → Info → Nome) e riprova — a volte macOS annuncia " +
@@ -454,7 +485,10 @@ function disegnaBluetooth() {
 document.addEventListener("click", (evento) => {
   const bottoneBluetooth = evento.target.closest("[data-bluetooth]");
   if (bottoneBluetooth) {
-    comanda("/api/bluetooth", { azione: bottoneBluetooth.dataset.bluetooth });
+    const richiesta = { azione: bottoneBluetooth.dataset.bluetooth };
+    if (bottoneBluetooth.dataset.indirizzo) richiesta.indirizzo = bottoneBluetooth.dataset.indirizzo;
+    if (bottoneBluetooth.dataset.nome) richiesta.nome = bottoneBluetooth.dataset.nome;
+    comanda("/api/bluetooth", richiesta);
     return;
   }
 
