@@ -124,12 +124,18 @@ Controlla nell'ordine:
    come facevi prima: se non funziona a mano, non funziona nemmeno da solo.
 2. **Il nome è giusto?** Deve essere uguale a quello che vedi in *Duplica schermo*. Per cambiarlo,
    riapri `INSTALLA AIRPLAY AUTOMATICO.command` (è sulla Scrivania, nella cartella `MAC-MINI-AIRPLAY`).
-3. **L'interruttore di Accessibilità è acceso?** Impostazioni di Sistema → Privacy e sicurezza →
-   Accessibilità → *AirPlay Automatico* deve essere attivo. Se dopo un aggiornamento di macOS smette
-   di funzionare: spegni e riaccendi quell'interruttore.
-4. **Sull'Apple TV**: Impostazioni → AirPlay e HomeKit → *Richiedi codice* deve essere
+3. **Ti chiede sempre il permesso di Accessibilità anche se l'interruttore è acceso?**
+   Succede se manca l'altro permesso (Automazione) o se l'app è stata rifatta. Rilancia la riga del
+   Terminale (o `INSTALLA AIRPLAY AUTOMATICO.command`): l'installatore rifà l'app, la firma e
+   fa richiedere i permessi da capo. Quando compare «vuole avere accesso per controllare System
+   Events» clicca **OK**, non «Non consentire».
+4. **I due interruttori sono accesi?** Impostazioni di Sistema → Privacy e sicurezza:
+   - **Accessibilità** → *AirPlay Automatico* attivo. Se era già acceso ma non funziona: selezionalo,
+     premi **−** per toglierlo, poi **+** per rimetterlo.
+   - **Automazione** → *AirPlay Automatico* → *System Events* attivo.
+5. **Sull'Apple TV**: Impostazioni → AirPlay e HomeKit → *Richiedi codice* deve essere
    **Solo la prima volta** (o mai), altrimenti la TV chiede un codice che tu non puoi vedere sul Mac.
-5. Se ancora niente, **mandami il diario**: è il file `AirPlayAutomatico.log`
+6. Se ancora niente, **mandami il diario**: è il file `AirPlayAutomatico.log`
    (cmd + spazio, scrivi `AirPlayAutomatico.log`, Invio). Lì c'è scritto passo per passo cosa ha
    provato a fare. Dimmi anche la versione di macOS (menu  → Informazioni su questo Mac).
 

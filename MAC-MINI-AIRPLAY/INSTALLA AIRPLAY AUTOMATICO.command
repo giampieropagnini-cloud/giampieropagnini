@@ -12,6 +12,7 @@ CONFIG_DIR="$HOME/Library/Application Support/$NOME_APP"
 CONFIG="$CONFIG_DIR/apple-tv.txt"
 SCRIPT_COMPILATO="$CONFIG_DIR/airplay-automatico.scpt"
 LOG="$HOME/Library/Logs/AirPlayAutomatico.log"
+BUNDLE_ID="com.giampieropagnini.airplay-automatico"
 
 chiudi() {
   echo ""
@@ -113,25 +114,58 @@ APP=""
 for candidato in "/Applications/$NOME_APP.app" "$HOME/Applications/$NOME_APP.app"; do
   [ -d "$candidato" ] && APP="$candidato" && break
 done
+
+# L'app va rifatta se manca, se non è la nostra, o se la firma non è più valida
+# (una firma rotta fa sì che la spunta in Accessibilità non valga nulla).
+RIFARE=0
+ID_VECCHIO=""
 if [ -z "$APP" ]; then
+  RIFARE=1
   APP_DIR="/Applications"
   if [ ! -w "$APP_DIR" ]; then
     APP_DIR="$HOME/Applications"
     mkdir -p "$APP_DIR"
   fi
   APP="$APP_DIR/$NOME_APP.app"
+else
+  ID_VECCHIO=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Contents/Info.plist" 2>/dev/null)
+  if [ "$ID_VECCHIO" != "$BUNDLE_ID" ] || ! codesign --verify --deep --strict "$APP" >/dev/null 2>&1; then
+    RIFARE=1
+  fi
+fi
+
+APP_RIFATTA=0
+if [ "$RIFARE" = "1" ]; then
+  pkill -f "$NOME_APP.app/Contents/MacOS/" >/dev/null 2>&1
+  # dimentica i vecchi permessi: con l'app rifatta vanno ridati (macOS li richiede da solo)
+  for id in "$ID_VECCHIO" "$BUNDLE_ID"; do
+    [ -n "$id" ] || continue
+    tccutil reset Accessibility "$id" >/dev/null 2>&1
+    tccutil reset AppleEvents "$id" >/dev/null 2>&1
+  done
+  rm -rf "$APP"
   if ! osacompile -o "$APP" "$SORGENTE_APP" 2>"$ERR"; then
     echo "  ✗ Non riesco a creare l'app:"
     sed 's/^/     /' "$ERR"
     rm -f "$ERR"
     chiudi 1
   fi
+  PLIST="$APP/Contents/Info.plist"
+  /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_ID" "$PLIST" >/dev/null 2>&1 \
+    || /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string $BUNDLE_ID" "$PLIST" >/dev/null 2>&1
   # niente icona nel Dock: lavora in silenzio
-  /usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "$APP/Contents/Info.plist" >/dev/null 2>&1 \
-    || /usr/libexec/PlistBuddy -c "Set :LSUIElement true" "$APP/Contents/Info.plist" >/dev/null 2>&1
-  echo "  ✓ App creata in: $APP"
+  /usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "$PLIST" >/dev/null 2>&1 \
+    || /usr/libexec/PlistBuddy -c "Set :LSUIElement true" "$PLIST" >/dev/null 2>&1
+  # firma l'app (firma locale): così la spunta in Accessibilità resta valida
+  if codesign --force --deep --sign - "$APP" >/dev/null 2>&1 && codesign --verify --deep --strict "$APP" >/dev/null 2>&1; then
+    echo "  ✓ App creata e firmata: $APP"
+  else
+    echo "  ⚠ App creata ma non sono riuscito a firmarla: $APP"
+    echo "    (può funzionare lo stesso; se i permessi non vengono accettati, dimmelo)"
+  fi
+  APP_RIFATTA=1
 else
-  echo "  ✓ App già presente ($APP): ho aggiornato solo lo script."
+  echo "  ✓ App già presente e a posto ($APP): ho aggiornato solo lo script."
 fi
 rm -f "$ERR"
 echo ""
@@ -163,15 +197,21 @@ if fdesetup status 2>/dev/null | grep -qi "FileVault is On"; then FILEVAULT=1; f
 # --- 4. permessi e prova ---
 echo "  PASSO 4 di 4 — Permessi e prova (solo la prima volta)"
 echo "  ─────────────────────────────────────"
+if [ "$APP_RIFATTA" = "1" ]; then
+  echo "  L'app è stata (ri)creata, quindi macOS chiederà i permessi da capo."
+fi
 echo "  Ora apro «$NOME_APP». macOS può mostrare uno o due avvisi:"
 echo ""
-echo "   • «$NOME_APP vuole controllare System Events»"
-echo "       → clicca OK (o Consenti)"
+echo "   • «$NOME_APP vuole avere accesso per controllare System Events»"
+echo "       → clicca OK   (NON «Non consentire»: senza questo non può fare i clic)"
 echo ""
 echo "   • «$NOME_APP vuole controllare il computer con le funzioni di Accessibilità»"
 echo "       → clicca «Apri Impostazioni di Sistema»"
 echo "       → nella finestra che si apre ATTIVA l'interruttore accanto a «$NOME_APP»"
 echo "         (se non c'è, premi + e scegli l'app nella cartella Applicazioni)"
+echo ""
+echo "  Se sbagli un clic, niente paura: l'app ti dice quale permesso manca e apre la"
+echo "  finestra giusta (Privacy e sicurezza → Automazione, oppure → Accessibilità)."
 echo ""
 read -r -p "  Premi Invio per aprirla adesso... "
 open "$APP"

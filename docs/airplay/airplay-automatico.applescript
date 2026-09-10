@@ -38,9 +38,10 @@ on run
 		return
 	end if
 
-	if not my accessibilitaAttiva() then
-		my scrivi("Permesso Accessibilita' non concesso: lo chiedo all'utente.")
-		my chiediAccessibilita()
+	set stato to my statoPermessi()
+	if stato is not "ok" then
+		my scrivi("Manca un permesso (" & stato & "): lo chiedo all'utente.")
+		my chiediPermessi(stato)
 		return
 	end if
 
@@ -51,6 +52,13 @@ on run
 			set esito to my tentaCollegamento()
 		on error messaggio number numero
 			set dettaglio to messaggio & " [" & numero & "]"
+			set tipo to my tipoPermessoDaErrore(numero, messaggio)
+			if tipo is not "ok" then
+				my scrivi("Tentativo " & tentativo & ": manca un permesso (" & tipo & ") " & dettaglio)
+				my chiudiPannello()
+				my chiediPermessi(tipo)
+				return
+			end if
 		end try
 		my scrivi("Tentativo " & tentativo & " di " & tentativiMassimi & ": " & esito & "  " & dettaglio)
 		my chiudiPannello()
@@ -371,24 +379,43 @@ on giaCollegato()
 	return false
 end giaCollegato
 
-on accessibilitaAttiva()
-	try
-		tell application "System Events" to return UI elements enabled
-	end try
-	return false
-end accessibilitaAttiva
-
-on chiediAccessibilita()
-	-- questo tentativo fa comparire l'avviso di macOS e aggiunge l'app all'elenco di Accessibilita'
+-- Prova davvero a leggere la barra dei menu: se fallisce, dice quale permesso manca.
+-- Restituisce "ok", "accessibilita" oppure "automazione".
+on statoPermessi()
 	try
 		tell application "System Events" to tell process "ControlCenter" to get count of menu bars
+		return "ok"
+	on error messaggio number numero
+		my scrivi("Prova dei permessi: " & messaggio & " [" & numero & "]")
+		return my tipoPermessoDaErrore(numero, messaggio)
 	end try
+end statoPermessi
+
+on tipoPermessoDaErrore(numero, messaggio)
+	if numero is -1743 then return "automazione"
+	if numero is -25211 or numero is -1719 then return "accessibilita"
+	set m to messaggio as text
+	if m contains "assistive" or m contains "accessibilit" then return "accessibilita"
+	if m contains "not authorized" or m contains "non autorizzat" or m contains "autorizzazione" then return "automazione"
+	return "ok"
+end tipoPermessoDaErrore
+
+on chiediPermessi(tipo)
+	set aGrave to character id 224
+	set eGrave to character id 232
 	activate
-	try
-		display dialog "Per collegare l'Apple TV da solo, " & nomeApp & " ha bisogno del permesso \"Accessibilit" & (character id 224) & "\"." & return & return & "1. Nella finestra che si apre, attiva l'interruttore accanto a \"" & nomeApp & "\" (se non c'" & (character id 232) & ", premi + e scegli l'app nella cartella Applicazioni)." & return & "2. Poi apri di nuovo " & nomeApp & "." buttons {"Apri Impostazioni"} default button 1 with title nomeApp with icon caution
-	end try
-	do shell script "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'"
-end chiediAccessibilita
+	if tipo is "automazione" then
+		try
+			display dialog nomeApp & " non ha il permesso di controllare \"System Events\" (gli serve per fare i clic al posto tuo). Probabilmente e' stato premuto \"Non consentire\"." & return & return & "Nella finestra che si apre: Automazione > " & nomeApp & " > attiva l'interruttore di \"System Events\"." & return & "Poi apri di nuovo " & nomeApp & "." buttons {"Apri Impostazioni"} default button 1 with title nomeApp with icon caution
+		end try
+		do shell script "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Automation'"
+	else
+		try
+			display dialog "Per collegare l'Apple TV da solo, " & nomeApp & " ha bisogno del permesso \"Accessibilit" & aGrave & "\"." & return & return & "1. Nella finestra che si apre, attiva l'interruttore accanto a \"" & nomeApp & "\" (se non c'" & eGrave & ", premi + e scegli l'app nella cartella Applicazioni)." & return & "2. Poi apri di nuovo " & nomeApp & "." & return & return & "Se l'interruttore era GI" & (character id 192) & " acceso e non funziona: selezionalo, premi il tasto - per toglierlo, poi + per rimetterlo. Oppure apri di nuovo INSTALLA AIRPLAY AUTOMATICO.command, che rif" & aGrave & " l'app da capo." buttons {"Apri Impostazioni"} default button 1 with title nomeApp with icon caution
+		end try
+		do shell script "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'"
+	end if
+end chiediPermessi
 
 on cartellaConfig()
 	return (POSIX path of (path to application support from user domain)) & nomeApp & "/"
