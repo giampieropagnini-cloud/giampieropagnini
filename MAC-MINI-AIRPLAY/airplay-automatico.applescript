@@ -27,6 +27,7 @@ property secondiAttesaElenco : 4
 property haCliccato : false
 property diagnosticaFatta : false
 property barraDescritta : false
+property codiciAppleTV : {}
 
 on run
 	set nomeAppleTV to my leggiNomeAppleTV()
@@ -38,6 +39,8 @@ on run
 	set haCliccato to false
 	set diagnosticaFatta to false
 	set barraDescritta to false
+	set codiciAppleTV to my trovaCodiciAppleTV()
+	if (count of codiciAppleTV) > 0 then my scrivi("Codici univoci di '" & nomeAppleTV & "' in rete: " & my unisci(codiciAppleTV, " "))
 
 	if my giaCollegato() then
 		my scrivi("Il Mac risulta gia' collegato a " & nomeAppleTV & ". Non faccio nulla.")
@@ -149,7 +152,10 @@ on cercaDispositivo()
 		set testo to my testoDi(el)
 		set testoNorm to my normalizza(testo)
 		set punteggio to 0
-		if testo contains ("|" & nomeAppleTV & "|") then
+		set ident to my identificatoreDi(el)
+		if ident contains "screen-mirroring-device" and my contieneUnCodice(ident) then
+			set punteggio to 40
+		else if testo contains ("|" & nomeAppleTV & "|") then
 			set punteggio to 30
 		else if testo contains nomeAppleTV then
 			set punteggio to 20
@@ -176,6 +182,37 @@ on cercaDispositivo()
 	end if
 	return migliore
 end cercaDispositivo
+
+-- Chiede alla rete i codici univoci (pi, psi, gid) dell'Apple TV: il pannello li usa
+-- come identificativo delle righe ("screen-mirroring-device-AirPlay:CODICE")
+on trovaCodiciAppleTV()
+	set codici to {}
+	try
+		set comando to "f=$(mktemp); /usr/bin/dns-sd -L " & quoted form of nomeAppleTV & " _airplay._tcp local. > \"$f\" 2>&1 & p=$!; sleep 3; kill $p 2>/dev/null; /usr/bin/grep -o -i -E '(pi|psi|gid)=[0-9a-f-]{36}' \"$f\" | /usr/bin/cut -d= -f2 | /usr/bin/tr 'a-z' 'A-Z' | /usr/bin/sort -u; rm -f \"$f\""
+		set risultato to do shell script comando
+		repeat with riga in (paragraphs of risultato)
+			set r to my pulisci(riga as text)
+			if (length of r) is 36 then set end of codici to r
+		end repeat
+	end try
+	return codici
+end trovaCodiciAppleTV
+
+on contieneUnCodice(testo)
+	repeat with c in codiciAppleTV
+		if testo contains (c as text) then return true
+	end repeat
+	return false
+end contieneUnCodice
+
+on unisci(lista, sep)
+	set testo to ""
+	repeat with x in lista
+		if testo is not "" then set testo to testo & sep
+		set testo to testo & (x as text)
+	end repeat
+	return testo
+end unisci
 
 -- Solo lettere e numeri, minuscole: "Camera (2)" -> "camera2"
 on normalizza(t)
@@ -244,9 +281,33 @@ on descriviPannello()
 				tell application "System Events" to set sub to (value of attribute "AXSubrole" of el) as text
 			end try
 			my scrivi("    " & my ruoloDi(el) & " " & sub & " " & my testoDi(el))
+			if my identificatoreDi(el) contains "screen-mirroring-device" then my scrivi("      attributi: " & my tuttiGliAttributi(el))
 		end repeat
 	end repeat
 end descriviPannello
+
+-- Tutti gli attributi di un elemento, in una riga (per la diagnostica)
+on tuttiGliAttributi(el)
+	set testo to ""
+	try
+		tell application "System Events"
+			repeat with a in (attributes of el)
+				set nomeA to ""
+				try
+					set nomeA to (name of a) as text
+				end try
+				if nomeA is not in {"AXChildren", "AXParent", "AXWindow", "AXTopLevelUIElement", "AXPosition", "AXSize", "AXFrame", "AXServesAsTitleForUIElements", "AXLinkedUIElements", "AXTitleUIElement"} then
+					set valA to "?"
+					try
+						set valA to (value of a) as text
+					end try
+					set testo to testo & nomeA & "=" & valA & "; "
+				end if
+			end repeat
+		end tell
+	end try
+	return testo
+end tuttiGliAttributi
 
 -- Scrive nel diario le icone della barra dei menu del Centro di Controllo
 on descriviBarraMenu()
@@ -511,6 +572,12 @@ on testoDi(el)
 		try
 			set testo to testo & "|" & ((value of attribute "AXIdentifier" of el) as text)
 		end try
+		-- su macOS 26 il nome dei dispositivi sta qui, non in "description"
+		repeat with attr in {"AXDescription", "AXTitle", "AXHelp", "AXValueDescription"}
+			try
+				set testo to testo & "|" & ((value of attribute (attr as text) of el) as text)
+			end try
+		end repeat
 		try
 			set v to value of el
 			if class of v is text then set testo to testo & "|" & v
