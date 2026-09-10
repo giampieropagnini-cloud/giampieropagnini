@@ -25,6 +25,8 @@ property tentativiMassimi : 10
 property pausaTraTentativi : 8
 property secondiAttesaElenco : 4
 property haCliccato : false
+property diagnosticaFatta : false
+property barraDescritta : false
 
 on run
 	set nomeAppleTV to my leggiNomeAppleTV()
@@ -34,6 +36,8 @@ on run
 	end if
 	my scrivi("---- Avvio. Apple TV da collegare: " & nomeAppleTV)
 	set haCliccato to false
+	set diagnosticaFatta to false
+	set barraDescritta to false
 
 	if my giaCollegato() then
 		my scrivi("Il Mac risulta gia' collegato a " & nomeAppleTV & ". Non faccio nulla.")
@@ -97,6 +101,10 @@ on tentaCollegamento()
 
 	if elemento is missing value then
 		if my pannelloMostraCollegamentoAttivo() then return "gia_collegato"
+		if not diagnosticaFatta then
+			set diagnosticaFatta to true
+			my descriviPannello()
+		end if
 		return "non_trovato"
 	end if
 
@@ -131,28 +139,139 @@ end tentaCollegamento
 -- e un elemento che si chiama ESATTAMENTE come l'Apple TV rispetto a uno che la contiene soltanto.
 on cercaDispositivo()
 	set elementi to my elementiDelPannello()
+	set nomeNorm to my normalizza(nomeAppleTV)
+	set nomeBase to my senzaSuffisso(nomeAppleTV)
+	set nomeBaseNorm to my normalizza(nomeBase)
 	set migliore to missing value
 	set punteggioMigliore to 0
 	repeat with e in elementi
 		set el to contents of e
 		set testo to my testoDi(el)
-		if testo contains nomeAppleTV then
+		set testoNorm to my normalizza(testo)
+		set punteggio to 0
+		if testo contains ("|" & nomeAppleTV & "|") then
+			set punteggio to 30
+		else if testo contains nomeAppleTV then
+			set punteggio to 20
+		else if testoNorm contains nomeNorm then
+			set punteggio to 15
+		else if nomeBase is not nomeAppleTV and (testo contains ("|" & nomeBase & "|") or testoNorm contains nomeBaseNorm) then
+			set punteggio to 5
+		end if
+		if punteggio > 0 then
 			set ruolo to my ruoloDi(el)
-			set punteggio to 1
-			if ruolo is "AXStaticText" then set punteggio to 2
-			if ruolo is in {"AXButton", "AXRadioButton", "AXMenuItem", "AXMenuButton", "AXPopUpButton"} then set punteggio to 3
-			if ruolo is "AXDisclosureTriangle" then set punteggio to 4
-			if ruolo is "AXCheckBox" then set punteggio to 5
+			if ruolo is "AXStaticText" then set punteggio to punteggio + 1
+			if ruolo is in {"AXButton", "AXRadioButton", "AXMenuItem", "AXMenuButton", "AXPopUpButton"} then set punteggio to punteggio + 2
+			if ruolo is "AXDisclosureTriangle" then set punteggio to punteggio + 3
+			if ruolo is "AXCheckBox" then set punteggio to punteggio + 4
 			if ruolo is in {"AXCheckBox", "AXDisclosureTriangle"} and my valoreDi(el) is 1 then set punteggio to punteggio + 3
-			if testo contains ("|" & nomeAppleTV & "|") then set punteggio to punteggio + 10
 			if punteggio > punteggioMigliore then
 				set migliore to el
 				set punteggioMigliore to punteggio
 			end if
 		end if
 	end repeat
+	if migliore is not missing value and punteggioMigliore < 15 then
+		my scrivi("Attenzione: non trovo '" & nomeAppleTV & "', uso la riga simile '" & nomeBase & "'.")
+	end if
 	return migliore
 end cercaDispositivo
+
+-- Solo lettere e numeri, minuscole: "Camera (2)" -> "camera2"
+on normalizza(t)
+	set t to t as text
+	set buoni to "abcdefghijklmnopqrstuvwxyz0123456789"
+	set risultato to ""
+	repeat with c in (characters of t)
+		set ch to c as text
+		set tieni to (buoni contains ch)
+		if not tieni then
+			try
+				if (id of ch) > 127 then set tieni to true
+			end try
+		end if
+		if tieni then set risultato to risultato & ch
+	end repeat
+	return risultato
+end normalizza
+
+-- "Camera (2)" -> "Camera"
+on senzaSuffisso(t)
+	set t to t as text
+	if t ends with ")" then
+		set p to (offset of " (" in t)
+		if p > 1 then return text 1 thru (p - 1) of t
+	end if
+	return t
+end senzaSuffisso
+
+-- Scrive nel diario tutto quello che c'e' nel pannello (per capire come e' fatto)
+on descriviPannello()
+	set finestre to {}
+	try
+		tell application "System Events" to tell process "ControlCenter" to set finestre to every window
+	end try
+	my scrivi("  [diagnostica] finestre del Centro di Controllo: " & (count of finestre))
+	set idx to 0
+	repeat with f in finestre
+		set idx to idx + 1
+		set fin to contents of f
+		set nomeFin to ""
+		try
+			tell application "System Events" to set nomeFin to (name of fin) as text
+		end try
+		set elementi to {}
+		set metodo to "entire contents"
+		try
+			tell application "System Events" to set elementi to entire contents of fin
+		on error errMsg
+			set metodo to "a mano (entire contents fallito: " & errMsg & ")"
+			try
+				set elementi to my raccogliElementi(fin, 0, {})
+			end try
+		end try
+		my scrivi("  [diagnostica] finestra " & idx & " '" & nomeFin & "': " & (count of elementi) & " elementi, letti con " & metodo)
+		set n to 0
+		repeat with e in elementi
+			set n to n + 1
+			if n > 150 then
+				my scrivi("    ... (altri elementi omessi)")
+				exit repeat
+			end if
+			set el to contents of e
+			set sub to ""
+			try
+				tell application "System Events" to set sub to (value of attribute "AXSubrole" of el) as text
+			end try
+			my scrivi("    " & my ruoloDi(el) & " " & sub & " " & my testoDi(el))
+		end repeat
+	end repeat
+end descriviPannello
+
+-- Scrive nel diario le icone della barra dei menu del Centro di Controllo
+on descriviBarraMenu()
+	try
+		tell application "System Events"
+			tell process "ControlCenter"
+				set voci to menu bar items of menu bar 1
+			end tell
+		end tell
+		set riga to ""
+		repeat with v in voci
+			set el to contents of v
+			set ident to ""
+			try
+				tell application "System Events" to set ident to (value of attribute "AXIdentifier" of el) as text
+			end try
+			set descr to ""
+			try
+				tell application "System Events" to set descr to (description of el) as text
+			end try
+			set riga to riga & "[" & ident & " / " & descr & "] "
+		end repeat
+		my scrivi("  [diagnostica] icone nella barra dei menu: " & riga)
+	end try
+end descriviBarraMenu
 
 -- Apre l'elenco dei dispositivi di "Duplica schermo".
 -- Prima prova l'icona dedicata nella barra dei menu (se e' impostata "mostra sempre"),
@@ -180,7 +299,32 @@ on apriElencoDispositivi()
 			end repeat
 		end tell
 	end tell
+	if not barraDescritta then
+		set barraDescritta to true
+		my descriviBarraMenu()
+	end if
 
+	-- 1) Centro di Controllo > Duplica schermo (strada che funziona anche su macOS 26)
+	if voceCentro is not missing value then
+		tell application "System Events" to click voceCentro
+		my aspettaPannello()
+		set modulo to missing value
+		repeat 10 times
+			set modulo to my cercaElemento({"controlcenter-screen-mirroring", "Screen Mirroring", "Duplica schermo"})
+			if modulo is not missing value then exit repeat
+			delay 0.3
+		end repeat
+		if modulo is not missing value then
+			my apriDettagli(modulo)
+			delay 1.2
+			my scrivi("Aperto Centro di Controllo > Duplica schermo.")
+			return
+		end if
+		my scrivi("Nel Centro di Controllo non trovo la voce 'Duplica schermo': provo l'icona dedicata.")
+		my chiudiPannello()
+	end if
+
+	-- 2) icona dedicata "Duplica schermo" nella barra dei menu
 	if voceDuplica is not missing value then
 		tell application "System Events" to click voceDuplica
 		my aspettaPannello()
@@ -188,20 +332,7 @@ on apriElencoDispositivi()
 		return
 	end if
 
-	if voceCentro is missing value then error "Non trovo l'icona del Centro di Controllo nella barra dei menu"
-	tell application "System Events" to click voceCentro
-	my aspettaPannello()
-
-	set modulo to missing value
-	repeat 10 times
-		set modulo to my cercaElemento({"controlcenter-screen-mirroring", "Screen Mirroring", "Duplica schermo"})
-		if modulo is not missing value then exit repeat
-		delay 0.3
-	end repeat
-	if modulo is missing value then error "Non trovo la voce 'Duplica schermo' nel Centro di Controllo"
-	my apriDettagli(modulo)
-	delay 1
-	my scrivi("Aperto Centro di Controllo > Duplica schermo.")
+	error "Non trovo ne' il Centro di Controllo ne' l'icona 'Duplica schermo' nella barra dei menu"
 end apriElencoDispositivi
 
 -- Apre il dettaglio di un modulo del Centro di Controllo
@@ -330,15 +461,23 @@ end cercaElemento
 -- Tutti gli elementi della finestra del Centro di Controllo
 on elementiDelPannello()
 	set elementi to {}
+	set finestre to {}
 	try
-		tell application "System Events" to tell process "ControlCenter" to set elementi to entire contents of window 1
-	on error
-		-- se "entire contents" fallisce, li raccolgo a mano
-		try
-			tell application "System Events" to tell process "ControlCenter" to set finestra to window 1
-			set elementi to my raccogliElementi(finestra, 0, {})
-		end try
+		tell application "System Events" to tell process "ControlCenter" to set finestre to every window
 	end try
+	repeat with f in finestre
+		set fin to contents of f
+		set parte to {}
+		try
+			tell application "System Events" to set parte to entire contents of fin
+		on error
+			-- se "entire contents" fallisce, li raccolgo a mano
+			try
+				set parte to my raccogliElementi(fin, 0, {})
+			end try
+		end try
+		set elementi to elementi & parte
+	end repeat
 	return elementi
 end elementiDelPannello
 

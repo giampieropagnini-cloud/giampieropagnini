@@ -24,13 +24,13 @@ TESTO=$(
   echo "$INFO"
   echo "Apple TV configurata: $APPLETV"
   echo ""
-  tail -n 60 "$LOG"
+  tail -n 200 "$LOG"
 )
 
 echo "  $INFO"
 echo "  Ultime righe di $LOG:"
 echo ""
-tail -n 40 "$LOG" | sed 's/^/     /'
+tail -n 200 "$LOG" | sed 's/^/     /'
 echo ""
 
 printf '%s\n' "$TESTO" | pbcopy 2>/dev/null
