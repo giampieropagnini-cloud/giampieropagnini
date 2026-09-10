@@ -94,7 +94,15 @@ Chiudi la finestra. Da adesso parte da sola a ogni accensione del Mac mini M2.
 2. Scrivi la password alla cieca e premi Invio (come fai già oggi).
 3. Aspetta circa un minuto: la TV si accende con lo schermo del Mac.
 
-L'iPad con Duet lo puoi sempre usare come prima, se ti serve.
+L'iPad con Duet lo puoi sempre usare come prima, se ti serve. Solo la prima volta va detto a macOS
+di farlo "uguale alla TV", altrimenti l'iPad diventa uno schermo in più, vuoto:
+
+1. Accendi Duet sull'iPad e aspetta che si colleghi.
+2. Sul Mac (guardando la TV): menu  → Impostazioni di Sistema → **Schermi**.
+3. In alto, clicca il riquadro dell'**iPad**; alla voce **Usa come** scegli l'opzione che inizia
+   con **"Duplica"**.
+4. Da lì in poi l'iPad mostra la stessa cosa della TV, con tocco e tastiera come sempre.
+   macOS si ricorda la scelta.
 
 Per fare una prova senza riavviare: **cmd + spazio**, scrivi `AirPlay Automatico`, Invio.
 
