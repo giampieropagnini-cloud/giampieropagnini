@@ -9,12 +9,30 @@
 # I file finiscono sulla Scrivania, nella cartella MAC-MINI-AIRPLAY,
 # e parte subito l'installatore guidato.
 
-BASE="${AIRPLAY_BASE:-https://giampieropagnini.com/airplay}"
 DEST="$HOME/Desktop/MAC-MINI-AIRPLAY"
 
+# Da dove scaricare, in ordine: il sito; poi GitHub (ramo principale);
+# poi GitHub (ramo di lavoro, utile finche' l'aggiornamento non e' ancora sul sito).
+RAW="https://raw.githubusercontent.com/giampieropagnini-cloud/giampieropagnini"
+CANDIDATI="${AIRPLAY_BASE:-https://giampieropagnini.com/airplay $RAW/main/MAC-MINI-AIRPLAY $RAW/claude/mac-mini-airplay-monitor-zk2qhc/MAC-MINI-AIRPLAY}"
+BASE=""
+for c in $CANDIDATI; do
+  if curl -fsSL -m 20 "$c/avvio-app.applescript" -o /dev/null 2>/dev/null; then
+    BASE="$c"
+    break
+  fi
+done
+if [ -z "$BASE" ]; then
+  echo ""
+  echo "  ✗ Non riesco a raggiungere i file da scaricare. Controlla la connessione e riprova."
+  echo "    In alternativa copia la cartella MAC-MINI-AIRPLAY dall'altro Mac con AirDrop"
+  echo "    e apri INSTALLA AIRPLAY AUTOMATICO.command da lì."
+  exit 1
+fi
+
 echo ""
-echo "  AirPlay Automatico — scarico i file nella cartella:"
-echo "  $DEST"
+echo "  AirPlay Automatico — scarico i file da $BASE"
+echo "  nella cartella: $DEST"
 echo ""
 mkdir -p "$DEST" || { echo "  ✗ Non riesco a creare la cartella."; exit 1; }
 cd "$DEST" || exit 1
@@ -26,8 +44,7 @@ scarica() {
   else
     echo ""
     echo "  ✗ Non riesco a scaricare: $BASE/$1"
-    echo "    Forse l'aggiornamento del sito non è ancora online, o manca la connessione."
-    echo "    Riprova fra qualche minuto, oppure copia la cartella MAC-MINI-AIRPLAY"
+    echo "    Controlla la connessione e riprova, oppure copia la cartella MAC-MINI-AIRPLAY"
     echo "    dall'altro Mac con AirDrop e apri INSTALLA AIRPLAY AUTOMATICO.command da lì."
     exit 1
   fi

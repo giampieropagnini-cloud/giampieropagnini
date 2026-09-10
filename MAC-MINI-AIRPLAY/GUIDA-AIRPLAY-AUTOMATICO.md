@@ -40,8 +40,12 @@ subito l'installazione guidata. Poi vai al punto 2.
 > Se sui due Mac usi lo stesso account iCloud, puoi copiare la riga qui sull'M4 (cmd + C)
 > e incollarla sul Mac mini M2 (cmd + V): gli appunti passano da un Mac all'altro da soli.
 >
-> La riga funziona da quando questo aggiornamento del sito è online. Se dice che non trova i
-> file, aspetta qualche minuto e riprova, oppure usa il modo B.
+> La riga corta funziona da quando questo aggiornamento è online sul sito. Finché non lo è,
+> usa questa riga più lunga, che prende i file direttamente da GitHub (stesso risultato):
+>
+> ```
+> curl -fsSL https://raw.githubusercontent.com/giampieropagnini-cloud/giampieropagnini/claude/mac-mini-airplay-monitor-zk2qhc/MAC-MINI-AIRPLAY/installa.sh | bash
+> ```
 
 **Modo B: AirDrop.**
 Sul Mac mini M4, nella cartella del sito, clic destro sulla cartella `MAC-MINI-AIRPLAY` →
