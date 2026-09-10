@@ -54,7 +54,8 @@ scarica "RIMUOVI%20AIRPLAY%20AUTOMATICO.command"  "RIMUOVI AIRPLAY AUTOMATICO.co
 scarica "airplay-automatico.applescript"           "airplay-automatico.applescript"
 scarica "avvio-app.applescript"                    "avvio-app.applescript"
 scarica "GUIDA-AIRPLAY-AUTOMATICO.md"              "GUIDA-AIRPLAY-AUTOMATICO.md"
-chmod +x "INSTALLA AIRPLAY AUTOMATICO.command" "RIMUOVI AIRPLAY AUTOMATICO.command"
+scarica "MOSTRA%20DIARIO.command"                  "MOSTRA DIARIO.command"
+chmod +x "INSTALLA AIRPLAY AUTOMATICO.command" "RIMUOVI AIRPLAY AUTOMATICO.command" "MOSTRA DIARIO.command"
 xattr -d com.apple.quarantine ./* >/dev/null 2>&1
 
 echo ""

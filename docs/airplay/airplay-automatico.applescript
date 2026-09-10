@@ -24,6 +24,7 @@ property nomeAppleTV : ""
 property tentativiMassimi : 10
 property pausaTraTentativi : 8
 property secondiAttesaElenco : 4
+property haCliccato : false
 
 on run
 	set nomeAppleTV to my leggiNomeAppleTV()
@@ -32,6 +33,7 @@ on run
 		return
 	end if
 	my scrivi("---- Avvio. Apple TV da collegare: " & nomeAppleTV)
+	set haCliccato to false
 
 	if my giaCollegato() then
 		my scrivi("Il Mac risulta gia' collegato a " & nomeAppleTV & ". Non faccio nulla.")
@@ -63,6 +65,11 @@ on run
 		my scrivi("Tentativo " & tentativo & " di " & tentativiMassimi & ": " & esito & "  " & dettaglio)
 		my chiudiPannello()
 		if esito is in {"collegato", "gia_collegato", "cliccato"} then exit repeat
+		-- se ho gia' cliccato una volta, non riclicco mai nello stesso avvio (riclic = scollega!)
+		if haCliccato then
+			my scrivi("Ho gia' cliccato in questo avvio: mi fermo qui per non scollegare.")
+			exit repeat
+		end if
 		if tentativo < tentativiMassimi then delay pausaTraTentativi
 	end repeat
 	my scrivi("Fine.")
@@ -83,7 +90,7 @@ on tentaCollegamento()
 	-- aspetta che l'Apple TV compaia nell'elenco (arriva via rete, puo' volerci qualche secondo)
 	set elemento to missing value
 	repeat (secondiAttesaElenco * 2) times
-		set elemento to my cercaElemento({nomeAppleTV})
+		set elemento to my cercaDispositivo()
 		if elemento is not missing value then exit repeat
 		delay 0.5
 	end repeat
@@ -95,25 +102,57 @@ on tentaCollegamento()
 
 	set ruolo to my ruoloDi(elemento)
 	set valore to my valoreDi(elemento)
-	my scrivi("Trovato '" & nomeAppleTV & "' nel pannello (ruolo " & ruolo & ", valore " & valore & ").")
+	my scrivi("Trovato '" & nomeAppleTV & "' nel pannello (ruolo " & ruolo & ", valore " & valore & ", testo " & my testoDi(elemento) & ").")
 
 	-- gia' collegato? allora NON clicco, altrimenti lo scollegherei
-	if ruolo is "AXDisclosureTriangle" and valore is 1 then return "gia_collegato"
-	if ruolo is "AXCheckBox" and valore is 1 then return "gia_collegato"
-	if ruolo is "AXStaticText" and my pannelloMostraCollegamentoAttivo() then return "gia_collegato"
+	if valore is 1 and ruolo is in {"AXCheckBox", "AXDisclosureTriangle", "AXRadioButton"} then return "gia_collegato"
+	if my pannelloMostraCollegamentoAttivo() then return "gia_collegato"
 
-	tell application "System Events" to click elemento
-	my scrivi("Ho cliccato su '" & nomeAppleTV & "'.")
-	delay 2
+	-- un solo clic; se subito dopo il pannello cambia e System Events protesta, non importa
+	set haCliccato to true
+	try
+		tell application "System Events" to click elemento
+	on error messaggio number numero
+		my scrivi("(subito dopo il clic: " & messaggio & " [" & numero & "])")
+	end try
+	my scrivi("Ho cliccato su '" & nomeAppleTV & "'. Aspetto il collegamento...")
+	delay 3
 	my chiudiPannello()
 
-	-- verifica (fino a 20 secondi)
-	repeat 20 times
+	-- verifica (fino a circa 40 secondi)
+	repeat 12 times
 		if my giaCollegato() then return "collegato"
-		delay 1
+		delay 2
 	end repeat
 	return "cliccato"
 end tentaCollegamento
+
+-- Cerca la riga dell'Apple TV nel pannello. Preferisce l'interruttore (checkbox) della riga,
+-- e un elemento che si chiama ESATTAMENTE come l'Apple TV rispetto a uno che la contiene soltanto.
+on cercaDispositivo()
+	set elementi to my elementiDelPannello()
+	set migliore to missing value
+	set punteggioMigliore to 0
+	repeat with e in elementi
+		set el to contents of e
+		set testo to my testoDi(el)
+		if testo contains nomeAppleTV then
+			set ruolo to my ruoloDi(el)
+			set punteggio to 1
+			if ruolo is "AXStaticText" then set punteggio to 2
+			if ruolo is in {"AXButton", "AXRadioButton", "AXMenuItem", "AXMenuButton", "AXPopUpButton"} then set punteggio to 3
+			if ruolo is "AXDisclosureTriangle" then set punteggio to 4
+			if ruolo is "AXCheckBox" then set punteggio to 5
+			if ruolo is in {"AXCheckBox", "AXDisclosureTriangle"} and my valoreDi(el) is 1 then set punteggio to punteggio + 3
+			if testo contains ("|" & nomeAppleTV & "|") then set punteggio to punteggio + 10
+			if punteggio > punteggioMigliore then
+				set migliore to el
+				set punteggioMigliore to punteggio
+			end if
+		end if
+	end repeat
+	return migliore
+end cercaDispositivo
 
 -- Apre l'elenco dei dispositivi di "Duplica schermo".
 -- Prima prova l'icona dedicata nella barra dei menu (se e' impostata "mostra sempre"),
@@ -237,7 +276,7 @@ end chiudiPannello
 -- Vero se il pannello mostra le opzioni di un collegamento gia' attivo
 -- ("Usa come display esteso" / "Use As Extended Display")
 on pannelloMostraCollegamentoAttivo()
-	set el to my cercaElemento({"Extended Display", "display esteso", "schermo esteso"})
+	set el to my cercaElemento({"Extended Display", "Separate Display", "Built-in Display", "display esteso", "schermo esteso", "display separato", "schermo separato", "display integrato", "schermo integrato"})
 	return (el is not missing value)
 end pannelloMostraCollegamentoAttivo
 
@@ -338,7 +377,7 @@ on testoDi(el)
 			if class of v is text then set testo to testo & "|" & v
 		end try
 	end tell
-	return testo
+	return testo & "|"
 end testoDi
 
 on identificatoreDi(el)
@@ -368,6 +407,7 @@ end valoreDi
 
 -- Vero se fra gli schermi collegati ce n'e' uno con il nome dell'Apple TV
 on giaCollegato()
+	-- 1) fra gli schermi visti dal sistema (con "schermo esteso")
 	try
 		tell application "System Events" to set nomi to display name of every desktop
 		repeat with n in nomi
@@ -375,6 +415,12 @@ on giaCollegato()
 				if (n as text) contains nomeAppleTV then return true
 			end try
 		end repeat
+	end try
+	-- 2) fra i display elencati dal sistema (anche con "duplica")
+	try
+		set comando to "/usr/sbin/system_profiler SPDisplaysDataType -json 2>/dev/null | /usr/bin/grep -c -E " & quoted form of ("\"_name\" ?: ?\"" & nomeAppleTV & "\"") & " || true"
+		set conteggio to do shell script comando
+		if (conteggio as integer) > 0 then return true
 	end try
 	return false
 end giaCollegato

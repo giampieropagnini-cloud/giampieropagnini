@@ -225,7 +225,10 @@ sleep 40
 echo ""
 echo "  Ultime righe del diario ($LOG):"
 if [ -f "$LOG" ]; then
-  tail -n 8 "$LOG" | sed 's/^/     /'
+  tail -n 12 "$LOG" | sed 's/^/     /'
+  { echo "macOS $(sw_vers -productVersion)"; tail -n 40 "$LOG"; } | pbcopy 2>/dev/null
+  echo ""
+  echo "  (le ho copiate negli appunti: se qualcosa non va, incollale con cmd + V nel messaggio a Claude)"
 else
   echo "     (ancora vuoto: probabilmente l'app aspetta un permesso; controlla gli avvisi sullo schermo)"
 fi
@@ -241,7 +244,7 @@ echo "     2. aspetta circa un minuto"
 echo "     3. la TV si accende con lo schermo del Mac. L'iPad non serve più."
 echo ""
 echo "  Per provare senza riavviare: cerca «$NOME_APP» con Spotlight (cmd + spazio) e aprilo."
-echo "  Se qualcosa non va, mandami il diario: $LOG"
+echo "  Se qualcosa non va: doppio clic su «MOSTRA DIARIO.command» e incolla il diario a Claude."
 echo ""
 echo "  ─────────────────────────────────────────────────"
 echo "  FACOLTATIVO: togliere anche la password all'accensione"
