@@ -327,6 +327,13 @@ def build():
             else:
                 shutil.copy2(src_v, dst_v)
 
+    # la cartella MAC-MINI-AIRPLAY (installatore per il Mac mini senza monitor)
+    # viene pubblicata così com'è su /airplay/, così dall'altro Mac basta una
+    # riga di Terminale per scaricarla (vedi MAC-MINI-AIRPLAY/GUIDA-AIRPLAY-AUTOMATICO.md).
+    airplay = os.path.join(ROOT, "MAC-MINI-AIRPLAY")
+    if os.path.isdir(airplay):
+        shutil.copytree(airplay, os.path.join(DIST, "airplay"), dirs_exist_ok=True)
+
     cats = {c["slug"]: c for c in content["categories"]}
     projects = content["projects"]
     uris = {site["home_hero"], site["portrait"], site["logo"]}
