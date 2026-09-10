@@ -61,7 +61,7 @@ Nella cartella trovi:
 |---|---|
 | `INSTALLA AIRPLAY AUTOMATICO.command` | **l'installatore** (è quello da aprire nel modo B) |
 | `RIMUOVI AIRPLAY AUTOMATICO.command` | per togliere tutto, se un giorno non lo vuoi più |
-| `MOSTRA DIARIO.command` | mostra cosa ha fatto l'app e lo copia negli appunti, da incollare a Claude |
+| `MOSTRA DIARIO.command` | mostra cosa ha fatto l'app e lo manda per email alla tua Gmail, così Claude lo legge da solo |
 | `installa.sh` | quello che scarica e avvia tutto nel modo A |
 | `airplay-automatico.applescript` | lo script vero e proprio (non serve toccarlo) |
 | `avvio-app.applescript` | l'involucro dell'app (non serve toccarlo) |
@@ -137,8 +137,9 @@ Controlla nell'ordine:
 5. **Sull'Apple TV**: Impostazioni → AirPlay e HomeKit → *Richiedi codice* deve essere
    **Solo la prima volta** (o mai), altrimenti la TV chiede un codice che tu non puoi vedere sul Mac.
 6. Se ancora niente, **mandami il diario**: doppio clic su `MOSTRA DIARIO.command` (nella cartella
-   `MAC-MINI-AIRPLAY` sulla Scrivania): mostra cosa ha provato a fare l'app e lo copia negli appunti.
-   Poi incollalo (cmd + V) nel messaggio a Claude, anche dall'altro Mac se hanno lo stesso account iCloud.
+   `MAC-MINI-AIRPLAY` sulla Scrivania). Lo manda per email alla tua Gmail con Mail: poi scrivi a Claude
+   solo «inviato» e lo legge lui. Se Mail non è configurato, lo copia negli appunti: incollalo (cmd + V)
+   nel messaggio a Claude, anche dall'altro Mac se hanno lo stesso account iCloud.
 
 Nel frattempo puoi sempre fare come prima con l'iPad.
 
