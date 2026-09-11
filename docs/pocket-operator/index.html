@@ -136,39 +136,38 @@
   .rail{ display:flex; flex-direction:column; gap:16px; min-width:0; }
   .content{ display:flex; flex-direction:column; gap:28px; min-width:0; }
 
-  /* ---------- unità (schema) ---------- */
-  .unit{ min-width:0; background:var(--panel); border-radius:12px; padding:14px; color:var(--silk); box-shadow:var(--shadow); }
-  .unit-head{ display:grid; grid-template-columns:1fr auto; gap:12px; align-items:start; }
+  /* ---------- la macchina (disposizione reale) ---------- */
+  .unit{ min-width:0; background:var(--panel); border-radius:12px; padding:13px; color:var(--silk); box-shadow:var(--shadow); }
+  .silkrow{
+    display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--silk-dim); margin-bottom:8px;
+  }
+  .silkrow b{ color:var(--silk); font-weight:600; letter-spacing:.04em; }
   .lcd{
-    background:var(--lcd); color:var(--lcd-ink); border-radius:4px; padding:8px 10px 9px; min-height:64px;
-    display:flex; flex-direction:column; justify-content:space-between; box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);
+    background:var(--lcd); color:var(--lcd-ink); border-radius:4px; padding:8px 10px 9px;
+    display:flex; justify-content:space-between; align-items:flex-end; gap:10px;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);
   }
   .lcd b{ font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:600; letter-spacing:.04em; }
-  .lcd span{ font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; opacity:.8; }
-  .knobs{ display:flex; gap:8px; align-items:flex-start; }
-  .knob{
-    width:38px; height:38px; border-radius:50%; border:2px solid var(--silk-dim); background:var(--panel-2);
-    color:var(--silk); font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
-    display:grid; place-items:center; cursor:pointer; padding:0;
+  .lcd span{ font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; opacity:.85; text-align:right; }
+
+  .matrix{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-top:11px; }
+  .cell{
+    aspect-ratio:1/1; min-width:0; padding:2px; cursor:pointer;
+    border:1px solid #343941; border-radius:5px; background:var(--panel-2); color:var(--silk-dim);
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; line-height:1.1; text-align:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+    overflow:hidden; overflow-wrap:anywhere;
   }
-  .knob::after{ content:""; position:absolute; }
-  .unit-row{ display:flex; justify-content:flex-end; margin-top:8px; }
-  .keys{ display:grid; grid-template-columns:repeat(8,1fr); gap:5px; margin-top:12px; }
-  .key{
-    aspect-ratio:1/1; min-width:0; border-radius:4px; border:1px solid #33383F; background:var(--panel-2); color:var(--silk-dim);
-    font-family:"IBM Plex Mono",monospace; font-size:11px; display:grid; place-items:center; padding:0; cursor:pointer;
-  }
-  .fnrow{ display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-top:10px; }
-  .fbtn{
-    min-width:0; border-radius:4px; border:1px solid #33383F; background:var(--panel-2); color:var(--silk);
-    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.02em; padding:9px 4px; cursor:pointer;
-    text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-  .fbtn.top{ padding:9px 12px; }
-  .knob:hover,.fbtn:hover,.key:hover{ border-color:var(--silk); color:var(--silk); }
-  .knob.on,.fbtn.on,.key.on{ background:var(--acc); border-color:var(--acc); color:#fff; }
-  .knob.hi,.fbtn.hi,.key.hi{ box-shadow:0 0 0 2px var(--acc); color:var(--silk); }
-  .unit-cap{ font-size:11px; color:var(--muted); margin-top:10px; text-align:center; letter-spacing:.02em; }
+  .cell.fn{ color:var(--silk); }
+  .cell.knob{ border-radius:50%; border:2px solid var(--silk-dim); color:var(--silk); font-size:12px; font-weight:600; }
+  .cell i{ font-style:normal; font-size:9px; opacity:.7; }
+  .cell.tiny{ font-size:8.5px; letter-spacing:-.01em; }
+  .cell:hover{ border-color:var(--silk); color:var(--silk); }
+  .cell.on{ background:var(--acc); border-color:var(--acc); color:#fff; }
+  .cell.hi{ box-shadow:0 0 0 2px var(--acc); color:var(--silk); }
+  .unit-cap{ font-size:11px; color:var(--silk-dim); margin:10px 0 0; text-align:center; letter-spacing:.02em; }
   .unit-cap b{ color:var(--silk); font-weight:600; }
 
   /* ---------- schede ---------- */
@@ -207,7 +206,7 @@
     flex:1 1 220px; min-width:0; border:1px solid var(--rule); background:var(--card); color:var(--ink);
     border-radius:8px; padding:9px 12px; font:inherit; font-size:13.5px;
   }
-  .search:focus-visible,.tab:focus-visible,.chipbtn:focus-visible,.fbtn:focus-visible,.key:focus-visible,.knob:focus-visible{
+  .search:focus-visible,.tab:focus-visible,.chipbtn:focus-visible,.cell:focus-visible,.theme button:focus-visible{
     outline:2px solid var(--acc); outline-offset:2px;
   }
   .chipbtn{
@@ -266,14 +265,13 @@
   }
   @media (max-width:560px){
     .unit{ padding:11px; }
-    .lcd{ min-height:52px; padding:7px 9px; }
+    .lcd{ padding:7px 9px; }
     .lcd b{ font-size:13.5px; }
-    .knob{ width:34px; height:34px; }
-    .keys{ gap:4px; }
-    .key{ font-size:10px; border-radius:3px; }
-    .fnrow{ gap:4px; }
-    .fbtn{ font-size:10px; padding:8px 2px; }
-    .fbtn.top{ padding:8px 10px; }
+    .lcd span{ font-size:9px; }
+    .matrix{ gap:5px; }
+    .cell{ font-size:9.5px; border-radius:4px; }
+    .cell.tiny{ font-size:8px; }
+    .cell.knob{ font-size:11px; }
     .card{ padding:13px; }
   }
   .note{ font-size:12.5px; color:var(--muted); max-width:70ch; }
@@ -300,24 +298,10 @@
 <main class="wrap">
   <aside class="rail">
     <div class="unit" id="unit">
-      <div class="unit-head">
-        <div class="lcd"><b id="lcd1">po-33 k.o!</b><span id="lcd2">micro sampler</span></div>
-        <div class="knobs">
-          <button class="knob" data-t="A" type="button">A</button>
-          <button class="knob" data-t="B" type="button">B</button>
-        </div>
-      </div>
-      <div class="unit-row"><button class="fbtn top" data-t="top" type="button" id="topbtn">record</button></div>
-      <div class="keys" id="keys"></div>
-      <div class="fnrow">
-        <button class="fbtn" data-t="sound" type="button">sound</button>
-        <button class="fbtn" data-t="pattern" type="button">pattern</button>
-        <button class="fbtn" data-t="bpm" type="button">bpm</button>
-        <button class="fbtn" data-t="write" type="button">write</button>
-        <button class="fbtn" data-t="fx" type="button">fx</button>
-        <button class="fbtn" data-t="play" type="button">play</button>
-      </div>
-      <p class="unit-cap">schema semplificato · <b id="unitcap">i 16 tasti</b></p>
+      <div class="silkrow"><b id="silkmodel">po-33 k.o!</b><span id="silkmic">microfono</span></div>
+      <div class="lcd"><b id="lcd1">po-33 k.o!</b><span id="lcd2">micro sampler</span></div>
+      <div class="matrix" id="matrix"></div>
+      <p class="unit-cap">tasti disposti come sulla macchina · <b id="unitcap">i 16 tasti</b></p>
     </div>
     <div class="card">
       <div class="spec" id="spec"></div>
@@ -361,7 +345,7 @@
 
   var DATA = {
     sub:{
-      key:"sub", name:"po-14 sub", tag:"basso", full:"po-14 sub",
+      key:"sub", silk:"teenage engineering", name:"po-14 sub", tag:"basso", full:"po-14 sub",
       lcd:"bassi + micro drum machine",
       top:"style", topLabel:"style",
       keysCap:"i 16 tasti = tastiera su due ottave",
@@ -393,7 +377,7 @@
     },
 
     tonic:{
-      key:"tonic", name:"po-32 tonic", tag:"batteria", full:"po-32 tonic",
+      key:"tonic", silk:"mic · teenage engineering", name:"po-32 tonic", tag:"batteria", full:"po-32 tonic",
       lcd:"drum synth + microtonic",
       top:"acc", topLabel:"acc",
       keysCap:"i 16 tasti = step, oppure accenti con acc",
@@ -428,7 +412,7 @@
     },
 
     ko:{
-      key:"ko", name:"po-33 k.o!", tag:"sampler", full:"po-33 k.o!",
+      key:"ko", silk:"mic · teenage engineering", name:"po-33 k.o!", tag:"sampler", full:"po-33 k.o!",
       lcd:"micro sampler",
       top:"record", topLabel:"record",
       keysCap:"1-8 melodici · 9-16 batteria",
@@ -468,7 +452,7 @@
     },
 
     speak:{
-      key:"speak", name:"po-35 speak", tag:"voce", full:"po-35 speak",
+      key:"speak", silk:"mic · teenage engineering", name:"po-35 speak", tag:"voce", full:"po-35 speak",
       lcd:"vocal synthesizer",
       top:"record", topLabel:"record",
       keysCap:"1-8 melodici · 9-16 batteria · 16 non registrabile",
@@ -573,14 +557,44 @@
   var state = { dev:"ko", filter:null, q:"" };
   var elContent = document.getElementById("content");
   var elTabs = document.getElementById("tabs");
-  var elKeys = document.getElementById("keys");
+  var elMatrix = document.getElementById("matrix");
 
-  /* tasti 1-16 */
-  for(var i=1;i<=16;i++){
+  /* La macchina ha 23 tasti: sound, pattern e bpm in alto, le due manopole
+     in alto a destra, i 16 tasti in un quadrato 4x4 e la colonna dei comandi
+     a destra (il tasto proprio del modello, fx, play, write). */
+  function cell(tok, label, glyph, cls){
     var b = document.createElement("button");
-    b.type = "button"; b.className = "key"; b.dataset.t = "keys"; b.textContent = i;
-    elKeys.appendChild(b);
+    b.type = "button";
+    b.className = "cell" + (cls ? " " + cls : "");
+    b.dataset.t = tok;
+    b.appendChild(document.createTextNode(label));
+    if(glyph){
+      var i = document.createElement("i");
+      i.textContent = glyph;
+      b.appendChild(i);
+    }
+    return b;
   }
+  (function buildMatrix(){
+    var rightCol = [
+      { t:"top", id:"topbtn", label:"record" },
+      { t:"fx", label:"fx" },
+      { t:"play", label:"play", glyph:"\u25B6" },
+      { t:"write", label:"write", glyph:"\u25CF" }
+    ];
+    elMatrix.appendChild(cell("sound", "sound", null, "fn"));
+    elMatrix.appendChild(cell("pattern", "pattern", null, "fn"));
+    elMatrix.appendChild(cell("bpm", "bpm", null, "fn"));
+    elMatrix.appendChild(cell("A", "A", null, "knob"));
+    elMatrix.appendChild(cell("B", "B", null, "knob"));
+    for(var r = 0; r < 4; r++){
+      for(var c = 1; c <= 4; c++) elMatrix.appendChild(cell("keys", String(r * 4 + c)));
+      var right = rightCol[r];
+      var b = cell(right.t, right.label, right.glyph, "fn");
+      if(right.id) b.id = right.id;
+      elMatrix.appendChild(b);
+    }
+  })();
 
   /* tab */
   ORDER.concat(["tutti"]).forEach(function(k){
@@ -624,7 +638,9 @@
   }
 
   function renderUnit(dev){
-    document.getElementById("topbtn").textContent = dev.topLabel;
+    var tb = document.getElementById("topbtn");
+    tb.textContent = dev.topLabel;
+    tb.classList.remove("tiny");
     document.getElementById("lcd1").textContent = dev.name;
     document.getElementById("lcd2").textContent = state.filter ? ("filtro · " + keyLabel(state.filter === "keys" ? "1-16" : state.filter, dev)) : dev.lcd;
     document.getElementById("unitcap").textContent = dev.keysCap;
@@ -632,6 +648,8 @@
       b.classList.toggle("on", state.filter === b.dataset.t);
       b.classList.remove("hi");
     });
+    document.getElementById("silkmodel").textContent = dev.name;
+    document.getElementById("silkmic").textContent = dev.silk;
     var sp = document.getElementById("spec");
     sp.innerHTML = dev.spec.map(function(r){
       return '<div><dt>' + esc(r[0]) + '</dt><b>' + esc(r[1]) + '</b></div>';
@@ -760,7 +778,11 @@
     document.documentElement.setAttribute("data-po", "tutti");
     document.getElementById("lcd1").textContent = "confronto";
     document.getElementById("lcd2").textContent = "quattro macchine";
-    document.getElementById("topbtn").textContent = "record / acc / style";
+    var tb = document.getElementById("topbtn");
+    tb.textContent = "record acc style";
+    tb.classList.add("tiny");
+    document.getElementById("silkmodel").textContent = "pocket operator";
+    document.getElementById("silkmic").textContent = "quattro macchine, stessa pulsantiera";
     document.getElementById("unitcap").textContent = "i 16 tasti cambiano mestiere su ogni macchina";
     document.querySelectorAll("#unit [data-t]").forEach(function(b){ b.classList.remove("on","hi"); });
     var sp = document.getElementById("spec");
