@@ -274,6 +274,13 @@
     .cell.knob{ font-size:11px; }
     .card{ padding:13px; }
   }
+  .chwrap{ display:grid; grid-template-columns:repeat(4,1fr); gap:7px; max-width:360px; }
+  .chcol{ display:flex; flex-direction:column; gap:5px; }
+  .chhead{ font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--acc); text-align:center; }
+  .chcell{
+    border:1px solid var(--rule); border-radius:6px; background:var(--card); text-align:center;
+    padding:8px 0; font-family:"IBM Plex Mono",monospace; font-size:13px; font-variant-numeric:tabular-nums;
+  }
   .note{ font-size:12.5px; color:var(--muted); max-width:70ch; }
   .note a{ color:var(--acc); }
   footer{ border-top:1px solid var(--rule); margin-top:8px; padding-top:16px; }
@@ -383,7 +390,8 @@
       keysCap:"i 16 tasti = step, oppure accenti con acc",
       spec:[
         ["cos'è","sintetizzatore di percussioni"],["serie","3 (2016)"],
-        ["suoni","16 slot, sintetizzati"],["pattern","16, catena fino a 128"],
+        ["suoni","16 slot, sintetizzati"],["voci","4: una per colonna"],
+        ["pattern","16, catena fino a 128"],
         ["effetti","16 su fx"],["manopole","A = pitch · B = morph"],
         ["extra","riceve i suoni da Microtonic"]
       ],
@@ -392,23 +400,36 @@
         ["Scolpiscilo","Gira <span class=\'kk\'>A</span> per l'intonazione e <span class=\'kk\'>B</span> per il morph: sono due manopole, ma cambiano tutto il carattere del suono."],
         ["Scrivi il giro","<span class=\'kk\'>write</span>, poi gli step. Un suono alla volta."],
         ["Metti gli accenti","<span class=\'kk\'>acc</span> + gli step: quel colpo diventa forte (127 invece di 64). L'accento vale per tutto lo step, non per un solo suono."],
-        ["Blocca i parametri","In scrittura tieni premuto uno step e gira A o B: quel valore vale solo lì."]
+        ["Blocca i parametri","In scrittura tieni premuto uno step e gira A o B: quel valore vale solo lì."],
+        ["Suona con le mani","Mentre gira: tieni premuto un tasto per <span class='kk'>mutare</span> il suo canale, oppure tieni <span class='kk'>sound</span> + un tasto per lasciare solo quel suono."]
       ],
       extra:[
         { g:"suonare",k:["fx","1-16"], t:"Punch-in effect", n:"16 effetti momentanei, vedi la griglia qui sotto." },
         { g:"suonare",k:["acc","1-16"], t:"Accento al volo (con play attivo)", n:"Colpo forte al volo, senza scriverlo." },
+        { g:"suonare",k:["1-16"], t:"Muta un canale (tieni premuto)", n:"Mentre suona, fuori dalla scrittura: tenendo premuto un tasto zittisci tutta la sua colonna. Puoi tenerne premuti più d'uno per aprire e chiudere il pezzo con le mani." },
+        { g:"suonare",k:["sound","1-16"], t:"Solo di un suono (tieni premuti tutti e due)", n:"Tieni sound e tieni premuto il tasto: resta solo quel suono. Se invece dai un colpo secco, lo selezioni e basta." },
         { g:"scrivere",k:["acc","1-16"], t:"Scrivi gli accenti nel pattern (in rec)", n:"Velocity 127 contro i 64 normali. Vale per tutti i suoni su quello step." },
         { g:"scrivere",k:["1-16","A","B"], t:"Parameter lock su un singolo step", n:"In rec tieni premuto lo step e gira: pitch e morph cambiano solo su quel colpo." },
         { g:"scrivere",k:["fx"], t:"Cancella gli effetti scritti", n:"In rec tieni fx senza premere nient'altro." },
-        { g:"trasferimento",k:["acc","sound"], t:"Modalità ricezione da Microtonic", n:"Poi dal computer premi la destinazione: passa via microfono (mic vicino alla cassa) o via cavo jack. Puoi mandare un suono singolo, un blocco di otto (1-8 o 9-16) o suoni + pattern." },
+        { g:"copiare e cancellare",k:["acc","pattern"], t:"Cancella il pattern attivo", n:"Sparisce subito, senza chiedere conferma e senza ritorno." },
+        { g:"trasferimento",k:["acc","sound"], t:"Si mette in ascolto (ricezione)", n:"Poi dal computer, o dall'altro PO-32, parte l'invio: passa via microfono (mic vicino alla cassa) o via cavo jack. Da Microtonic puoi mandare un suono singolo, un blocco di otto (in 1-8 o in 9-16), e insieme ai suoni viaggia anche una catena di massimo quattro pattern." },
+        { g:"trasferimento",k:["write","sound"], t:"Manda fuori suoni e pattern", n:"L'opposto di acc + sound: il Tonic trasmette dal suo altoparlante o dal jack. Serve per travasare tutto in un secondo PO-32, oppure per farti una copia di sicurezza registrando quel suono e rispedendoglielo il giorno che hai pasticciato." },
         { g:"servizio",k:["linguetta"], t:"Linguetta di protezione", n:"Spezzala per proteggere i pattern dalla scrittura; torna come prima solo togliendo le pile." }
       ],
       over:{ soundText:"Scegli il suono di batteria", soundNote:"16 slot: cassa, rullante, hi-hat, clap, tom, claves/cowbell, tamburello, piatto, basso, rullante FM…",
              playText:"Suona i colpi", playNote:"Fuori dalla scrittura i tasti suonano il suono selezionato." },
+      channels:{
+        note:"I 16 slot suonano su sole quattro voci, una per ogni colonna della pulsantiera. Due suoni della stessa colonna non possono suonare insieme: l'ultimo che parte zittisce quello prima. Per questo cassa, rullante, hi-hat e clap vanno messi in quattro colonne diverse, non incolonnati.",
+        after:"In Microtonic c'è il tasto <b>optimize for PO-32</b> che rimescola i suoni per ridurre i furti di voce. E il mute lavora proprio per canale: tenendo premuto un tasto zittisci tutta la sua colonna."
+      },
       fxTitle:"i 16 effetti — tieni <span class='kk'>fx</span> + un tasto",
       fx:[["half rate","metà velocità"],["distortion","distorsione"],["squash","schiaccia le dinamiche"],["echo fade","eco che sfuma"],["pitch LFO","intonazione ondeggiante"],["EQ sweep","spazzata di equalizzazione"],["mega morph","spinge il morph al massimo"],["pitch bend up","tira l'intonazione verso l'alto"],["punch","attacco più duro"],["6/8 quantise","riquantizza in 6/8"],["beat-repeat","ripete la fetta di ritmo"],["beat-repeat faster","stessa cosa, più fitto"],["FM","modulazione di frequenza, suono metallico"],["granular","polverizza il suono"],["reverse","al contrario"],["bouncing ball","colpi sempre più fitti, come una pallina che rimbalza"]],
       fxNote:null,
-      panels:[]
+      panels:[{
+        title:"sul Tonic le manopole non cambiano pagina: lavorano sempre sul suono selezionato",
+        rows:[["A","intonazione","alza e abbassa il suono"],
+              ["B","morph","incrocia in un colpo solo i 21 parametri fra due preset interi di Microtonic: da un suono all'altro passando per tutte le vie di mezzo"]]
+      }]
     },
 
     ko:{
@@ -673,10 +694,22 @@
     var html = "";
 
     /* avvio rapido */
-    html += '<section><h2 class="sec">le prime cinque mosse</h2>';
+    var quanti = ["", "una", "due", "tre", "quattro", "cinque", "sei", "sette"][dev.steps.length] || dev.steps.length;
+    html += '<section><h2 class="sec">le prime ' + quanti + ' mosse</h2>';
     html += '<div class="steps">' + dev.steps.map(function(s){
       return '<div class="step"><b>' + s[0] + '</b><span class="d">' + s[1] + '</span></div>';
     }).join("") + '</div></section>';
+
+    /* i quattro canali */
+    if(dev.channels){
+      html += '<section><h2 class="sec">i quattro canali</h2><p class="sec-note">' + dev.channels.note + '</p><div class="chwrap">';
+      for(var c = 0; c < 4; c++){
+        html += '<div class="chcol"><div class="chhead">canale ' + (c+1) + '</div>';
+        for(var r = 0; r < 4; r++) html += '<div class="chcell">' + (r * 4 + c + 1) + '</div>';
+        html += '</div>';
+      }
+      html += '</div><p class="note">' + dev.channels.after + '</p></section>';
+    }
 
     /* combo */
     var list = dev.combos.filter(function(c){ return matches(c, dev); });
@@ -801,7 +834,7 @@
       ["fx + tasto", function(d){ return d.key === "speak" ? "1-8 stili di voce · 9-15 effetti · 16 pulito" : "16 effetti punch-in"; }],
       ["manopole A e B", function(d){ return d.key === "tonic" ? "A intonazione · B morph" : d.key === "sub" ? "modellano il basso" : "cambiano con la pagina"; }],
       ["si campiona?", function(d){ return d.key === "ko" ? "sì: record + tasto, 40 s" : d.key === "speak" ? "sì: record + 1-15, 8 s per slot" : "no, suoni interni"; }],
-      ["il suo asso", function(d){ return d.key === "sub" ? "16 play style: accordi e arpeggi al volo" : d.key === "tonic" ? "accenti con acc e suoni nuovi da Microtonic" : d.key === "ko" ? "campiona qualsiasi cosa e la taglia a fette" : "otto voci diverse, dal robot al vocoder"; }],
+      ["il suo asso", function(d){ return d.key === "sub" ? "16 play style: accordi e arpeggi al volo" : d.key === "tonic" ? "quattro canali con mute e solo, e suoni nuovi da Microtonic" : d.key === "ko" ? "campiona qualsiasi cosa e la taglia a fette" : "otto voci diverse, dal robot al vocoder"; }],
       ["reset di fabbrica", function(d){ return d.key === "ko" ? "pattern + batterie" : d.key === "speak" ? "pattern + write + batterie" : "—"; }]
     ];
 
