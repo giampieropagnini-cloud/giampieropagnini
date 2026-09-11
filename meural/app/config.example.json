@@ -1,0 +1,14 @@
+{
+  "frame_ip": "192.168.1.50",
+  "port": 8080,
+  "folder": "immagini",
+  "interval": 300,
+  "shuffle": true,
+  "orientation": "auto",
+  "fit": "fit",
+  "background": "#000000",
+  "watchdog": true,
+  "night_enabled": true,
+  "night_from": "23:30",
+  "night_to": "07:30"
+}

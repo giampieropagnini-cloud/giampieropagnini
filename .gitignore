@@ -17,3 +17,8 @@ proposte/
 # L'archivio di WeedGadget si rigenera con:
 #   python3 ../weedgadget-brand/scripts/pubblica-sul-sito.py
 static/
+
+# Meural Locale: impostazioni personali, immagini e cache Python
+__pycache__/
+meural/app/config.json
+meural/app/immagini/

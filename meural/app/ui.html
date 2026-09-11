@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meural Locale</title>
+<style>
+  :root { --bg:#111; --card:#1c1c1c; --fg:#eee; --muted:#999; --acc:#e0b34c; --line:#2a2a2a; }
+  * { box-sizing:border-box; }
+  body { margin:0; overflow-x:hidden; background:var(--bg); color:var(--fg); font:16px/1.4 -apple-system, system-ui, sans-serif; padding:16px; max-width:720px; margin-inline:auto; }
+  h1 { font-size:20px; margin:0 0 4px; letter-spacing:.02em; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; }
+  .card h2 { font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0 0 10px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  button { background:#2b2b2b; color:var(--fg); border:1px solid #3a3a3a; border-radius:10px; padding:12px 14px; font-size:16px; flex:1 1 auto; min-width:64px; cursor:pointer; }
+  button:active { background:#3a3a3a; }
+  button.acc { background:var(--acc); color:#111; border-color:var(--acc); font-weight:600; }
+  button.small { flex:0 0 auto; padding:8px 10px; font-size:14px; }
+  input, select { min-width:0; }
+  .row > * { min-width:0; }
+  .two > div { min-width:0; }
+  input[type=range] { width:100%; }
+  input[type=text], input[type=number], input[type=time], select { background:#0d0d0d; color:var(--fg); border:1px solid #3a3a3a; border-radius:8px; padding:10px; font-size:16px; width:100%; }
+  label { display:block; font-size:13px; color:var(--muted); margin:8px 0 4px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); gap:8px; }
+  .thumb { position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; background:#000; border:1px solid var(--line); }
+  .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .thumb.current { outline:2px solid var(--acc); }
+  .thumb .x { position:absolute; top:4px; right:4px; background:rgba(0,0,0,.7); border:0; color:#fff; border-radius:50%; width:24px; height:24px; padding:0; font-size:14px; min-width:0; flex:none; }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:14px; }
+  .kv b { color:var(--muted); font-weight:500; }
+  .ok { color:#7fd18a; } .err { color:#e07a7a; }
+  .toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#333; color:#fff; padding:10px 16px; border-radius:20px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; }
+  .toast.show { opacity:1; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .check { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:15px; }
+  .check input { width:20px; height:20px; }
+</style>
+</head>
+<body>
+<h1>Meural Locale</h1>
+<div class="sub" id="sub">Collegamento alla cornice…</div>
+
+<div class="card">
+  <h2>Cornice</h2>
+  <div class="kv" id="frameinfo"></div>
+</div>
+
+<div class="card">
+  <h2>Telecomando</h2>
+  <div class="row">
+    <button onclick="cmd('prev')">◀ Indietro</button>
+    <button onclick="cmd('next')">Avanti ▶</button>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <button onclick="cmd('wake')">Accendi</button>
+    <button onclick="cmd('sleep')">Spegni</button>
+    <button onclick="cmd('up')">Menu ▲</button>
+    <button onclick="cmd('down')">Menu ▼</button>
+  </div>
+  <label>Luminosità <span id="bl"></span></label>
+  <input type="range" min="0" max="100" id="backlight" onchange="cmd('backlight', this.value)">
+  <label>Playlist sulla cornice</label>
+  <div class="row">
+    <select id="galleries" style="flex:1"></select>
+    <button class="small" onclick="loadGalleries()">Aggiorna</button>
+    <button class="small acc" onclick="cmd('gallery', document.getElementById('galleries').value)">Vai</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Slideshow locale</h2>
+  <div class="kv" id="ssinfo"></div>
+  <div class="row" style="margin-top:10px">
+    <button class="acc" id="ssbtn" onclick="toggleShow()">Avvia</button>
+    <button onclick="cmd('slideshow_skip')">Prossima</button>
+  </div>
+  <div class="two">
+    <div><label>Cambia ogni (secondi)</label><input type="number" id="interval" min="5"></div>
+    <div><label>Adattamento</label>
+      <select id="fit"><option value="fit">Intera (bordi)</option><option value="crop">Riempi (ritaglia)</option></select></div>
+    <div><label>Orientamento</label>
+      <select id="orientation"><option value="auto">Automatico</option><option value="landscape">Orizzontale</option><option value="portrait">Verticale</option></select></div>
+    <div><label>Colore bordi</label><input type="text" id="background" placeholder="#000000"></div>
+  </div>
+  <div class="check"><input type="checkbox" id="shuffle"><span>Ordine casuale</span></div>
+  <div class="check"><input type="checkbox" id="watchdog"><span>Risveglia la cornice se si addormenta</span></div>
+  <div class="check"><input type="checkbox" id="night_enabled"><span>Spegnimento notturno</span></div>
+  <div class="two">
+    <div><label>Spegni alle</label><input type="time" id="night_from"></div>
+    <div><label>Accendi alle</label><input type="time" id="night_to"></div>
+  </div>
+  <label>Indirizzo IP della cornice</label>
+  <input type="text" id="frame_ip" placeholder="192.168.1.50">
+  <div class="row" style="margin-top:10px"><button class="acc" onclick="saveConfig()">Salva impostazioni</button></div>
+</div>
+
+<div class="card">
+  <h2>Immagini <span id="count"></span></h2>
+  <div class="row">
+    <input type="file" id="files" accept="image/*" multiple style="display:none" onchange="upload(false)">
+    <button onclick="document.getElementById('files').click()">Aggiungi immagini</button>
+    <input type="file" id="fileNow" accept="image/*" style="display:none" onchange="upload(true)">
+    <button class="acc" onclick="document.getElementById('fileNow').click()">Mostra subito una foto</button>
+  </div>
+  <p class="sub" style="margin:8px 0">Tocca una miniatura per mostrarla adesso.</p>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let state = null, toastT = null;
+function toast(msg, isErr) {
+  const t = $('toast'); t.textContent = msg; t.style.background = isErr ? '#7a2b2b' : '#333';
+  t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200);
+}
+async function api(path, body) {
+  const r = await fetch(path, body ? {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)} : {});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j.ok === false) { toast(j.error || ('Errore ' + r.status), true); throw new Error(j.error); }
+  return j;
+}
+async function cmd(c, value) { await api('/api/cmd', {cmd:c, value}); toast('Fatto'); setTimeout(refresh, 400); }
+async function toggleShow() { await cmd(state.slideshow.running ? 'slideshow_stop' : 'slideshow_start'); }
+function kv(el, pairs) { el.innerHTML = pairs.map(([k,v]) => `<b>${k}</b><span>${v ?? '—'}</span>`).join(''); }
+function pick(o, keys) { for (const k of keys) if (o && typeof o === 'object' && o[k] !== undefined) return o[k]; return undefined; }
+function num(x) { if (typeof x === 'number') return x; if (x && typeof x === 'object') return num(x.response ?? x.backlight ?? x.value); const n = parseInt(x); return isNaN(n) ? undefined : n; }
+function fmtTime(ts) { return ts ? new Date(ts*1000).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}) : '—'; }
+
+async function refresh() {
+  try { state = await api('/api/state'); } catch (e) { $('sub').textContent = 'Server non raggiungibile'; return; }
+  const f = state.frame, sys = f.system || {}, np = f.now_playing || {};
+  const err = f.error || (sys.error) || null;
+  $('sub').innerHTML = err ? `<span class="err">Cornice non raggiungibile: ${err}</span>` : `<span class="ok">Cornice collegata</span> · ${state.config.frame_ip}`;
+  const resp = sys.response || sys;
+  kv($('frameinfo'), [
+    ['Stato', f.sleeping === true ? 'Spenta / in pausa' : f.sleeping === false ? 'Accesa' : '—'],
+    ['Firmware', pick(resp, ['version','firmware','fw_version','sw_version'])],
+    ['Modello', pick(resp, ['model','product','device_name','name'])],
+    ['Playlist attuale', pick(np.response || np, ['current_gallery_name','gallery_name','current_gallery'])],
+    ['Opera attuale', pick(np.response || np, ['current_item_name','item_name','current_item'])],
+    ['Luminosità', num(f.backlight) !== undefined ? num(f.backlight) + '%' : undefined],
+  ]);
+  const bl = num(f.backlight);
+  if (bl !== undefined && document.activeElement !== $('backlight')) { $('backlight').value = bl; $('bl').textContent = bl + '%'; }
+  const s = state.slideshow;
+  kv($('ssinfo'), [
+    ['Stato', s.running ? (s.night ? 'Attivo, in pausa notturna' : '<span class="ok">Attivo</span>') : 'Fermo'],
+    ['Immagine attuale', s.current], ['Ultimo invio', fmtTime(s.last_sent)],
+    ['Errore', s.last_error ? `<span class="err">${s.last_error}</span>` : '—'],
+    ['Adattamento immagini', state.pillow ? 'Pillow attivo' : 'senza Pillow (pip3 install pillow)'],
+  ]);
+  $('ssbtn').textContent = s.running ? 'Ferma' : 'Avvia';
+  if (!document.querySelector('.card:nth-of-type(3) :focus')) {
+    const c = state.config;
+    for (const k of ['interval','fit','orientation','background','frame_ip','night_from','night_to']) $(k).value = c[k] ?? '';
+    for (const k of ['shuffle','watchdog','night_enabled']) $(k).checked = !!c[k];
+  }
+  $('count').textContent = `(${state.images.length})`;
+  $('grid').innerHTML = state.images.map(n => `
+    <div class="thumb ${n === s.current ? 'current' : ''}" onclick="cmd('show_file', '${n.replace(/'/g, "\\'")}')">
+      <img src="/img/${encodeURIComponent(n)}" loading="lazy" alt="${n}">
+      <button class="x" onclick="event.stopPropagation(); del('${n.replace(/'/g, "\\'")}')">×</button>
+    </div>`).join('');
+}
+async function saveConfig() {
+  const body = {};
+  for (const k of ['interval','fit','orientation','background','frame_ip','night_from','night_to']) body[k] = $(k).value;
+  for (const k of ['shuffle','watchdog','night_enabled']) body[k] = $(k).checked;
+  await api('/api/config', body); toast('Impostazioni salvate'); refresh();
+}
+async function loadGalleries() {
+  try {
+    const j = await api('/api/galleries'); const list = Array.isArray(j.galleries) ? j.galleries : (j.galleries.response || []);
+    $('galleries').innerHTML = list.map(g => `<option value="${g.id ?? g.gallery_id}">${g.name ?? g.title ?? g.id}</option>`).join('') || '<option>nessuna playlist</option>';
+  } catch (e) {}
+}
+async function upload(showNow) {
+  const input = showNow ? $('fileNow') : $('files');
+  const fd = new FormData(); for (const f of input.files) fd.append('photo', f, f.name);
+  const r = await fetch('/api/upload?show=' + (showNow ? 1 : 0), {method:'POST', body:fd});
+  const j = await r.json(); input.value = '';
+  toast(j.ok ? `Caricate ${j.saved.length} immagini` : (j.error || 'Errore'), !j.ok); refresh();
+}
+async function del(n) { if (!confirm('Elimina ' + n + '?')) return; await api('/api/delete', {name:n}); refresh(); }
+refresh(); loadGalleries(); setInterval(refresh, 10000);
+</script>
+</body>
+</html>

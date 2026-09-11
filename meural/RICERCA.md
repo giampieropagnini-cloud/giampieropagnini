@@ -151,7 +151,15 @@ Interfaccia web leggera (HTML/JS) da usare dal telefono. Se in casa c'è Home
 Assistant, `local-meural` copre già la parte telecomando e conviene integrare
 piuttosto che duplicare.
 
-## Prossimo passo concreto
+## Cosa è già stato costruito
+
+La Fase 1 è pronta in `app/` (vedi `LEGGIMI.md`): server web con
+telecomando, slideshow locale, spegnimento notturno, watchdog, caricamento
+foto dal telefono, più `app/nft.py` per scaricare gli NFT di un wallet
+(inizio della Fase 2). Collaudata contro una cornice finta (`app/mock_frame.py`)
+che emula l'API locale; manca solo la prova sulla cornice vera.
+
+## Prima prova sulla cornice vera
 
 Nello stesso folder c'è `meural_local.py`, uno script di prova senza
 dipendenze. Da un computer sulla stessa rete wifi della cornice:
