@@ -16,4 +16,7 @@ proposte/
 # copia di lavoro, gli stessi file finiscono gia' in docs/ che e' quello pubblicato.
 # L'archivio di WeedGadget si rigenera con:
 #   python3 ../weedgadget-brand/scripts/pubblica-sul-sito.py
-static/
+static/*
+# ...tranne il prontuario dei Pocket Operator, che non lo genera nessuno script:
+# tenerlo qui fa si' che gen.py --clean lo rimetta in docs/ dopo una ripulita.
+!static/pocket-operator/

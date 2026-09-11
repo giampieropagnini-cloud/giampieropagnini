@@ -2,8 +2,18 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Le combinazioni di tasti dei Pocket Operator PO-14 sub, PO-32 tonic, PO-33 K.O! e PO-35 speak.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F1F0EC">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1A1D21">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pocket Op">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icona.png">
+<link rel="icon" href="icona.png">
 <style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
 <title>Prontuario Pocket Operator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -247,6 +257,13 @@
   tr:last-child td, tr:last-child th{ border-bottom:none; }
   .swatch{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:7px; vertical-align:1px; }
 
+  /* iPhone: rispetta la tacca e il bordo arrotondato quando e' salvata sulla schermata */
+  .topbar-in{ padding-top:calc(14px + env(safe-area-inset-top, 0px)); }
+  .wrap{
+    padding-left:calc(16px + env(safe-area-inset-left, 0px));
+    padding-right:calc(16px + env(safe-area-inset-right, 0px));
+    padding-bottom:calc(64px + env(safe-area-inset-bottom, 0px));
+  }
   @media (max-width:560px){
     .unit{ padding:11px; }
     .lcd{ min-height:52px; padding:7px 9px; }

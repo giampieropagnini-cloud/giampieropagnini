@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Le combinazioni di tasti dei Pocket Operator PO-14 sub, PO-32 tonic, PO-33 K.O! e PO-35 speak.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F1F0EC">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1A1D21">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pocket Op">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icona.png">
+<link rel="icon" href="icona.png">
+<style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<title>Prontuario Pocket Operator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper:#F1F0EC;
+    --card:#FFFFFF;
+    --ink:#15171A;
+    --muted:#74786F;
+    --rule:#D9D8D1;
+    --rule-soft:#E7E6E0;
+    --panel:#14161A;
+    --panel-2:#1E2126;
+    --silk:#EDEEE9;
+    --silk-dim:#8D9189;
+    --lcd:#B9C4A6;
+    --lcd-ink:#22301C;
+    --acc:#D33B34;
+    --acc-ink:#FFFFFF;
+    --acc-soft:rgba(211,59,52,.12);
+    --shadow:0 1px 0 rgba(20,22,26,.05), 0 8px 24px -18px rgba(20,22,26,.5);
+  }
+  :root[data-po="sub"]{ --acc:#3757D8; --acc-soft:rgba(55,87,216,.12); }
+  :root[data-po="tonic"]{ --acc:#D2601F; --acc-soft:rgba(210,96,31,.14); }
+  :root[data-po="ko"]{ --acc:#D33B34; --acc-soft:rgba(211,59,52,.12); }
+  :root[data-po="speak"]{ --acc:#0F7F74; --acc-soft:rgba(15,127,116,.14); }
+  :root[data-po="tutti"]{ --acc:#4A4E55; --acc-soft:rgba(74,78,85,.12); }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1A1D21;
+      --card:#22262B;
+      --ink:#ECEDE9;
+      --muted:#9CA29B;
+      --rule:#353A41;
+      --rule-soft:#2B3036;
+      --panel:#0A0C0F;
+      --panel-2:#181B1F;
+      --silk:#E4E6E0;
+      --silk-dim:#7E837B;
+      --lcd:#7E8C6D;
+      --lcd-ink:#101A0C;
+      --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 30px -20px #000;
+    }
+    :root:not([data-theme="light"])[data-po="sub"]{ --acc:#7B96FF; --acc-soft:rgba(123,150,255,.16); }
+    :root:not([data-theme="light"])[data-po="tonic"]{ --acc:#F0904A; --acc-soft:rgba(240,144,74,.16); }
+    :root:not([data-theme="light"])[data-po="ko"]{ --acc:#FF6F65; --acc-soft:rgba(255,111,101,.16); }
+    :root:not([data-theme="light"])[data-po="speak"]{ --acc:#3FC0B0; --acc-soft:rgba(63,192,176,.16); }
+    :root:not([data-theme="light"])[data-po="tutti"]{ --acc:#A9AEB6; --acc-soft:rgba(169,174,182,.14); }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1A1D21; --card:#22262B; --ink:#ECEDE9; --muted:#9CA29B;
+    --rule:#353A41; --rule-soft:#2B3036; --panel:#0A0C0F; --panel-2:#181B1F;
+    --silk:#E4E6E0; --silk-dim:#7E837B; --lcd:#7E8C6D; --lcd-ink:#101A0C;
+    --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 30px -20px #000;
+  }
+  :root[data-theme="dark"][data-po="sub"]{ --acc:#7B96FF; --acc-soft:rgba(123,150,255,.16); }
+  :root[data-theme="dark"][data-po="tonic"]{ --acc:#F0904A; --acc-soft:rgba(240,144,74,.16); }
+  :root[data-theme="dark"][data-po="ko"]{ --acc:#FF6F65; --acc-soft:rgba(255,111,101,.16); }
+  :root[data-theme="dark"][data-po="speak"]{ --acc:#3FC0B0; --acc-soft:rgba(63,192,176,.16); }
+  :root[data-theme="dark"][data-po="tutti"]{ --acc:#A9AEB6; --acc-soft:rgba(169,174,182,.14); }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:15px; line-height:1.5;
+    -webkit-text-size-adjust:100%;
+  }
+  h1,h2,h3{ font-family:"Archivo",Helvetica,Arial,sans-serif; font-weight:600; letter-spacing:-.02em; text-wrap:balance; margin:0; }
+  .mono{ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace; }
+
+  /* ---------- barra alta ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:40;
+    background:var(--paper);
+    background:color-mix(in srgb, var(--paper) 88%, transparent);
+    -webkit-backdrop-filter:blur(10px);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--rule);
+  }
+  .topbar-in{ max-width:1180px; margin:0 auto; padding:14px 16px 0; }
+  .brandrow{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .brand{ font-size:19px; }
+  .brand em{ font-style:normal; color:var(--muted); font-weight:500; }
+  .brandnote{ font-size:12.5px; color:var(--muted); }
+  .theme{ margin-left:auto; display:flex; border:1px solid var(--rule); border-radius:7px; overflow:hidden; background:var(--card); }
+  .theme button{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.02em;
+    border:none; background:transparent; color:var(--muted); padding:6px 10px; cursor:pointer;
+  }
+  .theme button + button{ border-left:1px solid var(--rule); }
+  .theme button[aria-pressed="true"]{ background:var(--acc); color:#fff; }
+  .theme button:focus-visible{ outline:2px solid var(--acc); outline-offset:-2px; }
+  .tabs{ display:flex; gap:6px; margin-top:12px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
+  .tabs::-webkit-scrollbar{ display:none; }
+  .tab{
+    flex:0 0 auto; border:1px solid var(--rule); border-bottom:none; background:var(--card);
+    border-radius:7px 7px 0 0; padding:8px 13px 9px; cursor:pointer; color:var(--muted);
+    font-family:"Archivo",Helvetica,Arial,sans-serif; font-size:13.5px; font-weight:600; letter-spacing:-.01em;
+    display:flex; align-items:center; gap:8px; position:relative; top:1px;
+  }
+  .tab .dot{ width:9px; height:9px; border-radius:2px; background:currentColor; opacity:.55; }
+  .tab[data-k="sub"] .dot{ background:#3757D8; }
+  .tab[data-k="tonic"] .dot{ background:#D2601F; }
+  .tab[data-k="ko"] .dot{ background:#D33B34; }
+  .tab[data-k="speak"] .dot{ background:#0F7F74; }
+  .tab[data-k="tutti"] .dot{ background:var(--muted); }
+  .tab:hover{ color:var(--ink); }
+  .tab[aria-selected="true"]{ color:var(--ink); background:var(--paper); border-color:var(--rule); box-shadow:inset 0 3px 0 var(--acc); }
+  .tab .sm{ font-weight:500; color:var(--muted); font-size:11.5px; }
+
+  /* ---------- impaginato ---------- */
+  .wrap{ max-width:1180px; margin:0 auto; padding:22px 16px 64px; display:grid; gap:26px; grid-template-columns:1fr; }
+  @media (min-width:980px){
+    .wrap{ grid-template-columns:352px minmax(0,1fr); gap:34px; align-items:start; }
+    .rail{ position:sticky; top:112px; }
+  }
+  .rail{ display:flex; flex-direction:column; gap:16px; min-width:0; }
+  .content{ display:flex; flex-direction:column; gap:28px; min-width:0; }
+
+  /* ---------- unità (schema) ---------- */
+  .unit{ min-width:0; background:var(--panel); border-radius:12px; padding:14px; color:var(--silk); box-shadow:var(--shadow); }
+  .unit-head{ display:grid; grid-template-columns:1fr auto; gap:12px; align-items:start; }
+  .lcd{
+    background:var(--lcd); color:var(--lcd-ink); border-radius:4px; padding:8px 10px 9px; min-height:64px;
+    display:flex; flex-direction:column; justify-content:space-between; box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);
+  }
+  .lcd b{ font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:600; letter-spacing:.04em; }
+  .lcd span{ font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; opacity:.8; }
+  .knobs{ display:flex; gap:8px; align-items:flex-start; }
+  .knob{
+    width:38px; height:38px; border-radius:50%; border:2px solid var(--silk-dim); background:var(--panel-2);
+    color:var(--silk); font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+    display:grid; place-items:center; cursor:pointer; padding:0;
+  }
+  .knob::after{ content:""; position:absolute; }
+  .unit-row{ display:flex; justify-content:flex-end; margin-top:8px; }
+  .keys{ display:grid; grid-template-columns:repeat(8,1fr); gap:5px; margin-top:12px; }
+  .key{
+    aspect-ratio:1/1; min-width:0; border-radius:4px; border:1px solid #33383F; background:var(--panel-2); color:var(--silk-dim);
+    font-family:"IBM Plex Mono",monospace; font-size:11px; display:grid; place-items:center; padding:0; cursor:pointer;
+  }
+  .fnrow{ display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-top:10px; }
+  .fbtn{
+    min-width:0; border-radius:4px; border:1px solid #33383F; background:var(--panel-2); color:var(--silk);
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.02em; padding:9px 4px; cursor:pointer;
+    text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .fbtn.top{ padding:9px 12px; }
+  .knob:hover,.fbtn:hover,.key:hover{ border-color:var(--silk); color:var(--silk); }
+  .knob.on,.fbtn.on,.key.on{ background:var(--acc); border-color:var(--acc); color:#fff; }
+  .knob.hi,.fbtn.hi,.key.hi{ box-shadow:0 0 0 2px var(--acc); color:var(--silk); }
+  .unit-cap{ font-size:11px; color:var(--muted); margin-top:10px; text-align:center; letter-spacing:.02em; }
+  .unit-cap b{ color:var(--silk); font-weight:600; }
+
+  /* ---------- schede ---------- */
+  .card{ background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:16px; }
+  .spec{ display:flex; flex-direction:column; gap:0; }
+  .spec div{ display:flex; justify-content:space-between; gap:14px; padding:7px 0; border-bottom:1px dashed var(--rule-soft); font-size:13.5px; }
+  .spec div:last-child{ border-bottom:none; }
+  .spec dt{ color:var(--muted); }
+  .spec b{ font-weight:600; text-align:right; min-width:0; overflow-wrap:anywhere; }
+
+  h2.sec{ font-size:17px; display:flex; align-items:center; gap:10px; }
+  h2.sec::after{ content:""; flex:1; height:1px; background:var(--rule); }
+  .sec-note{ color:var(--muted); font-size:13px; margin:6px 0 0; max-width:62ch; }
+  section > * + *{ margin-top:14px; }
+
+  /* ---------- avvio rapido ---------- */
+  .steps{ counter-reset:s; display:grid; gap:8px; grid-template-columns:1fr; }
+  @media (min-width:640px){ .steps{ grid-template-columns:1fr 1fr; } }
+  .step{
+    counter-increment:s; background:var(--card); border:1px solid var(--rule); border-radius:10px;
+    padding:12px 13px 13px 44px; position:relative; font-size:13.5px;
+  }
+  .step::before{
+    content:counter(s); position:absolute; left:13px; top:12px;
+    font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+    width:21px; height:21px; border-radius:50%; background:var(--acc); color:#fff; display:grid; place-items:center;
+  }
+  .step > b{ display:block; font-weight:600; margin-bottom:3px; }
+  .step .d{ color:var(--muted); }
+  .step .d .kk{ color:var(--silk); font-size:11px; padding:2px 6px; }
+  .steps .step:last-child:nth-child(odd){ grid-column:1 / -1; }
+
+  /* ---------- combo ---------- */
+  .toolbar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .search{
+    flex:1 1 220px; min-width:0; border:1px solid var(--rule); background:var(--card); color:var(--ink);
+    border-radius:8px; padding:9px 12px; font:inherit; font-size:13.5px;
+  }
+  .search:focus-visible,.tab:focus-visible,.chipbtn:focus-visible,.fbtn:focus-visible,.key:focus-visible,.knob:focus-visible{
+    outline:2px solid var(--acc); outline-offset:2px;
+  }
+  .chipbtn{
+    border:1px solid var(--rule); background:var(--card); color:var(--muted); border-radius:8px;
+    padding:9px 12px; font:inherit; font-size:13px; cursor:pointer;
+  }
+  .chipbtn:hover{ color:var(--ink); }
+  .grp{ margin-top:18px; }
+  .grp h3{ font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:7px; }
+  .rows{ border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:var(--card); }
+  .row{
+    display:grid; grid-template-columns:minmax(140px,205px) 1fr; gap:14px; align-items:start;
+    padding:11px 13px; border-bottom:1px solid var(--rule-soft);
+  }
+  .row:last-child{ border-bottom:none; }
+  .row:hover,.row.lit{ background:var(--acc-soft); }
+  @media (max-width:600px){ .row{ grid-template-columns:1fr; gap:6px; } }
+  .combo{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
+  .kk{
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:500;
+    background:var(--panel); color:var(--silk); border-radius:4px; padding:3px 7px; white-space:nowrap;
+  }
+  .kk.num{ background:transparent; color:var(--ink); border:1px solid var(--rule); }
+  .plus{ color:var(--muted); font-size:11px; }
+  .what{ font-size:13.5px; }
+  .what i{ display:block; font-style:normal; color:var(--muted); font-size:12.5px; margin-top:2px; }
+  .flag{
+    display:inline-block; vertical-align:1px; margin-left:6px; font-family:"IBM Plex Mono",monospace;
+    font-size:10px; letter-spacing:.04em; color:var(--muted); border:1px solid var(--rule); border-radius:3px; padding:0 4px;
+  }
+  .empty{ padding:18px 13px; color:var(--muted); font-size:13.5px; }
+
+  /* ---------- griglia effetti ---------- */
+  .fx{ display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr)); gap:7px; }
+  .fxi{ display:grid; grid-template-columns:24px 1fr; gap:9px; padding:9px 10px; border:1px solid var(--rule); border-radius:8px; background:var(--card); }
+  .fxn{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:600; color:var(--acc); padding-top:1px; }
+  .fxt{ font-size:13px; font-weight:600; }
+  .fxt i{ display:block; font-style:normal; font-weight:400; color:var(--muted); font-size:12px; margin-top:1px; }
+  .fxi.off .fxn{ color:var(--muted); }
+
+  /* ---------- tabella confronto ---------- */
+  .tablewrap{ overflow-x:auto; border:1px solid var(--rule); border-radius:10px; background:var(--card); }
+  table{ border-collapse:collapse; width:100%; min-width:660px; font-size:13px; }
+  th,td{ text-align:left; vertical-align:top; padding:10px 12px; border-bottom:1px solid var(--rule-soft); }
+  thead th{ position:sticky; top:0; background:var(--card); font-family:"Archivo",sans-serif; font-size:13px; border-bottom:1px solid var(--rule); }
+  tbody th{ font-weight:500; color:var(--muted); white-space:nowrap; }
+  tr:last-child td, tr:last-child th{ border-bottom:none; }
+  .swatch{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:7px; vertical-align:1px; }
+
+  /* iPhone: rispetta la tacca e il bordo arrotondato quando e' salvata sulla schermata */
+  .topbar-in{ padding-top:calc(14px + env(safe-area-inset-top, 0px)); }
+  .wrap{
+    padding-left:calc(16px + env(safe-area-inset-left, 0px));
+    padding-right:calc(16px + env(safe-area-inset-right, 0px));
+    padding-bottom:calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (max-width:560px){
+    .unit{ padding:11px; }
+    .lcd{ min-height:52px; padding:7px 9px; }
+    .lcd b{ font-size:13.5px; }
+    .knob{ width:34px; height:34px; }
+    .keys{ gap:4px; }
+    .key{ font-size:10px; border-radius:3px; }
+    .fnrow{ gap:4px; }
+    .fbtn{ font-size:10px; padding:8px 2px; }
+    .fbtn.top{ padding:8px 10px; }
+    .card{ padding:13px; }
+  }
+  .note{ font-size:12.5px; color:var(--muted); max-width:70ch; }
+  .note a{ color:var(--acc); }
+  footer{ border-top:1px solid var(--rule); margin-top:8px; padding-top:16px; }
+  @media (prefers-reduced-motion:reduce){ *{ transition:none !important; animation:none !important; } }
+</style>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brandrow">
+      <h1 class="brand">prontuario <em>pocket operator</em></h1>
+      <span class="brandnote">tocca un tasto dello schema per vedere solo le sue combinazioni</span>
+      <div class="theme" role="group" aria-label="Aspetto della pagina">
+        <button type="button" data-th="light" id="th-light">chiaro</button>
+        <button type="button" data-th="auto" id="th-auto">auto</button>
+        <button type="button" data-th="dark" id="th-dark">scuro</button>
+      </div>
+    </div>
+    <div class="tabs" role="tablist" id="tabs"></div>
+  </div>
+</div>
+
+<main class="wrap">
+  <aside class="rail">
+    <div class="unit" id="unit">
+      <div class="unit-head">
+        <div class="lcd"><b id="lcd1">po-33 k.o!</b><span id="lcd2">micro sampler</span></div>
+        <div class="knobs">
+          <button class="knob" data-t="A" type="button">A</button>
+          <button class="knob" data-t="B" type="button">B</button>
+        </div>
+      </div>
+      <div class="unit-row"><button class="fbtn top" data-t="top" type="button" id="topbtn">record</button></div>
+      <div class="keys" id="keys"></div>
+      <div class="fnrow">
+        <button class="fbtn" data-t="sound" type="button">sound</button>
+        <button class="fbtn" data-t="pattern" type="button">pattern</button>
+        <button class="fbtn" data-t="bpm" type="button">bpm</button>
+        <button class="fbtn" data-t="write" type="button">write</button>
+        <button class="fbtn" data-t="fx" type="button">fx</button>
+        <button class="fbtn" data-t="play" type="button">play</button>
+      </div>
+      <p class="unit-cap">schema semplificato · <b id="unitcap">i 16 tasti</b></p>
+    </div>
+    <div class="card">
+      <div class="spec" id="spec"></div>
+    </div>
+  </aside>
+
+  <div class="content" id="content"></div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  var COL = { sub:"#3757D8", tonic:"#D2601F", ko:"#D33B34", speak:"#0F7F74" };
+
+  /* combinazioni comuni a tutta la famiglia */
+  function base(o){
+    var topName = o.top;
+    var r = [
+      { g:"suoni",  k:["sound","1-16"], t:o.soundText, n:o.soundNote },
+      { g:"suoni",  k:["sound"], t:"Guarda quali slot sono pieni", n:"I numeri accesi hanno un suono, quello che lampeggia è il selezionato." },
+      { g:"suoni",  k:["1-16"], t:o.playText, n:o.playNote },
+      { g:"pattern",k:["pattern","1-16"], t:"Scegli il pattern", n:"16 pattern da 16 step l'uno." },
+      { g:"pattern",k:["pattern","1-16","1-16","…"], t:"Incatena i pattern e fai una canzone", n:"Tieni pattern e premi in sequenza i pattern che vuoi: fino a 128, ripetizioni comprese." },
+      { g:"pattern",k:["pattern"], t:"Guarda quali pattern sono pieni", n:"Stessa logica dei suoni: acceso = scritto, lampeggiante = attivo." },
+      { g:"scrivere",k:["write"], t:"Entra/esci dalla scrittura", n:"Sul display compare l'icona rec: da qui i tasti scrivono invece di suonare soltanto." },
+      { g:"scrivere",k:["1-16"], t:"Accendi e spegni gli step (in scrittura)", n:"Prima scegli il suono, poi premi gli step dove deve suonare. Ripremi per toglierlo." },
+      { g:"scrivere",k:["write","1-16"], t:"Punch-in dal vivo mentre gira", n:"Le note entrano quantizzate, swing compreso." },
+      { g:"scrivere",k:["write","A","B"], t:"Registra i movimenti delle manopole", n:"Tieni write e gira: il movimento resta scritto nel pattern (parameter lock)." },
+      { g:"tempo e volume",k:["bpm"], t:"Cicla i tre tempi preset", n:"hip hop 80 · disco 120 · techno 140." },
+      { g:"tempo e volume",k:["bpm","B"], t:"Tempo fine, da 60 a 240 bpm", n:null },
+      { g:"tempo e volume",k:["bpm","A"], t:"Swing", n:"Sposta i controtempi: da dritto a shuffle." },
+      { g:"tempo e volume",k:["bpm","1-16"], t:"Volume generale", n:"Con le cuffie non andare oltre 5." },
+      { g:"copiare e cancellare",k:["write","pattern","1-16"], t:"Copia il pattern attivo in un altro slot", n:"Tieni premuti write e pattern, poi scegli la destinazione." },
+      { g:"servizio",k:["sound","bpm"], t:"Stato della batteria", n:null },
+      { g:"servizio",k:["sound","pattern"], t:"Orologio e sveglia", n:"A = ore, B = minuti. Un tasto 1-16 sceglie il pattern che ti sveglia; A tutto giù spegne la sveglia. Si azzera solo togliendo le pile." },
+      { g:"servizio",k:["top","bpm"], t:"Cicla le modalità di sync SY0-SY5", n:"Tieni " + topName + " e tocca bpm finché non compare la sigla giusta. SY0 = sync spento (audio stereo)." }
+    ];
+    return r;
+  }
+
+  var DATA = {
+    sub:{
+      key:"sub", name:"po-14 sub", tag:"basso", full:"po-14 sub",
+      lcd:"bassi + micro drum machine",
+      top:"style", topLabel:"style",
+      keysCap:"i 16 tasti = tastiera su due ottave",
+      spec:[
+        ["cos'è","sintetizzatore di bassi"],["serie","1 (2015)"],
+        ["suoni","15 bassi + 1 drum machine"],["pattern","16, catena fino a 128"],
+        ["effetti","16 su fx"],["stili","16 su style"],
+        ["manopole","A e B modellano il suono"]
+      ],
+      steps:[
+        ["Scegli il basso","Tieni <span class=\'kk\'>sound</span> e premi 1-15. Il 16 non è un basso: è la micro drum machine."],
+        ["Suona la linea","I 16 tasti sono una tastiera su due ottave: prova a mano libera prima di scrivere."],
+        ["Scrivi","Premi <span class=\'kk\'>write</span>, poi premi gli step dove vuoi le note."],
+        ["Aggiusta le note","Sempre in scrittura, tieni premuto uno step e gira <span class=\'kk\'>A</span> per cambiare la nota, <span class=\'kk\'>B</span> per la lunghezza."],
+        ["Fallo muovere","Con <span class=\'kk\'>play</span> attivo: <span class=\'kk\'>style</span> + un tasto per arpeggi e accordi, <span class=\'kk\'>fx</span> + un tasto per gli effetti."]
+      ],
+      extra:[
+        { g:"suonare",k:["style","1-16"], t:"Play style: accordi, arpeggi, trasposizioni", n:"16 modi di rigiocare la stessa linea di basso. Tienilo premuto: quando lo lasci torna tutto normale." },
+        { g:"suonare",k:["fx","1-16"], t:"Punch-in effect", n:"16 effetti momentanei, vedi la griglia qui sotto." },
+        { g:"scrivere",k:["1-16","A"], t:"Cambia la nota di un singolo step", n:"In scrittura: tieni premuto lo step e gira A.", soft:true },
+        { g:"scrivere",k:["1-16","B"], t:"Cambia la lunghezza di un singolo step", n:"In scrittura: tieni premuto lo step e gira B.", soft:true }
+      ],
+      over:{ soundText:"Scegli il basso (1-15) o la drum machine (16)", soundNote:"Il suono 16 è una micro drum machine con 16 percussioni campionate.",
+             playText:"Suona le note", playNote:"I tasti sono disposti come due ottave di scala maggiore." },
+      fxTitle:"i 16 effetti — tieni <span class='kk'>fx</span> + un tasto",
+      fx:[["low sample rate","abbassa la risoluzione, suono sporco"],["distortion","distorsione"],["bit crush","frantuma i bit"],["delay","eco ritmica"],["lowpass filter","taglia gli acuti"],["lowpass sweep","spazzata verso il basso"],["hipass filter","taglia i bassi"],["hipass sweep","spazzata verso l'alto"],["stutter 4","balbetta ogni 4 step"],["stutter 3","balbetta ogni 3 step"],["feedback","retroazione, risuona"],["parameter lfo","fa oscillare il parametro"],["octave up","un'ottava sopra"],["octave down","un'ottava sotto"],["half note up","alza di un semitono"],["vibrato","vibrato"]],
+      fxNote:"Sulle liste community le voci 9-16 girano in due versioni: comunque il nome dell'effetto ti compare sul display appena lo premi.",
+      panels:[]
+    },
+
+    tonic:{
+      key:"tonic", name:"po-32 tonic", tag:"batteria", full:"po-32 tonic",
+      lcd:"drum synth + microtonic",
+      top:"acc", topLabel:"acc",
+      keysCap:"i 16 tasti = step, oppure accenti con acc",
+      spec:[
+        ["cos'è","sintetizzatore di percussioni"],["serie","3 (2016)"],
+        ["suoni","16 slot, sintetizzati"],["pattern","16, catena fino a 128"],
+        ["effetti","16 su fx"],["manopole","A = pitch · B = morph"],
+        ["extra","riceve i suoni da Microtonic"]
+      ],
+      steps:[
+        ["Scegli il pezzo di batteria","Tieni <span class=\'kk\'>sound</span> e premi un tasto: cassa, rullante, hi-hat, clap e compagnia."],
+        ["Scolpiscilo","Gira <span class=\'kk\'>A</span> per l'intonazione e <span class=\'kk\'>B</span> per il morph: sono due manopole, ma cambiano tutto il carattere del suono."],
+        ["Scrivi il giro","<span class=\'kk\'>write</span>, poi gli step. Un suono alla volta."],
+        ["Metti gli accenti","<span class=\'kk\'>acc</span> + gli step: quel colpo diventa forte (127 invece di 64). L'accento vale per tutto lo step, non per un solo suono."],
+        ["Blocca i parametri","In scrittura tieni premuto uno step e gira A o B: quel valore vale solo lì."]
+      ],
+      extra:[
+        { g:"suonare",k:["fx","1-16"], t:"Punch-in effect", n:"16 effetti momentanei, vedi la griglia qui sotto." },
+        { g:"suonare",k:["acc","1-16"], t:"Accento al volo (con play attivo)", n:"Colpo forte al volo, senza scriverlo." },
+        { g:"scrivere",k:["acc","1-16"], t:"Scrivi gli accenti nel pattern (in rec)", n:"Velocity 127 contro i 64 normali. Vale per tutti i suoni su quello step." },
+        { g:"scrivere",k:["1-16","A","B"], t:"Parameter lock su un singolo step", n:"In rec tieni premuto lo step e gira: pitch e morph cambiano solo su quel colpo." },
+        { g:"scrivere",k:["fx"], t:"Cancella gli effetti scritti", n:"In rec tieni fx senza premere nient'altro." },
+        { g:"trasferimento",k:["acc","sound"], t:"Modalità ricezione da Microtonic", n:"Poi dal computer premi la destinazione: passa via microfono (mic vicino alla cassa) o via cavo jack. Puoi mandare un suono singolo, un blocco di otto (1-8 o 9-16) o suoni + pattern." },
+        { g:"servizio",k:["linguetta"], t:"Linguetta di protezione", n:"Spezzala per proteggere i pattern dalla scrittura; torna come prima solo togliendo le pile." }
+      ],
+      over:{ soundText:"Scegli il suono di batteria", soundNote:"16 slot: cassa, rullante, hi-hat, clap, tom, claves/cowbell, tamburello, piatto, basso, rullante FM…",
+             playText:"Suona i colpi", playNote:"Fuori dalla scrittura i tasti suonano il suono selezionato." },
+      fxTitle:"i 16 effetti — tieni <span class='kk'>fx</span> + un tasto",
+      fx:[["half rate","metà velocità"],["distortion","distorsione"],["squash","schiaccia le dinamiche"],["echo fade","eco che sfuma"],["pitch LFO","intonazione ondeggiante"],["EQ sweep","spazzata di equalizzazione"],["mega morph","spinge il morph al massimo"],["pitch bend up","tira l'intonazione verso l'alto"],["punch","attacco più duro"],["6/8 quantise","riquantizza in 6/8"],["beat-repeat","ripete la fetta di ritmo"],["beat-repeat faster","stessa cosa, più fitto"],["FM","modulazione di frequenza, suono metallico"],["granular","polverizza il suono"],["reverse","al contrario"],["bouncing ball","colpi sempre più fitti, come una pallina che rimbalza"]],
+      fxNote:null,
+      panels:[]
+    },
+
+    ko:{
+      key:"ko", name:"po-33 k.o!", tag:"sampler", full:"po-33 k.o!",
+      lcd:"micro sampler",
+      top:"record", topLabel:"record",
+      keysCap:"1-8 melodici · 9-16 batteria",
+      spec:[
+        ["cos'è","campionatore tascabile"],["serie","3 (2018)"],
+        ["memoria","40 secondi in tutto"],["slot","1-8 melodici · 9-16 batteria"],
+        ["pattern","16, catena fino a 128"],["effetti","15 + nessuno"],
+        ["manopole","3 pagine, 6 parametri"]
+      ],
+      steps:[
+        ["Campiona","Tieni <span class=\'kk\'>record</span> + un tasto e fai il suono: registra finché tieni premuto. Se c'è un cavo nel line in, campiona da lì invece che dal microfono."],
+        ["Sappi dove l'hai messo","Slot <span class=\'kk\'>1-8</span>: il campione si suona intero su una scala cromatica, i 16 tasti diventano una tastiera. Slot <span class=\'kk\'>9-16</span>: il campione viene tagliato in 16 fette, un tasto per fetta."],
+        ["Sistemalo","Premi <span class=\'kk\'>fx</span> per cambiare pagina — ton, Flt, tri — e gira A e B."],
+        ["Scrivi","<span class=\'kk\'>pattern</span> + un numero, poi <span class=\'kk\'>write</span>, poi tieni <span class=\'kk\'>sound</span> + il campione e premi gli step."],
+        ["Suonaci sopra","<span class=\'kk\'>play</span>, poi <span class=\'kk\'>fx</span> + 1-15 mentre gira. Con write acceso l'effetto resta scritto."]
+      ],
+      extra:[
+        { g:"campionare",k:["record","1-16"], t:"Registra un campione", n:"Registra finché tieni premuto, massimo 40 secondi in totale. Con il cavo inserito campiona dal line in." },
+        { g:"campionare",k:["record","sound"], t:"Cancella il campione selezionato", n:null },
+        { g:"campionare",k:["write","sound","1-16"], t:"Copia il campione in un altro slot", n:null },
+        { g:"campionare",k:["write","sound","9-16","1-16"], t:"Copia una singola fetta", n:"Prima lo slot batteria, poi la fetta." },
+        { g:"suonare",k:["fx"], t:"Cambia pagina di parametri", n:"ton (A intonazione · B volume) → Flt (A filtro · B risonanza) → tri (A punto d'inizio · B lunghezza)." },
+        { g:"suonare",k:["fx","1-15"], t:"Effetto momentaneo", n:"Con write acceso l'effetto viene salvato nel pattern." },
+        { g:"suonare",k:["fx","16"], t:"Nessun effetto", n:"Con write acceso cancella l'effetto salvato su quel punto." },
+        { g:"copiare e cancellare",k:["record","pattern"], t:"Cancella il pattern attivo", n:null },
+        { g:"servizio",k:["pattern","pile"], t:"Reset di fabbrica", n:"Tieni premuto pattern mentre infili le batterie. Cancella tutto." }
+      ],
+      over:{ soundText:"Scegli il campione", soundNote:"1-8 melodici, 9-16 batteria.",
+             playText:"Suona il campione", playNote:"Su uno slot melodico i tasti sono una scala cromatica; su uno slot batteria ogni tasto è una fetta del campione." },
+      fxTitle:"i 16 effetti — tieni <span class='kk'>fx</span> + un tasto",
+      fx:[["loop 16","ripete un pezzo lungo"],["loop 12","ripete un pezzo più corto"],["loop short","loop corto"],["loop shorter","loop cortissimo"],["unison","raddoppia all'unisono"],["unison low","raddoppia più in basso"],["octave up","un'ottava sopra"],["octave down","un'ottava sotto"],["stutter 4","balbetta ogni 4"],["stutter 3","balbetta ogni 3"],["scratch","scratch"],["scratch fast","scratch veloce"],["6/8 quantise","riquantizza in 6/8"],["retrigger pattern","fa ripartire il pattern"],["reverse","al contrario"],["nessun effetto","pulisce / cancella l'effetto scritto"]],
+      fxNote:null,
+      panels:[{
+        title:"le tre pagine delle manopole — premi <span class='kk'>fx</span> per cambiarle",
+        rows:[["ton","A intonazione","B volume"],["Flt","A filtro: passa-basso a sinistra, passa-alto a destra","B risonanza"],["tri","A punto d'inizio del campione","B lunghezza"]]
+      }]
+    },
+
+    speak:{
+      key:"speak", name:"po-35 speak", tag:"voce", full:"po-35 speak",
+      lcd:"vocal synthesizer",
+      top:"record", topLabel:"record",
+      keysCap:"1-8 melodici · 9-16 batteria · 16 non registrabile",
+      spec:[
+        ["cos'è","campionatore di voce"],["serie","3 (2018)"],
+        ["memoria","120 secondi · 8 s per slot"],["slot","1-15 registrabili"],
+        ["voci","8 stili su fx 1-8"],["effetti","7 su fx 9-15"],
+        ["manopole","ton e tri, più 2 pagine nascoste"]
+      ],
+      steps:[
+        ["Registra la voce","Tieni <span class=\'kk\'>record</span> + un tasto da 1 a 15 e parla: massimo 8 secondi per slot."],
+        ["Scegli dove","<span class=\'kk\'>1-8</span>: la voce si stira sui 16 tasti come una tastiera. <span class=\'kk\'>9-16</span>: la frase viene tagliata in fette, una per tasto."],
+        ["Dai il carattere","<span class=\'kk\'>fx</span> + 1-8: otto stili di voce, dal neutro al robot al vocoder. Con <span class=\'kk\'>write</span> acceso lo stile resta scritto nel pattern."],
+        ["Scrivi il giro","<span class=\'kk\'>write</span>, poi tieni <span class=\'kk\'>sound</span> + la voce e premi gli step."],
+        ["Intona il tutto","<span class=\'kk\'>fx</span> + <span class=\'kk\'>record</span> + <span class=\'kk\'>5</span>: pagina nascosta con la nota base e il bpm del suono. È il trucco per far tornare le voci intonate e a tempo."]
+      ],
+      extra:[
+        { g:"campionare",k:["record","1-15"], t:"Registra la voce", n:"Massimo 8 secondi per slot, 120 in tutto. Con il cavo inserito registra dal line in." },
+        { g:"campionare",k:["sound","16"], t:"Lo slot 16 è occupato", n:"Contiene una voce di batteria presa dal PO-32 tonic: per questo non ci puoi registrare sopra." },
+        { g:"suonare",k:["fx","1-8"], t:"Cambia stile di voce", n:"Con write acceso lo stile viene salvato nel pattern." },
+        { g:"suonare",k:["fx","9-15"], t:"Effetto momentaneo", n:"Con write acceso resta scritto." },
+        { g:"suonare",k:["fx","16"], t:"Nessun effetto", n:"Con write acceso cancella l'effetto salvato." },
+        { g:"suonare",k:["fx"], t:"Cambia pagina di parametri", n:"ton (A intonazione · B formante: cambi il timbro senza cambiare la velocità) e tri (A punto d'inizio · B velocità)." },
+        { g:"segreti",k:["fx","record","5"], t:"Pagina tune nascosta", n:"A = nota base (funziona sulle voci neutral, autotune e retro), B = bpm del suono. Serve a far quadrare campioni intonati e a tempo." },
+        { g:"segreti",k:["fx","record","6"], t:"Pagina mix nascosta", n:"A = quantità di rumore (non tocca vocoder e noise), B = volume di quel suono." },
+        { g:"segreti",k:["fx","record","7"], t:"Gamma di registrazione alta/bassa", n:"Cambia la frequenza di campionamento in registrazione." },
+        { g:"copiare e cancellare",k:["record","pattern"], t:"Cancella il pattern attivo", n:null },
+        { g:"servizio",k:["pattern","write","pile"], t:"Reset di fabbrica", n:"Tieni pattern e write mentre infili le batterie. Invece di sfilare le pile puoi infilare un foglietto di carta sul polo negativo." }
+      ],
+      over:{ soundText:"Scegli la voce registrata", soundNote:"1-8 melodiche, 9-16 a fette. La 16 è la voce di batteria del PO-32.",
+             playText:"Suona la voce", playNote:"Su uno slot melodico i tasti la trasportano; su uno slot batteria ogni tasto è una fetta." },
+      fxTitle:"fx 9-16: gli effetti — tieni <span class='kk'>fx</span> + un tasto",
+      fx:[null,null,null,null,null,null,null,null,["stutter sweep","balbettio che si stringe"],["trance gate","cancello ritmico"],["half rate","metà velocità"],["16 bar build up","salita da 16 battute"],["6/8 quantise","riquantizza in 6/8"],["retrigger pattern","fa ripartire il pattern"],["reverse","al contrario"],["nessun effetto","pulisce / cancella l'effetto scritto"]],
+      fxNote:null,
+      voices:[["neutral","risintesi pulita della tua voce"],["autotune","intona le note sugli step"],["retro","voce a bassa risoluzione, anni 80"],["noise","versione inquietante"],["robot","intonazione fissa, robot"],["fifth","aggiunge la quinta sopra"],["vocoder","risonante, da vocoder"],["synth","portante a onda quadra"]],
+      panels:[{
+        title:"le pagine delle manopole — premi <span class='kk'>fx</span> per cambiarle",
+        rows:[["ton","A intonazione","B formante"],["tri","A punto d'inizio","B velocità"],["tune (nascosta: fx+record+5)","A nota base","B bpm del suono"],["mix (nascosta: fx+record+6)","A quantità di rumore","B volume"]]
+      }]
+    }
+  };
+
+  var ORDER = ["sub","tonic","ko","speak"];
+
+  /* ---- costruisce l'elenco completo di ogni macchina ---- */
+  ORDER.forEach(function(k){
+    var d = DATA[k];
+    var b = base({ top:d.topLabel, soundText:d.over.soundText, soundNote:d.over.soundNote, playText:d.over.playText, playNote:d.over.playNote });
+    d.combos = b.concat(d.extra);
+  });
+
+  var GROUPS = ["suoni","campionare","suonare","pattern","scrivere","copiare e cancellare","trasferimento","segreti","tempo e volume","servizio"];
+
+  /* ---- token → tasto sullo schema ---- */
+  function tokenOf(label, dev){
+    var l = String(label).toLowerCase();
+    if(l === "a") return "A";
+    if(l === "b") return "B";
+    if(l === "fx") return "fx";
+    if(l === "write") return "write";
+    if(l === "sound") return "sound";
+    if(l === "pattern") return "pattern";
+    if(l === "bpm") return "bpm";
+    if(l === "play") return "play";
+    if(l === "top" || l === dev.topLabel) return "top";
+    if(/^\d/.test(l) || l.indexOf("-") > -1) return "keys";
+    return null;
+  }
+  function keyLabel(x, dev){ return x === "top" ? dev.topLabel : x; }
+
+  /* aspetto: auto (segue il telefono), chiaro o scuro forzati */
+  var THEMES = ["light","auto","dark"];
+  function readTheme(){
+    try{ var v = localStorage.getItem("po-theme"); return THEMES.indexOf(v) > -1 ? v : null; }
+    catch(e){ return null; }
+  }
+  function markTheme(v){
+    THEMES.forEach(function(t){
+      var b = document.getElementById("th-" + t);
+      if(b) b.setAttribute("aria-pressed", t === v ? "true" : "false");
+    });
+  }
+  function applyTheme(v, remember){
+    var root = document.documentElement;
+    if(v === "auto") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", v);
+    markTheme(v);
+    if(remember){ try{ localStorage.setItem("po-theme", v); }catch(e){} }
+  }
+  /* all'apertura: se ha gia' scelto qui uso la sua scelta, altrimenti lascio
+     stare il tema dell'app e mi limito a segnare il pulsante giusto */
+  (function(){
+    var saved = readTheme();
+    if(saved) applyTheme(saved, false);
+    else markTheme(document.documentElement.getAttribute("data-theme") || "auto");
+  })();
+  document.querySelector(".theme").addEventListener("click", function(e){
+    var b = e.target.closest("[data-th]");
+    if(b) applyTheme(b.dataset.th, true);
+  });
+
+  var state = { dev:"ko", filter:null, q:"" };
+  var elContent = document.getElementById("content");
+  var elTabs = document.getElementById("tabs");
+  var elKeys = document.getElementById("keys");
+
+  /* tasti 1-16 */
+  for(var i=1;i<=16;i++){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "key"; b.dataset.t = "keys"; b.textContent = i;
+    elKeys.appendChild(b);
+  }
+
+  /* tab */
+  ORDER.concat(["tutti"]).forEach(function(k){
+    var t = document.createElement("button");
+    t.type = "button"; t.className = "tab"; t.dataset.k = k; t.setAttribute("role","tab");
+    if(k === "tutti"){ t.innerHTML = '<span class="dot"></span>confronto'; }
+    else { t.innerHTML = '<span class="dot"></span>' + DATA[k].name + ' <span class="sm">' + DATA[k].tag + '</span>'; }
+    t.addEventListener("click", function(){ state.dev = k; state.filter = null; state.q = ""; render(); });
+    elTabs.appendChild(t);
+  });
+
+  /* schema cliccabile */
+  document.getElementById("unit").addEventListener("click", function(e){
+    var b = e.target.closest("[data-t]");
+    if(!b || state.dev === "tutti") return;
+    state.filter = (state.filter === b.dataset.t) ? null : b.dataset.t;
+    render();
+  });
+
+  function esc(s){ return String(s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+
+  function comboHTML(c, dev){
+    return c.k.map(function(x){
+      if(x === "…") return '<span class="plus">…</span>';
+      var lab = keyLabel(x, dev);
+      var isNum = /^\d/.test(lab) || lab === "pile" || lab === "linguetta";
+      return '<span class="kk' + (isNum ? " num" : "") + '">' + esc(lab) + '</span>';
+    }).join('<span class="plus">+</span>');
+  }
+
+  function matches(c, dev){
+    if(state.filter){
+      var hit = c.k.some(function(x){ return tokenOf(x, dev) === state.filter; });
+      if(!hit) return false;
+    }
+    if(state.q){
+      var hay = (c.t + " " + (c.n||"") + " " + c.k.join(" ") + " " + c.g).toLowerCase();
+      if(hay.indexOf(state.q.toLowerCase()) === -1) return false;
+    }
+    return true;
+  }
+
+  function renderUnit(dev){
+    document.getElementById("topbtn").textContent = dev.topLabel;
+    document.getElementById("lcd1").textContent = dev.name;
+    document.getElementById("lcd2").textContent = state.filter ? ("filtro · " + keyLabel(state.filter === "keys" ? "1-16" : state.filter, dev)) : dev.lcd;
+    document.getElementById("unitcap").textContent = dev.keysCap;
+    document.querySelectorAll("#unit [data-t]").forEach(function(b){
+      b.classList.toggle("on", state.filter === b.dataset.t);
+      b.classList.remove("hi");
+    });
+    var sp = document.getElementById("spec");
+    sp.innerHTML = dev.spec.map(function(r){
+      return '<div><dt>' + esc(r[0]) + '</dt><b>' + esc(r[1]) + '</b></div>';
+    }).join("");
+  }
+
+  function highlight(c, dev, on){
+    if(!c) return;
+    var toks = {};
+    c.k.forEach(function(x){ var t = tokenOf(x, dev); if(t) toks[t] = 1; });
+    document.querySelectorAll("#unit [data-t]").forEach(function(b){
+      b.classList.toggle("hi", !!(on && toks[b.dataset.t]) && state.filter !== b.dataset.t);
+    });
+  }
+
+  function renderDevice(k){
+    var dev = DATA[k];
+    document.documentElement.setAttribute("data-po", k);
+    renderUnit(dev);
+
+    var html = "";
+
+    /* avvio rapido */
+    html += '<section><h2 class="sec">le prime cinque mosse</h2>';
+    html += '<div class="steps">' + dev.steps.map(function(s){
+      return '<div class="step"><b>' + s[0] + '</b><span class="d">' + s[1] + '</span></div>';
+    }).join("") + '</div></section>';
+
+    /* combo */
+    var list = dev.combos.filter(function(c){ return matches(c, dev); });
+    html += '<section><h2 class="sec">tutte le combinazioni</h2>';
+    html += '<div class="toolbar">' +
+            '<input class="search" id="q" type="search" placeholder="cerca: cancella, swing, campione, sveglia…" value="' + esc(state.q) + '" autocomplete="off">' +
+            (state.filter || state.q ? '<button class="chipbtn" id="clr" type="button">mostra tutto</button>' : '') +
+            '</div>';
+    if(state.filter){
+      html += '<p class="sec-note">Stai vedendo solo le combinazioni che usano <b>' + esc(keyLabel(state.filter === "keys" ? "i tasti 1-16" : state.filter, dev)) + '</b>. ' + list.length + ' su ' + dev.combos.length + '.</p>';
+    }
+    if(!list.length){
+      html += '<div class="rows"><p class="empty">Niente da mostrare con questo filtro.</p></div>';
+    } else {
+      GROUPS.forEach(function(g){
+        var rows = list.filter(function(c){ return c.g === g; });
+        if(!rows.length) return;
+        html += '<div class="grp"><h3>' + g + '</h3><div class="rows">';
+        rows.forEach(function(c){
+          var idx = dev.combos.indexOf(c);
+          html += '<div class="row" data-i="' + idx + '" tabindex="0">' +
+                  '<div class="combo">' + comboHTML(c, dev) + '</div>' +
+                  '<div class="what">' + esc(c.t) + (c.soft ? '<span class="flag" title="riportato dalla community, non dal manuale ufficiale">da confermare</span>' : '') +
+                  (c.n ? '<i>' + esc(c.n) + '</i>' : '') + '</div></div>';
+        });
+        html += '</div></div>';
+      });
+    }
+    html += '</section>';
+
+    /* voci del PO-35 */
+    if(dev.voices){
+      html += '<section><h2 class="sec">gli 8 stili di voce</h2>' +
+              '<p class="sec-note">Tieni <span class="kk">fx</span> e premi 1-8. Ogni suono può avere il suo stile: con <b>write</b> acceso lo stile resta scritto nel pattern.</p><div class="fx">' +
+              dev.voices.map(function(v,i){
+                return '<div class="fxi"><div class="fxn">' + (i+1) + '</div><div class="fxt">' + esc(v[0]) + '<i>' + esc(v[1]) + '</i></div></div>';
+              }).join("") + '</div></section>';
+    }
+
+    /* effetti */
+    html += '<section><h2 class="sec">gli effetti</h2><p class="sec-note">' + dev.fxTitle + '. Valgono finché tieni premuto: sono da suonare, non da programmare — a meno che <b>write</b> non sia acceso.</p><div class="fx">' +
+      dev.fx.map(function(f,i){
+        if(!f) return "";
+        return '<div class="fxi' + (i === 15 ? " off" : "") + '"><div class="fxn">' + (i+1) + '</div><div class="fxt">' + esc(f[0]) + '<i>' + esc(f[1]) + '</i></div></div>';
+      }).join("") + '</div>' + (dev.fxNote ? '<p class="note">' + esc(dev.fxNote) + '</p>' : '') + '</section>';
+
+    /* pagine manopole */
+    (dev.panels || []).forEach(function(p){
+      html += '<section><h2 class="sec">le manopole</h2><p class="sec-note">' + p.title + '</p><div class="rows">' +
+        p.rows.map(function(r){
+          return '<div class="row"><div class="combo"><span class="kk">' + esc(r[0]) + '</span></div><div class="what">' + esc(r[1]) + '<i>' + esc(r[2]) + '</i></div></div>';
+        }).join("") + '</div></section>';
+    });
+
+    /* sync + note */
+    html += syncSection();
+    html += sources();
+
+    elContent.innerHTML = html;
+
+    var q = document.getElementById("q");
+    if(q){
+      q.addEventListener("input", function(){ state.q = q.value; render(true); });
+    }
+    var clr = document.getElementById("clr");
+    if(clr) clr.addEventListener("click", function(){ state.filter = null; state.q = ""; render(); });
+
+    elContent.querySelectorAll(".row[data-i]").forEach(function(r){
+      var c = dev.combos[+r.dataset.i];
+      var on = function(){ r.classList.add("lit"); highlight(c, dev, true); };
+      var off = function(){ r.classList.remove("lit"); highlight(c, dev, false); };
+      r.addEventListener("mouseenter", on); r.addEventListener("mouseleave", off);
+      r.addEventListener("focus", on); r.addEventListener("blur", off);
+    });
+  }
+
+  function syncSection(){
+    var m = [
+      ["SY0","niente sync: entrata e uscita sono audio stereo. È il modo in cui si accende."],
+      ["SY1","entra stereo, esce mono + sync. È il modo del master che comanda gli altri."],
+      ["SY2","entra il sync, esce stereo. È il modo dell'ultima macchina della catena."],
+      ["SY3","entra il sync, esce mono + sync."],
+      ["SY4","entra mono + sync, esce stereo."],
+      ["SY5","entra mono + sync, esce mono + sync. È il modo di chi sta in mezzo alla catena."]
+    ];
+    return '<section><h2 class="sec">metterli a tempo fra loro</h2>' +
+      '<p class="sec-note">Tieni il tasto in alto a destra (<b>record</b> sul K.O! e sullo Speak, <b>acc</b> sul Tonic, <b>style</b> sul Sub) e tocca <b>bpm</b> finché non compare la sigla. Il sync viaggia sul canale sinistro del cavo jack a 2 impulsi per quarto, lo stesso delle Volca. Serve un cavo stereo fra le due macchine.</p>' +
+      '<div class="rows">' + m.map(function(r){
+        return '<div class="row"><div class="combo"><span class="kk">' + r[0] + '</span></div><div class="what">' + esc(r[1]) + '</div></div>';
+      }).join("") + '</div>' +
+      '<p class="note">In pratica: la macchina che comanda va su <b>SY1</b>, l\'ultima della fila su <b>SY2</b>, tutte quelle in mezzo su <b>SY5</b>.</p></section>';
+  }
+
+  function sources(){
+    return '<footer><p class="note">Dati presi dalle guide ufficiali teenage engineering (po-14, po-32, po-33, po-35) e dai manuali estesi della community. Dove le fonti non concordano trovi il segno <span class="flag">da confermare</span>: il display della macchina resta l\'ultima parola.</p></footer>';
+  }
+
+  function renderCompare(){
+    document.documentElement.setAttribute("data-po", "tutti");
+    document.getElementById("lcd1").textContent = "confronto";
+    document.getElementById("lcd2").textContent = "quattro macchine";
+    document.getElementById("topbtn").textContent = "record / acc / style";
+    document.getElementById("unitcap").textContent = "i 16 tasti cambiano mestiere su ogni macchina";
+    document.querySelectorAll("#unit [data-t]").forEach(function(b){ b.classList.remove("on","hi"); });
+    var sp = document.getElementById("spec");
+    sp.innerHTML = [
+      ["tutte hanno","16 tasti, 16 pattern, 2 manopole"],
+      ["tutte fanno","sound · pattern · bpm · write · fx · play"],
+      ["cambia","il tasto in alto a destra"],
+      ["cambia","cosa fa fx"]
+    ].map(function(r){ return '<div><dt>' + r[0] + '</dt><b>' + r[1] + '</b></div>'; }).join("");
+
+    var rows = [
+      ["che cos'è", function(d){ return d.spec[0][1]; }],
+      ["tasto in alto a destra", function(d){ return d.topLabel; }],
+      ["i 16 tasti", function(d){ return d.keysCap; }],
+      ["cosa fa fx premuto da solo", function(d){ return d.key === "ko" ? "cambia pagina di parametri (ton · Flt · tri)" : d.key === "speak" ? "cambia pagina di parametri (ton · tri)" : "niente: serve tenuto premuto con un tasto"; }],
+      ["fx + tasto", function(d){ return d.key === "speak" ? "1-8 stili di voce · 9-15 effetti · 16 pulito" : "16 effetti punch-in"; }],
+      ["manopole A e B", function(d){ return d.key === "tonic" ? "A intonazione · B morph" : d.key === "sub" ? "modellano il basso" : "cambiano con la pagina"; }],
+      ["si campiona?", function(d){ return d.key === "ko" ? "sì: record + tasto, 40 s" : d.key === "speak" ? "sì: record + 1-15, 8 s per slot" : "no, suoni interni"; }],
+      ["il suo asso", function(d){ return d.key === "sub" ? "16 play style: accordi e arpeggi al volo" : d.key === "tonic" ? "accenti con acc e suoni nuovi da Microtonic" : d.key === "ko" ? "campiona qualsiasi cosa e la taglia a fette" : "otto voci diverse, dal robot al vocoder"; }],
+      ["reset di fabbrica", function(d){ return d.key === "ko" ? "pattern + batterie" : d.key === "speak" ? "pattern + write + batterie" : "—"; }]
+    ];
+
+    var html = '<section><h2 class="sec">le quattro macchine a confronto</h2>' +
+      '<p class="sec-note">Il telaio è identico su tutte: cambia il mestiere dei 16 tasti, il tasto in alto a destra e cosa succede quando premi fx.</p>' +
+      '<div class="tablewrap"><table><thead><tr><th></th>' +
+      ORDER.map(function(k){ return '<th><span class="swatch" style="background:' + COL[k] + '"></span>' + DATA[k].name + '</th>'; }).join("") +
+      '</tr></thead><tbody>' +
+      rows.map(function(r){
+        return '<tr><th>' + r[0] + '</th>' + ORDER.map(function(k){ return '<td>' + esc(r[1](DATA[k])) + '</td>'; }).join("") + '</tr>';
+      }).join("") +
+      '</tbody></table></div></section>';
+
+    html += '<section><h2 class="sec">quello che vale su tutte e quattro</h2><div class="rows">' +
+      base({ top:"record / acc / style", soundText:"Scegli il suono", soundNote:null, playText:"Suona", playNote:null })
+      .filter(function(c){ return ["pattern","scrivere","tempo e volume","copiare e cancellare","servizio"].indexOf(c.g) > -1; })
+      .map(function(c){
+        return '<div class="row"><div class="combo">' + comboHTML(c, { topLabel:"record / acc / style" }) + '</div>' +
+               '<div class="what">' + esc(c.t) + (c.n ? '<i>' + esc(c.n) + '</i>' : '') + '</div></div>';
+      }).join("") + '</div></section>';
+
+    html += syncSection() + sources();
+    elContent.innerHTML = html;
+  }
+
+  function render(keepFocus){
+    ORDER.concat(["tutti"]).forEach(function(k){
+      var t = elTabs.querySelector('[data-k="' + k + '"]');
+      t.setAttribute("aria-selected", state.dev === k ? "true" : "false");
+    });
+    if(state.dev === "tutti") renderCompare();
+    else renderDevice(state.dev);
+    if(keepFocus){
+      var q = document.getElementById("q");
+      if(q){ q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+    }
+  }
+
+  try{
+    render();
+  }catch(err){
+    elContent.innerHTML = '<section><h2 class="sec">qualcosa non ha funzionato</h2>' +
+      '<p class="sec-note">La pagina non è riuscita a costruire l\'elenco: ' + esc(String(err && err.message || err)) + '</p></section>';
+  }
+})();
+</script>
+
+</html>
