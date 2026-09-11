@@ -114,7 +114,22 @@ Impostazioni di Sistema → **Schermi** → clicca il riquadro dell'iPad → **U
 inizia con **"Duplica"** (una volta sola: macOS se lo ricorda). Altrimenti l'iPad diventa uno
 schermo in più, vuoto.
 
-Per fare una prova senza riavviare: **cmd + spazio**, scrivi `AirPlay Automatico`, Invio.
+### Ricollegare la TV più tardi (alla cieca)
+
+Se la TV si scollega, o se sei andato sull'Apple TV a guardare qualcosa e vuoi tornare sul Mac,
+dalla tastiera del Mac, senza vedere niente:
+
+1. **cmd + barra spaziatrice** (si apre Spotlight).
+2. Scrivi `airplay automatico`.
+3. **Invio**. Dopo qualche secondo la TV torna sul Mac.
+
+Se il Mac era in stop, premi prima un tasto qualsiasi per svegliarlo.
+
+**Se vuoi un solo tasto** (una volta sola, guardando la TV): apri **Comandi Rapidi** → **+** →
+azione **"Apri app"** → scegli **AirPlay Automatico** → chiamalo **Collega la TV** → pulsante **ⓘ**
+→ attiva **"Usa come azione rapida"** con **"Menu Servizi"** → **"Aggiungi abbreviazione da
+tastiera"** → premi per esempio **ctrl + alt + cmd + A**. Da lì quella combinazione ricollega la TV
+da qualunque punto.
 
 ---
 
