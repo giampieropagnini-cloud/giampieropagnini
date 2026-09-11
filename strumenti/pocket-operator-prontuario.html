@@ -35,14 +35,14 @@
 
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --paper:#0F1114;
-      --card:#171A1E;
-      --ink:#E9EAE5;
-      --muted:#8E938B;
-      --rule:#2A2E33;
-      --rule-soft:#212429;
-      --panel:#080A0C;
-      --panel-2:#15181C;
+      --paper:#1A1D21;
+      --card:#22262B;
+      --ink:#ECEDE9;
+      --muted:#9CA29B;
+      --rule:#353A41;
+      --rule-soft:#2B3036;
+      --panel:#0A0C0F;
+      --panel-2:#181B1F;
       --silk:#E4E6E0;
       --silk-dim:#7E837B;
       --lcd:#7E8C6D;
@@ -56,8 +56,8 @@
     :root:not([data-theme="light"])[data-po="tutti"]{ --acc:#A9AEB6; --acc-soft:rgba(169,174,182,.14); }
   }
   :root[data-theme="dark"]{
-    --paper:#0F1114; --card:#171A1E; --ink:#E9EAE5; --muted:#8E938B;
-    --rule:#2A2E33; --rule-soft:#212429; --panel:#080A0C; --panel-2:#15181C;
+    --paper:#1A1D21; --card:#22262B; --ink:#ECEDE9; --muted:#9CA29B;
+    --rule:#353A41; --rule-soft:#2B3036; --panel:#0A0C0F; --panel-2:#181B1F;
     --silk:#E4E6E0; --silk-dim:#7E837B; --lcd:#7E8C6D; --lcd-ink:#101A0C;
     --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 30px -20px #000;
   }
@@ -80,7 +80,9 @@
   /* ---------- barra alta ---------- */
   .topbar{
     position:sticky; top:0; z-index:40;
+    background:var(--paper);
     background:color-mix(in srgb, var(--paper) 88%, transparent);
+    -webkit-backdrop-filter:blur(10px);
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--rule);
   }
@@ -89,6 +91,14 @@
   .brand{ font-size:19px; }
   .brand em{ font-style:normal; color:var(--muted); font-weight:500; }
   .brandnote{ font-size:12.5px; color:var(--muted); }
+  .theme{ margin-left:auto; display:flex; border:1px solid var(--rule); border-radius:7px; overflow:hidden; background:var(--card); }
+  .theme button{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.02em;
+    border:none; background:transparent; color:var(--muted); padding:6px 10px; cursor:pointer;
+  }
+  .theme button + button{ border-left:1px solid var(--rule); }
+  .theme button[aria-pressed="true"]{ background:var(--acc); color:#fff; }
+  .theme button:focus-visible{ outline:2px solid var(--acc); outline-offset:-2px; }
   .tabs{ display:flex; gap:6px; margin-top:12px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
   .tabs::-webkit-scrollbar{ display:none; }
   .tab{
@@ -237,6 +247,18 @@
   tr:last-child td, tr:last-child th{ border-bottom:none; }
   .swatch{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:7px; vertical-align:1px; }
 
+  @media (max-width:560px){
+    .unit{ padding:11px; }
+    .lcd{ min-height:52px; padding:7px 9px; }
+    .lcd b{ font-size:13.5px; }
+    .knob{ width:34px; height:34px; }
+    .keys{ gap:4px; }
+    .key{ font-size:10px; border-radius:3px; }
+    .fnrow{ gap:4px; }
+    .fbtn{ font-size:10px; padding:8px 2px; }
+    .fbtn.top{ padding:8px 10px; }
+    .card{ padding:13px; }
+  }
   .note{ font-size:12.5px; color:var(--muted); max-width:70ch; }
   .note a{ color:var(--acc); }
   footer{ border-top:1px solid var(--rule); margin-top:8px; padding-top:16px; }
@@ -248,6 +270,11 @@
     <div class="brandrow">
       <h1 class="brand">prontuario <em>pocket operator</em></h1>
       <span class="brandnote">tocca un tasto dello schema per vedere solo le sue combinazioni</span>
+      <div class="theme" role="group" aria-label="Aspetto della pagina">
+        <button type="button" data-th="light" id="th-light">chiaro</button>
+        <button type="button" data-th="auto" id="th-auto">auto</button>
+        <button type="button" data-th="dark" id="th-dark">scuro</button>
+      </div>
     </div>
     <div class="tabs" role="tablist" id="tabs"></div>
   </div>
@@ -494,6 +521,37 @@
     return null;
   }
   function keyLabel(x, dev){ return x === "top" ? dev.topLabel : x; }
+
+  /* aspetto: auto (segue il telefono), chiaro o scuro forzati */
+  var THEMES = ["light","auto","dark"];
+  function readTheme(){
+    try{ var v = localStorage.getItem("po-theme"); return THEMES.indexOf(v) > -1 ? v : null; }
+    catch(e){ return null; }
+  }
+  function markTheme(v){
+    THEMES.forEach(function(t){
+      var b = document.getElementById("th-" + t);
+      if(b) b.setAttribute("aria-pressed", t === v ? "true" : "false");
+    });
+  }
+  function applyTheme(v, remember){
+    var root = document.documentElement;
+    if(v === "auto") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", v);
+    markTheme(v);
+    if(remember){ try{ localStorage.setItem("po-theme", v); }catch(e){} }
+  }
+  /* all'apertura: se ha gia' scelto qui uso la sua scelta, altrimenti lascio
+     stare il tema dell'app e mi limito a segnare il pulsante giusto */
+  (function(){
+    var saved = readTheme();
+    if(saved) applyTheme(saved, false);
+    else markTheme(document.documentElement.getAttribute("data-theme") || "auto");
+  })();
+  document.querySelector(".theme").addEventListener("click", function(e){
+    var b = e.target.closest("[data-th]");
+    if(b) applyTheme(b.dataset.th, true);
+  });
 
   var state = { dev:"ko", filter:null, q:"" };
   var elContent = document.getElementById("content");
@@ -743,7 +801,12 @@
     }
   }
 
-  render();
+  try{
+    render();
+  }catch(err){
+    elContent.innerHTML = '<section><h2 class="sec">qualcosa non ha funzionato</h2>' +
+      '<p class="sec-note">La pagina non è riuscita a costruire l\'elenco: ' + esc(String(err && err.message || err)) + '</p></section>';
+  }
 })();
 </script>
 
