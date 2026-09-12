@@ -69,6 +69,12 @@ giampiero.pagnini@gmail.com
 
 ---
 
+## Esito — CASO CHIUSO (12/09/2026)
+
+- **02/09/2026 ore 12:50** — contestazione inviata via email a info@fuscosistemi.it.
+- **02/09/2026 ore 15:12** — Fusco Sistemi (patrizia@fuscosistemi.it) ha risposto lo stesso giorno con oggetto "fattura rettificata": *"in allegato fattura con importo rettificato, come da accordi"* (allegato `Fattura 131_E.pdf`).
+- La fattura rettificata è stata **pagata**. Contestazione risolta bonariamente, nessuna escalation necessaria.
+
 ## Note operative
 
 - La cifra proposta (100 € + IVA) è modificabile: è calcolata su 2 ore-uomo a tariffa piena di mercato, tutto compreso.
