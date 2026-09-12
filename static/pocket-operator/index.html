@@ -358,6 +358,7 @@
       keysCap:"i 16 tasti = tastiera su due ottave",
       spec:[
         ["cos'è","sintetizzatore di bassi"],["serie","1 (2015)"],
+        ["sintesi","FM, phase distortion, wavetable, corda modellata"],
         ["suoni","15 bassi + 1 drum machine"],["pattern","16, catena fino a 128"],
         ["effetti","16 su fx"],["stili","16 su style"],
         ["manopole","A e B modellano il suono"]
@@ -372,14 +373,13 @@
       extra:[
         { g:"suonare",k:["style","1-16"], t:"Play style: accordi, arpeggi, trasposizioni", n:"16 modi di rigiocare la stessa linea di basso. Tienilo premuto: quando lo lasci torna tutto normale." },
         { g:"suonare",k:["fx","1-16"], t:"Punch-in effect", n:"16 effetti momentanei, vedi la griglia qui sotto." },
-        { g:"scrivere",k:["1-16","A"], t:"Cambia la nota di un singolo step", n:"In scrittura: tieni premuto lo step e gira A.", soft:true },
-        { g:"scrivere",k:["1-16","B"], t:"Cambia la lunghezza di un singolo step", n:"In scrittura: tieni premuto lo step e gira B.", soft:true }
+        { g:"scrivere",k:["1-16","A","B"], t:"Aggiusta una nota già scritta", n:"In scrittura tieni premuto lo step: A cambia la nota (in alto a destra il display mostra n 1-16), B la lunghezza." }
       ],
       over:{ soundText:"Scegli il basso (1-15) o la drum machine (16)", soundNote:"Il suono 16 è una micro drum machine con 16 percussioni campionate.",
              playText:"Suona le note", playNote:"I tasti sono disposti come due ottave di scala maggiore." },
       fxTitle:"i 16 effetti — tieni <span class='kk'>fx</span> + un tasto",
-      fx:[["low sample rate","abbassa la risoluzione, suono sporco"],["distortion","distorsione"],["bit crush","frantuma i bit"],["delay","eco ritmica"],["lowpass filter","taglia gli acuti"],["lowpass sweep","spazzata verso il basso"],["hipass filter","taglia i bassi"],["hipass sweep","spazzata verso l'alto"],["stutter 4","balbetta ogni 4 step"],["stutter 3","balbetta ogni 3 step"],["feedback","retroazione, risuona"],["parameter lfo","fa oscillare il parametro"],["octave up","un'ottava sopra"],["octave down","un'ottava sotto"],["half note up","alza di un semitono"],["vibrato","vibrato"]],
-      fxNote:"Sulle liste community le voci 9-16 girano in due versioni: comunque il nome dell'effetto ti compare sul display appena lo premi.",
+      fx:[["low sample rate","abbassa la risoluzione, suono sporco"],["distortion","distorsione"],["bit crush","frantuma i bit"],["delay","eco ritmica"],["lowpass filter","taglia gli acuti"],["lowpass sweep","spazzata verso il basso"],["hipass filter","taglia i bassi"],["hipass sweep","spazzata verso l'alto"],["stutter 3","balbetta ogni 3"],["stutter 8","balbetta ogni 8"],["repeat 8","ripete 8 step"],["repeat 6","ripete 6 step"],["note shuffle","rimescola le note"],["feedback","retroazione, risuona"],["parameter lfo","fa oscillare il parametro"],["vibrato","vibrato"]],
+      fxNote:"Le voci 9-16 girano in due versioni diverse sulle liste in rete: questa è quella della scheda ufficiale. In ogni caso il nome dell'effetto ti compare sul display appena lo premi.",
       panels:[]
     },
 
@@ -459,7 +459,15 @@
         { g:"suonare",k:["fx","1-15"], t:"Effetto momentaneo", n:"Con write acceso l'effetto viene salvato nel pattern." },
         { g:"suonare",k:["fx","16"], t:"Nessun effetto", n:"Con write acceso cancella l'effetto salvato su quel punto." },
         { g:"copiare e cancellare",k:["record","pattern"], t:"Cancella il pattern attivo", n:null },
-        { g:"servizio",k:["pattern","pile"], t:"Reset di fabbrica", n:"Tieni premuto pattern mentre infili le batterie. Cancella tutto." }
+        { g:"servizio",k:["pattern","pile"], t:"Reset di fabbrica", n:"Tieni premuto pattern mentre infili le batterie. Cancella tutto." },
+        { g:"scrivere",k:["1-16","A","B"], t:"Aggiusta un singolo step", n:"In scrittura tieni premuto uno step acceso: su uno slot melodico A cambia la nota, su uno slot batteria A sceglie quale fetta suona; B è la lunghezza in step." },
+        { g:"scrivere",k:["1-16","bpm"], t:"Retrig: ripetizioni dentro un solo step", n:"In scrittura, su uno slot batteria: tieni premuto lo step e premi bpm per ciclare 1 · 2 · 3 · 4 · 6 · 8 colpi dentro quello step. È il modo di farsi i rullatini." },
+        { g:"scrivere",k:["1-16"], t:"Prendi le impostazioni di uno step come punto di partenza", n:"In scrittura tieni premuto uno step per un secondo: nota, fetta e parametri diventano quelli che userai scrivendo i prossimi." },
+        { g:"segreti",k:["sound"], t:"Quale slot e quale fetta sono selezionati", n:"Tenendo sound il display lo dice: le prime due cifre sono lo slot, le ultime due la fetta." },
+        { g:"segreti",k:["sound","bpm"], t:"Le informazioni di sistema", n:"Tieni premuti e il display cicla: bAt (carica della batteria), rEC (secondi di registrazione ancora liberi), CPU, rEl (versione del programma), ULT (volt della batteria)." },
+        { g:"segreti",k:["write","sound","play"], t:"Copia di sicurezza di tutto", n:"Sputa fuori dal jack tutti i campioni e tutti i pattern sotto forma di rumore digitale: registralo in stereo a 16 bit 44,1 kHz con il volume della macchina al massimo (bpm + 16). È l'unico modo per non perdere il lavoro." },
+        { g:"segreti",k:["write","sound","record"], t:"Rimette dentro la copia di sicurezza", n:"Entra in ricezione, poi fai partire la registrazione dal telefono o dal computer. Attenzione: cancella tutto quello che c'è dentro adesso." },
+        { g:"segreti",k:["bpm","1-16","B"], t:"Tempo sotto i 60: fino a 15 bpm", n:"Tieni bpm e premi cinque volte un tasto del volume, poi — sempre tenendo bpm — gira B: si scende fino a 15 bpm. È un uovo di Pasqua lasciato da un ingegnere di teenage engineering, che di sera si faceva i droni." }
       ],
       over:{ soundText:"Scegli il campione", soundNote:"1-8 melodici, 9-16 batteria.",
              playText:"Suona il campione", playNote:"Su uno slot melodico i tasti sono una scala cromatica; su uno slot batteria ogni tasto è una fetta del campione." },
@@ -491,15 +499,24 @@
         ["Intona il tutto","<span class=\'kk\'>fx</span> + <span class=\'kk\'>record</span> + <span class=\'kk\'>5</span>: pagina nascosta con la nota base e il bpm del suono. È il trucco per far tornare le voci intonate e a tempo."]
       ],
       extra:[
-        { g:"campionare",k:["record","1-15"], t:"Registra la voce", n:"Massimo 8 secondi per slot, 120 in tutto. Con il cavo inserito registra dal line in." },
+        { g:"campionare",k:["record","1-15"], t:"Registra la voce", n:"Massimo 8 secondi per slot, 120 in tutto. Con il cavo inserito registra dal line in. Una volta partita puoi mollare il numero e continua a registrare: quando lasci record, salva." },
         { g:"campionare",k:["sound","16"], t:"Lo slot 16 è occupato", n:"Contiene una voce di batteria presa dal PO-32 tonic: per questo non ci puoi registrare sopra." },
+        { g:"suonare",k:["sound","1-15"], t:"Risuona l'ultima nota e poi muta (tenendo premuto)", n:"Tieni sound + un tasto: risuona l'ultima nota di quel suono e poi quella traccia resta zitta finché non lasci. È il mute dello Speak." },
+        { g:"suonare",k:["sound","16"], t:"Lo stesso sulla traccia di batteria", n:"Fa suonare in fila i suoni di batteria e poi muta la traccia." },
         { g:"suonare",k:["fx","1-8"], t:"Cambia stile di voce", n:"Con write acceso lo stile viene salvato nel pattern." },
         { g:"suonare",k:["fx","9-15"], t:"Effetto momentaneo", n:"Con write acceso resta scritto." },
         { g:"suonare",k:["fx","16"], t:"Nessun effetto", n:"Con write acceso cancella l'effetto salvato." },
         { g:"suonare",k:["fx"], t:"Cambia pagina di parametri", n:"ton (A intonazione · B formante: cambi il timbro senza cambiare la velocità) e tri (A punto d'inizio · B velocità)." },
         { g:"segreti",k:["fx","record","5"], t:"Pagina tune nascosta", n:"A = nota base (funziona sulle voci neutral, autotune e retro), B = bpm del suono. Serve a far quadrare campioni intonati e a tempo." },
         { g:"segreti",k:["fx","record","6"], t:"Pagina mix nascosta", n:"A = quantità di rumore (non tocca vocoder e noise), B = volume di quel suono." },
-        { g:"segreti",k:["fx","record","7"], t:"Gamma di registrazione alta/bassa", n:"Cambia la frequenza di campionamento in registrazione." },
+        { g:"segreti",k:["fx","record","7"], t:"Gamma alta/bassa", n:"Cambia la gamma di registrazione e intonazione." },
+        { g:"segreti",k:["fx","record","1-4"], t:"Quanti fotogrammi al secondo usa la voce", n:"1 = 80 fps, 2 = 60, 3 = 40, 4 = 20. Più scendi, più la voce diventa sgranata e robotica: è il modo di sporcarla senza effetti." },
+        { g:"segreti",k:["fx","record","8"], t:"Metronomo acceso o spento", n:null },
+        { g:"segreti",k:["1-16","fx"], t:"Tutti e quattro i parametri di un singolo step", n:"Tieni premuto lo step e premi fx: intonazione, formante, punto d'inizio e velocità solo per quel colpo." },
+        { g:"segreti",k:["1-16"], t:"Prendi le impostazioni di uno step come punto di partenza", n:"Tieni premuto uno step per un secondo: suono, intonazione, lunghezza e parametri diventano quelli dei prossimi step che scrivi. Vale anche al contrario: l'ultima nota che suoni dal vivo è quella che finisce negli step nuovi." },
+        { g:"segreti",k:["write"], t:"Dove suona il suono selezionato", n:"Tenendo write si accendono gli step che lo usano: sono anche quelli che cambieranno se registri i movimenti delle manopole." },
+        { g:"segreti",k:["record"], t:"Quali campioni non stai usando", n:"Tenendo record si vedono gli slot che nessun pattern usa: quelli li puoi registrare sopra senza rimpianti." },
+        { g:"segreti",k:["write","sound"], t:"Copia di sicurezza di tutto", n:"Manda fuori dal jack tutti i suoni e i pattern come rumore: registra in stereo a 16 bit 44,1 kHz. Si rimette dentro con write + record, alzando il volume del lettore finché sul display arrivi a 5-8.", soft:true },
         { g:"copiare e cancellare",k:["record","pattern"], t:"Cancella il pattern attivo", n:null },
         { g:"servizio",k:["pattern","write","pile"], t:"Reset di fabbrica", n:"Tieni pattern e write mentre infili le batterie. Invece di sfilare le pile puoi infilare un foglietto di carta sul polo negativo." }
       ],
@@ -804,7 +821,7 @@
   }
 
   function sources(){
-    return '<footer><p class="note">Dati presi dalle guide ufficiali teenage engineering (po-14, po-32, po-33, po-35) e dai manuali estesi della community. Dove le fonti non concordano trovi il segno <span class="flag">da confermare</span>: il display della macchina resta l\'ultima parola.</p></footer>';
+    return '<footer><p class="note">Dati presi dalle guide ufficiali teenage engineering (po-14, po-32, po-33, po-35), dai manuali estesi della community (Cubeleco, lode/PO-33) e, per le funzioni nascoste dello Speak, dal forum di Sonic Charge, dove le ha elencate chi l\'ha programmata. Dove le fonti non concordano trovi il segno <span class="flag">da confermare</span>: il display della macchina resta l\'ultima parola.</p></footer>';
   }
 
   function renderCompare(){
