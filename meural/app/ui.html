@@ -97,6 +97,22 @@
 </div>
 
 <div class="card">
+  <h2>NFT dal wallet</h2>
+  <div class="kv" id="nftinfo"></div>
+  <label>Indirizzo del wallet</label>
+  <input type="text" id="nft_wallet" placeholder="0x…" autocapitalize="off" autocorrect="off">
+  <div class="two">
+    <div><label>Rete</label><select id="nft_chain"></select></div>
+    <div><label>Chiave Alchemy (gratuita)</label><input type="text" id="alchemy_key" placeholder="alchemy.com" autocapitalize="off" autocorrect="off"></div>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button onclick="saveConfig()">Salva</button>
+    <button class="acc" onclick="nftStart()">Scarica NFT</button>
+  </div>
+  <p class="sub" style="margin:8px 0 0">Le immagini finiscono nella sottocartella <b>nft</b> e entrano nello slideshow.</p>
+</div>
+
+<div class="card">
   <h2>Immagini <span id="count"></span></h2>
   <div class="row">
     <input type="file" id="files" accept="image/*" multiple style="display:none" onchange="upload(false)">
@@ -159,19 +175,29 @@ async function refresh() {
     for (const k of ['interval','fit','orientation','background','frame_ip','night_from','night_to']) $(k).value = c[k] ?? '';
     for (const k of ['shuffle','watchdog','night_enabled']) $(k).checked = !!c[k];
   }
+  const nf = state.nft || {};
+  if (!$('nft_chain').options.length) $('nft_chain').innerHTML = (state.nft_chains || []).map(c => `<option>${c}</option>`).join('');
+  if (!document.querySelector('.card:nth-of-type(4) :focus')) {
+    for (const k of ['nft_wallet','nft_chain','alchemy_key']) $(k).value = state.config[k] ?? '';
+  }
+  kv($('nftinfo'), [
+    ['Stato', nf.running ? '<span class="ok">Scaricamento in corso…</span>' : nf.error ? `<span class="err">${nf.error}</span>` : nf.result ? `${nf.result.ok} immagini pronte, ${nf.result.skipped} saltate` : 'Pronto'],
+    ['Ultimo passo', (nf.log || []).slice(-1)[0]],
+  ]);
   $('count').textContent = `(${state.images.length})`;
   $('grid').innerHTML = state.images.map(n => `
     <div class="thumb ${n === s.current ? 'current' : ''}" onclick="cmd('show_file', '${n.replace(/'/g, "\\'")}')">
-      <img src="/img/${encodeURIComponent(n)}" loading="lazy" alt="${n}">
+      <img src="/img/${n.split('/').map(encodeURIComponent).join('/')}" loading="lazy" alt="${n}">
       <button class="x" onclick="event.stopPropagation(); del('${n.replace(/'/g, "\\'")}')">×</button>
     </div>`).join('');
 }
 async function saveConfig() {
   const body = {};
-  for (const k of ['interval','fit','orientation','background','frame_ip','night_from','night_to']) body[k] = $(k).value;
+  for (const k of ['interval','fit','orientation','background','frame_ip','night_from','night_to','nft_wallet','nft_chain','alchemy_key']) body[k] = $(k).value.trim();
   for (const k of ['shuffle','watchdog','night_enabled']) body[k] = $(k).checked;
   await api('/api/config', body); toast('Impostazioni salvate'); refresh();
 }
+async function nftStart() { await saveConfig(); await api('/api/cmd', {cmd:'nft_start'}); toast('Scaricamento avviato'); setTimeout(refresh, 1500); }
 async function loadGalleries() {
   try {
     const j = await api('/api/galleries'); const list = Array.isArray(j.galleries) ? j.galleries : (j.galleries.response || []);

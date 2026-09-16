@@ -117,7 +117,7 @@ class Slideshow(threading.Thread):
         try:
             self.frame.postcard(data, name, ctype)
             with self.lock:
-                self.current = os.path.basename(path)
+                self.current = os.path.relpath(path, self.folder_fn())
                 self.last_sent = time.time()
                 self.last_error = None
             log.info("inviata %s (%d KB)", name, len(data) // 1024)

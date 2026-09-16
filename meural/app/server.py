@@ -15,7 +15,7 @@ import threading
 from email.parser import BytesParser
 from email.policy import HTTP
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -23,6 +23,7 @@ sys.path.insert(0, HERE)
 import images  # noqa: E402
 from frame import Frame, FrameError  # noqa: E402
 from slideshow import Slideshow  # noqa: E402
+import nft  # noqa: E402
 
 log = logging.getLogger("server")
 
@@ -39,8 +40,25 @@ DEFAULTS = {
     "night_enabled": False,
     "night_from": "23:30",
     "night_to": "07:30",
+    "nft_wallet": "",
+    "nft_chain": "eth-mainnet",
+    "alchemy_key": "",
 }
 EDITABLE = [k for k in DEFAULTS if k != "port"]
+
+
+def safe_path(folder, rel):
+    """Percorso assoluto di `rel` dentro `folder`, o None se esce dalla cartella."""
+    rel = str(rel)
+    if not rel or os.path.isabs(rel) or "\\" in rel:
+        return None
+    rel = os.path.normpath(rel)
+    if rel.startswith(".."):
+        return None
+    full = os.path.abspath(os.path.join(folder, rel))
+    if not full.startswith(os.path.abspath(folder) + os.sep):
+        return None
+    return full
 
 
 class App:
@@ -55,6 +73,7 @@ class App:
         self.slideshow = Slideshow(self.frame, self.config, lambda: self.folder)
         self.slideshow.start()
         self.lock = threading.Lock()
+        self.nft_state = {"running": False, "log": [], "result": None, "error": None}
 
     def _resolve_folder(self):
         """Cartella immagini assoluta; in config resta il valore scritto dall'utente."""
@@ -89,7 +108,35 @@ class App:
             "slideshow": self.slideshow.state(),
             "images": images.list_images(self.folder),
             "pillow": images.HAVE_PIL,
+            "nft": self.nft_state,
+            "nft_chains": nft.CHAINS,
         }
+
+    def nft_start(self):
+        """Scarica gli NFT del wallet in una sottocartella `nft` della cartella immagini."""
+        if self.nft_state["running"]:
+            raise FrameError("scaricamento NFT già in corso")
+        cfg = self.config
+        if not cfg.get("alchemy_key") or not cfg.get("nft_wallet"):
+            raise FrameError("inserisci chiave Alchemy e indirizzo del wallet, poi salva")
+        st = self.nft_state
+        st.update(running=True, log=[], result=None, error=None)
+
+        def progress(msg):
+            st["log"] = (st["log"] + [msg])[-30:]
+
+        def work():
+            try:
+                st["result"] = nft.download_wallet(
+                    cfg["alchemy_key"], cfg.get("nft_chain", "eth-mainnet"), cfg["nft_wallet"],
+                    os.path.join(self.folder, "nft"), progress)
+            except Exception as e:  # noqa: BLE001
+                st["error"] = str(e)
+                log.warning("nft: %s", e)
+            finally:
+                st["running"] = False
+
+        threading.Thread(target=work, daemon=True).start()
 
     def command(self, cmd, value=None):
         fr = self.frame
@@ -122,9 +169,12 @@ class App:
         if cmd == "slideshow_skip":
             self.slideshow.skip()
             return "ok"
+        if cmd == "nft_start":
+            self.nft_start()
+            return "ok"
         if cmd == "show_file":
-            path = os.path.join(self.folder, os.path.basename(str(value)))
-            if not os.path.isfile(path):
+            path = safe_path(self.folder, value)
+            if not path or not os.path.isfile(path):
                 raise FrameError("file non trovato")
             self.slideshow.show_file(path)
             return "ok"
@@ -190,9 +240,9 @@ class Handler(BaseHTTPRequestHandler):
             except FrameError as e:
                 return self._json({"error": str(e)}, 502)
         if u.path.startswith("/img/"):
-            name = os.path.basename(u.path[5:])
-            if images.is_image(name):
-                return self._file(os.path.join(self.app.folder, name))
+            path = safe_path(self.app.folder, unquote(u.path[5:]))
+            if path and images.is_image(os.path.basename(path)):
+                return self._file(path)
         self.send_error(404)
 
     def do_POST(self):
@@ -222,9 +272,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"ok": True, "saved": saved})
             if u.path == "/api/delete":
                 data = json.loads(self._body() or b"{}")
-                name = os.path.basename(str(data.get("name", "")))
-                path = os.path.join(self.app.folder, name)
-                if images.is_image(name) and os.path.isfile(path):
+                path = safe_path(self.app.folder, data.get("name", ""))
+                if path and images.is_image(os.path.basename(path)) and os.path.isfile(path):
                     os.remove(path)
                     return self._json({"ok": True})
                 return self._json({"ok": False, "error": "file non trovato"}, 404)

@@ -23,9 +23,18 @@ def is_image(name):
 
 
 def list_images(folder):
+    """Immagini nella cartella e nelle sue sottocartelle dirette (es. `nft/`),
+    come percorsi relativi alla cartella."""
     if not folder or not os.path.isdir(folder):
         return []
-    return sorted(f for f in os.listdir(folder) if is_image(f))
+    out = []
+    for f in sorted(os.listdir(folder)):
+        p = os.path.join(folder, f)
+        if is_image(f):
+            out.append(f)
+        elif os.path.isdir(p) and not f.startswith("."):
+            out.extend(os.path.join(f, g) for g in sorted(os.listdir(p)) if is_image(g))
+    return out
 
 
 def prepare(path, orientation="auto", mode="fit", background="#000000", quality=90):

@@ -51,14 +51,28 @@ la cornice finta stampa a video quello che riceve.
 
 ## NFT
 
+Nell'interfaccia web c'è la sezione "NFT dal wallet": inserisci l'indirizzo
+del wallet, la rete e una chiave gratuita di Alchemy (alchemy.com, piano
+free), poi "Scarica NFT". Le immagini finiscono in `immagini/nft` ed entrano
+subito nello slideshow. Reti: Ethereum, Polygon, Base, Arbitrum, Optimism.
+
+Da terminale, la stessa cosa:
+
 ```
 ALCHEMY_KEY=la_tua_chiave python3 app/nft.py 0xIL_TUO_WALLET --chain eth-mainnet --out app/immagini/nft
 ```
 
-Chiave gratuita su alchemy.com. Reti: `eth-mainnet`, `polygon-mainnet`,
-`base-mainnet`, `arb-mainnet`, `opt-mainnet`. Poi nello slideshow scegli
-`immagini/nft` come cartella (campo `folder` in `config.json`) o lascia tutto
-in `immagini`.
+## Scheda SD: playlist permanenti senza cloud
+
+La cornice legge fino a 4 cartelle `meural1`…`meural4` nella radice di una
+scheda SD e le mostra come playlist. Per prepararne una dalle tue immagini,
+già adattate alla risoluzione della cornice:
+
+```
+python3 app/scheda_sd.py app/immagini/nft /Volumes/NOME_SCHEDA --slot 1
+```
+
+Poi espelli la scheda e inseriscila nella cornice.
 
 ## Limiti noti
 

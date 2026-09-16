@@ -4,11 +4,13 @@
 Usa l'API NFT di Alchemy (piano gratuito: https://www.alchemy.com/), chiave
 in variabile d'ambiente ALCHEMY_KEY oppure con --key. Nessuna dipendenza.
 
-Uso:
+Uso da terminale:
   ALCHEMY_KEY=xxx python3 nft.py 0xIL_TUO_WALLET [--chain eth-mainnet] [--out immagini/nft]
 
 Reti: eth-mainnet, polygon-mainnet, arb-mainnet, opt-mainnet, base-mainnet.
 Le immagini ipfs:// vengono risolte con un gateway pubblico.
+
+Dal server web la stessa cosa si fa con il pulsante "Scarica NFT".
 """
 import argparse
 import json
@@ -19,11 +21,18 @@ import urllib.parse
 import urllib.request
 
 GATEWAY = "https://ipfs.io/ipfs/"
+CHAINS = ["eth-mainnet", "polygon-mainnet", "base-mainnet", "arb-mainnet", "opt-mainnet"]
 
 
 def fetch_json(url):
     with urllib.request.urlopen(url, timeout=30) as r:
         return json.load(r)
+
+
+def fetch_bytes(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "meural-locale/1.0"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return r.read()
 
 
 def resolve(url):
@@ -62,41 +71,63 @@ def image_url(nft):
     return resolve(raw.get("image") or raw.get("image_url"))
 
 
+def nft_name(nft):
+    return nft.get("name") or f"{(nft.get('contract') or {}).get('name', 'nft')} #{nft.get('tokenId')}"
+
+
+def download_wallet(key, chain, wallet, out, progress=None):
+    """Scarica tutte le immagini del wallet in `out`. Ritorna {ok, skipped, errors}.
+
+    `progress(msg)` viene chiamata a ogni passo, se fornita.
+    """
+    say = progress or (lambda m: None)
+    if not key or not wallet:
+        raise ValueError("servono chiave Alchemy e indirizzo del wallet")
+    if chain not in CHAINS:
+        raise ValueError(f"rete sconosciuta: {chain}")
+    os.makedirs(out, exist_ok=True)
+    res = {"ok": 0, "skipped": 0, "errors": []}
+    say("interrogo Alchemy…")
+    for nft in nfts_for_owner(key, chain, wallet):
+        name = nft_name(nft)
+        url = image_url(nft)
+        if not url:
+            res["skipped"] += 1
+            res["errors"].append(f"{name}: nessuna immagine")
+            continue
+        ext = os.path.splitext(urllib.parse.urlparse(url).path)[1].lower()
+        if ext not in (".jpg", ".jpeg", ".png", ".gif"):
+            ext = ".png"
+        dest = os.path.join(out, safe_name(name) + ext)
+        if os.path.exists(dest):
+            res["ok"] += 1
+            continue
+        try:
+            data = fetch_bytes(url)
+            with open(dest, "wb") as f:
+                f.write(data)
+            res["ok"] += 1
+            say(f"scaricato {os.path.basename(dest)}")
+        except Exception as e:  # noqa: BLE001
+            res["skipped"] += 1
+            res["errors"].append(f"{name}: {e}")
+    say(f"fatto: {res['ok']} immagini pronte, {res['skipped']} saltate")
+    return res
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("wallet")
-    ap.add_argument("--chain", default="eth-mainnet")
+    ap.add_argument("--chain", default="eth-mainnet", choices=CHAINS)
     ap.add_argument("--out", default="immagini/nft")
     ap.add_argument("--key", default=os.environ.get("ALCHEMY_KEY"))
     a = ap.parse_args()
     if not a.key:
         sys.exit("Serve la chiave Alchemy: ALCHEMY_KEY=... oppure --key")
-    os.makedirs(a.out, exist_ok=True)
-    n_ok = n_skip = 0
-    for nft in nfts_for_owner(a.key, a.chain, a.wallet):
-        url = image_url(nft)
-        name = nft.get("name") or f"{(nft.get('contract') or {}).get('name', 'nft')} #{nft.get('tokenId')}"
-        if not url:
-            print(f"  salto {name}: nessuna immagine")
-            n_skip += 1
-            continue
-        ext = os.path.splitext(urllib.parse.urlparse(url).path)[1].lower()
-        if ext not in (".jpg", ".jpeg", ".png", ".gif"):
-            ext = ".png"
-        dest = os.path.join(a.out, safe_name(name) + ext)
-        if os.path.exists(dest):
-            n_ok += 1
-            continue
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "meural-locale/1.0"})
-            with urllib.request.urlopen(req, timeout=60) as r, open(dest, "wb") as f:
-                f.write(r.read())
-            print(f"  scaricato {dest}")
-            n_ok += 1
-        except Exception as e:  # noqa: BLE001
-            print(f"  salto {name}: {e}")
-            n_skip += 1
-    print(f"Fatto: {n_ok} immagini pronte, {n_skip} saltate. Cartella: {a.out}")
+    res = download_wallet(a.key, a.chain, a.wallet, a.out, progress=lambda m: print("  " + m))
+    for e in res["errors"]:
+        print("  salto", e)
+    print(f"Cartella: {a.out}")
 
 
 if __name__ == "__main__":
