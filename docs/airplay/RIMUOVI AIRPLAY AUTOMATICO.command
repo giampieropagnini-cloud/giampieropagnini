@@ -16,6 +16,10 @@ esac
 
 echo "  (se macOS chiede se il Terminale può controllare «System Events», clicca OK)"
 osascript -e "tell application \"System Events\" to delete (every login item whose name is \"$NOME_APP\")" >/dev/null 2>&1
+GUARDIA_PLIST="$HOME/Library/LaunchAgents/com.giampieropagnini.airplay-automatico.guardia.plist"
+launchctl bootout "gui/$(id -u)" "$GUARDIA_PLIST" >/dev/null 2>&1
+rm -f "$GUARDIA_PLIST"
+pkill -f "$NOME_APP.app/Contents/MacOS/" >/dev/null 2>&1
 rm -rf "/Applications/$NOME_APP.app" "$HOME/Applications/$NOME_APP.app"
 rm -rf "$HOME/Library/Application Support/$NOME_APP"
 
@@ -24,5 +28,7 @@ echo "  ✓ Rimosso. Il Mac non si collegherà più da solo all'Apple TV."
 echo "    (Il diario resta in ~/Library/Logs/AirPlayAutomatico.log: puoi cancellarlo.)"
 echo "    Se vuoi, togli anche la voce «$NOME_APP» da"
 echo "    Impostazioni di Sistema → Privacy e sicurezza → Accessibilità."
+echo "    Se avevi detto di non spegnere mai lo schermo, rimetti a posto da"
+echo "    Impostazioni di Sistema → Schermata di blocco → «Spegni lo schermo quando inattivo»."
 echo ""
 read -r -p "  Premi Invio per chiudere questa finestra."

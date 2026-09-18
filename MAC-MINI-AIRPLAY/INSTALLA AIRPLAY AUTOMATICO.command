@@ -1,7 +1,9 @@
 #!/bin/bash
 # Doppio clic su questo file per installare "AirPlay Automatico" sul Mac mini.
-# Da quel momento, ogni volta che accendi il Mac, lui si collega da solo
-# all'Apple TV (Duplica schermo), senza bisogno dell'iPad.
+# Da quel momento:
+#   - ogni volta che accendi il Mac, lui si collega da solo all'Apple TV (Duplica schermo)
+#   - se la TV si stacca, basta toccare la tastiera (o ctrl+cmd+Q, password, Invio)
+#     e la TV torna sul Mac da sola, grazie alla "guardia"
 cd "$(dirname "$0")"
 clear
 
@@ -11,6 +13,8 @@ SORGENTE_APP="avvio-app.applescript"
 CONFIG_DIR="$HOME/Library/Application Support/$NOME_APP"
 CONFIG="$CONFIG_DIR/apple-tv.txt"
 SCRIPT_COMPILATO="$CONFIG_DIR/airplay-automatico.scpt"
+GUARDIA="$CONFIG_DIR/guardia.sh"
+GUARDIA_PLIST="$HOME/Library/LaunchAgents/com.giampieropagnini.airplay-automatico.guardia.plist"
 LOG="$HOME/Library/Logs/AirPlayAutomatico.log"
 BUNDLE_ID="com.giampieropagnini.airplay-automatico"
 
@@ -20,13 +24,25 @@ chiudi() {
   exit "${1:-0}"
 }
 
+# chiedi_si_no "domanda" default -> 0 = si', 1 = no
+chiedi_si_no() {
+  local risposta
+  read -r -p "  $1 " risposta
+  risposta=${risposta:-$2}
+  case "$risposta" in
+    s|S|si|Si|SI|sì|Sì|y|Y|yes) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 echo ""
 echo "  ╔══════════════════════════════════════════════════╗"
 echo "  ║   AIRPLAY AUTOMATICO — installazione             ║"
 echo "  ╚══════════════════════════════════════════════════╝"
 echo ""
 echo "  Alla fine, quando accendi il Mac mini, lui si collega da solo"
-echo "  all'Apple TV come monitor. L'iPad con Duet non servirà più."
+echo "  all'Apple TV come monitor. E se la TV si stacca, basta toccare"
+echo "  la tastiera: torna da sola. L'iPad con Duet non servirà più."
 echo ""
 
 # --- controlli ---
@@ -41,62 +57,71 @@ if [ ! -f "$SORGENTE" ] || [ ! -f "$SORGENTE_APP" ]; then
 fi
 echo "  Questo Mac: $(scutil --get ComputerName 2>/dev/null) — macOS $(sw_vers -productVersion)"
 echo ""
+mkdir -p "$CONFIG_DIR" "$HOME/Library/LaunchAgents" "$HOME/Library/Logs"
 
 # --- 1. quale Apple TV ---
 echo "  PASSO 1 di 4 — Quale Apple TV?"
 echo "  ─────────────────────────────────────"
-echo "  Cerco le Apple TV in casa (5 secondi)..."
-echo "  (se macOS chiede se il Terminale può cercare dispositivi sulla rete locale, clicca Consenti)"
-TMP=$(mktemp)
-dns-sd -B _airplay._tcp local. > "$TMP" 2>/dev/null &
-DNSPID=$!
-sleep 5
-kill "$DNSPID" 2>/dev/null
-wait "$DNSPID" 2>/dev/null
-IO=$(scutil --get ComputerName 2>/dev/null)
-TROVATI=()
-while IFS= read -r riga; do
-  [ -n "$riga" ] || continue
-  [ "$riga" = "$IO" ] && continue
-  TROVATI+=("$riga")
-done < <(grep -E '^[0-9:.]+ +Add ' "$TMP" \
-          | sed -E 's/^.*_airplay\._tcp\.[[:space:]]+//' \
-          | LC_ALL=C awk '{ while (match($0, /\\[0-9][0-9][0-9]/)) { $0 = substr($0, 1, RSTART-1) sprintf("%c", substr($0, RSTART+1, 3)+0) substr($0, RSTART+4) }; print }' \
-          | sort -u)
-rm -f "$TMP"
-
 NOME_TV=""
-if [ ${#TROVATI[@]} -gt 0 ]; then
-  echo ""
-  echo "  Ho trovato questi dispositivi AirPlay:"
-  i=1
-  for n in "${TROVATI[@]}"; do
-    echo "     $i) $n"
-    i=$((i+1))
-  done
-  echo "     0) Nessuno di questi: lo scrivo io"
-  echo ""
-  while true; do
-    read -r -p "  Scrivi il numero dell'Apple TV e premi Invio: " SCELTA
-    if [ "$SCELTA" = "0" ]; then break; fi
-    if [[ "$SCELTA" =~ ^[0-9]+$ ]] && [ "$SCELTA" -ge 1 ] && [ "$SCELTA" -le ${#TROVATI[@]} ]; then
-      NOME_TV="${TROVATI[$((SCELTA-1))]}"
-      break
-    fi
-    echo "  Non ho capito, riprova."
-  done
-else
-  echo ""
-  echo "  Non ho trovato nessuna Apple TV in rete (forse è spenta, o non è sulla stessa rete Wi-Fi)."
-  echo "  Non fa niente: scrivi tu il nome."
+ATTUALE=$(head -n 1 "$CONFIG" 2>/dev/null)
+if [ -n "$ATTUALE" ]; then
+  echo "  Apple TV già impostata: $ATTUALE"
+  if chiedi_si_no "La tengo? (Invio = sì, n = ne scelgo un'altra)" s; then
+    NOME_TV="$ATTUALE"
+  fi
 fi
-while [ -z "$NOME_TV" ]; do
-  read -r -p "  Scrivi il nome esatto dell'Apple TV (come appare in Duplica schermo): " NOME_TV
-done
-mkdir -p "$CONFIG_DIR"
+if [ -z "$NOME_TV" ]; then
+  echo "  Cerco le Apple TV in casa (5 secondi)..."
+  echo "  (se macOS chiede se il Terminale può cercare dispositivi sulla rete locale, clicca Consenti)"
+  TMP=$(mktemp)
+  dns-sd -B _airplay._tcp local. > "$TMP" 2>/dev/null &
+  DNSPID=$!
+  sleep 5
+  kill "$DNSPID" 2>/dev/null
+  wait "$DNSPID" 2>/dev/null
+  IO=$(scutil --get ComputerName 2>/dev/null)
+  TROVATI=()
+  while IFS= read -r riga; do
+    [ -n "$riga" ] || continue
+    [ "$riga" = "$IO" ] && continue
+    TROVATI+=("$riga")
+  done < <(grep -E '^[0-9:.]+ +Add ' "$TMP" \
+            | sed -E 's/^.*_airplay\._tcp\.[[:space:]]+//' \
+            | LC_ALL=C awk '{ while (match($0, /\\[0-9][0-9][0-9]/)) { $0 = substr($0, 1, RSTART-1) sprintf("%c", substr($0, RSTART+1, 3)+0) substr($0, RSTART+4) }; print }' \
+            | sort -u)
+  rm -f "$TMP"
+
+  if [ ${#TROVATI[@]} -gt 0 ]; then
+    echo ""
+    echo "  Ho trovato questi dispositivi AirPlay:"
+    i=1
+    for n in "${TROVATI[@]}"; do
+      echo "     $i) $n"
+      i=$((i+1))
+    done
+    echo "     0) Nessuno di questi: lo scrivo io"
+    echo ""
+    while true; do
+      read -r -p "  Scrivi il numero dell'Apple TV e premi Invio: " SCELTA
+      if [ "$SCELTA" = "0" ]; then break; fi
+      if [[ "$SCELTA" =~ ^[0-9]+$ ]] && [ "$SCELTA" -ge 1 ] && [ "$SCELTA" -le ${#TROVATI[@]} ]; then
+        NOME_TV="${TROVATI[$((SCELTA-1))]}"
+        break
+      fi
+      echo "  Non ho capito, riprova."
+    done
+  else
+    echo ""
+    echo "  Non ho trovato nessuna Apple TV in rete (forse è spenta, o non è sulla stessa rete Wi-Fi)."
+    echo "  Non fa niente: scrivi tu il nome."
+  fi
+  while [ -z "$NOME_TV" ]; do
+    read -r -p "  Scrivi il nome esatto dell'Apple TV (come appare in Duplica schermo): " NOME_TV
+  done
+fi
 printf '%s\n' "$NOME_TV" > "$CONFIG"
 echo ""
-echo "  ✓ Apple TV scelta: $NOME_TV"
+echo "  ✓ Apple TV: $NOME_TV"
 echo ""
 
 # --- 2. creazione dell'app ---
@@ -168,10 +193,11 @@ else
   echo "  ✓ App già presente e a posto ($APP): ho aggiornato solo lo script."
 fi
 rm -f "$ERR"
+printf '%s\n' "$APP" > "$CONFIG_DIR/app.txt"
 echo ""
 
-# --- 3. avvio automatico all'accensione ---
-echo "  PASSO 3 di 4 — Avvio automatico all'accensione"
+# --- 3. avvio automatico, guardia, schermo ---
+echo "  PASSO 3 di 4 — Avvio automatico e ricollegamento"
 echo "  ─────────────────────────────────────"
 echo "  (se macOS chiede se il Terminale può controllare «System Events», clicca OK)"
 if osascript >/dev/null 2>&1 <<EOF
@@ -188,6 +214,139 @@ else
   echo "  ⚠ Non sono riuscito ad aggiungerlo automaticamente. Fallo a mano:"
   echo "    Impostazioni di Sistema → Generali → Elementi login → premi + → scegli"
   echo "    $APP"
+fi
+
+echo ""
+echo "  La «guardia»: se la TV si stacca (o sei andato sull'Apple TV) e poi tocchi la"
+echo "  tastiera o il mouse del Mac, entro mezzo minuto la TV torna sul Mac da sola."
+echo "  Finché non tocchi il Mac non fa nulla: puoi guardare l'Apple TV in pace."
+echo "  Sequenza sicura, alla cieca: ctrl + cmd + Q, poi password e Invio."
+if chiedi_si_no "La attivo? (Invio = sì, n = no)" s; then
+  cat > "$GUARDIA" <<'EOF'
+#!/bin/bash
+# La "guardia" di AirPlay Automatico. launchd la esegue ogni 20 secondi.
+# Se la TV non e' collegata e tu stai usando il Mac (tastiera o mouse toccati da poco,
+# oppure hai appena sbloccato lo schermo con la password), avvia AirPlay Automatico
+# che la ricollega. Se non tocchi il Mac (per esempio stai guardando l'Apple TV) non fa nulla.
+
+NOME_APP="AirPlay Automatico"
+CONFIG_DIR="$HOME/Library/Application Support/$NOME_APP"
+LOG="$HOME/Library/Logs/AirPlayAutomatico.log"
+SECONDI_ATTIVITA=90      # "stai usando il Mac" = tastiera o mouse toccati negli ultimi 90 secondi
+PAUSA_TRA_AVVII=150      # non riavviare l'app piu' spesso di cosi' (secondi)
+FLAG_BLOCCATO="$CONFIG_DIR/guardia-bloccato"
+
+scrivi() { printf '%s  [guardia] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$LOG"; }
+
+NOME_TV=$(head -n 1 "$CONFIG_DIR/apple-tv.txt" 2>/dev/null)
+[ -n "$NOME_TV" ] || exit 0
+
+# il diario non deve crescere all'infinito
+if [ -f "$LOG" ] && [ "$(stat -f %z "$LOG" 2>/dev/null || echo 0)" -gt 2000000 ]; then
+  tail -n 2000 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"
+fi
+
+# nei primi 3 minuti dopo l'accensione ci pensa l'avvio automatico
+avvio=$(sysctl -n kern.boottime 2>/dev/null | awk '{ v=$4; gsub(/[^0-9]/, "", v); print v }')
+ora=$(date +%s)
+if [ -n "$avvio" ] && [ $((ora - avvio)) -lt 180 ]; then exit 0; fi
+
+# l'app sta gia' lavorando?
+pgrep -f "$NOME_APP.app/Contents/MacOS/" >/dev/null 2>&1 && exit 0
+
+# schermo bloccato? (serve la password) allora non si puo' fare nulla: me lo segno
+if ioreg -n Root -d1 2>/dev/null | grep -Eq 'CGSSessionScreenIsLocked"? *= *(Yes|1|true)'; then
+  touch "$FLAG_BLOCCATO"
+  exit 0
+fi
+
+# appena sbloccato con la password? allora la TV va ricollegata subito
+sbloccato=0
+if [ -f "$FLAG_BLOCCATO" ]; then
+  rm -f "$FLAG_BLOCCATO"
+  sbloccato=1
+fi
+
+# tastiera o mouse toccati da poco?
+idle=$(ioreg -c IOHIDSystem 2>/dev/null | awk '/HIDIdleTime/ { v=$NF; gsub(/[^0-9]/, "", v); print int(v/1000000000); exit }')
+if [ "$sbloccato" = "0" ]; then
+  if [ -z "$idle" ]; then
+    if [ ! -f "$CONFIG_DIR/guardia-avviso" ]; then
+      scrivi "non riesco a leggere da quanto non tocchi il Mac: la guardia lavora solo dopo lo sblocco con la password"
+      touch "$CONFIG_DIR/guardia-avviso"
+    fi
+    exit 0
+  fi
+  [ "$idle" -le "$SECONDI_ATTIVITA" ] || exit 0
+fi
+
+# la TV e' gia' collegata?
+/usr/sbin/system_profiler SPDisplaysDataType 2>/dev/null | grep -F -q "$NOME_TV" && exit 0
+
+# non insistere troppo (dopo uno sblocco invece si parte subito)
+ultimo=$(cat "$CONFIG_DIR/guardia-ultimo" 2>/dev/null || echo 0)
+if [ "$sbloccato" = "0" ] && [ $((ora - ultimo)) -lt "$PAUSA_TRA_AVVII" ]; then exit 0; fi
+echo "$ora" > "$CONFIG_DIR/guardia-ultimo"
+
+touch "$CONFIG_DIR/avvio-guardia"
+if [ "$sbloccato" = "1" ]; then
+  scrivi "schermo appena sbloccato e TV non collegata: avvio $NOME_APP"
+else
+  scrivi "stai usando il Mac (ultimo tocco ${idle}s fa) e la TV non e' collegata: avvio $NOME_APP"
+fi
+APP=$(head -n 1 "$CONFIG_DIR/app.txt" 2>/dev/null)
+if [ -n "$APP" ] && [ -d "$APP" ]; then
+  open "$APP"
+else
+  open -a "$NOME_APP"
+fi
+EOF
+  chmod +x "$GUARDIA"
+  cat > "$GUARDIA_PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.giampieropagnini.airplay-automatico.guardia</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>$GUARDIA</string>
+	</array>
+	<key>StartInterval</key>
+	<integer>20</integer>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>$HOME/Library/Logs/AirPlayAutomatico-guardia.log</string>
+</dict>
+</plist>
+EOF
+  launchctl bootout "gui/$(id -u)" "$GUARDIA_PLIST" >/dev/null 2>&1
+  if launchctl bootstrap "gui/$(id -u)" "$GUARDIA_PLIST" >/dev/null 2>&1 || launchctl load -w "$GUARDIA_PLIST" >/dev/null 2>&1; then
+    echo "  ✓ Guardia attiva."
+  else
+    echo "  ⚠ Non sono riuscito ad attivare la guardia: dimmelo."
+  fi
+else
+  launchctl bootout "gui/$(id -u)" "$GUARDIA_PLIST" >/dev/null 2>&1
+  rm -f "$GUARDIA_PLIST" "$GUARDIA"
+  echo "  ✓ Guardia non attiva."
+fi
+
+echo ""
+echo "  Lo schermo: di solito macOS «spegne lo schermo» dopo qualche minuto che non tocchi"
+echo "  il Mac, e questo stacca la TV. Posso dirgli di non spegnerlo mai da solo."
+echo "  (ti chiederà la password del Mac: scrivila e premi Invio; non si vede mentre la scrivi)"
+if chiedi_si_no "Lo faccio? (Invio = sì, n = no)" s; then
+  if sudo -p "  Password del Mac: " pmset -a displaysleep 0; then
+    echo "  ✓ Lo schermo non si spegne più da solo (la TV la spegni tu col suo telecomando)."
+  else
+    echo "  ⚠ Non ci sono riuscito (password sbagliata?). Puoi farlo a mano:"
+    echo "    Impostazioni di Sistema → Schermata di blocco → «Spegni lo schermo quando inattivo» → Mai"
+  fi
+  sudo -k 2>/dev/null
 fi
 echo ""
 
@@ -243,8 +402,12 @@ echo "     1. scrivi la password come fai sempre (alla cieca) e premi Invio"
 echo "     2. aspetta circa un minuto"
 echo "     3. la TV si accende con lo schermo del Mac. L'iPad non serve più."
 echo ""
-echo "  Per provare senza riavviare: cerca «$NOME_APP» con Spotlight (cmd + spazio) e aprilo."
-echo "  Se qualcosa non va: doppio clic su «MOSTRA DIARIO.command» e incolla il diario a Claude."
+echo "  Se la TV si stacca (o sei stato sull'Apple TV) e vuoi tornare al Mac, alla cieca:"
+echo "     1. premi Maiuscole e aspetta 5 secondi"
+echo "     2. premi ctrl + cmd + Q, aspetta 3 secondi, scrivi la password, premi Invio"
+echo "     3. aspetta mezzo minuto: la TV torna sul Mac"
+echo ""
+echo "  Se qualcosa non va: doppio clic su «MOSTRA DIARIO.command» e manda il diario a Claude."
 echo ""
 echo "  ─────────────────────────────────────────────────"
 echo "  FACOLTATIVO: togliere anche la password all'accensione"

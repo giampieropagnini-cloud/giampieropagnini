@@ -36,6 +36,14 @@ on run
 		return
 	end if
 	my scrivi("---- Avvio. Apple TV da collegare: " & nomeAppleTV)
+	set tentativiMassimi to 10
+	-- avviata dalla guardia (mouse o tastiera toccati e TV staccata)? pochi tentativi,
+	-- cosi' il pannello non continua ad aprirsi mentre lavori: la guardia riprovera' lei
+	try
+		do shell script "rm " & quoted form of ((my cartellaConfig()) & "avvio-guardia")
+		set tentativiMassimi to 3
+		my scrivi("(avviata dalla guardia: al massimo " & tentativiMassimi & " tentativi)")
+	end try
 	set haCliccato to false
 	set diagnosticaFatta to false
 	set barraDescritta to false
@@ -244,6 +252,15 @@ end senzaSuffisso
 
 -- Scrive nel diario tutto quello che c'e' nel pannello (per capire come e' fatto)
 on descriviPannello()
+	-- al massimo una volta all'ora, altrimenti il diario si gonfia
+	set segnalibro to (my cartellaConfig()) & "diagnostica-ultima"
+	try
+		set recente to do shell script "find " & quoted form of segnalibro & " -mmin -60 2>/dev/null"
+		if recente is not "" then return
+	end try
+	try
+		do shell script "mkdir -p " & quoted form of (my cartellaConfig()) & " && touch " & quoted form of segnalibro
+	end try
 	set finestre to {}
 	try
 		tell application "System Events" to tell process "ControlCenter" to set finestre to every window
@@ -645,7 +662,7 @@ end statoPermessi
 
 on tipoPermessoDaErrore(numero, messaggio)
 	if numero is -1743 then return "automazione"
-	if numero is -25211 or numero is -1719 then return "accessibilita"
+	if numero is -25211 then return "accessibilita"
 	set m to messaggio as text
 	if m contains "assistive" or m contains "accessibilit" then return "accessibilita"
 	if m contains "not authorized" or m contains "non autorizzat" or m contains "autorizzazione" then return "automazione"
