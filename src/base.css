@@ -276,3 +276,18 @@ body.nav-open .burger-b i:nth-child(3) { transform: translateY(-8px) rotate(-45d
   .book { grid-template-columns: 1fr; gap: 1.4rem; }
   .book-cov { max-width: 18rem; }
 }
+
+/* archivio Flickr */
+.ar-src { font-size: .9rem; opacity: .7; margin: .6em 0 1.4em; }
+.ar-src a { border-bottom: 1px solid var(--ln); }
+.ar-src a:hover { color: var(--ac); border-color: var(--ac); }
+.ar-nav { display: flex; flex-wrap: wrap; gap: .5rem .9rem; margin-bottom: 2rem;
+  font-family: var(--font-mono); font-size: .85rem; letter-spacing: .08em; }
+.ar-nav a { opacity: .6; border-bottom: 1px solid transparent; }
+.ar-nav a:hover { opacity: 1; color: var(--ac); border-color: var(--ac); }
+.ar-y { font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 400;
+  letter-spacing: .04em; margin: 2.6rem 0 1.1rem; scroll-margin-top: 5rem; }
+.ar-y::after { content: ""; display: block; height: 1px; background: var(--ln); margin-top: .5rem; opacity: .6; }
+.ar-gal { columns: 3 17rem; }
+.ar-c { font-size: .82rem; letter-spacing: .02em; opacity: .65; margin-top: .45em; }
+.ar-n { opacity: .55; font-style: italic; }

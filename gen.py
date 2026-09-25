@@ -255,6 +255,7 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
   </button>
   <nav class="nav" id="nav">
     <a href="{r}opere.html" {('class="on"' if active=='opere' else '')}>{'<span data-lang="it">Opere</span><span data-lang="en" hidden>Works</span>'}</a>
+    <a href="{r}archivio.html" {('class="on"' if active=='archivio' else '')}>{'<span data-lang="it">Archivio</span><span data-lang="en" hidden>Archive</span>'}</a>
     <a href="{r}art-direction.html" {('class="on"' if active=='ad' else '')}>Art Direction</a>
     <a href="{r}weedgadget.html" {('class="on"' if active=='wg' else '')}>WeedGadget</a>
     <a href="{r}musica.html" {('class="on"' if active=='musica' else '')}>{'<span data-lang="it">Musica</span><span data-lang="en" hidden>Music</span>'}</a>
@@ -340,6 +341,8 @@ def build():
         uris.update(im["uri"] for im in g)
         yt_ids.update(pr.get("videos", []))
     yt_ids.add(content["about"]["documentary_video"])
+    archivio = content.get("archivio_flickr", {})
+    uris.update(f["uri"] for f in archivio.get("foto", []))
 
     if "--imgs" in sys.argv:
         make_derivatives(uris, yt_ids)
@@ -462,6 +465,40 @@ def build():
         page("Opere — Giampiero Pagnini", opere, 0, active="opere", url_path="opere.html",
              desc="Tutte le opere di Giampiero Pagnini: fotografia stenopeica, lightbox, Polaroid, camere autocostruite, video, pittura.")
     )
+
+    # ---- archivio Flickr
+    if archivio.get("foto"):
+        anni = sorted({f["anno"] for f in archivio["foto"] if f["anno"]}, reverse=True)
+        blocchi = []
+        i = 0
+        for a in anni:
+            righe = []
+            for f in [x for x in archivio["foto"] if x["anno"] == a]:
+                cap = esc(f["titolo"] or "senza titolo")
+                nota = f' <span class="ar-n">{esc(f["nota"])}</span>' if f.get("nota") and f["nota"].lower() != (f["titolo"] or "").lower() else ""
+                righe.append(
+                    f'<figure class="ph ar-ph"><img src="img/large/{wp(f["uri"])}" alt="{cap}" loading="lazy" data-i="{i}">'
+                    f'<figcaption class="ar-c">{cap}{nota}</figcaption></figure>'
+                )
+                i += 1
+            blocchi.append(f'<h2 class="ar-y" id="a{a}">{a}</h2><div class="gal ar-gal">{"".join(righe)}</div>')
+        fonti = " · ".join(
+            f'<a href="{esc(ac["url"])}" rel="noopener">{esc(ac["nome"])}</a>' for ac in archivio.get("accounts", [])
+        )
+        arch_body = f"""
+<section class="sec sec-top">
+  <h1 class="pg-h"><span data-lang="it">Archivio Flickr</span><span data-lang="en" hidden>Flickr archive</span></h1>
+  {bi(esc(archivio["intro_it"]), esc(archivio["intro_en"]))}
+  <p class="ar-src"><span data-lang="it">Dai due profili</span><span data-lang="en" hidden>From the two profiles</span>: {fonti}</p>
+  <nav class="ar-nav">{"".join(f'<a href="#a{a}">{a}</a>' for a in anni)}</nav>
+  {"".join(blocchi)}
+</section>"""
+        open(os.path.join(DIST, "archivio.html"), "w").write(
+            page("Archivio Flickr — Giampiero Pagnini", arch_body, 0, active="archivio",
+                 url_path="archivio.html",
+                 desc="L'archivio fotografico di Giampiero Pagnini su Flickr, 2006-2012: analogico, Polaroid, macchine autocostruite.",
+                 og_image="large/" + wp(archivio["foto"][0]["uri"]))
+        )
 
     # ---- project pages
     visible = [p for p in projects if p["_featured"] or p.get("videos")]
@@ -828,7 +865,7 @@ def build():
         open(os.path.join(DIST, nome), "w").write(f"google-site-verification: {nome}\n")
 
     # ---- sitemap / robots / CNAME
-    urls = ["", "opere.html", "art-direction.html", "weedgadget.html", "musica.html",
+    urls = ["", "opere.html", "archivio.html", "art-direction.html", "weedgadget.html", "musica.html",
             "about.html", "contact.html", "weedgadget-archivio/"
             ] + [f"progetti/{p['slug']}.html" for p in visible]
     entries = "".join(
