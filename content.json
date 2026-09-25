@@ -716,8 +716,8 @@
   "google_search_console_file": "google16996c55dfeb75b7.html"
  },
  "archivio_flickr": {
-  "intro_it": "Le fotografie caricate su Flickr fra il 2006 e il 2012, raccolte qui in un unico posto: scatti analogici, Polaroid, prove con le macchine autocostruite e appunti visivi di quegli anni.",
-  "intro_en": "The photographs uploaded to Flickr between 2006 and 2012, gathered here in one place: film shots, Polaroids, tests with self-built cameras and visual notes from those years.",
+  "intro_it": "Le fotografie raccolte in un unico posto: gli scatti su pellicola e le Polaroid dal 2006 al 2012, e da adesso anche il lavoro in digitale.",
+  "intro_en": "The photographs gathered in one place: the film shots and Polaroids from 2006 to 2012, and from now on the digital work too.",
   "accounts": [
    {
     "nome": "Giampiero Pagnini",
@@ -1160,6 +1160,38 @@
     "flickr": "https://www.flickr.com/photos/giampiero_pagnini/6338321831/",
     "w": 1024,
     "h": 683
+   }
+  ],
+  "gallerie": [
+   {
+    "slug": "camera-oscura-pellicola",
+    "chiave": "giampiero_pagnini",
+    "titolo_it": "Pellicola",
+    "titolo_en": "Film",
+    "sommario_it": "Scatti su pellicola: strada, viaggi, installazioni. Pescara, Olanda, Basilea, Friburgo, dal 2006 al 2012.",
+    "sommario_en": "Film photographs: street, travel, installations. Pescara, Holland, Basel, Freiburg, 2006 to 2012.",
+    "copertina": "fl-4048309136.jpg",
+    "emblema": "emblema-pellicola.svg"
+   },
+   {
+    "slug": "camera-oscura-polaroid",
+    "chiave": "giampieropagnini",
+    "titolo_it": "Polaroid",
+    "titolo_en": "Polaroid",
+    "sommario_it": "Polaroid 600 e pellicole Impossible, quasi tutte a foro stenopeico: prove di studio e test sul campo fra il 2008 e il 2012.",
+    "sommario_en": "Polaroid 600 and Impossible film, most of them pinhole: studio tests and field shots between 2008 and 2012.",
+    "copertina": "fl-6420650585.jpg",
+    "emblema": "emblema-polaroid.svg"
+   },
+   {
+    "slug": "camera-oscura-digital",
+    "chiave": "digital",
+    "titolo_it": "Digital",
+    "titolo_en": "Digital",
+    "sommario_it": "Scatti recenti in digitale. Sezione appena aperta: le prime foto arrivano a breve.",
+    "sommario_en": "Recent digital photographs. A section just opened: the first pictures are on their way.",
+    "copertina": "",
+    "emblema": "emblema-digital.svg"
    }
   ]
  }

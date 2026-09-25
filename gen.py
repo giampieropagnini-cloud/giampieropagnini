@@ -255,7 +255,7 @@ def page(title, body, depth=0, desc="", active="", url_path="", og_image=""):
   </button>
   <nav class="nav" id="nav">
     <a href="{r}opere.html" {('class="on"' if active=='opere' else '')}>{'<span data-lang="it">Opere</span><span data-lang="en" hidden>Works</span>'}</a>
-    <a href="{r}archivio.html" {('class="on"' if active=='archivio' else '')}>{'<span data-lang="it">Archivio</span><span data-lang="en" hidden>Archive</span>'}</a>
+    <a href="{r}camera-oscura.html" {('class="on"' if active=='archivio' else '')}>Camera Oscura</a>
     <a href="{r}art-direction.html" {('class="on"' if active=='ad' else '')}>Art Direction</a>
     <a href="{r}weedgadget.html" {('class="on"' if active=='wg' else '')}>WeedGadget</a>
     <a href="{r}musica.html" {('class="on"' if active=='musica' else '')}>{'<span data-lang="it">Musica</span><span data-lang="en" hidden>Music</span>'}</a>
@@ -466,38 +466,61 @@ def build():
              desc="Tutte le opere di Giampiero Pagnini: fotografia stenopeica, lightbox, Polaroid, camere autocostruite, video, pittura.")
     )
 
-    # ---- archivio Flickr
-    if archivio.get("foto"):
-        anni = sorted({f["anno"] for f in archivio["foto"] if f["anno"]}, reverse=True)
-        blocchi = []
-        i = 0
-        for a in anni:
-            righe = []
-            for f in [x for x in archivio["foto"] if x["anno"] == a]:
-                cap = esc(f["titolo"] or "senza titolo")
-                nota = f' <span class="ar-n">{esc(f["nota"])}</span>' if f.get("nota") and f["nota"].lower() != (f["titolo"] or "").lower() else ""
-                righe.append(
-                    f'<figure class="ph ar-ph"><img src="img/large/{wp(f["uri"])}" alt="{cap}" loading="lazy" data-i="{i}">'
-                    f'<figcaption class="ar-c">{cap}{nota}</figcaption></figure>'
-                )
-                i += 1
-            blocchi.append(f'<h2 class="ar-y" id="a{a}">{a}</h2><div class="gal ar-gal">{"".join(righe)}</div>')
-        fonti = " · ".join(
-            f'<a href="{esc(ac["url"])}" rel="noopener">{esc(ac["nome"])}</a>' for ac in archivio.get("accounts", [])
-        )
+    # ---- archivio Flickr: una pagina di scelta + una galleria per sezione
+    if archivio.get("foto") or archivio.get("gallerie"):
+        def galleria(foto, titolo, occhiello, sommario, slug, desc, og):
+            scatti = "".join(
+                f'<figure class="ph ar-ph"><img src="img/large/{wp(f["uri"])}" alt="{esc(f["titolo"] or "senza titolo")}" loading="lazy" data-i="{i}"></figure>'
+                for i, f in enumerate(foto)
+            )
+            corpo_gal = (f'<div class="gal ar-gal">{scatti}</div>' if foto else
+                         '<p class="ar-vuota"><span data-lang="it">Sezione in allestimento.</span>'
+                         '<span data-lang="en" hidden>Section being set up.</span></p>')
+            corpo = f"""
+<section class="sec sec-top">
+  <p class="ar-back"><a href="camera-oscura.html">‹ Camera Oscura</a></p>
+  <h1 class="pg-h">{titolo}</h1>
+  {sommario}
+  {f'<p class="ar-src">{occhiello}</p>' if occhiello else ''}
+  {corpo_gal}
+</section>"""
+            open(os.path.join(DIST, slug + ".html"), "w").write(
+                page(f"{esc(titolo)} — Camera Oscura — Giampiero Pagnini", corpo, 0, active="archivio",
+                     url_path=slug + ".html", desc=desc, og_image=og)
+            )
+
+        porte = []
+        og_scelta = ""
+        for g in archivio["gallerie"]:
+            foto = [f for f in archivio["foto"] if f["account"] == g["chiave"]]
+            prof = next((a for a in archivio["accounts"] if a["alias"] == g["chiave"]), None)
+            occhiello = ""
+            og = "large/" + wp(g["copertina"] or (foto[0]["uri"] if foto else site["home_hero"]))
+            og_scelta = og_scelta or og
+            galleria(foto, esc(g["titolo_it"]), occhiello,
+                     bi(esc(g["sommario_it"]), esc(g["sommario_en"])), g["slug"], g["sommario_it"][:150], og)
+            emblema = open(os.path.join(IMG_SRC, g["emblema"])).read()
+            conteggio = (f'{len(foto)} <span data-lang="it">foto</span><span data-lang="en" hidden>photos</span>' if foto else
+                         '<span data-lang="it">in arrivo</span><span data-lang="en" hidden>coming soon</span>')
+            porte.append(f"""<a class="ar-porta" href="{g['slug']}.html">
+  <span class="ar-porta-em" aria-hidden="true">{emblema}</span>
+  <span class="ar-porta-tx">
+    <span class="ar-porta-t"><span data-lang="it">{esc(g['titolo_it'])}</span><span data-lang="en" hidden>{esc(g['titolo_en'])}</span></span>
+    <span class="ar-porta-n">{conteggio}</span>
+  </span>
+</a>""")
+
         arch_body = f"""
 <section class="sec sec-top">
-  <h1 class="pg-h"><span data-lang="it">Archivio Flickr</span><span data-lang="en" hidden>Flickr archive</span></h1>
+  <h1 class="pg-h">Camera Oscura</h1>
   {bi(esc(archivio["intro_it"]), esc(archivio["intro_en"]))}
-  <p class="ar-src"><span data-lang="it">Dai due profili</span><span data-lang="en" hidden>From the two profiles</span>: {fonti}</p>
-  <nav class="ar-nav">{"".join(f'<a href="#a{a}">{a}</a>' for a in anni)}</nav>
-  {"".join(blocchi)}
+  <div class="ar-porte">{"".join(porte)}</div>
 </section>"""
-        open(os.path.join(DIST, "archivio.html"), "w").write(
-            page("Archivio Flickr — Giampiero Pagnini", arch_body, 0, active="archivio",
-                 url_path="archivio.html",
-                 desc="L'archivio fotografico di Giampiero Pagnini su Flickr, 2006-2012: analogico, Polaroid, macchine autocostruite.",
-                 og_image="large/" + wp(archivio["foto"][0]["uri"]))
+        open(os.path.join(DIST, "camera-oscura.html"), "w").write(
+            page("Camera Oscura — Giampiero Pagnini", arch_body, 0, active="archivio",
+                 url_path="camera-oscura.html",
+                 desc="Camera Oscura: le fotografie di Giampiero Pagnini. Pellicola, Polaroid e digitale.",
+                 og_image=og_scelta)
         )
 
     # ---- project pages
@@ -865,7 +888,7 @@ def build():
         open(os.path.join(DIST, nome), "w").write(f"google-site-verification: {nome}\n")
 
     # ---- sitemap / robots / CNAME
-    urls = ["", "opere.html", "archivio.html", "art-direction.html", "weedgadget.html", "musica.html",
+    urls = ["", "opere.html", "camera-oscura.html", "camera-oscura-pellicola.html", "camera-oscura-polaroid.html", "camera-oscura-digital.html", "art-direction.html", "weedgadget.html", "musica.html",
             "about.html", "contact.html", "weedgadget-archivio/"
             ] + [f"progetti/{p['slug']}.html" for p in visible]
     entries = "".join(
