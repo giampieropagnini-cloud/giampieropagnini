@@ -21,3 +21,8 @@ static/*
 # script: tenerli qui fa si' che gen.py --clean li rimetta in docs/ dopo una ripulita.
 !static/pocket-operator/
 !static/tp-7/
+# Xcode: impostazioni personali e build, non vanno nel repository
+bobina/**/xcuserdata/
+bobina/**/*.xcuserstate
+bobina/build/
+DerivedData/
