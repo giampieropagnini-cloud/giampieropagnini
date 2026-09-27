@@ -7,7 +7,7 @@ struct NastroView: View {
 
     var body: some View {
         Page(title: "Nastro") {
-            Card(title: "bobina", note: "Girala col dito: un giro al secondo è la velocità normale, più veloce corre, al contrario torna indietro. Quando la lasci la leva torna al centro.") {
+            Card(title: "bobina", note: "Girala col dito. Da fermo, un giro al secondo è la velocità normale; più veloce corre, al contrario torna indietro. Mentre suona si somma, come spingere il nastro col dito: ci puoi scratchare. Quando la lasci la leva torna al centro.") {
                 ReelView()
                     .frame(height: 250)
                     .frame(maxWidth: .infinity)
@@ -17,19 +17,23 @@ struct NastroView: View {
                     .frame(maxWidth: .infinity)
             }
 
-            Card(title: "trasporto", note: "Il MIDI del TP-7 non ha play e stop veri: si muove la sua leva. ▶ la spinge avanti a velocità normale, ■ la rimette al centro. Se hai premuto play sulla macchina, fermi e riparti con i due tasti sotto.") {
+            Card(title: "trasporto", note: "⏮ riavvolge e suona dall'inizio, ▶ riparte da dove sei, ■ si ferma; ■ di nuovo torna all'inizio, come sulla macchina. ● registra su un file nuovo, ■ chiude la ripresa. Tieni premuto «dito» per fermare il nastro come col dito sulla bobina.") {
                 HStack(spacing: 8) {
-                    Chip(text: "▶", on: engine.lever == TP7.leverPlay) { engine.play() }
-                    Chip(text: "■") { engine.center() }
-                    Spacer()
-                    Chip(text: "ferma", on: engine.halted, color: Palette.rec) { engine.halt() }
-                    Chip(text: "riparti") { engine.release() }
+                    Chip(text: "⏮") { engine.fromTop() }
+                    Chip(text: "▶", on: engine.rolling && !engine.recording) { engine.play() }
+                    Chip(text: "■") { engine.stop() }
+                    Chip(text: "●", on: engine.recording, color: Palette.rec) { engine.record() }
+                    PressPad(lit: engine.halted,
+                             onPress: { engine.holdStill(true) },
+                             onRelease: { engine.holdStill(false) },
+                             label: { Text("dito").font(.system(.subheadline, design: .monospaced)) })
+                        .frame(height: 36)
                 }
             }
 
             SpeedCard()
 
-            Card(title: "tape stop", note: "Il nastro rallenta fino a fermarsi, come un registratore a cui manca la corrente. Avvio fa il contrario. Funziona mentre il TP-7 suona.") {
+            Card(title: "tape stop", note: "Il nastro rallenta fino a fermarsi, come un registratore a cui manca la corrente; alla fine arriva lo stop. Avvio fa il contrario: parte fermo e prende velocità.") {
                 ValueSlider(name: "durata", value: $stopSeconds, range: 0.2...4, shown: String(format: "%.1f s", stopSeconds))
                 HStack {
                     Chip(text: "tape stop", color: Palette.rec) { engine.tapeStop(seconds: stopSeconds) }
@@ -105,12 +109,12 @@ struct SpeedCard: View {
     @EnvironmentObject var engine: Engine
 
     var body: some View {
-        Card(title: "velocità", note: "Da un quarto al doppio, col pitch bend. Vale solo mentre il TP-7 suona e il suo display non la mostra.") {
+        Card(title: "velocità", note: "Da metà al doppio, col pitch bend: un'ottava sotto e una sopra, come un nastro. Vale solo mentre il TP-7 suona, si somma alla SPD della macchina e il suo display non la mostra.") {
             let octave = Binding<Double>(
                 get: { log2(engine.speed) },
                 set: { engine.speed = pow(2, $0) }
             )
-            ValueSlider(name: "velocità", value: octave, range: -2...1, shown: String(format: "×%.2f", engine.speed))
+            ValueSlider(name: "velocità", value: octave, range: -1...1, shown: String(format: "×%.2f", engine.speed))
             HStack(spacing: 6) {
                 ForEach([0.5, 0.75, 1.0, 1.5, 2.0], id: \.self) { s in
                     Chip(text: s == 1 ? "×1" : String(format: "×%g", s), on: abs(engine.speed - s) < 0.001) {
@@ -139,7 +143,7 @@ struct MotionCard: View {
     @EnvironmentObject var engine: Engine
 
     var body: some View {
-        Card(title: "col corpo", note: "Inclina il telefono a destra per accelerare, a sinistra per rallentare (45° = doppio o metà). Scuotilo per l'azione che scegli.") {
+        Card(title: "col corpo", note: "Inclina il telefono a destra per accelerare, a sinistra per rallentare: 45° = doppio o metà. Scuotilo per l'azione che scegli.") {
             Toggle("inclinazione", isOn: $engine.motionOn)
             if engine.motionOn {
                 Text(String(format: "adesso ×%.2f", engine.motionSpeed))

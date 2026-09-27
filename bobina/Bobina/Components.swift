@@ -69,7 +69,7 @@ struct StatusStrip: View {
                 .foregroundStyle(Palette.dim)
                 .lineLimit(1)
             Spacer()
-            if engine.running {
+            if engine.pulsing {
                 Text("\(Int(engine.bpm)) bpm")
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(Palette.accent)

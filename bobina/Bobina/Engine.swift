@@ -35,7 +35,7 @@ final class Engine: ObservableObject {
 
     // MARK: nastro
 
-    /// Velocità di base scelta con lo slider (×0,25 … ×2). Solo mentre il TP-7 suona.
+    /// Velocità di base scelta con lo slider (×0,5 … ×2). Solo mentre il TP-7 suona.
     @Published var speed: Double = 1.0
     /// Il nastro è stato fermato da Bobina (60 + 708): il pitch bend resta fermo lì.
     @Published private(set) var halted = false
@@ -76,6 +76,12 @@ final class Engine: ObservableObject {
     @Published var bpm: Double = 120
     @Published private(set) var running = false
     @Published private(set) var step = 0
+    /// Col TP-7 su MIDI → sync, i passi li detta il suo clock (il tempo del file, anche quando lo rallenti).
+    @Published var followClock = false { didSet { if followClock && running { toggleRun() } } }
+    private var clockTicks = 0
+
+    /// Il ritmo sta andando: col tempo di Bobina o con quello del TP-7.
+    var pulsing: Bool { running || (followClock && clockBPM != nil) }
 
     /// Balbettio: finché è tenuto, ripete l'ultimo pad ogni `stutter` sedicesimi (0,5 = trentaduesimi).
     @Published var stutter: Double? = nil
@@ -130,7 +136,8 @@ final class Engine: ObservableObject {
     private var flutterPhase = 0.0
     private var drift = 0.0
     private var lastTick: MIDITimeStamp = 0
-    private var ramp: (from: Double, to: Double, start: MIDITimeStamp, length: Double, thenHalt: Bool)?
+    private var ramp: (from: Double, to: Double, start: MIDITimeStamp, length: Double, stopAfter: Double?)?
+    private var bendQuietUntil: MIDITimeStamp = 0
     private var gateState: Bool?
     private var clockStamps: [MIDITimeStamp] = []
     private var clockTimeout: DispatchWorkItem?
@@ -187,7 +194,11 @@ final class Engine: ObservableObject {
 
     // MARK: trasporto
 
-    /// La leva finta. 64 = centro, 68 = avanti come play; sotto indietro, sopra più veloce.
+    /// Quello che Bobina crede: il TP-7 non racconta mai com'è messo.
+    @Published private(set) var rolling = false
+    @Published private(set) var recording = false
+
+    /// La leva finta (cc 18): 64 centro. Si somma a quello che il nastro sta già facendo.
     func setLever(_ value: Int) {
         let v = max(0, min(127, value))
         guard v != lever else { return }
@@ -195,49 +206,102 @@ final class Engine: ObservableObject {
         send(TP7.cc(TP7.ccLever, v))
     }
 
+    private func forceLever(_ value: Int) {
+        lever = -1
+        setLever(value)
+    }
+
+    /// ▶ continue: riparte da dove si trova.
     func play() {
-        halted = false
         ramp = nil
-        sendBend(0, force: true)
-        lever = -1
-        setLever(TP7.leverPlay)
-    }
-
-    func center() {
-        lever = -1
-        setLever(TP7.leverCenter)
-    }
-
-    /// Ferma il nastro mentre suona (il play premuto sulla macchina).
-    func halt() {
-        ramp = nil
-        halted = true
-        lever = -1
-        setLever(TP7.leverHalt)
-        sendBend(TP7.haltBend, force: true)
-    }
-
-    /// Toglie il freno: il nastro riparte alla velocità scelta.
-    func release() {
         halted = false
-        lever = -1
-        setLever(TP7.leverCenter)
+        forceLever(TP7.leverCenter)
         sendBend(currentBend(), force: true)
+        send(TP7.continuePlay)
+        rolling = true
     }
 
-    /// Tape stop: il nastro rallenta fino a fermarsi.
+    /// ⏮ start: riavvolge e suona dall'inizio del file.
+    func fromTop() {
+        ramp = nil
+        halted = false
+        forceLever(TP7.leverCenter)
+        sendBend(currentBend(), force: true)
+        send(TP7.start)
+        rolling = true
+    }
+
+    /// ■ stop: si ferma dov'è. Premuto di nuovo da fermo torna all'inizio, come sulla macchina.
+    func stop() {
+        ramp = nil
+        halted = false
+        forceLever(TP7.leverCenter)
+        send(TP7.stop)
+        rolling = false
+        if recording {
+            recording = false
+            armed = false
+        }
+    }
+
+    /// ● registra: arma e parte. Nasce sempre un file nuovo; ■ chiude la ripresa.
+    func record() {
+        send(TP7.cc(TP7.ccArm, 127))
+        armed = true
+        forceLever(TP7.leverCenter)
+        send(TP7.continuePlay)
+        rolling = true
+        recording = true
+    }
+
+    /// Tenuto premuto: il nastro resta fermo come sotto il dito, e riparte quando lasci.
+    func holdStill(_ on: Bool) {
+        ramp = nil
+        if on {
+            halted = true
+            forceLever(TP7.leverHalt)
+            sendBend(TP7.haltBend, force: true)
+        } else {
+            halted = false
+            forceLever(TP7.leverCenter)
+            sendBend(currentBend(), force: true)
+        }
+    }
+
+    /// Tape stop: il nastro rallenta fino a ×0,5 col pitch bend, poi la leva lo porta a zero e lo stop lo ferma.
     func tapeStop(seconds: Double) {
         halted = false
-        ramp = (from: currentSpeedFactor(), to: 0.25, start: io.now(), length: max(0.1, seconds) * 1000, thenHalt: true)
+        let length = max(0.1, seconds) * 1000
+        ramp = (from: currentSpeedFactor(), to: TP7.minSpeed, start: io.now(), length: length * 0.8, stopAfter: length * 0.2)
     }
 
-    /// Il contrario: dal freno riparte piano e arriva a velocità.
+    private func finishTapeStop(tail: Double) {
+        let t0 = io.now()
+        bendQuietUntil = t0 + io.ticks(ms: tail + 40)
+        send(TP7.cc(TP7.ccLever, TP7.leverCenter - 1), quiet: true)
+        send(TP7.cc(TP7.ccLever, TP7.leverCenter - 2), at: t0 + io.ticks(ms: tail * 0.5), quiet: true)
+        send(TP7.stop, at: t0 + io.ticks(ms: tail))
+        send(TP7.cc(TP7.ccLever, TP7.leverCenter), at: t0 + io.ticks(ms: tail + 5), quiet: true)
+        let restore = currentBend()
+        send(TP7.bend(restore), at: t0 + io.ticks(ms: tail + 10), quiet: true)
+        lastBendSent = restore
+        lever = TP7.leverCenter
+        rolling = false
+    }
+
+    /// Avvio: parte fermo, la leva lo sblocca, il pitch bend lo porta a velocità.
     func tapeStart(seconds: Double) {
+        let length = max(0.1, seconds) * 1000
+        let t0 = io.now()
         halted = false
-        lever = -1
-        setLever(TP7.leverCenter)
-        sendBend(TP7.bendFor(speed: 0.25), force: true)
-        ramp = (from: 0.25, to: 1.0, start: io.now(), length: max(0.1, seconds) * 1000, thenHalt: false)
+        forceLever(TP7.leverCenter - 2)
+        sendBend(TP7.bendFor(speed: TP7.minSpeed), force: true)
+        send(TP7.continuePlay)
+        send(TP7.cc(TP7.ccLever, TP7.leverCenter - 1), at: t0 + io.ticks(ms: length * 0.1), quiet: true)
+        send(TP7.cc(TP7.ccLever, TP7.leverCenter), at: t0 + io.ticks(ms: length * 0.2), quiet: true)
+        lever = TP7.leverCenter
+        ramp = (from: TP7.minSpeed, to: max(TP7.minSpeed, speed), start: t0 + io.ticks(ms: length * 0.2), length: length * 0.8, stopAfter: nil)
+        rolling = true
     }
 
     // MARK: bobina virtuale
@@ -249,7 +313,8 @@ final class Engine: ObservableObject {
     func scrub(_ value: Int) {
         scrubbing = true
         lastScrubAt = io.now()
-        setLever(value)
+        // agli estremi (0 e 127) il TP-7 passa al riavvolgimento velocissimo: meglio restarne lontani
+        setLever(max(16, min(112, value)))
     }
 
     func endScrub() {
@@ -268,7 +333,22 @@ final class Engine: ObservableObject {
             if markMode { padsSet.insert(index) }
             haptic.impactOccurred()
         }
+        if !markMode { resendMixer(after: time) }
         flash(index, at: time)
+    }
+
+    /// Dopo un salto di cue il TP-7 rimette il mixer a zero: Bobina gli rimanda volumi e muti.
+    private func resendMixer(after time: MIDITimeStamp) {
+        let base = time == 0 ? io.now() : time
+        let when = base + io.ticks(ms: 40)
+        for tr in 1...6 {
+            if volumes[tr - 1] != 127 && !(pumpOn && pumpTracks.contains(tr)) {
+                send(TP7.cc(TP7.ccVolume, volumes[tr - 1], channel: tr), at: when, quiet: true)
+            }
+            if mutes[tr - 1] && !(gateOn && gateTracks.contains(tr)) {
+                send(TP7.cc(TP7.ccMute, 127, channel: tr), at: when, quiet: true)
+            }
+        }
     }
 
     private func flash(_ index: Int, at time: MIDITimeStamp) {
@@ -401,7 +481,7 @@ final class Engine: ObservableObject {
         lastTick = now
 
         // i passi a tempo, preparati 60 ms prima
-        if running {
+        if running && !followClock {
             let horizon = now + io.ticks(ms: 60)
             if nextStepAt < now { nextStepAt = now }
             while nextStepAt < horizon {
@@ -420,13 +500,15 @@ final class Engine: ObservableObject {
 
         // la velocità, ricalcolata di continuo
         if halted { return }
+        if now < bendQuietUntil { return }
         if let r = ramp {
-            let p = min(1, io.ms(ticks: now &- r.start) / r.length)
-            let s = r.from + (r.to - r.from) * (r.thenHalt ? p * p : sqrt(p))
+            let elapsed = now > r.start ? io.ms(ticks: now - r.start) : 0
+            let p = min(1, elapsed / r.length)
+            let s = r.from + (r.to - r.from) * (r.stopAfter != nil ? p * p : sqrt(p))
             sendBend(TP7.bendFor(speed: s), force: false)
             if p >= 1 {
                 ramp = nil
-                if r.thenHalt { halt() }
+                if let tail = r.stopAfter { finishTapeStop(tail: tail) }
             }
             return
         }
@@ -472,7 +554,7 @@ final class Engine: ObservableObject {
             let flut = sin(flutterPhase) * 0.5 + sin(flutterPhase * 1.73) * 0.5
             s *= 1 + wowDepth * 0.12 * wow + flutter * 0.02 * flut
         }
-        return max(0.25, min(2, s))
+        return max(TP7.minSpeed, min(TP7.maxSpeed, s))
     }
 
     private func currentBend() -> Int { TP7.bendFor(speed: currentSpeedFactor()) }
@@ -563,7 +645,7 @@ final class Engine: ObservableObject {
             guard let self = self, let d = data else { return }
             // inclinato a destra accelera, a sinistra rallenta: 45° = raddoppio o metà
             let roll = max(-1.2, min(1.2, d.attitude.roll))
-            self.motionSpeed = max(0.25, min(2, pow(2, roll / (.pi / 4))))
+            self.motionSpeed = max(TP7.minSpeed, min(TP7.maxSpeed, pow(2, roll / (.pi / 4))))
             let a = d.userAcceleration
             let g = sqrt(a.x * a.x + a.y * a.y + a.z * a.z)
             if g > 2.2 && Date().timeIntervalSince(self.lastShake) > 1.2 {
@@ -611,8 +693,29 @@ final class Engine: ObservableObject {
             let value = (60_000 / (perTick * 24) * 10).rounded() / 10
             if clockBPM.map({ abs($0 - value) > 0.2 }) ?? true { clockBPM = value }
         }
+        if followClock {
+            if clockStamps.count == 1 {
+                clockTicks = 0
+                stepIndex = 0
+                gateState = nil
+            }
+            if clockTicks % 6 == 0 {
+                fire(stepIndex, at: io.now())
+                stepIndex = (stepIndex + 1) % 16
+            }
+            clockTicks += 1
+            if let c = clockBPM, abs(bpm - c) > 0.05 { bpm = max(40, min(240, c)) }
+        }
         clockTimeout?.cancel()
-        let w = DispatchWorkItem { [weak self] in self?.clockStamps.removeAll(); self?.clockBPM = nil }
+        let w = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.clockStamps.removeAll()
+            self.clockBPM = nil
+            if self.followClock {
+                self.releaseGate()
+                self.restoreVolumes()
+            }
+        }
         clockTimeout = w
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: w)
     }

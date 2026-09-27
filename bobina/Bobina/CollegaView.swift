@@ -37,7 +37,7 @@ struct CollegaView: View {
                     .font(.footnote)
             }
 
-            Card(title: "come va messo il TP-7", note: "Tieni mode → MIDI. Per comandarlo da Bobina: midi-cue (serve per i pad) o sync. Per vedere qui i suoi tasti: ctrl — ma in ctrl non ascolta più i comandi, e resta così anche scollegato.") {
+            Card(title: "come va messo il TP-7", note: "Tieni mode → MIDI. Su off, cue e sync ascolta i comandi di Bobina. cue serve per i pad; sync gli fa mandare il suo tempo (Bobina lo può seguire), ma i pad non vanno. ctrl lo trasforma in controller: qui vedi i suoi tasti, ma non ascolta più niente, e resta così anche scollegato.") {
                 EmptyView()
             }
 

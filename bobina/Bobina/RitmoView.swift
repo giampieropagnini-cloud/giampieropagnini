@@ -9,7 +9,8 @@ struct RitmoView: View {
 
     var body: some View {
         Page(title: "Ritmo") {
-            Card(title: "tempo", note: "Il TP-7 non manda il suo tempo quando lo comandi da fuori: il metronomo lo tiene Bobina.") {
+            Card(title: "tempo", note: "Il metronomo lo tiene Bobina. Oppure metti il TP-7 su MIDI → sync e accendi «segui il TP-7»: i passi li detta il nastro, al tempo del file, anche quando lo rallenti o lo acceleri. In sync però i pad non funzionano (servono in cue): vanno cancello, pompa e deriva.") {
+                Toggle("segui il TP-7 (MIDI → sync)", isOn: $engine.followClock)
                 HStack(spacing: 10) {
                     Chip(text: "−") { engine.bpm = max(40, engine.bpm - 1) }
                     Text("\(Int(engine.bpm))")
@@ -24,8 +25,14 @@ struct RitmoView: View {
                     Button(String(format: "usa il clock che arriva: %.1f bpm", c)) { engine.bpm = c.rounded() }
                         .font(.footnote)
                 }
-                Chip(text: engine.running ? "■ ferma il tempo" : "▶ fai partire il tempo", on: engine.running) {
-                    engine.toggleRun()
+                if !engine.followClock {
+                    Chip(text: engine.running ? "■ ferma il tempo" : "▶ fai partire il tempo", on: engine.running) {
+                        engine.toggleRun()
+                    }
+                } else {
+                    Text(engine.clockBPM == nil ? "aspetto il clock: premi play sul TP-7" : "segue il TP-7")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.accent)
                 }
             }
 
@@ -43,7 +50,7 @@ struct RitmoView: View {
                     ForEach(0..<16, id: \.self) { i in
                         StepCell(label: engine.seq[i].map { "\($0 + 1)" } ?? "·",
                                  filled: engine.seq[i] != nil,
-                                 current: engine.running && engine.step == i) {
+                                 current: engine.pulsing && engine.step == i) {
                             engine.seq[i] = (engine.seq[i] == brush) ? nil : brush
                         }
                     }
@@ -56,7 +63,7 @@ struct RitmoView: View {
                     ForEach(0..<16, id: \.self) { i in
                         StepCell(label: engine.gate[i] ? "■" : "·",
                                  filled: engine.gate[i],
-                                 current: engine.running && engine.step == i) {
+                                 current: engine.pulsing && engine.step == i) {
                             engine.gate[i].toggle()
                         }
                     }

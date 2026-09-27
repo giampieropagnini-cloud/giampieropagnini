@@ -1,8 +1,17 @@
 import Foundation
 
-/// Il MIDI del TP-7 (firmware 1.1.11), dalla guida ufficiale e dalle prove della community.
-/// Qui ci sono solo byte: cosa fanno lo decide Engine.
+/// Il MIDI del TP-7 (firmware 1.1.11), dalla guida ufficiale e dalle misure della community
+/// (soprattutto op1-lfo-hero, che l'ha misurato con gli strumenti). Qui ci sono solo byte.
 enum TP7 {
+
+    // MARK: trasporto (messaggi in tempo reale, funzionano con MIDI su off, cue e sync)
+
+    /// Riavvolge e suona dall'inizio.
+    static let start: [UInt8] = [0xFA]
+    /// Suona da dove si trova. Dopo un arma (cc 14) registra.
+    static let continuePlay: [UInt8] = [0xFB]
+    /// Si ferma dov'è. Un secondo stop da fermo riavvolge all'inizio.
+    static let stop: [UInt8] = [0xFC]
 
     // MARK: cosa capisce (dal telefono al TP-7)
 
@@ -16,16 +25,19 @@ enum TP7 {
     static let ccCueRec: UInt8 = 16
     /// Loop: 1 inizio, 2 fine, 0 spento. Sempre in quest'ordine.
     static let ccLoop: UInt8 = 17
-    /// La leva finta: 64 centro, 68 avanti a velocità normale.
+    /// La leva finta: 64 centro. Si somma al nastro: ogni passo vale circa ×0,26.
     static let ccLever: UInt8 = 18
     /// Muto della traccia: il canale 1-6 è la traccia (64-127 muto).
     static let ccMute: UInt8 = 120
 
     static let leverCenter = 64
-    static let leverPlay = 68
-    /// Mentre suona, lo stop sta fra 60 e 61: servono 60 più il pitch bend di compenso.
+    /// Mentre suona, 60 più il pitch bend +708 lo tengono fermo come sotto il dito.
     static let leverHalt = 60
     static let haltBend = 708
+
+    /// Il pitch bend va da mezza velocità a doppia: un'ottava sotto, un'ottava sopra.
+    static let minSpeed = 0.5
+    static let maxSpeed = 2.0
 
     /// I sedici pad di Bobina usano le note 36-51, come i pad controller.
     static let padBase = 36
@@ -54,15 +66,14 @@ enum TP7 {
     static func noteOn(_ note: Int) -> [UInt8] { [0x90, UInt8(note & 0x7F), 100] }
     static func noteOff(_ note: Int) -> [UInt8] { [0x80, UInt8(note & 0x7F), 0] }
 
-    /// La velocità del pitch bend non è simmetrica: sotto va fino a ×0,25, sopra fino a ×2.
+    /// Misurato: velocità ≈ 2^(bend / 8192). −8192 = ×0,5, 0 = ×1, +8191 = ×2.
     static func bendFor(speed: Double) -> Int {
-        let s = max(0.25, min(2.0, speed))
-        if s < 1 { return Int(((s - 1) / 0.75 * 8192).rounded()) }
-        return min(8191, Int(((s - 1) * 8192).rounded()))
+        let s = max(minSpeed, min(maxSpeed, speed))
+        return max(-8192, min(8191, Int((8192 * log2(s)).rounded())))
     }
 
     static func speedFor(bend: Int) -> Double {
-        bend < 0 ? 1 + Double(bend) / 8192 * 0.75 : 1 + Double(bend) / 8192
+        pow(2, Double(bend) / 8192)
     }
 
     /// La bobina in ctrl manda passi relativi in complemento a due.

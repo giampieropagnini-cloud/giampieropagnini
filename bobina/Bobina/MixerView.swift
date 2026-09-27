@@ -29,9 +29,15 @@ struct MixerView: View {
                 }
             }
 
-            Card(title: "registrazione", note: "Arma soltanto: la registrazione la fai partire sulla macchina, col ▶.") {
-                Chip(text: engine.armed ? "● armato" : "● arma", on: engine.armed, color: Palette.rec) {
-                    engine.toggleArm()
+            Card(title: "registrazione", note: "«Registra» arma e parte: nasce sempre un file nuovo, e ■ nella scheda Nastro chiude la ripresa. «Arma» soltanto prepara, e parti tu dalla macchina.") {
+                HStack(spacing: 8) {
+                    Chip(text: engine.recording ? "● registra…" : "● registra", on: engine.recording, color: Palette.rec) {
+                        engine.record()
+                    }
+                    Chip(text: engine.armed ? "armato" : "arma", on: engine.armed && !engine.recording, color: Palette.rec) {
+                        engine.toggleArm()
+                    }
+                    Chip(text: "■") { engine.stop() }
                 }
             }
         }

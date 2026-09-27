@@ -12,8 +12,8 @@ struct PadView: View {
     var body: some View {
         Page(title: "Pad") {
             Card(title: "cue", note: engine.markMode
-                 ? "SEGNA: fai suonare il TP-7 e tocca i pad a tempo. Ogni tocco mette quel cue dove passa il nastro. Serve MIDI → midi-cue sul TP-7."
-                 : "RICHIAMA: ogni pad fa saltare il nastro al suo cue. I pad segnati sono bordati d'arancio.") {
+                 ? "SEGNA: fai suonare il TP-7 e tocca i pad nei punti buoni: ogni pad lega la sua nota al punto dove passa il nastro. Serve MIDI → cue e la schermata CUE aperta (▲). Se non segna, tieni premuto ● sulla macchina mentre tocchi il pad: è il modo ufficiale."
+                 : "RICHIAMA: ogni pad fa saltare il nastro al suo cue e suona da lì. I pad segnati sono bordati d'arancio. Dopo ogni salto Bobina rimanda al TP-7 volumi e muti, che lui azzererebbe.") {
                 Picker("modo", selection: $engine.markMode) {
                     Text("richiama").tag(false)
                     Text("segna").tag(true)
@@ -69,7 +69,7 @@ struct PadView: View {
                 ValueSlider(name: "probabilità", value: $engine.collageChance, range: 0...1, shown: "\(Int(engine.collageChance * 100))%")
             }
 
-            Card(title: "loop", note: "Premi inizio quando il nastro passa dove comincia il loop, fine dove finisce. Poi si può solo spegnere. «A tempo» lo apre alla prossima battuta del tempo di Bobina e lo chiude da solo, come un OB-4.") {
+            Card(title: "loop", note: "Funziona solo con la schermata LOOP aperta sul TP-7 (▲, poi scegli loop). Premi inizio quando il nastro passa dove comincia, fine dove finisce; poi si può solo spegnere. «A tempo» lo apre alla prossima battuta e lo chiude da solo, come un OB-4.") {
                 HStack(spacing: 8) {
                     Chip(text: "inizio", on: engine.loop != .off) { engine.loopStart() }
                         .disabled(engine.loop != .off)
