@@ -402,6 +402,7 @@
       <button type="button" class="tab" role="tab" data-k="menu"><span class="dot"></span>il menu</button>
       <button type="button" class="tab" role="tab" data-k="mac"><span class="dot"></span>col mac</button>
       <button type="button" class="tab" role="tab" data-k="midi"><span class="dot"></span>midi</button>
+      <button type="button" class="tab" role="tab" data-k="idee"><span class="dot"></span>idee</button>
       <button type="button" class="tab" role="tab" data-k="tele"><span class="dot"></span>telecomando</button>
     </div>
   </div>
@@ -472,7 +473,7 @@
           <div class="row"><div class="combo"><span class="kk">JACKS</span></div><div class="what">Cosa sono i tre minijack in alto<i>input (ognuno mono, mono bilanciato o stereo) · headset (cuffie con microfono: fino a tre persone, ognuna col suo volume) · output (uscite di linea, per far uscire le tracce separate). Vale per tutti e tre insieme.</i></div></div>
           <div class="row"><div class="combo"><span class="kk">SOURCE</span></div><div class="what">Da dove registra<i>auto (decide lui guardando cosa hai collegato) · digital (da 1 a 3 tracce stereo che arrivano dall'USB, cioè dal Mac) · manual (scegli tu traccia per traccia, analogico e digitale mescolati).</i></div></div>
           <div class="row"><div class="combo"><span class="kk">PLAY</span></div><div class="what">Cosa fa a fine file<i>stop · resume (passa al file dopo) · repeat (ricomincia lo stesso).</i></div></div>
-          <div class="row"><div class="combo"><span class="kk">MIDI</span></div><div class="what">Per cosa usa il MIDI<span class="flag" title="le tre sigle vengono da chi l'ha provato, la guida dice solo 'abilita il MIDI e scegli per cosa usarlo'">da confermare</span><i>off · sync (clock MIDI) · ctrl (diventa un controller: tasti, bobina e leva mandano MIDI al Mac e smettono di comandare il nastro). Per richiamare i cue con le note serve anche l'opzione midi-cue. Tutto spiegato nella scheda midi.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">MIDI</span></div><div class="what">Per cosa usa il MIDI<i>off (ascolta i comandi) · cue (e le note diventano cue) · sync (e manda il suo clock) · ctrl (diventa un controller e non ascolta più niente). Tutto spiegato nella scheda midi.</i></div></div>
           <div class="row"><div class="combo"><span class="kk">BLE</span></div><div class="what">Bluetooth, solo per il MIDI<i>accept (aspetta che il Mac o il telefono si colleghino) · scan (si collega da solo al dispositivo MIDI bluetooth col segnale più forte) · off (com'è di fabbrica).</i></div></div>
           <div class="row"><div class="combo"><span class="kk">THRU</span></div><div class="what">Passaggio diretto col computer<i>Acceso: quello che entra negli ingressi va al Mac via USB, e l'audio del Mac esce dai jack (se sono su output). Serve per usarlo come microfono in una videochiamata.</i></div></div>
           <div class="row"><div class="combo"><span class="kk">MEMO</span></div><div class="what">Qualità e sveglia dei memo<i>hi-q o std (occupa meno) · wake on/off: se è off, M a macchina spenta non fa niente.</i></div></div>
@@ -633,81 +634,327 @@
         <div class="callout">
           <p><b>Il tuo adattatore MIDI.</b> Se è un cavetto minijack ↔ DIN (come quelli teenage engineering per EP-133 e OP-Z), nel TP-7 non serve: i suoi jack non parlano MIDI.</p>
           <p>Se è un'interfaccia USB-MIDI, collegala al Mac: il telecomando di questa pagina fa da ponte. Un synth, una tastiera o una drum machine col DIN passano dal Mac e arrivano al TP-7. Funziona anche al contrario: il TP-7 comanda il synth.</p>
-          <p class="dim">Senza computer, un controller MIDI bluetooth dovrebbe potersi collegare direttamente (menu → BLE → scan). La guida lo descrive, ma nessuno l'ha ancora raccontato in pratica.</p>
+          <p class="dim">Senza computer va il bluetooth: c'è un video in cui un sequencer OXI One segna e richiama i cue del TP-7 senza fili (menu → BLE).</p>
         </div>
+        <p class="note">Le tabelle qui sotto mettono insieme la guida ufficiale e le misure fatte con gli strumenti sul firmware 1.1.11 da chi l'ha studiato a fondo (soprattutto il progetto op1-lfo-hero). Dove una cosa viene solo da lì trovi <span class="flag">misurato</span>.</p>
       </section>
 
       <section>
-        <h2 class="sec">le modalità</h2>
-        <p class="sec-note">Tieni <span class="kk">mode</span> → <b>MIDI</b>. Arrivano col firmware 1.1.3 (settembre 2024).</p>
-        <div class="rows">
-          <div class="row"><div class="combo"><span class="kk">off</span></div><div class="what">Niente MIDI.</div></div>
-          <div class="row"><div class="combo"><span class="kk">sync</span></div><div class="what">Clock MIDI<span class="flag" title="la guida non spiega se lo riceve o lo manda">da confermare</span><i>Come si comporta di preciso non è scritto da nessuna parte: chi l'ha provato dice che manda il clock solo mentre il nastro gira. Nel telecomando c'è un banco di prova per scoprirlo.</i></div></div>
-          <div class="row"><div class="combo"><span class="kk">ctrl</span></div><div class="what">Controller<i>Tasti, bobina e leva mandano MIDI al Mac e smettono di comandare il nastro. Sul display non succede niente, e resta così anche scollegato.</i></div></div>
-          <div class="row"><div class="combo"><span class="kk">midi-cue</span></div><div class="what">Cue comandati dalle note<span class="flag" title="la guida lo chiama 'MIDI cue'; l'etichetta esatta sul display va verificata">da confermare</span><i>Ogni nota MIDI è un cue: tenendo ● sulla macchina la nota lo segna, senza lo richiama.</i></div></div>
-        </div>
-        <p class="note">O lo comandi dal Mac, o ascolti i suoi tasti: le due cose insieme non si fanno. E il TP-7 non racconta mai com'è messo, quindi un telecomando non può sapere se sta suonando o se il loop è acceso: si fida di quello che gli hai mandato.</p>
+        <h2 class="sec">le quattro modalità</h2>
+        <p class="sec-note">Tieni <span class="kk">mode</span> → <b>MIDI</b>. Di fabbrica è off. Arrivano col firmware 1.1.3 (settembre 2024).</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>voce</th><th>ascolta i comandi?</th><th>le note fanno cue?</th><th>manda</th></tr></thead>
+          <tbody>
+            <tr><td><span class="kk">off</span></td><td>sì: cc, pitch bend, start/stop</td><td>no</td><td>niente</td></tr>
+            <tr><td><span class="kk">cue</span></td><td>sì</td><td>sì</td><td>niente</td></tr>
+            <tr><td><span class="kk">sync</span></td><td>sì</td><td>no</td><td>il suo clock, mentre il nastro gira<i>Al tempo del file per la velocità reale: se rallenti il nastro, rallenta anche il clock.</i></td></tr>
+            <tr><td><span class="kk">ctrl</span></td><td>no, niente</td><td>no</td><td>i suoi tasti, la bobina e la leva<i>Entrando si ferma, e resta così anche scollegato. Il memo da spento registra lo stesso.</i></td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Il TP-7 non racconta mai com'è messo: un programma non può sapere se sta suonando o se il loop è acceso, si fida di quello che gli ha mandato.</p>
       </section>
 
       <section>
-        <h2 class="sec">cosa capisce · dal Mac al TP-7</h2>
+        <h2 class="sec">trasporto · start, continue, stop</h2>
+        <p class="sec-note">Non sono nella tabella ufficiale, ma funzionano: sono i messaggi di trasporto standard, gli stessi che manda un DAW.</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>messaggio</th><th>cosa fa</th></tr></thead>
+          <tbody>
+            <tr><td><span class="kk">FA · start</span></td><td>riavvolge all'inizio e suona <span class="flag">misurato</span></td></tr>
+            <tr><td><span class="kk">FB · continue</span></td><td>suona da dove si trova<i>Rimette anche la leva a velocità normale.</i></td></tr>
+            <tr><td><span class="kk">FC · stop</span></td><td>si ferma dov'è<i>Un secondo stop da fermo riavvolge all'inizio, come sulla macchina. Toglie anche l'armamento.</i></td></tr>
+            <tr><td><span class="kk">cc 14 = 127</span> poi <span class="kk">FB</span></td><td>registra: nasce un file nuovo, e FC chiude la ripresa <span class="flag">misurato</span></td></tr>
+            <tr><td><span class="kk">F8 · clock</span></td><td>ignorato: il TP-7 non segue il tempo di nessuno</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2 class="sec">cosa capisce · controlli</h2>
         <div class="tablewrap"><table>
           <thead><tr><th>messaggio</th><th>canale</th><th>cosa fa</th></tr></thead>
           <tbody>
-            <tr><td><span class="kk">note on / off</span></td><td>tutti</td><td>Cue: ogni nota è un cue<i>Con il CC 16 acceso (o tenendo ● sulla macchina) la nota segna il cue dove sei; spento lo richiama. Via MIDI non si cancellano.</i></td></tr>
-            <tr><td><span class="kk">pitch bend</span></td><td>tutti</td><td>Velocità di riproduzione, da ×0,25 a ×2<i>Solo mentre suona, e il display non lo mostra.</i></td></tr>
-            <tr><td><span class="kk">cc 7</span></td><td>1–6</td><td>Volume delle sei tracce: il canale è la traccia<i>Torna al massimo quando cambi traccia con un cue o un loop.</i></td></tr>
-            <tr><td><span class="kk">cc 120</span></td><td>1–6</td><td>Muto della traccia: 64-127 muta, 0-63 riaccende<i>Il CC 120 è anche il «tasto panico» dei programmi musicali: un panico può togliere i muti.</i></td></tr>
-            <tr><td><span class="kk">cc 9</span></td><td>1–3</td><td>Guadagno degli ingressi 1-3, da 0 a 42 dB</td></tr>
-            <tr><td><span class="kk">cc 14</span></td><td>tutti</td><td>Arma la registrazione<i>Solo arma: poi la fai partire sulla macchina.</i></td></tr>
-            <tr><td><span class="kk">cc 16</span></td><td>tutti</td><td>Modo «segna cue»: acceso le note segnano, spento richiamano</td></tr>
-            <tr><td><span class="kk">cc 17</span></td><td>tutti</td><td>Loop: 1 = inizio, 2 = fine, 0 = spento<i>Sempre in quest'ordine: senza l'inizio la fine non fa niente, e con il loop acceso si può solo spegnere.</i></td></tr>
-            <tr><td><span class="kk">cc 18</span></td><td>tutti</td><td>La leva, finta<i>64 = centro. 68 = avanti a velocità normale: è il «play» che al MIDI manca. Sotto 64 indietro, sopra 68 avanti sempre più veloce. Mentre il nastro già suona cambia logica: 64 lo lascia andare, e per fermarlo servono 60 più pitch bend +708.</i></td></tr>
+            <tr><td><span class="kk">note on 0–127</span></td><td>tutti</td><td>Cue: la nota si lega al punto dove la segni, poi lo richiama<i>Per segnare: MIDI su cue e ● tenuto sulla macchina mentre arriva la nota. Per richiamare: la stessa nota, e il nastro parte da lì. Via MIDI i cue non si cancellano.</i></td></tr>
+            <tr><td><span class="kk">note off</span></td><td>tutti</td><td>Nella tabella ufficiale, ma nessuno ha visto un effetto</td></tr>
+            <tr><td><span class="kk">pitch bend</span></td><td>tutti</td><td>Velocità, da ×0,5 a ×2 (tabella più giù)<i>Solo mentre suona. Resta anche dopo stop e play, si moltiplica con la SPD della macchina, e il display non la mostra: ricordati di rimetterla a zero.</i></td></tr>
+            <tr><td><span class="kk">cc 7</span></td><td>1–6</td><td>Volume della traccia: il canale è la traccia<i>Si vede nel MIX della macchina. Torna al massimo quando un cue o un loop cambia traccia.</i></td></tr>
+            <tr><td><span class="kk">cc 120</span></td><td>1–6</td><td>Muto: 127 muta, 0 riaccende<i>Assoluto, non un interruttore. Per il resto del mondo il cc 120 è «panico» (all sound off): un tasto panico può mettere i muti.</i></td></tr>
+            <tr><td><span class="kk">cc 9</span></td><td>1–3</td><td>Guadagno del minijack 1-3: dB = valore × 42 / 127<i>Prima del mixer, per quello che entra dal vivo. 64 = +21 dB. I canali 4-6 non fanno niente.</i></td></tr>
+            <tr><td><span class="kk">cc 14</span></td><td>tutti</td><td>Arma la registrazione (la luce rossa lampeggia)<i>Da solo non registra: serve anche FB.</i></td></tr>
+            <tr><td><span class="kk">cc 16</span></td><td>tutti</td><td>Modo «segna cue» <span class="flag">da confermare</span><i>Nelle misure non ha fatto niente di visibile: tenere ● sulla macchina è la strada sicura.</i></td></tr>
+            <tr><td><span class="kk">cc 17</span></td><td>tutti</td><td>Loop: 1 = inizio, 2 = fine, 0 = spento<i>Solo con la schermata LOOP aperta sulla macchina. Senza l'inizio la fine è ignorata; a loop acceso si può solo spegnere.</i></td></tr>
+            <tr><td><span class="kk">cc 18</span></td><td>tutti</td><td>La leva: 64 al centro, si somma al nastro (tabella qui sotto)</td></tr>
           </tbody>
         </table></div>
-        <p class="note">La tabella ufficiale è quella della guida teenage engineering; le spiegazioni in grigio vengono dalle prove della community sul firmware 1.1.11. Niente MMC e niente MIDI time code: il TP-7 non si comporta come un registratore a nastro agganciato al DAW.</p>
+        <p class="note">Per i messaggi col canale «tutti» la guida non dice niente: nessuno ha provato canali diversi dall'1. Manda sull'1 e stai tranquillo.</p>
       </section>
 
       <section>
-        <h2 class="sec">cosa manda · dal TP-7 al Mac (in ctrl)</h2>
+        <h2 class="sec">la leva · cc 18</h2>
+        <p class="sec-note">Ogni passo dal centro aggiunge circa ×0,26 alla velocità, in avanti sopra 64 e indietro sotto. Si somma a quello che il nastro sta già facendo. <span class="flag">misurato</span></p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>valore</th><th>a nastro fermo</th><th>mentre suona</th></tr></thead>
+          <tbody>
+            <tr><td><span class="kk">64</span></td><td>fermo</td><td>non cambia niente: continua a suonare</td></tr>
+            <tr><td><span class="kk">68</span></td><td>avanti a ×1 circa (misurato ×1,04)</td><td>più veloce</td></tr>
+            <tr><td><span class="kk">70</span> · <span class="kk">72</span> · <span class="kk">76</span></td><td>×2 · ×3 circa</td><td>×2,4 circa con 70</td></tr>
+            <tr><td><span class="kk">61</span></td><td>indietro piano</td><td>quasi fermo, ×0,2 in avanti</td></tr>
+            <tr><td><span class="kk">60</span></td><td>indietro a ×1</td><td>quasi fermo, appena indietro<i>Con pitch bend +708 (E0 44 45) sta fermo come sotto il dito.</i></td></tr>
+            <tr><td><span class="kk">56</span></td><td>indietro veloce</td><td>indietro a ×1,1<i>Con pitch bend 9700 (E0 64 4B) è il ×1 al contrario esatto.</i></td></tr>
+            <tr><td><span class="kk">0</span> · <span class="kk">127</span></td><td colspan="2">riavvolgimento velocissimo, ×250-300, dopo due secondi di rincorsa: in dieci secondi fa quaranta minuti di nastro</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2 class="sec">velocità · pitch bend</h2>
+        <p class="sec-note">Misurata: la velocità è circa 2 elevato a (bend ÷ 8192). Un'ottava sotto e una sopra, come un nastro. Non fa niente a nastro fermo. <span class="flag">misurato</span></p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>pitch bend</th><th>velocità</th><th>byte</th></tr></thead>
+          <tbody>
+            <tr><td>−8192</td><td>×0,5</td><td class="mono">E0 00 00</td></tr>
+            <tr><td>−4096</td><td>×0,7</td><td class="mono">E0 00 20</td></tr>
+            <tr><td>0</td><td>×1</td><td class="mono">E0 00 40</td></tr>
+            <tr><td>+4096</td><td>×1,4</td><td class="mono">E0 00 60</td></tr>
+            <tr><td>+8191</td><td>×2</td><td class="mono">E0 7F 7F</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">La guida della community più diffusa dà ×0,25 come minimo: le misure dicono ×0,5.</p>
+      </section>
+
+      <section>
+        <h2 class="sec">cosa manda · modalità ctrl</h2>
+        <p class="sec-note">Tutto sul canale 1. I tasti mandano 127 quando li premi e 0 quando li lasci, senza ripetizione. A riposo non manda niente.</p>
         <div class="tablewrap"><table>
           <thead><tr><th>comando</th><th>messaggio</th><th>valori</th></tr></thead>
           <tbody>
-            <tr><td><span class="kk">▲</span> <span class="kk">▼</span></td><td>cc 20 · cc 21</td><td>127 premuto, 0 lasciato</td></tr>
-            <tr><td><span class="kk">●</span> <span class="kk">▶</span> <span class="kk">■</span></td><td>cc 22 · cc 23 · cc 24</td><td>127 premuto, 0 lasciato</td></tr>
-            <tr><td><span class="kk">−</span> <span class="kk">+</span></td><td>cc 25 · cc 26</td><td>127 premuto, 0 lasciato<i>Nella guida si chiamano left e right.</i></td></tr>
-            <tr><td><span class="kk">M</span></td><td>cc 27</td><td>127 premuto, 0 lasciato<i>Premuto e lasciato arrivano separati: si può misurare quanto lo tieni.</i></td></tr>
-            <tr><td><span class="kk">mode</span></td><td>cc 28 <span class="flag" title="non è nella tabella ufficiale, trovato da chi l'ha provato">da confermare</span></td><td>127 premuto, 0 lasciato</td></tr>
-            <tr><td><span class="kk">bobina</span></td><td>cc 30, relativo</td><td>1-63 in un verso, 65-127 nell'altro<i>Complemento a due: 127 = un passo indietro, 1 = un passo avanti. Circa 60 messaggi al secondo mentre giri.</i></td></tr>
-            <tr><td><span class="kk">leva</span></td><td>pitch bend</td><td>da −8192 a +8191, torna a 0 quando la lasci</td></tr>
+            <tr><td><span class="kk">▲</span> <span class="kk">▼</span></td><td>cc 20 · cc 21</td><td>127 / 0</td></tr>
+            <tr><td><span class="kk">●</span> <span class="kk">▶</span> <span class="kk">■</span></td><td>cc 22 · 23 · 24</td><td>127 / 0</td></tr>
+            <tr><td><span class="kk">−</span> <span class="kk">+</span></td><td>cc 25 · cc 26</td><td>127 / 0<i>Nella guida si chiamano left e right.</i></td></tr>
+            <tr><td><span class="kk">M</span></td><td>cc 27</td><td>127 / 0<i>In ctrl il memo non registra.</i></td></tr>
+            <tr><td><span class="kk">mode</span></td><td>cc 28 <span class="flag">misurato</span></td><td>127 / 0<i>Non è nella tabella ufficiale.</i></td></tr>
+            <tr><td><span class="kk">bobina</span></td><td>cc 30, relativo</td><td>1, 2, 3 in un verso · 127, 126, 125 nell'altro<i>Più giri veloce, più alto il numero. Circa 60 messaggi al secondo. Mandato al TP-7 non fa niente.</i></td></tr>
+            <tr><td><span class="kk">leva</span></td><td>pitch bend</td><td>−8192 … +8191<i>Non è la posizione ma una rampa morbida: va al massimo in 240 ms e torna a 0 in 290 ms quando la lasci.</i></td></tr>
           </tbody>
         </table></div>
-        <p class="note">Tutto sul canale 1, fisso.</p>
       </section>
 
       <section>
-        <h2 class="sec">cosa ci si può fare</h2>
+        <h2 class="sec">il clock · modalità sync</h2>
+        <ul class="plain">
+          <li>Manda 24 impulsi per quarto, e solo mentre il nastro gira: da fermo tace, e tace anche quando lo muove la leva.</li>
+          <li>Il tempo è quello scritto nel file (menu di registrazione → TEMPO, prima di registrare; 110 bpm se non lo cambi), moltiplicato per la velocità reale: rallenti il nastro e rallenta il clock.</li>
+          <li>Non manda start e stop; il clock gira anche all'indietro, quindi non dice il verso.</li>
+          <li>Il clock che arriva lo ignora: il TP-7 fa sempre da capo, mai da seguace.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="sec">ricette in byte</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>per</th><th>manda</th></tr></thead>
+          <tbody>
+            <tr><td>play da dove sei</td><td class="mono">FB</td></tr>
+            <tr><td>da capo</td><td class="mono">FA</td></tr>
+            <tr><td>stop pulito (solo se suona)</td><td class="mono">B0 12 40 · FC · E0 00 40</td></tr>
+            <tr><td>registra una ripresa</td><td class="mono">B0 0E 7F · FB … FC</td></tr>
+            <tr><td>fermo come sotto il dito</td><td class="mono">B0 12 3C · E0 44 45</td></tr>
+            <tr><td>indietro a ×1 (mentre suona)</td><td class="mono">B0 12 38 · E0 64 4B</td></tr>
+            <tr><td>muta la traccia 2</td><td class="mono">B1 78 7F</td></tr>
+            <tr><td>minijack 1 a +21 dB</td><td class="mono">B0 09 40</td></tr>
+            <tr><td>loop (schermata LOOP aperta)</td><td class="mono">B0 11 01 … B0 11 02 … B0 11 00</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2 class="sec">sysex teenage engineering</h2>
+        <p class="sec-note">Busta: <span class="mono">F0 00 20 76 19 40 …  F7</span>. 00 20 76 è teenage engineering, 19 è il TP-7 (TE025). I dati viaggiano impacchettati a 7 bit.</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>manda</th><th>cosa succede</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">F0 7E 7F 06 01 F7</td><td>«chi sei?»: risponde con la famiglia 19</td></tr>
+            <tr><td class="mono">F0 00 20 76 19 40 60 01 01 F7</td><td>saluto: risponde con firmware, seriale e codice prodotto<i>Il telecomando di questa pagina lo usa per «leggi firmware».</i></td></tr>
+            <tr><td class="mono">F0 00 20 76 19 40 60 05 04 00 01 03 F7</td><td>passa ai file (MTP), come fa field kit<i>La scheda audio sparisce finché dura la sessione.</i></td></tr>
+            <tr><td>comando 02</td><td>eco (risponde con quello che mandi)</td></tr>
+            <tr><td>comando 03</td><td>aggiornamento del firmware: <b class="warn">non mandarlo mai</b></td></tr>
+            <tr><td>comandi 05–7F</td><td>il TP-7 risponde «comando sconosciuto»</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2 class="sec">le altre strade</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th></th><th>com'è</th></tr></thead>
+          <tbody>
+            <tr><td>USB</td><td>codice 2367 (teenage engineering). Audio e MIDI 0019, dalle ultime versioni 8019; file (MTP) 0019<i>Scheda audio class compliant 24 bit / 96 kHz, 6 ingressi e 6 uscite = 3 coppie stereo.</i></td></tr>
+            <tr><td>bluetooth</td><td>MIDI bluetooth standard. accept aspetta, scan si collega da solo, off di fabbrica<i>Si fa trovare solo col menu BLE aperto; un collegamento già fatto resta. Il nome è quello di SYS → NAME (4 caratteri). L'app ufficiale del TP-7 usa anche un canale bluetooth suo, non documentato, che sembra dire lo stato del nastro.</i></td></tr>
+            <tr><td>file (MTP)</td><td>cartelle recordings, library e memo; nomi data_ora.wav<i>Si può caricare, rinominare e cancellare. Una sessione alla volta, e senza trasferimenti accavallati.</i></td></tr>
+            <tr><td>dentro i WAV</td><td>il tempo nel pezzo «acid» (110 bpm se non lo cambi), i cue nel pezzo «cue» in fondo al file<i>Un programma può scrivere cue nuovi nel file e ricaricarlo: sul TP-7 compaiono. Negli MP3 i cue non restano nel file.</i></td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2 class="sec">provati, non fanno niente</h2>
+        <ul class="plain">
+          <li>Qualsiasi comando in modalità ctrl.</li>
+          <li>Il cc 30 mandato al TP-7: la bobina non si muove.</li>
+          <li>Il pitch bend a nastro fermo.</li>
+          <li>Il clock in arrivo.</li>
+          <li>Lo stop mentre lo porta la leva: la leva continua.</li>
+          <li>Il cc 17 senza la schermata LOOP aperta.</li>
+        </ul>
+        <p class="note">Mai provati da nessuno: program change, MMC, song position, altri cc, canali diversi dall'1, la velocity delle note.</p>
+      </section>
+
+      <section>
+        <h2 class="sec">il firmware</h2>
+        <p class="sec-note">L'ultima versione pubblicata da teenage engineering è la <b>1.1.11</b> (23 dicembre 2025). Da agosto 2026 alcuni programmi leggono «2.5.7» dai TP-7 collegati: con ogni probabilità è il numero di versione della parte USB, non un firmware nuovo. Per sapere il tuo: menu → SYS → VER, oppure «leggi firmware» nel telecomando.</p>
+      </section>
+    </div>
+
+    <!-- ================= idee ================= -->
+    <div class="panel" id="p-idee" hidden>
+      <section>
+        <h2 class="sec">sette modi di parlare col TP-7</h2>
+        <p class="sec-note">Un programma può arrivare al TP-7 da tutte queste parti. Messe insieme, fanno molto più di un telecomando.</p>
         <div class="grid2">
-          <div class="card"><h3>telecomando dal Mac</h3><p class="dim">Trasporto, velocità, i sei volumi con i muti, sedici cue e il loop, dalla scheda telecomando.</p></div>
-          <div class="card"><h3>cue come pad da dj</h3><p class="dim">Ogni nota è un punto del brano: li fai partire dai tasti 1-8 della tastiera del Mac, da un pad controller passando dal ponte, o da un controller bluetooth.</p></div>
-          <div class="card"><h3>la bobina come jog nel DAW</h3><p class="dim">In ctrl la bobina diventa una rotella senza fine per scorrere la timeline, e i tasti fanno play, stop e rec.</p></div>
-          <div class="card"><h3>il TP-7 che suona un synth</h3><p class="dim">Col ponte la bobina diventa una manopola normale (per esempio il filtro, CC 74) e la leva un pitch bend vero, verso il synth attraverso il tuo adattatore MIDI.</p></div>
-          <div class="card"><h3>una pulsantiera per il Mac</h3><p class="dim">Alcuni programmi della community trasformano i tasti in azioni del Mac: dettatura col memo, appunti, riunioni registrate. Li trovi qui sotto.</p></div>
-          <div class="card"><h3>a tempo col DAW?</h3><p class="dim">Il modo sync c'è ma non è documentato, e l'MMC non c'è. Per ora la strada sicura è registrare nel DAW passando dal TP-7, oppure mandare il Mac sul TP-7 in digitale e partire a mano.</p></div>
+          <div class="card"><h3>midi col cavo</h3><p class="dim">Trasporto, velocità, cue, loop, sei volumi e muti, guadagni. O, in ctrl, i suoi tasti e la bobina verso il computer.</p></div>
+          <div class="card"><h3>midi senza fili</h3><p class="dim">Gli stessi messaggi via bluetooth, da un telefono o da un sequencer come l'OXI One.</p></div>
+          <div class="card"><h3>il suo clock</h3><p class="dim">In sync il nastro detta il tempo a tutto il resto, e se lo rallenti rallenta tutto.</p></div>
+          <div class="card"><h3>sysex</h3><p class="dim">Versione del firmware, seriale, e il passaggio ai file senza toccare la macchina.</p></div>
+          <div class="card"><h3>i file (MTP)</h3><p class="dim">Scaricare, caricare, rinominare, cancellare: la base di tutti i programmi per i memo e la trascrizione.</p></div>
+          <div class="card"><h3>dentro i WAV</h3><p class="dim">Il tempo e i cue sono scritti nel file: un programma può tagliare una registrazione in automatico e rimandarla al TP-7 con i cue già messi.</p></div>
+          <div class="card"><h3>la scheda audio</h3><p class="dim">Sei canali in e sei out: il computer può suonare sul nastro e registrare dal nastro mentre lo comanda.</p></div>
         </div>
       </section>
 
       <section>
-        <h2 class="sec">strumenti della community</h2>
+        <h2 class="sec">usi creativi, visti in giro</h2>
         <ul class="plain">
-          <li><a href="https://github.com/lucidyan/tp7-midi" rel="noopener">tp7-midi</a> · telecomando web (USB e bluetooth) e la descrizione più accurata del MIDI.</li>
-          <li><a href="https://github.com/Aias/tp-7" rel="noopener">Aias/tp-7</a> · app per la barra dei menu del Mac: memo dettati, riunioni, scaricamento automatico.</li>
-          <li><a href="https://github.com/PacoZhou1/tp7-vibe-deck" rel="noopener">tp7-vibe-deck</a> · il TP-7 come pulsantiera per il Mac, in modalità ctrl.</li>
-          <li><a href="https://github.com/totocaster/tp7" rel="noopener">tp7</a> · programma da Terminale per scaricare i file senza field kit (<span class="mono">brew install totocaster/tap/tp7</span>).</li>
-          <li><a href="https://github.com/mellson/tp7-util" rel="noopener">tp7-util</a> · divide e riunisce i WAV multitraccia.</li>
-          <li><a href="https://github.com/jwamin/field-remote" rel="noopener">field-remote</a> · telecomando bluetooth per iPhone (TP-7 e TX-6).</li>
+          <li><b>Scratch.</b> La bobina motorizzata come un piatto: teenage engineering stessa l'ha mostrato con il TX-6, e il DJ inglese DJ Yoda l'ha provata. Dal firmware 1.1.10 lo scratch si registra nel mixdown col TX-6.</li>
+          <li><b>DJ con due TP-7 e un TX-6.</b> Due «giradischi» tascabili, con i cue per i punti d'attacco e la spintarella per mettere a tempo.</li>
+          <li><b>Looper sound-on-sound.</b> Loop OB-4 più sovraincisione: c'è un tutorial apposta, e chi lo usa accanto a un OP-XY.</li>
+          <li><b>Cue dal sequencer.</b> Un OXI One manda note via bluetooth e il TP-7 salta fra i cue a tempo.</li>
+          <li><b>Il 4 piste in tasca.</b> Registra, sovraincidi in DUB, riversa in BOUNCE e ricomincia, come i portastudio a cassetta.</li>
+          <li><b>Multitraccia di synth.</b> Le quattro piste dell'OP-1 field su tracce separate del TP-7, o fino a dodici canali col TX-6.</li>
+          <li><b>Diario parlato.</b> Memo trascritti in automatico: l'app ufficiale, e programmi che li scrivono ogni giorno in un diario di Obsidian o in Apple Note.</li>
+          <li><b>Stampare su nastro.</b> <a href="https://github.com/micklasoft/tinebox" rel="noopener">tinebox</a>, uno strumento nel browser, arma il TP-7, lo fa partire e ci registra sopra un pezzo intero, mettendo un cue all'inizio di ogni sezione.</li>
         </ul>
-        <p class="note">Sono progetti di singoli appassionati, non di teenage engineering.</p>
+      </section>
+
+      <section>
+        <h2 class="sec">usi creativi possibili</h2>
+        <p class="sec-note">Idee che il MIDI del TP-7 permette. Molte sono già dentro <b>Bobina</b>, l'app per iPhone (più giù).</p>
+        <div class="grid2">
+          <div class="card"><h3>campionatore di nastro</h3><p class="dim">Una registrazione di mezz'ora diventa fino a 128 campioni: segni i cue nei punti buoni e li suoni da pad, tastiera o telefono.</p></div>
+          <div class="card"><h3>drum machine di nastro</h3><p class="dim">Un sequencer che salta fra i cue a tempo: ritmi fatti di pezzi di una registrazione qualsiasi.</p></div>
+          <div class="card"><h3>nastro stanco</h3><p class="dim">Wow e flutter: il pitch bend che ondeggia piano e trema veloce, come una cassetta vecchia.</p></div>
+          <div class="card"><h3>tape stop e avvio</h3><p class="dim">Il nastro rallenta fino a fermarsi, o riparte prendendo velocità.</p></div>
+          <div class="card"><h3>balbettio</h3><p class="dim">Lo stesso cue ripetuto a 1/8, 1/16, 1/32: il beat repeat della musica elettronica, sul nastro.</p></div>
+          <div class="card"><h3>cancello e pompa</h3><p class="dim">Muti e volumi delle sei tracce a tempo: il transformer e il sidechain, col mixer del TP-7.</p></div>
+          <div class="card"><h3>deriva</h3><p class="dim">Sei tracce della stessa registrazione con volumi che vagano da soli: un paesaggio che non si ripete, alla Basinski o alla Eno.</p></div>
+          <div class="card"><h3>collage</h3><p class="dim">Salti a caso fra i cue con una probabilità: musica concreta che si rimescola da sola.</p></div>
+          <div class="card"><h3>il nastro dà il tempo</h3><p class="dim">In sync il TP-7 detta il tempo a Ableton, a un sequencer, a Bobina. Rallenti il nastro con la leva e rallenta tutto il resto.</p></div>
+          <div class="card"><h3>taglio automatico</h3><p class="dim">Il computer scarica il WAV, trova i colpi, ci scrive dentro i cue e lo ricarica: il TP-7 si ritrova la registrazione già affettata.</p></div>
+          <div class="card"><h3>la bobina che avvisa</h3><p class="dim">Il computer fa girare la bobina con la leva quando finisce qualcosa: una notifica meccanica.</p></div>
+          <div class="card"><h3>jog per tutto</h3><p class="dim">In ctrl bobina e leva diventano una rotella per il montaggio video o per il DAW. C'è perfino chi ha progettato di usarle per mettere a fuoco un microscopio elettronico.</p></div>
+          <div class="card"><h3>col corpo</h3><p class="dim">Il telefono inclinato cambia la velocità del nastro, scuoterlo fa un tape stop.</p></div>
+          <div class="card"><h3>un aiutante che ascolta</h3><p class="dim">Il memo tenuto detta testo al computer, i tasti laterali passano la parola a un assistente: esiste già per Claude Code.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">i programmi su GitHub</h2>
+        <p class="sec-note">Tutti progetti di singoli appassionati, quasi tutti del 2026. Nessuno è di teenage engineering.</p>
+        <div class="grid2">
+          <div class="card"><h3>comandarlo</h3><ul class="plain">
+            <li><a href="https://github.com/lucidyan/tp7-midi" rel="noopener">tp7-midi</a> · telecomando web, USB e bluetooth</li>
+            <li><a href="https://github.com/andrewralon/op1-lfo-hero/tree/feature/support-field-devices" rel="noopener">op1-lfo-hero</a> · LFO a tempo, e le misure più precise del MIDI del TP-7</li>
+            <li><a href="https://github.com/micklasoft/tinebox" rel="noopener">tinebox</a> · strumento web che registra i pezzi sul TP-7</li>
+            <li><a href="https://github.com/jwamin/field-remote" rel="noopener">field-remote</a> · telecomando per iPhone; incolli una tabella MIDI e l'intelligenza del telefono ci disegna i controlli</li>
+          </ul></div>
+          <div class="card"><h3>usarlo come controller</h3><ul class="plain">
+            <li><a href="https://github.com/Aias/tp-7" rel="noopener">Aias/tp-7</a> · dettatura col memo, riunioni registrate, tasti che chiamano Claude Code</li>
+            <li><a href="https://github.com/PacoZhou1/tp7-vibe-deck" rel="noopener">tp7-vibe-deck</a> · pulsantiera per il Mac con un modello 3D del TP-7, e il progetto del microscopio</li>
+          </ul></div>
+          <div class="card"><h3>file e trasferimento</h3><ul class="plain">
+            <li><a href="https://github.com/totocaster/tp7" rel="noopener">tp7</a> e <a href="https://github.com/EDmitry/tp7" rel="noopener">la sua variante</a> · file dal Terminale, senza field kit</li>
+            <li><a href="https://github.com/sparkyfen/tp-7-mtp" rel="noopener">tp-7-mtp</a> · lo stesso per Linux, con la descrizione più precisa del protocollo USB</li>
+            <li><a href="https://github.com/plue17/tp7" rel="noopener">plue17/tp7</a> e <a href="https://github.com/tayseph/tp-7-manager" rel="noopener">tp-7-manager</a> · archivi per Linux</li>
+            <li><a href="https://github.com/rhzuccarelli/Bridge" rel="noopener">Bridge</a> · un editor multitraccia hardware per il TP-7, su Raspberry Pi</li>
+          </ul></div>
+          <div class="card"><h3>memo e trascrizione</h3><ul class="plain">
+            <li><a href="https://github.com/cwill747/TP-7-VoiceSync" rel="noopener">TP-7-VoiceSync</a> · trascrive e manda a Notion, Note o Markdown</li>
+            <li><a href="https://github.com/EDmitry/memo" rel="noopener">memo</a> · un diario quotidiano pronto per gli assistenti</li>
+            <li><a href="https://github.com/krystalmaria/tp7-station" rel="noopener">tp7-station</a> · trascrive e ha un editor di cue che li riscrive sul TP-7</li>
+            <li><a href="https://github.com/joshualexanderl/TP-7-Manager" rel="noopener">TP-7-Manager</a> · trascrizione verso Notion</li>
+          </ul></div>
+          <div class="card"><h3>musica e librerie</h3><ul class="plain">
+            <li><a href="https://github.com/pixelate/wavesync" rel="noopener">wavesync</a> · prepara la libreria musicale per il TP-7 e riporta indietro i cue fatti sulla macchina</li>
+            <li><a href="https://github.com/mellson/tp7-util" rel="noopener">tp7-util</a> · divide e riunisce i WAV multitraccia</li>
+            <li>toolsbymatt su maxforlive.com · dispositivi Max for Live: tp7_stem_recorder, tp7_stem_splitter, tp7_speed_sync <span class="flag" title="la pagina non si è potuta aprire">da confermare</span></li>
+            <li><a href="https://github.com/ericlewis/TEKit" rel="noopener">TEKit</a> · primi passi nel canale bluetooth segreto dell'app ufficiale</li>
+          </ul></div>
+          <div class="card"><h3>cosa non c'è ancora</h3><p class="dim">Nessun server MCP per farlo usare a un assistente, niente per norns, Pure Data, SuperCollider, TouchOSC o Mozaic. E una mappa MIDI pubblicata in una libreria (@ulnd/teenage) è inventata: non fidarti.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">col telefono</h2>
+        <div class="callout">
+          <p><b>Bobina</b> è l'app per iPhone nata da questa ricerca: bobina da girare col dito, trasporto e registrazione, velocità, nastro stanco, tape stop, velocità inclinando il telefono, sedici pad di cue, balbettio, collage, loop a tempo, sequencer di nastro, cancello, pompa, deriva, lo specchio dei tasti in ctrl e tutte le tabelle. Parla col TP-7 col cavo USB-C o col bluetooth.</p>
+          <p class="dim">È nella cartella <span class="mono">bobina</span> del sito, con le istruzioni in <span class="mono">LEGGIMI.md</span>: si installa dal Mac con Xcode.</p>
+        </div>
+        <ul class="plain">
+          <li><b>Senza installare niente:</b> il browser gratuito Bluefy su iPhone apre il telecomando <a href="https://lucidyan.github.io/tp7-midi" rel="noopener">tp7-midi</a> via bluetooth. Safari no.</li>
+          <li><b>App già pronte:</b> TouchOSC (20 $, script e sensori), MusiKraken (circa 10 $, sensori e patch visive), MIDI Wrench e midimittr (gratis, per provare e collegare).</li>
+          <li><b>Col cavo:</b> l'iPhone con USB-C vede il TP-7 come dispositivo MIDI e scheda audio. Può provare a caricarlo con la sua batteria.</li>
+          <li><b>Android:</b> Chrome ha già MIDI e bluetooth: questo prontuario, telecomando compreso, funziona lì.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="sec">a tempo con Ableton Live</h2>
+        <div class="grid2">
+          <div class="card">
+            <h3>Live comanda, il TP-7 parte e si ferma</h3>
+            <ol class="recipe">
+              <li>TP-7 col cavo, MIDI su off o cue.</li>
+              <li>Live, Impostazioni → Link, Tempo e MIDI: sull'uscita TP-7 accendi <b>Sync</b>.</li>
+              <li>Play in Live: il TP-7 riavvolge e parte insieme; stop si ferma; due stop tornano all'inizio.</li>
+            </ol>
+            <p class="dim">Il TP-7 non segue il tempo: registra il materiale allo stesso tempo di Live (menu di registrazione → TEMPO) e resteranno insieme.</p>
+          </div>
+          <div class="card">
+            <h3>il TP-7 comanda, Live lo segue</h3>
+            <ol class="recipe">
+              <li>TP-7 su MIDI → sync.</li>
+              <li>Live: sull'ingresso TP-7 accendi <b>Sync</b>, poi <b>EXT</b> nella barra in alto.</li>
+              <li>Premi play sul TP-7: Live prende il tempo del file. Se rallenti il nastro, rallenta anche Live.</li>
+            </ol>
+            <p class="dim">Il TP-7 non manda lo start: può darsi che Live vada fatto partire a mano. <span class="flag">da provare</span></p>
+          </div>
+          <div class="card">
+            <h3>cue a battuta</h3>
+            <ol class="recipe">
+              <li>TP-7 su MIDI → cue; una traccia MIDI di Live con uscita TP-7.</li>
+              <li>Tieni ● sulla macchina e manda una nota (per esempio C1) nel punto dove comincia il pezzo.</li>
+              <li>Una clip di 1, 2 o 4 battute con quella nota sull'1: a ogni giro il TP-7 torna lì sul battere.</li>
+            </ol>
+            <p class="dim">Anche se i due orologi si allontanano, la battuta dopo li rimette insieme. Col pitch bend automatizzato nella stessa clip adatti la velocità (×0,5-×2).</p>
+          </div>
+          <div class="card">
+            <h3>sentirlo in Live, e dopo</h3>
+            <ul class="plain">
+              <li>Per sentire il TP-7 dentro Live tenendo la tua scheda: Configurazione MIDI Audio → dispositivo aggregato con la tua scheda e il TP-7.</li>
+              <li>Se il salto arriva un filo tardi: Track Delay negativo sulla traccia MIDI.</li>
+              <li>A cose fatte: scarica il WAV con field kit e usa il warp. Il tempo è scritto nel file.</li>
+            </ul>
+          </div>
+        </div>
       </section>
     </div>
 
@@ -720,7 +967,7 @@
           <h3>collegamento</h3>
           <ol class="recipe">
             <li>Collega il TP-7 acceso col cavo USB-C (o via bluetooth: menu → BLE → accept, poi accoppialo in Configurazione MIDI Audio).</li>
-            <li>Sul TP-7, menu → <b>MIDI</b>: <b>ctrl</b> se vuoi usare i suoi tasti; per comandarlo da qui un'altra voce, e per i cue serve <b>midi-cue</b>.<span class="flag" title="quale voce accetti quali comandi non è scritto nella guida">da confermare</span></li>
+            <li>Sul TP-7, menu → <b>MIDI</b>: <b>off</b>, <b>cue</b> o <b>sync</b> per comandarlo da qui (<b>cue</b> serve per i pad); <b>ctrl</b> per usare i suoi tasti.</li>
             <li>Premi collega e dai il permesso al browser.</li>
           </ol>
           <div class="btnrow">
@@ -740,18 +987,18 @@
         <h2 class="sec">comanda il TP-7</h2>
         <div class="grid2">
           <div class="card">
-            <h3>trasporto <span class="sm">cc 18</span></h3>
-            <p class="dim">Il MIDI del TP-7 non ha play e stop: si muove la sua leva. Tieni premuti ◀◀ e ▶▶. Dalla tastiera del Mac lo spazio fa ▶ e ■.</p>
+            <h3>trasporto <span class="sm">FA · FB · FC · cc 18</span></h3>
+            <p class="dim">⏮ riavvolge e suona, ▶ riparte da dove sei, ■ si ferma (due volte: torna all'inizio), ● registra su un file nuovo. ◀◀, ▶▶ e «dito» vanno tenuti premuti. Dalla tastiera del Mac lo spazio fa ▶ e ■.</p>
             <div class="btnrow">
-              <button type="button" class="btn big" id="t-rew" title="indietro veloce, tieni premuto">◀◀</button>
-              <button type="button" class="btn big" id="t-play" title="avanti a velocità normale (cc 18 = 68)">▶</button>
-              <button type="button" class="btn big" id="t-stop" title="leva al centro (cc 18 = 64)">■</button>
-              <button type="button" class="btn big" id="t-ffw" title="avanti veloce, tieni premuto">▶▶</button>
+              <button type="button" class="btn big" id="t-top" title="da capo (FA)">⏮</button>
+              <button type="button" class="btn big" id="t-play" title="play da dove si trova (FB)">▶</button>
+              <button type="button" class="btn big" id="t-stop" title="stop (FC)">■</button>
+              <button type="button" class="btn big recb" id="t-rec" title="arma e registra (cc 14 e FB)">●</button>
             </div>
             <div class="btnrow">
-              <span class="lab">se hai premuto play sulla macchina:</span>
-              <button type="button" class="btn" id="t-halt" title="cc 18 = 60 e pitch bend +708">ferma</button>
-              <button type="button" class="btn" id="t-release" title="cc 18 = 64 e pitch bend 0">riparti</button>
+              <button type="button" class="btn big" id="t-rew" title="indietro veloce, tieni premuto">◀◀</button>
+              <button type="button" class="btn big" id="t-ffw" title="avanti veloce, tieni premuto">▶▶</button>
+              <button type="button" class="btn" id="t-hold" title="cc 18 = 60 e pitch bend +708, tieni premuto">dito</button>
             </div>
             <div class="slrow"><span class="n">leva</span><input type="range" id="t-shuttle" min="0" max="127" value="64" aria-label="leva virtuale"><span class="v" id="t-shuttlev">64</span></div>
             <label class="chk" style="margin-top:6px"><input type="checkbox" id="t-spring" checked> torna al centro quando la lasci</label>
@@ -759,7 +1006,7 @@
 
           <div class="card">
             <h3>velocità <span class="sm">pitch bend</span></h3>
-            <p class="dim">Da un quarto al doppio. Vale solo mentre suona e sul display non si vede.</p>
+            <p class="dim">Da metà al doppio: un'ottava sotto e una sopra. Vale solo mentre suona, resta anche dopo lo stop e sul display non si vede.</p>
             <div class="slrow"><span class="n">velocità</span><input type="range" id="t-pb" min="-8192" max="8191" value="0" aria-label="velocità"><span class="v" id="t-pbv">×1,00</span></div>
             <div class="btnrow">
               <button type="button" class="btn" data-speed="0.5">×0,5</button>
@@ -772,7 +1019,7 @@
 
           <div class="card">
             <h3>cue <span class="sm">note 36–51 · cc 16</span></h3>
-            <p class="dim">In <b>richiama</b> un pad salta al suo cue; in <b>segna</b> lo mette dove sei. Dalla tastiera del Mac: tasti 1-8.</p>
+            <p class="dim">In <b>richiama</b> un pad salta al suo cue e suona da lì; in <b>segna</b> lo lega al punto dove passa il nastro. Serve MIDI su cue e la schermata CUE aperta (▲). Se non segna, tieni ● sulla macchina mentre tocchi il pad. Dalla tastiera del Mac: tasti 1-8.</p>
             <div class="btnrow">
               <button type="button" class="btn on" id="t-cuecall">richiama</button>
               <button type="button" class="btn" id="t-cueset">segna</button>
@@ -782,7 +1029,7 @@
 
           <div class="card">
             <h3>loop <span class="sm">cc 17</span></h3>
-            <p class="dim">Premi <b>inizio</b> quando il nastro passa dove comincia, <b>fine</b> dove finisce. Poi solo <b>spegni</b>.</p>
+            <p class="dim">Solo con la schermata LOOP aperta sulla macchina (▲, poi loop). Premi <b>inizio</b> quando il nastro passa dove comincia, <b>fine</b> dove finisce. Poi solo <b>spegni</b>.</p>
             <div class="btnrow">
               <button type="button" class="btn" id="t-loopin">inizio</button>
               <button type="button" class="btn" id="t-loopout" disabled>fine</button>
@@ -803,7 +1050,7 @@
             <div class="btnrow">
               <button type="button" class="btn recb" id="t-arm">arma la registrazione</button>
             </div>
-            <p class="dim">Arma soltanto: la registrazione la fai partire sulla macchina.</p>
+            <p class="dim">Arma soltanto: per partire usa ▶ qui o sulla macchina, oppure direttamente ● nel trasporto.</p>
           </div>
         </div>
       </section>
@@ -854,23 +1101,10 @@
       </section>
 
       <section>
-        <h2 class="sec">banco di prova del sync</h2>
+        <h2 class="sec">il tempo del TP-7 · modalità sync</h2>
         <div class="card">
-          <p class="dim" style="margin-top:0">La modalità sync non è documentata: qui la metti alla prova. Col TP-7 su <b>MIDI → sync</b>, prima premi play sulla macchina e guarda se arriva un tempo; poi manda un clock da qui e guarda se il TP-7 lo segue.</p>
-          <div class="grid2" style="margin-top:10px">
-            <div>
-              <div class="dim" style="font-size:12px">clock in arrivo dal TP-7</div>
-              <div class="readout" id="t-clockin">nessuno</div>
-            </div>
-            <div>
-              <div class="inline" style="margin-top:0">
-                <label class="f">bpm<input type="number" id="t-bpm" min="30" max="300" value="120"></label>
-                <button type="button" class="btn" id="t-clockgo">manda clock e start</button>
-                <button type="button" class="btn" id="t-clockstop">stop</button>
-              </div>
-            </div>
-          </div>
-          <p class="note">Chi ha provato racconta che due stop di fila riavvolgono il TP-7 all'inizio: per questo qui lo stop parte una volta sola.</p>
+          <p class="dim" style="margin-top:0">Col TP-7 su <b>MIDI → sync</b>, premi play sulla macchina: qui compare il tempo del file. Muovi la leva o la velocità e cambia anche lui. Il clock che gli mandi, invece, il TP-7 lo ignora.</p>
+          <div class="readout" id="t-clockin" style="margin-top:10px">nessuno</div>
         </div>
       </section>
 
@@ -888,7 +1122,7 @@
     </div>
 
     <footer>
-      <p class="note">Dati presi dalla guida ufficiale teenage engineering (teenage.engineering/guides/tp-7) e dalle note dei firmware fino all'1.1.11 del dicembre 2025. Per il MIDI anche dalle prove pubblicate dalla community (tp7-midi, Aias/tp-7, tp7-vibe-deck, totocaster/tp7). Dove una cosa viene solo dalla community trovi il segno <span class="flag">da confermare</span>: il display della macchina resta l'ultima parola.</p>
+      <p class="note">Dati presi dalla guida ufficiale teenage engineering (teenage.engineering/guides/tp-7) e dalle note dei firmware fino all'1.1.11 del dicembre 2025. Per il MIDI anche dalle misure pubblicate dalla community: soprattutto op1-lfo-hero, che l'ha misurato con gli strumenti, e poi tp7-midi, Aias/tp-7, tp7-vibe-deck, totocaster/tp7 e tp-7-mtp. Le cose che vengono solo da lì sono segnate <span class="flag">misurato</span>; quelle ancora incerte <span class="flag">da confermare</span>. Il display della macchina resta l'ultima parola.</p>
     </footer>
   </div>
 </main>
@@ -1036,12 +1270,13 @@
   function comboHTML(c){ return c.k.map(chip).join('<span class="plus">+</span>'); }
 
   var state = { tab:"tasti", filter:null, q:"" };
-  var TABS = ["tasti","menu","mac","midi","tele"];
+  var TABS = ["tasti","menu","mac","midi","idee","tele"];
   var NOTES = {
     tasti:"tocca un comando dello schema per vedere solo le sue combinazioni",
     menu:"tieni mode: tutte le voci del menu, come le vedi sul display",
     mac:"usb-c, file, scheda audio e ricette per il Mac",
-    midi:"cosa manda, cosa capisce, cosa ci si fa",
+    midi:"tutte le tabelle: cosa manda, cosa capisce, come",
+    idee:"programmi, usi creativi, telefono, Ableton",
     tele:"apri questa scheda in Chrome o Edge sul Mac"
   };
 
@@ -1419,12 +1654,28 @@
     el.addEventListener("keydown", function(e){ if(e.key === " " || e.key === "Enter"){ start(e); } });
     el.addEventListener("keyup", function(e){ if(e.key === " " || e.key === "Enter"){ end(); } });
   }
+  /* start, continue e stop comandano davvero il nastro; la leva si somma a quello che fa */
+  var playing = false;
+  function play(){ lever(64); bend(+pbEl.value); if(send([0xFB])) playing = true; }
+  function stop(){ lever(64); if(send([0xFC])) playing = false; }
+  $("t-top").addEventListener("click", function(){ lever(64); bend(+pbEl.value); if(send([0xFA])) playing = true; });
+  $("t-play").addEventListener("click", play);
+  $("t-stop").addEventListener("click", function(){
+    stop();
+    var a = $("t-arm"), r = $("t-rec");
+    a.classList.remove("on"); r.classList.remove("on");
+  });
+  $("t-rec").addEventListener("click", function(){
+    if(!cc(14, 127)) return;
+    $("t-arm").classList.add("on");
+    $("t-rec").classList.add("on");
+    lever(64);
+    if(send([0xFB])) playing = true;
+  });
   holdBtn($("t-rew"), function(){ lever(24); }, function(){ lever(64); });
   holdBtn($("t-ffw"), function(){ lever(104); }, function(){ lever(64); });
-  $("t-play").addEventListener("click", function(){ setBend(0); lever(68); });
-  $("t-stop").addEventListener("click", function(){ lever(64); });
-  $("t-halt").addEventListener("click", function(){ lever(60); setBend(708); });
-  $("t-release").addEventListener("click", function(){ lever(64); setBend(0); });
+  /* mentre suona, 60 + pitch bend +708 lo tengono fermo come sotto il dito */
+  holdBtn($("t-hold"), function(){ lever(60); bend(708); }, function(){ lever(64); bend(+pbEl.value); });
   shuttle.addEventListener("input", function(){
     var v = +shuttle.value;
     $("t-shuttlev").textContent = v;
@@ -1434,10 +1685,11 @@
   shuttle.addEventListener("pointerup", springBack);
   shuttle.addEventListener("change", springBack);
 
-  /* ---- velocità (pitch bend): da ×0,25 a ×2, asimmetrica ---- */
+  /* ---- velocità (pitch bend) ---- */
   var pbEl = $("t-pb");
-  function pbToMul(v){ return v < 0 ? 1 + v / 8192 * 0.75 : 1 + v / 8192; }
-  function mulToPb(m){ return m < 1 ? Math.round((m - 1) / 0.75 * 8192) : Math.min(8191, Math.round((m - 1) * 8192)); }
+  /* misurato: velocità ≈ 2^(bend / 8192), da ×0,5 a ×2 */
+  function pbToMul(v){ return Math.pow(2, v / 8192); }
+  function mulToPb(m){ return Math.max(-8192, Math.min(8191, Math.round(8192 * Math.log2(Math.max(0.5, Math.min(2, m)))))); }
   function showPb(v){ $("t-pbv").textContent = "×" + pbToMul(v).toFixed(2).replace(".", ","); }
   function setBend(v){ pbEl.value = v; showPb(v); bend(v); }
   var pbTimer = null;
@@ -1468,6 +1720,16 @@
     el.classList.add("hit");
     setTimeout(function(){ el.classList.remove("hit"); }, 140);
     if(cueSet){ padsSet[n] = 1; el.classList.add("set"); }
+    else resendMixer();
+  }
+  /* dopo un salto di cue il TP-7 rimette il mixer a zero: gli rimando volumi e muti */
+  function resendMixer(){
+    setTimeout(function(){
+      elMix.querySelectorAll("input[data-ch]").forEach(function(sl){
+        if(+sl.value !== 127) cc(7, +sl.value, +sl.dataset.ch);
+      });
+      elMix.querySelectorAll("[data-mute].on").forEach(function(b){ cc(120, 127, +b.dataset.mute); });
+    }, 40);
   }
   elPads.addEventListener("click", function(e){
     var b = e.target.closest(".pad");
@@ -1535,13 +1797,12 @@
   });
 
   /* ---- tastiera del Mac: 1-8 cue, spazio play/stop ---- */
-  var playing = false;
   document.addEventListener("keydown", function(e){
     if(state.tab !== "tele" || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
     var tag = (e.target.tagName || "").toLowerCase();
     if(tag === "input" || tag === "select" || tag === "textarea") return;
     if(/^[1-8]$/.test(e.key)){ e.preventDefault(); hitPad(+e.key - 1); }
-    else if(e.key === " " && tag !== "button"){ e.preventDefault(); playing = !playing; if(playing){ setBend(0); lever(68); } else lever(64); }
+    else if(e.key === " " && tag !== "button"){ e.preventDefault(); if(playing) stop(); else play(); }
   });
   /* dopo un clic col mouse il pulsante non tiene il fuoco, cosi' lo spazio resta ▶/■;
      da tastiera (detail 0) il fuoco resta dov'e' */
@@ -1588,33 +1849,7 @@
   $("b2-reel").addEventListener("change", function(){ $("b2-ccwrap").hidden = $("b2-reel").value !== "abs"; });
   $("b2-ccwrap").hidden = true;
 
-  /* ---- banco di prova del sync: clock a 24 impulsi per quarto ---- */
-  var clockRun = null;
-  function stopClock(sendStop){
-    /* gli impulsi gia' messi in coda partono lo stesso: lo stop va dopo l'ultimo */
-    var at = clockRun ? clockRun.next : 0;
-    if(clockRun){ clearInterval(clockRun.timer); clockRun = null; }
-    if(sendStop && tpOut){
-      try{ tpOut.send([0xFC], at); log("out", [0xFC]); }catch(e){}
-    }
-    $("t-clockgo").classList.remove("on");
-  }
-  $("t-clockgo").addEventListener("click", function(){
-    if(!tpOut){ setStatus("scegli prima l'uscita verso il TP-7", "err"); return; }
-    stopClock(false);
-    var bpm = Math.max(30, Math.min(300, +$("t-bpm").value || 120));
-    var step = 60000 / (bpm * 24);
-    send([0xFA]);
-    var run = clockRun = { next: performance.now() + 50, timer: 0 };
-    run.timer = setInterval(function(){
-      var until = performance.now() + 100;
-      try{
-        while(run.next < until){ tpOut.send([0xF8], run.next); run.next += step; }
-      }catch(e){ stopClock(false); setStatus("clock interrotto: " + e.message, "err"); }
-    }, 25);
-    $("t-clockgo").classList.add("on");
-  });
-  $("t-clockstop").addEventListener("click", function(){ if(clockRun) stopClock(true); });
+
 
   /* ---------------- avvio ---------------- */
   try{
