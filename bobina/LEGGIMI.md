@@ -3,9 +3,9 @@
 Un'app per iPhone che suona il **TP-7** di teenage engineering via MIDI, col cavo USB-C o col bluetooth.
 Non è un semplice telecomando: fa quello che la macchina da sola non sa fare.
 
-- **Nastro**: una bobina virtuale da girare col dito (scrub e scratch), il trasporto, la velocità da ×0,25 a ×2, il tape stop, il «nastro stanco» (wow e flutter), e la velocità comandata inclinando il telefono.
+- **Nastro**: una bobina virtuale da girare col dito (scrub e scratch), il trasporto vero (da capo, play, stop, registra), la velocità da ×0,5 a ×2, il tape stop, il «nastro stanco» (wow e flutter), e la velocità comandata inclinando il telefono.
 - **Pad**: sedici cue come i pad di un campionatore. Segni i punti buoni di una registrazione mentre suona, poi li suoni. Più il balbettio (beat repeat), il collage a caso e il loop a tempo.
-- **Ritmo**: un metronomo con tap, un sequencer di sedici passi che fa saltare il nastro fra i cue (una drum machine fatta di nastro), il cancello (muti a tempo, il trucco del transformer) e la pompa (il sidechain fatto col mixer del TP-7).
+- **Ritmo**: un metronomo con tap (oppure il tempo del TP-7 stesso, in modalità sync), un sequencer di sedici passi che fa saltare il nastro fra i cue (una drum machine fatta di nastro), il cancello (muti a tempo, il trucco del transformer) e la pompa (il sidechain fatto col mixer del TP-7).
 - **Mixer**: volumi e muti delle sei tracce, la deriva (volumi che vagano da soli), i guadagni dei tre ingressi, l'armamento della registrazione.
 - **Collega**: cavo o bluetooth, lo specchio dei tasti del TP-7 in modalità ctrl, il monitor dei messaggi e tutte le tabelle MIDI.
 
@@ -36,8 +36,10 @@ Con l'Apple ID gratuito l'app resta valida **7 giorni**: quando smette di aprirs
 Tieni **mode** per aprire il menu, poi:
 
 - **MIDI**
-  - `midi-cue` o `sync` per comandarlo da Bobina. Per i pad serve l'opzione dei cue via MIDI.
-  - `ctrl` per usare il TP-7 come controller: in Collega vedi i suoi tasti. Ma in `ctrl` il TP-7 non ascolta più i comandi, e l'impostazione resta anche scollegato: rimettila come prima quando hai finito.
+  - `off`, `cue` o `sync`: in tutte e tre il TP-7 ascolta Bobina.
+  - `cue` serve per i pad: le note diventano cue.
+  - `sync` fa mandare al TP-7 il suo tempo: in Ritmo, «segui il TP-7» fa dettare i passi al nastro. In sync però i pad non vanno.
+  - `ctrl` trasforma il TP-7 in controller: in Collega vedi i suoi tasti. Ma in `ctrl` non ascolta più niente, e l'impostazione resta anche scollegato: rimettila come prima quando hai finito.
 - **Col cavo**: collega il TP-7 acceso all'iPhone. In Collega compare «TP-7» e Bobina lo sceglie da sola.
   - Finché è collegato, il TP-7 fa anche da scheda audio dell'iPhone.
   - L'iPhone potrebbe provare a caricarlo con la sua batteria.
@@ -47,9 +49,11 @@ Tieni **mode** per aprire il menu, poi:
 
 ## Cose da sapere
 
-- **Le cose di velocità funzionano solo mentre il TP-7 suona.** Riguarda velocità, nastro stanco, tape stop e inclinazione. Premi ▶ sulla macchina, oppure fai partire un cue da un pad.
+- **Le cose di velocità funzionano solo mentre il TP-7 suona.** Riguarda velocità, nastro stanco, tape stop e inclinazione. Premi ▶ in Bobina o sulla macchina, oppure fai partire un cue da un pad. La velocità resta anche dopo uno stop: il display non la mostra.
+- **Il loop via MIDI** funziona solo con la schermata LOOP aperta sulla macchina (▲, poi loop). **I pad** vogliono la schermata CUE.
+- **Registrare da Bobina** crea sempre un file nuovo; ■ chiude la ripresa.
 - **Il TP-7 non racconta mai com'è messo.** Bobina non può sapere se sta suonando o se il loop è acceso: si ricorda solo quello che gli ha mandato.
-- **I pad in modalità «segna»** mettono il cue dove passa il nastro in quel momento. La ricetta:
+- **I pad in modalità «segna»** legano la loro nota al punto dove passa il nastro in quel momento. Se non segnano, tieni premuto ● sulla macchina mentre tocchi il pad: è il modo ufficiale. La ricetta:
   1. apri una registrazione lunga e premi play;
   2. tocca i pad a tempo nei punti buoni;
   3. passa a «richiama» e suonali;
