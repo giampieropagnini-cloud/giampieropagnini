@@ -17,10 +17,11 @@ proposte/
 # L'archivio di WeedGadget si rigenera con:
 #   python3 ../weedgadget-brand/scripts/pubblica-sul-sito.py
 static/*
-# ...tranne i prontuari dei Pocket Operator e del TP-7, che non li genera nessuno
+# ...tranne i prontuari dei Pocket Operator, del TP-7 e del TX-6, che non li genera nessuno
 # script: tenerli qui fa si' che gen.py --clean li rimetta in docs/ dopo una ripulita.
 !static/pocket-operator/
 !static/tp-7/
+!static/tx-6/
 # Xcode: impostazioni personali e build, non vanno nel repository
 bobina/**/xcuserdata/
 bobina/**/*.xcuserstate
