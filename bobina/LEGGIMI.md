@@ -1,13 +1,24 @@
 # Bobina
 
-Un'app per iPhone che suona il **TP-7** di teenage engineering via MIDI, col cavo USB-C o col bluetooth.
-Non è un semplice telecomando: fa quello che la macchina da sola non sa fare.
+Un'app per iPhone che suona il **TP-7** e il **TX-6** di teenage engineering via MIDI, col cavo USB-C o col bluetooth.
+Non è un semplice telecomando: fa quello che le macchine da sole non sanno fare.
+Il tasto in alto a destra di ogni pagina passa dalla sezione TP-7 alla sezione TX-6 e ritorno.
+
+### Sezione TP-7
 
 - **Nastro**: una bobina virtuale da girare col dito (scrub e scratch), il trasporto vero (da capo, play, stop, registra), la velocità da ×0,5 a ×2, il tape stop, il «nastro stanco» (wow e flutter), e la velocità comandata inclinando il telefono.
 - **Pad**: sedici cue come i pad di un campionatore. Segni i punti buoni di una registrazione mentre suona, poi li suoni. Più il balbettio (beat repeat), il collage a caso e il loop a tempo.
 - **Ritmo**: un metronomo con tap (oppure il tempo del TP-7 stesso, in modalità sync), un sequencer di sedici passi che fa saltare il nastro fra i cue (una drum machine fatta di nastro), il cancello (muti a tempo, il trucco del transformer) e la pompa (il sidechain fatto col mixer del TP-7).
 - **Mixer**: volumi e muti delle sei tracce, la deriva (volumi che vagano da soli), i guadagni dei tre ingressi, l'armamento della registrazione.
 - **Collega**: cavo o bluetooth, lo specchio dei tasti del TP-7 in modalità ctrl, il monitor dei messaggi e tutte le tabelle MIDI.
+
+### Sezione TX-6
+
+- **Mixer**: volume e muto delle sei tracce; ogni traccia si apre con tutto il resto (pan, guadagno, filtro, EQ, compressore, mandate, synth). Il generale (main, aux, cue, manopole del TX-6 spente), le scene a b c della macchina, e le **scene che sfumano**: quante ne vuoi, e il passaggio dall'una all'altra in 1-16 battute.
+- **Effetti**: FX I (riverbero, chorus, delay) con le mandate delle tracce e il ritorno, FX II (filtro, crush, distorsione, tremolo, freeze, tape) su una traccia o su tutto, le mandate aux.
+- **Suona**: una tastiera per il synth (una traccia, o accordi sulle sei tracce come sei voci), sei pad (do-la sul canale 7), la **batteria a passi** e i **passi con manopola** (un valore diverso a ogni passo).
+- **Ritmo**: il tempo in tre modi (di Bobina, Bobina lo dà al TX-6, Bobina segue il TX-6), start/stop e tempo del TX-6, la **pompa** (il sidechain che il TX-6 non ha), il **cancello**, due **onde** (gli LFO che mancano), la **deriva** di volumi e pan, e il filtro **col corpo** inclinando il telefono.
+- **Collega**: cavo o bluetooth, lo specchio di fader e manopole in CTRL OUT, il **ponte** (il TX-6 in CTRL OUT comanda la sezione TP-7), il monitor e tutte le tabelle MIDI del TX-6.
 
 > **Attenzione:** il codice è stato scritto e controllato riga per riga, ma non ancora compilato su un Mac. Se Xcode segnala un errore, vedi in fondo.
 
@@ -47,7 +58,19 @@ Tieni **mode** per aprire il menu, poi:
   - Oppure al contrario: TP-7 su **scan** e in Bobina *fatti trovare*.
   - iOS stacca il bluetooth MIDI se resta zitto per qualche minuto: se succede, ricollega.
 
-## Cose da sapere
+## Preparare il TX-6
+
+Tieni **shift** e premi **select** per il menu, poi:
+
+- **MIDI** → CTRL **IN**: è l'unico modo in cui il TX-6 ascolta Bobina. NOTE **on** fa suonare il synth dalle note.
+  - CTRL **OUT** lo trasforma in controller: in Collega vedi fader e manopole, e col ponte comandano il TP-7. Ma in OUT non ascolta niente.
+- **SYNTH** → **play** per la tastiera, i pad e la batteria a passi.
+- **CLOCK** → SRC **USB** se è Bobina a dare il tempo; SRC **INT** e OUT acceso se è Bobina a seguirlo.
+- **Col cavo**: collega il TX-6 acceso all'iPhone. Bobina lo sceglie da sola. Il TX-6 fa anche da scheda audio; per non farlo caricare dall'iPhone, menu → **GND** acceso.
+- **Col bluetooth**: sul TX-6 **BLE → ACCEPT**, in Bobina *Collega → cerca il TX-6*.
+- Il TX-6 non racconta com'è messo: Bobina ricorda solo quello che gli ha mandato. E ogni comando che arriva fa saltare il display del TX-6 su quel parametro.
+
+## Cose da sapere (TP-7)
 
 - **Le cose di velocità funzionano solo mentre il TP-7 suona.** Riguarda velocità, nastro stanco, tape stop e inclinazione. Premi ▶ in Bobina o sulla macchina, oppure fai partire un cue da un pad. La velocità resta anche dopo uno stop: il display non la mostra.
 - **Il loop via MIDI** funziona solo con la schermata LOOP aperta sulla macchina (▲, poi loop). **I pad** vogliono la schermata CUE.
@@ -77,3 +100,7 @@ Bobina è stata scritta senza un Mac a disposizione, quindi è possibile che Xco
 | `Bobina/TP7.swift` | i byte del TP-7: cosa capisce, cosa manda, come si leggono |
 | `Bobina/Engine.swift` | il motore: orologio, effetti, sequencer, sensori |
 | `Bobina/*View.swift` | le cinque schermate e le tabelle |
+| `Bobina/TX6.swift` | i byte del TX-6 |
+| `Bobina/TX6Engine.swift` | il motore della sezione TX-6 |
+| `Bobina/TX6Views.swift` | le cinque schermate del TX-6 e le sue tabelle |
+| `TX6-RICERCA.md` · `PROVE-TX6.md` | cosa si sa del TX-6, e le prove con la macchina vera |

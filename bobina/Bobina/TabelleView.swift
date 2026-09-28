@@ -144,9 +144,12 @@ enum TP7Tables {
 }
 
 struct TabelleView: View {
+    var sections: [TableSection] = TP7Tables.all
+    var title = "Tabelle MIDI"
+
     var body: some View {
         List {
-            ForEach(TP7Tables.all) { section in
+            ForEach(sections) { section in
                 Section {
                     if let intro = section.intro {
                         Text(intro)
@@ -182,7 +185,7 @@ struct TabelleView: View {
                 }
             }
         }
-        .navigationTitle("Tabelle MIDI")
+        .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
     }
 }

@@ -51,6 +51,7 @@ struct Page<Content: View>: View {
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { MachineSwitch() } }
         }
     }
 }
@@ -110,6 +111,13 @@ struct PressPad<Label: View>: View {
                         onRelease()
                     }
             )
+            // col Controllo Vocale «tocca» arriva come azione, non come dito: premi e lascia
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction {
+                onPress()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { onRelease() }
+            }
     }
 }
 
