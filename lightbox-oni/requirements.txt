@@ -1,0 +1,10 @@
+numpy
+pillow
+shapely>=2
+trimesh
+manifold3d
+mapbox_earcut
+networkx
+scipy
+matplotlib
+opencv-python-headless   # serve solo per usare un PNG proprio (--immagine)

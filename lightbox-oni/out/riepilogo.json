@@ -1,0 +1,77 @@
+{
+  "cornice, misure interne (larg, alt, prof) mm": [
+    240,
+    300,
+    50
+  ],
+  "inserto (larg, prof, alt) mm": [
+    239.0,
+    49.5,
+    71.1
+  ],
+  "coperchio (larg, prof, alt) mm": [
+    239.0,
+    49.5,
+    2.7
+  ],
+  "LED: distanza della faccia dal fondo, mm": 42.86,
+  "LED: inclinazione verso il basso, gradi": 30,
+  "LED: centro sotto il bordo alto interno, mm": 9,
+  "mensola: faccia alta sotto il LED, mm": 62,
+  "quadro: dove comincia e finisce l'immagine, mm sotto il LED": [
+    68.6,
+    283
+  ],
+  "fascia nera in alto (dal bordo interno), mm": 72.6,
+  "STL chiuso (watertight)": true,
+  "pezzi staccati nella mensola": 0,
+  "luce: fondo del quadro / cima del quadro": 0.042,
+  "bordo sfumato dell'ombra, mm (orizzontale, verticale)": {
+    "colore": {
+      "a 20% dell'altezza": [
+        0.3,
+        0.9
+      ],
+      "a 50% dell'altezza": [
+        0.6,
+        2.9
+      ],
+      "a 90% dell'altezza": [
+        1.1,
+        7.0
+      ]
+    },
+    "foro": {
+      "a 20% dell'altezza": [
+        0.6,
+        1.6
+      ],
+      "a 50% dell'altezza": [
+        1.5,
+        4.9
+      ],
+      "a 90% dell'altezza": [
+        2.6,
+        11.8
+      ]
+    },
+    "bianco": {
+      "a 20% dell'altezza": [
+        2.0,
+        5.2
+      ],
+      "a 50% dell'altezza": [
+        4.6,
+        16.6
+      ],
+      "a 90% dell'altezza": [
+        8.0,
+        40.0
+      ]
+    }
+  },
+  "sfondo sfumato: grigio piu' scuro (riflettanza %)": 11.0,
+  "luce percepita con sfondo sfumato: fondo / cima": 0.213,
+  "verifica: pixel diversi tra STL e disegno (%)": 0.27,
+  "mensola: punte piu' sottili di 0,45 mm, che la stampante smussa (mm2)": 11.0
+}
