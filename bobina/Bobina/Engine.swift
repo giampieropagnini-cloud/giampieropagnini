@@ -158,6 +158,8 @@ final class Engine: ObservableObject {
     func refreshPorts() {
         destinations = io.destinations()
         sources = io.sources()
+        trace("destinazioni: " + destinations.map { "\($0.name) id \($0.id) ref \($0.ref)" }.joined(separator: " · "))
+        trace("sorgenti: " + sources.map { "\($0.name) id \($0.id) ref \($0.ref)" }.joined(separator: " · "))
         if destinationID == nil || !destinations.contains(where: { $0.id == destinationID }) {
             destinationID = destinations.first(where: { $0.looksLikeTP7 })?.id
         }
@@ -672,6 +674,7 @@ final class Engine: ObservableObject {
 
     private func received(_ m: [UInt8], _ stamp: MIDITimeStamp) {
         guard let status = m.first else { return }
+        if status != 0xF8 { trace("ricevuto " + m.map { String(format: "%02x", $0) }.joined(separator: " ")) }
         if status == 0xF8 { clock(stamp); return }
         note(m, incoming: true)
         if status & 0xF0 == 0xB0, m.count >= 3 {

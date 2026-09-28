@@ -13,6 +13,13 @@ struct MIDIPort: Identifiable, Hashable {
     }
 }
 
+/// Righe di controllo che si leggono dal Mac (devicectl --console). Solo nella versione di prova.
+func trace(_ text: @autoclosure () -> String) {
+    #if DEBUG
+    print("[bobina] " + text())
+    #endif
+}
+
 /// Il filo col mondo MIDI. Col cavo e col bluetooth il TP-7 compare allo stesso modo:
 /// come una sorgente (quello che manda) e una destinazione (quello che riceve).
 final class MIDIIO {
@@ -32,6 +39,7 @@ final class MIDIIO {
     init() {
         mach_timebase_info(&timebase)
         var status = MIDIClientCreateWithBlock("Bobina" as CFString, &client) { [weak self] note in
+            trace("notifica \(note.pointee.messageID.rawValue)")
             if note.pointee.messageID == .msgSetupChanged {
                 DispatchQueue.main.async { self?.onSetupChanged?() }
             }
@@ -43,6 +51,7 @@ final class MIDIIO {
             self?.read(list)
         }
         ready = (status == noErr)
+        trace("porta d'ingresso creata: \(status)")
     }
 
     // MARK: porte
@@ -69,11 +78,14 @@ final class MIDIIO {
     /// Sceglie a chi parlare e chi ascoltare. 0 = nessuno.
     func use(destination: MIDIEndpointRef, source: MIDIEndpointRef) {
         if self.source != 0 && self.source != source {
-            _ = MIDIPortDisconnectSource(inPort, self.source)
+            let s = MIDIPortDisconnectSource(inPort, self.source)
+            trace("stacco la sorgente \(self.source): \(s)")
         }
         if source != 0 && source != self.source {
-            _ = MIDIPortConnectSource(inPort, source, nil)
+            let s = MIDIPortConnectSource(inPort, source, nil)
+            trace("attacco la sorgente \(source): \(s)")
         }
+        trace("uso: manda a \(destination), ascolta \(source)")
         self.destination = destination
         self.source = source
     }
@@ -113,6 +125,7 @@ final class MIDIIO {
 
     private func read(_ list: UnsafePointer<MIDIPacketList>) {
         let count = Int(list.pointee.numPackets)
+        trace("arrivano \(count) pacchetti")
         guard count > 0 else { return }
         let listOffset = MemoryLayout<MIDIPacketList>.offset(of: \MIDIPacketList.packet) ?? 4
         let dataOffset = MemoryLayout<MIDIPacket>.offset(of: \MIDIPacket.data) ?? 10
