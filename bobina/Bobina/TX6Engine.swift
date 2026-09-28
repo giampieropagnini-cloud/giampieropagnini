@@ -203,6 +203,7 @@ final class TX6Engine: ObservableObject {
     func refreshPorts() {
         destinations = io.destinations()
         sources = io.sources()
+        trace("TX-6 · destinazioni: " + destinations.map { $0.name }.joined(separator: " · ") + " · sorgenti: " + sources.map { $0.name }.joined(separator: " · "))
         if destinationID == nil || !destinations.contains(where: { $0.id == destinationID }) {
             destinationID = destinations.first(where: { $0.looksLikeTX6 })?.id
         }
@@ -225,7 +226,10 @@ final class TX6Engine: ObservableObject {
 
     func send(_ bytes: [UInt8], at time: MIDITimeStamp = 0, quiet: Bool = false) {
         io.send(bytes, at: time)
-        if !quiet { note(bytes, incoming: false) }
+        if !quiet {
+            note(bytes, incoming: false)
+            trace("→ TX-6 " + bytes.map { String(format: "%02x", $0) }.joined(separator: " ") + " · " + TX6.describe(bytes, incoming: false))
+        }
     }
 
     private func note(_ bytes: [UInt8], incoming: Bool) {
