@@ -5,6 +5,8 @@ import CoreMIDI
 /// La pagina gli passa il piano (cosa suonare) ogni volta che cambia; lui prepara i passi
 /// 150 ms prima e li consegna a CoreMIDI con la marca temporale. Quando Bobina segue il TX-6,
 /// il clock arriva qui direttamente dal filo del MIDI.
+/// I passi stanno sulla griglia di `BobinaClock`, la stessa dei PO: se qualcuno suona già, il TX-6
+/// entra all'inizio della battuta dopo. Quando segue il TX-6, è lui a spostare la griglia.
 final class TX6Sequencer {
 
     /// Tutto quello che serve per suonare un passo. Lo scrive la pagina, lo legge il sequencer.
@@ -69,9 +71,8 @@ final class TX6Sequencer {
     // da qui in giù: solo sul filo del sequencer
     private var timer: DispatchSourceTimer?
     private var running = false
-    private var anchorTime: MIDITimeStamp = 0
-    private var anchorBeat = 0.0
-    private var bpm = 120.0
+    /// La griglia di Bobina, letta a ogni giro.
+    private var line = BobinaClock.Timeline()
     private var nextSixteenth = 0
     private var nextClockTick = 0
     private var gateState: Bool?
@@ -81,6 +82,9 @@ final class TX6Sequencer {
     /// Lo start va nel pacchetto del primo passo, prima del clock e delle note.
     private var startPending = false
     private var clockCount = 0
+    /// Seguendo il TX-6: gli ultimi impulsi (per il bpm) e il battito di Bobina dove è caduto il suo start.
+    private var followStamps: [MIDITimeStamp] = []
+    private var followBase = 0.0
     private var pending: Part?
     private var override: Part?
     private let lookahead = 150.0
@@ -103,15 +107,15 @@ final class TX6Sequencer {
         return shared
     }
 
-    /// Parte col tempo di Bobina all'istante `at`. Se manda il clock, manda anche lo start.
+    /// Parte col tempo di Bobina all'istante `at`, o alla battuta dopo se qualcuno suona già.
+    /// Se manda il clock, manda anche lo start (nel pacchetto del primo passo).
     func start(at start: MIDITimeStamp) {
         queue.async { [self] in
             let p = plan()
-            bpm = p.bpm
-            anchorTime = start
-            anchorBeat = 0
-            nextSixteenth = 0
-            nextClockTick = 0
+            let (l, first) = BobinaClock.shared.join(.tx6, at: start)
+            line = l
+            nextSixteenth = Int((first * 4).rounded())
+            nextClockTick = nextSixteenth * 6
             gateState = nil
             lockSent = nil
             offsAt.removeAll()
@@ -127,6 +131,7 @@ final class TX6Sequencer {
             running = false
             timer?.cancel()
             timer = nil
+            BobinaClock.shared.leave(.tx6)
             if sendStop { io.send(TX6.stop) }
             releaseGate(plan())
             flushOffs()
@@ -138,6 +143,8 @@ final class TX6Sequencer {
     func cancelPending() { queue.async { [self] in pending = nil } }
 
     func releaseGateNow() { queue.async { [self] in releaseGate(plan()) } }
+    /// Il clock del TX-6 non arriva più: la griglia di Bobina smette di seguirlo.
+    func clockLost() { queue.async { BobinaClock.shared.leave(.tx6) } }
     func melodyOffNow() { queue.async { [self] in flushOffs() } }
     func forgetLock() { queue.async { [self] in lockSent = nil } }
 
@@ -153,10 +160,18 @@ final class TX6Sequencer {
                 gateState = nil
                 lockSent = nil
                 flushOffs()
+                // il battere del TX-6 diventa un inizio di battuta di Bobina: chi suona già si rimette in fila
+                let cur = BobinaClock.shared.snapshot()
+                followBase = cur.running ? cur.bar(atOrAfter: stamp) : 0
+                followStamps = []
+                BobinaClock.shared.follow(time: stamp, beat: followBase, bpm: cur.bpm, by: .tx6)
             case 0xFC:
                 releaseGate(p)
                 flushOffs()
+                followStamps.removeAll()
+                BobinaClock.shared.leave(.tx6)
             case 0xF8:
+                followClock(stamp)
                 if clockCount % 6 == 0 {
                     let n = clockCount / 6
                     let t = io.now()
@@ -170,6 +185,35 @@ final class TX6Sequencer {
         }
     }
 
+    /// A ogni quarto del TX-6 la griglia di Bobina si rimette sul suo battito. Bpm e istante vengono da una retta
+    /// passata per gli ultimi 48 impulsi (due quarti): il tremolio del bluetooth si media e ai PO non arriva.
+    private func followClock(_ stamp: MIDITimeStamp) {
+        if let last = followStamps.last, stamp > last, io.ms(ticks: stamp - last) > 200 {
+            // un buco: il clock si era fermato, si ricomincia a contare da qui
+            followStamps.removeAll()
+        }
+        followStamps.append(stamp)
+        if followStamps.count > 48 { followStamps.removeFirst(followStamps.count - 48) }
+        let cur = BobinaClock.shared.snapshot()
+        guard clockCount % 24 == 0, followStamps.count >= 7, let last = followStamps.last else { return }
+        let n = Double(followStamps.count)
+        var sx = 0.0, sy = 0.0, sxx = 0.0, sxy = 0.0
+        for (i, t) in followStamps.enumerated() {
+            let x = Double(i)
+            let y = t >= last ? io.ms(ticks: t - last) : -io.ms(ticks: last - t)
+            sx += x; sy += y; sxx += x * x; sxy += x * y
+        }
+        let slope = (n * sxy - sx * sy) / (n * sxx - sx * sx)
+        guard slope > 0.5 else { return }
+        let fit = (sy - slope * sx) / n + slope * (n - 1)
+        let anchor = fit >= 0 ? last + io.ticks(ms: fit) : last - io.ticks(ms: -fit)
+        if cur.followedBy != .tx6 {
+            // il clock c'era già senza start (Bobina collegata a metà): si va avanti dalla battuta dopo
+            followBase = (cur.running ? cur.bar(atOrAfter: stamp) : 0) - Double(clockCount) / 24
+        }
+        BobinaClock.shared.follow(time: anchor, beat: followBase + Double(clockCount) / 24, bpm: 60_000 / (slope * 24), by: .tx6)
+    }
+
     // MARK: l'orologio
 
     private func startTimer() {
@@ -181,26 +225,21 @@ final class TX6Sequencer {
         timer = t
     }
 
-    private var beatMs: Double { 60_000 / max(40, min(300, bpm)) }
-
-    private func beat(at t: MIDITimeStamp) -> Double {
-        let ms = t >= anchorTime ? io.ms(ticks: t - anchorTime) : -io.ms(ticks: anchorTime - t)
-        return anchorBeat + ms / beatMs
-    }
-
-    private func time(ofBeat b: Double) -> MIDITimeStamp {
-        anchorTime + io.ticks(ms: (b - anchorBeat) * beatMs)
-    }
+    private func time(ofBeat b: Double) -> MIDITimeStamp { line.time(ofBeat: b) }
 
     private func tick() {
         guard running else { return }
         var p = effective(plan())
         let now = io.now()
-        if p.bpm != bpm {
-            // il battito continua da dove era, alla nuova velocità
-            anchorBeat = beat(at: now)
-            anchorTime = now
-            bpm = p.bpm
+        // il bpm lo tiene BobinaClock: se qualcuno l'ha cambiato, la griglia è già riancorata lì
+        let fresh = BobinaClock.shared.snapshot()
+        if fresh.generation != line.generation {
+            line = fresh
+            // la griglia è saltata avanti (il TX-6 è ripartito mentre lo seguiamo): niente raffica di passi vecchi
+            if time(ofBeat: Double(nextSixteenth) / 4) + io.ticks(ms: 30) < now {
+                nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
+                nextClockTick = nextSixteenth * 6
+            }
         }
         let horizon = now + io.ticks(ms: lookahead)
         while time(ofBeat: Double(nextSixteenth) / 4) < horizon {
@@ -232,10 +271,9 @@ final class TX6Sequencer {
         pending = nil
         override = part
         lockSent = nil
-        if running, let b = part.bpm, b != bpm {
-            anchorBeat = beat(at: t)
-            anchorTime = t
-            bpm = b
+        if running, let b = part.bpm, b != line.bpm {
+            BobinaClock.shared.setBPM(b, at: t)
+            line = BobinaClock.shared.snapshot()
         }
         onSwitched?(part.id)
         return part.soundBytes.isEmpty ? [0xFE] : part.soundBytes
@@ -276,7 +314,7 @@ final class TX6Sequencer {
         // 0xFE (active sensing) è solo un segnaposto per «è entrato un pattern senza suoni»: non si manda
         if prefix != [0xFE] { now += prefix }
         var hit: Set<Int> = []
-        let stepMs = 60_000 / max(40, min(300, p.bpm)) / 4
+        let stepMs = line.beatMs / 4
 
         if p.beatsOn {
             if p.lockOn {

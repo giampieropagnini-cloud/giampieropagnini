@@ -2,7 +2,7 @@
 // all'inizio della battuta dopo, coi suoni nello stesso pacchetto, e poi andare al suo tempo.
 //
 //   cd bobina/Bobina && DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun swiftc -O \
-//     MIDI.swift TX6.swift TX6Sequencer.swift ../strumenti/prova-pattern/main.swift -o /tmp/prova && /tmp/prova
+//     MIDI.swift TX6.swift BobinaClock.swift TX6Sequencer.swift ../strumenti/prova-pattern/main.swift -o /tmp/prova && /tmp/prova
 import Foundation
 import CoreMIDI
 
