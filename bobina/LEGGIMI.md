@@ -1,8 +1,8 @@
 # Bobina
 
-Un'app per iPhone che suona il **TP-7** e il **TX-6** di teenage engineering via MIDI, col cavo USB-C o col bluetooth.
+Un'app per iPhone che suona il **TP-7**, il **TX-6** e i **Pocket Operator** (con l'adattatore MIDI di Hanz Tech) di teenage engineering via MIDI, col cavo USB-C o col bluetooth.
 Non è un semplice telecomando: fa quello che le macchine da sole non sanno fare.
-Il tasto in alto a destra di ogni pagina passa dalla sezione TP-7 alla sezione TX-6 e ritorno.
+Il tasto «passa a…» in alto a destra di ogni pagina passa da una sezione all'altra. TX-6 e Pocket Operator stanno sullo stesso orologio: stessa battuta, e chi parte per secondo entra alla battuta dopo.
 
 ### Sezione TP-7
 
@@ -19,6 +19,15 @@ Il tasto in alto a destra di ogni pagina passa dalla sezione TP-7 alla sezione T
 - **Suona**: **pattern e stili** (sette stili pronti, house, techno, hip hop, reggaeton, drum'n'bass, electro, ambient, e i tuoi pattern salvati: il cambio entra all'inizio della battuta), **i sei strumenti** (suono e barre di ogni traccia), una tastiera (una traccia, o accordi sulle sei tracce), sei pad (do-la sul canale 7), la **batteria a passi**, la **melodia a passi** e i **passi con manopola**. Il ritmo gira su un filo suo: scorrere lo schermo non lo rallenta.
 - **Ritmo**: il tempo in tre modi (di Bobina, Bobina lo dà al TX-6, Bobina segue il TX-6), start/stop e tempo del TX-6, la **pompa** (il sidechain che il TX-6 non ha), il **cancello**, due **onde** (gli LFO che mancano), la **deriva** di volumi e pan, e il filtro **col corpo** inclinando il telefono.
 - **Collega**: cavo o bluetooth, lo specchio di fader e manopole in CTRL OUT, il **ponte** (il TX-6 in CTRL OUT comanda la sezione TP-7), il monitor e tutte le tabelle MIDI del TX-6.
+
+### Sezione Pocket Operator
+
+- **Tasti**: la faccia del PO scelto (sub, tonic, K.O!, speak) con la disposizione vera. I tasti funzione si agganciano (tocca pattern, poi 5, poi di nuovo pattern), i numeri fanno un tocco. Pattern, suono e volume in un tocco, un effetto per un momento, il modo di sync.
+- **Suona**: i **passi dal vivo** (Bobina preme i tasti del PO a tempo: sedici passi per ognuno dei sedici tasti), gli **effetti a tempo** (anche solo nell'ultima di ogni 2, 4, 8 battute), i **pattern a tempo** (una battuta per casella), il **cancello** (sul tonic un muto vero, sugli altri col volume) e **col corpo** (inclinando il telefono, quattro effetti).
+- **Ritmo**: come sta a tempo (Bobina lo suona · cavo sync dal TX-6 · sync out dell'adattatore · senza cavo), il tempo comune col TX-6, l'anticipo per il ritardo del bluetooth.
+- **Collega**: bluetooth o cavo, il canale, le scorciatoie a CC, il monitor e le tabelle MIDI dell'adattatore.
+
+Quello che si sa dell'adattatore è in `PO-RICERCA.md`, le prove con le macchine vere in `PROVE-PO.md`.
 
 > **Attenzione:** il codice è stato scritto e controllato riga per riga, ma non ancora compilato su un Mac. Se Xcode segnala un errore, vedi in fondo.
 
@@ -70,6 +79,14 @@ Tieni **shift** e premi **select** per il menu, poi:
 - **Col bluetooth**: sul TX-6 **BLE → ACCEPT**, in Bobina *Collega → cerca il TX-6*.
 - Il TX-6 non racconta com'è messo: Bobina ricorda solo quello che gli ha mandato. E ogni comando che arriva fa saltare il display del TX-6 su quel parametro.
 
+## Preparare il PO
+
+- L'adattatore va montato come dice la sua guida: mascherina a filo, nessuno spazio fra mascherina e piedini delle manopole. Se un tasto non risponde, è quasi sempre l'allineamento.
+- **Col bluetooth** (solo l'adattatore V3): in Bobina *Collega → cerca l'adattatore*. Il bluetooth va acceso nel configuratore web dell'adattatore (`ble_midi_enabled = 1`).
+- **Col cavo**: micro USB dell'adattatore → iPhone. Compare come «Teensy MIDI».
+- **A tempo col TX-6, col cavo**: aux del TX-6 → ingresso del PO. Sul TX-6: aux, shift + gira select → sync 8. Sul PO: tasto in alto + bpm fino a **SY2**. In Bobina: *Ritmo → cavo sync dal TX-6*.
+- Via MIDI **le manopole A e B non si muovono**, e il PO non dice mai com'è messo.
+
 ## Cose da sapere (TP-7)
 
 - **Le cose di velocità funzionano solo mentre il TP-7 suona.** Riguarda velocità, nastro stanco, tape stop e inclinazione. Premi ▶ in Bobina o sulla macchina, oppure fai partire un cue da un pad. La velocità resta anche dopo uno stop: il display non la mostra.
@@ -104,3 +121,8 @@ Bobina è stata scritta senza un Mac a disposizione, quindi è possibile che Xco
 | `Bobina/TX6Engine.swift` | il motore della sezione TX-6 |
 | `Bobina/TX6Views.swift` | le cinque schermate del TX-6 e le sue tabelle |
 | `TX6-RICERCA.md` · `PROVE-TX6.md` | cosa si sa del TX-6, e le prove con la macchina vera |
+| `Bobina/BobinaClock.swift` | l'orologio unico: la griglia di battiti che TX-6 e PO leggono |
+| `Bobina/PO.swift` | i byte dell'adattatore dei PO e i nomi dei quattro modelli |
+| `Bobina/POEngine.swift` · `POSequencer.swift` | il motore dei PO e il loro ritmo, su un filo suo |
+| `Bobina/POViews.swift` | le quattro schermate dei PO |
+| `PO-RICERCA.md` · `PROVE-PO.md` | cosa si sa dell'adattatore, e le prove con le macchine vere |

@@ -6,11 +6,19 @@ import SwiftUI
 struct MachineSwitch: View {
     @AppStorage("bobina.macchina") private var machine = "tp7"
 
+    private let machines = [("tp7", "TP-7"), ("tx6", "TX-6"), ("po", "Pocket Operator")]
+
     var body: some View {
-        Button(machine == "tx6" ? "passa al TP-7" : "passa al TX-6") {
-            machine = machine == "tx6" ? "tp7" : "tx6"
+        // un menu con tre tasti, ognuno col suo nome: col Controllo Vocale «passa a…» e poi il nome
+        Menu {
+            ForEach(machines.filter { $0.0 != machine }, id: \.0) { m in
+                Button("passa al \(m.1)") { machine = m.0 }
+            }
+        } label: {
+            Text("passa a…")
         }
         .font(.system(.footnote, design: .monospaced))
+        .accessibilityLabel("passa a un'altra macchina")
     }
 }
 

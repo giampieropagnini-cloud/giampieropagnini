@@ -4,12 +4,14 @@ import SwiftUI
 struct BobinaApp: App {
     @StateObject private var engine = Engine()
     @StateObject private var tx6 = TX6Engine()
+    @StateObject private var po = POEngine()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(engine)
                 .environmentObject(tx6)
+                .environmentObject(po)
                 .preferredColorScheme(.dark)
                 .tint(Palette.accent)
                 .onAppear {
@@ -20,12 +22,16 @@ struct BobinaApp: App {
     }
 }
 
-/// La sezione della macchina scelta: TP-7 o TX-6 (il tasto in alto a destra le scambia).
+/// La sezione della macchina scelta: TP-7, TX-6 o Pocket Operator (il tasto in alto a destra le scambia).
 struct ContentView: View {
     @AppStorage("bobina.macchina") private var machine = "tp7"
 
     var body: some View {
-        if machine == "tx6" { TX6Tabs() } else { TP7Tabs() }
+        switch machine {
+        case "tx6": TX6Tabs()
+        case "po": POTabs()
+        default: TP7Tabs()
+        }
     }
 }
 
