@@ -18,6 +18,7 @@ iPhone 16 Pro Max (iOS 26.7, USB-C), TP-7 firmware 1.1.11, Bobina compilata con 
 - In sync arrivano start, continue e stop (fa, fb, fc), ma **nessun impulso di clock**: col bluetooth «segui il TP-7» non può funzionare, e il cancello resta fermo. Col cavo il clock arriva.
 - Il muto (M nel Mixer) arriva ✅. Il cancello col tempo di Bobina (tap, «segui il TP-7» spento) spezza il suono a tempo ✅: i messaggi a tempo viaggiano bene anche col bluetooth.
 - In ctrl arrivano i giri della bobina del TP-7 (cc 30) ✅.
+- Provato anche al contrario (TP-7 su scan, Bobina «fatti trovare»): il collegamento non si è formato, quindi niente di misurato. La sincronizzazione bluetooth che Giampiero ricordava era col TX-6, non col TP-7.
 
 ## Da provare (29/9 mattina)
 
