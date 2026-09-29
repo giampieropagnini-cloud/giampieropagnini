@@ -76,7 +76,10 @@ final class TX6Sequencer {
     private var nextClockTick = 0
     private var gateState: Bool?
     private var lockSent: Int?
-    private var melodySounding: [Int: Int] = [:]
+    /// Le note da spegnere, per numero di passo (contato da quando è partito): vanno nel pacchetto di quel passo.
+    private var offsAt: [Int: [UInt8]] = [:]
+    /// Lo start va nel pacchetto del primo passo, prima del clock e delle note.
+    private var startPending = false
     private var clockCount = 0
     private var pending: Part?
     private var override: Part?
@@ -111,7 +114,8 @@ final class TX6Sequencer {
             nextClockTick = 0
             gateState = nil
             lockSent = nil
-            if p.sendClock { io.send(TX6.start, at: start) }
+            offsAt.removeAll()
+            startPending = p.sendClock
             running = true
             startTimer()
         }
@@ -125,7 +129,7 @@ final class TX6Sequencer {
             timer = nil
             if sendStop { io.send(TX6.stop) }
             releaseGate(plan())
-            melodyOff()
+            flushOffs()
         }
     }
 
@@ -134,7 +138,7 @@ final class TX6Sequencer {
     func cancelPending() { queue.async { [self] in pending = nil } }
 
     func releaseGateNow() { queue.async { [self] in releaseGate(plan()) } }
-    func melodyOffNow() { queue.async { [self] in melodyOff() } }
+    func melodyOffNow() { queue.async { [self] in flushOffs() } }
     func forgetLock() { queue.async { [self] in lockSent = nil } }
 
     // MARK: dal filo del MIDI (Bobina segue il TX-6)
@@ -148,15 +152,16 @@ final class TX6Sequencer {
                 clockCount = 0
                 gateState = nil
                 lockSent = nil
+                flushOffs()
             case 0xFC:
                 releaseGate(p)
-                melodyOff()
+                flushOffs()
             case 0xF8:
                 if clockCount % 6 == 0 {
-                    let i = (clockCount / 6) % 16
+                    let n = clockCount / 6
                     let t = io.now()
-                    let prefix = switchIfDue(i, at: t)
-                    fire(i, at: t, effective(p), prefix: prefix)
+                    let prefix = switchIfDue(n % 16, at: t)
+                    fire(n, at: t, effective(p), prefix: prefix, withClock: false)
                 }
                 clockCount += 1
             default:
@@ -199,18 +204,23 @@ final class TX6Sequencer {
         }
         let horizon = now + io.ticks(ms: lookahead)
         while time(ofBeat: Double(nextSixteenth) / 4) < horizon {
-            let i = nextSixteenth % 16
-            let t = max(now, time(ofBeat: Double(nextSixteenth) / 4))
-            let prefix = switchIfDue(i, at: t)
+            let n = nextSixteenth
+            let t = max(now, time(ofBeat: Double(n) / 4))
+            let prefix = switchIfDue(n % 16, at: t)
             if !prefix.isEmpty || override != nil { p = effective(plan()) }
-            fire(i, at: t, p, prefix: prefix)
+            fire(n, at: t, p, prefix: prefix, withClock: p.sendClock)
             nextSixteenth += 1
         }
         if p.sendClock {
+            // un impulso su sei cade insieme a un passo ed è già partito nel suo pacchetto
             while time(ofBeat: Double(nextClockTick) / 24) < horizon {
-                io.send(TX6.clock, at: max(now, time(ofBeat: Double(nextClockTick) / 24)))
+                if nextClockTick % 6 != 0 {
+                    io.send(TX6.clock, at: max(now, time(ofBeat: Double(nextClockTick) / 24)))
+                }
                 nextClockTick += 1
             }
+        } else {
+            nextClockTick = nextSixteenth * 6
         }
     }
 
@@ -254,12 +264,17 @@ final class TX6Sequencer {
 
     // MARK: un sedicesimo
 
-    /// Batteria a passi, passi con manopola, melodia, cancello, pompa.
-    /// Col bluetooth ogni pacchetto costa: quello che parte nello stesso istante va insieme.
-    private func fire(_ i: Int, at t: MIDITimeStamp, _ p: Plan, prefix: [UInt8] = []) {
+    /// Batteria a passi, passi con manopola, melodia, cancello, pompa. `n` conta i passi da quando è partito.
+    /// Col bluetooth ogni pacchetto costa: quello che parte nello stesso istante va insieme, e le note
+    /// si spengono nel pacchetto di un passo successivo invece che in uno a parte.
+    private func fire(_ n: Int, at t: MIDITimeStamp, _ p: Plan, prefix: [UInt8] = [], withClock: Bool) {
+        let i = n % 16
+        var now: [UInt8] = []
+        if startPending { now += TX6.start; startPending = false }
+        if withClock { now += TX6.clock }
+        now += offsAt.removeValue(forKey: n) ?? []
         // 0xFE (active sensing) è solo un segnaposto per «è entrato un pattern senza suoni»: non si manda
-        var now: [UInt8] = prefix == [0xFE] ? [] : prefix
-        var off: [UInt8] = []
+        if prefix != [0xFE] { now += prefix }
         var hit: Set<Int> = []
         let stepMs = 60_000 / max(40, min(300, p.bpm)) / 4
 
@@ -272,23 +287,20 @@ final class TX6Sequencer {
                 }
             }
             for tr in 1...6 where p.beats[tr - 1][i] {
-                let n = p.padBase + TX6.padSteps[tr - 1]
-                now += TX6.noteOn(n, channel: TX6.masterChannel)
-                off += TX6.noteOff(n, channel: TX6.masterChannel)
+                let note = p.padBase + TX6.padSteps[tr - 1]
+                now += TX6.noteOn(note, channel: TX6.masterChannel)
+                offsAt[n + 1, default: []] += TX6.noteOff(note, channel: TX6.masterChannel)
                 hit.insert(tr)
             }
         }
 
         if p.melodyOn {
-            var end: [UInt8] = []
             for tr in 1...6 {
                 guard let semi = p.melodies[tr - 1][i] else { continue }
-                let n = 12 * (p.melodyOctaves[tr - 1] + 1) + semi
-                now += TX6.noteOn(n, channel: tr)
-                end += TX6.noteOff(n, channel: tr)
-                melodySounding[tr] = n
+                let note = 12 * (p.melodyOctaves[tr - 1] + 1) + semi
+                now += TX6.noteOn(note, channel: tr)
+                offsAt[n + max(1, p.melodyLength), default: []] += TX6.noteOff(note, channel: tr)
             }
-            if !end.isEmpty { io.send(end, at: t + io.ticks(ms: stepMs * Double(p.melodyLength) * 0.9)) }
         }
 
         if p.gateOn {
@@ -301,21 +313,19 @@ final class TX6Sequencer {
             }
         }
 
-        if !now.isEmpty { io.send(now, at: t) }
-        if !off.isEmpty { io.send(off, at: t + io.ticks(ms: 40)) }
-
+        // la pompa: il tuffo parte col passo, poi tre punti per risalire
         if p.pumpOn && i % 4 == 0 && !p.pumpTops.isEmpty {
-            let points = 6
-            for k in 0...points {
-                let x = Double(k) / Double(points)
-                var bytes: [UInt8] = []
-                for (tr, top) in p.pumpTops {
-                    bytes += TX6.cc(TX6.Param.volume.cc, Int((top * (1 - p.pumpDepth * (1 - x) * (1 - x))).rounded()), channel: tr)
-                }
-                io.send(bytes, at: t + io.ticks(ms: stepMs * 4 * p.pumpRelease * x))
+            func level(_ x: Double) -> [UInt8] {
+                p.pumpTops.flatMap { TX6.cc(TX6.Param.volume.cc, Int(($0.top * (1 - p.pumpDepth * (1 - x) * (1 - x))).rounded()), channel: $0.track) }
+            }
+            now += level(0)
+            for k in 1...3 {
+                let x = Double(k) / 3
+                io.send(level(x), at: t + io.ticks(ms: stepMs * 4 * p.pumpRelease * x))
             }
         }
 
+        if !now.isEmpty { io.send(now, at: t) }
         onStep?(i, t, hit)
     }
 
@@ -327,10 +337,9 @@ final class TX6Sequencer {
         if !bytes.isEmpty { io.send(bytes) }
     }
 
-    private func melodyOff() {
-        var bytes: [UInt8] = []
-        for (tr, n) in melodySounding { bytes += TX6.noteOff(n, channel: tr) }
-        melodySounding.removeAll()
+    private func flushOffs() {
+        let bytes = offsAt.keys.sorted().flatMap { offsAt[$0] ?? [] }
+        offsAt.removeAll()
         if !bytes.isEmpty { io.send(bytes) }
     }
 }

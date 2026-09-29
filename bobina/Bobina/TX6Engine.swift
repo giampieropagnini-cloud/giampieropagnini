@@ -157,6 +157,8 @@ final class TX6Engine: ObservableObject {
     var connectedName: String {
         destinations.first(where: { $0.id == destinationID })?.name ?? "nessuno"
     }
+    /// Col bluetooth ogni pacchetto costa: Bobina ne manda meno.
+    private(set) var viaBluetooth = false
 
     // MARK: il mixer come lo ricorda Bobina
 
@@ -189,6 +191,8 @@ final class TX6Engine: ObservableObject {
     @Published private(set) var running = false
     @Published var clockMode = TX6ClockMode.own { didSet { if oldValue != clockMode && running { toggleRun() } } }
     @Published private(set) var clockBPM: Double?
+    /// Il TX-6 manda il clock ma Bobina non lo segue: col bluetooth sono 48 messaggi al secondo sprecati.
+    @Published private(set) var strayClock = false
 
     var pulsing: Bool { running || (clockMode == .follow && clockBPM != nil) }
 
@@ -253,6 +257,7 @@ final class TX6Engine: ObservableObject {
     private var anchorBeat = 0.0
     private var lastPlanAt: MIDITimeStamp = 0
     private var lastBPMShown: MIDITimeStamp = 0
+    private var strayTimeout: DispatchWorkItem?
     private var lastSent: [[Int?]] = Array(repeating: Array(repeating: nil, count: TX6.Param.allCases.count), count: 6)
     private var lastModAt: MIDITimeStamp = 0
     private var masterSent: [Int?] = [nil, nil, nil]
@@ -308,6 +313,7 @@ final class TX6Engine: ObservableObject {
     private func applyPorts() {
         let dest = destinations.first(where: { $0.id == destinationID })?.ref ?? 0
         let src = sources.first(where: { $0.id == sourceID })?.ref ?? 0
+        viaBluetooth = connectedName.lowercased().contains("bluetooth")
         if dest != io.destination || src != io.source {
             io.use(destination: dest, source: src)
             objectWillChange.send()
@@ -762,8 +768,8 @@ final class TX6Engine: ObservableObject {
             if p >= 1 { morph = nil; live.morphProgress = nil }
         }
 
-        // le modulazioni continue: al massimo una volta ogni 30 ms, e solo se il valore cambia
-        guard io.ms(ticks: now &- lastModAt) >= 30 else { return }
+        // le modulazioni continue: al massimo una volta ogni 30 ms (60 col bluetooth), e solo se il valore cambia
+        guard io.ms(ticks: now &- lastModAt) >= (viaBluetooth ? 60 : 30) else { return }
         lastModAt = now
         var batch: [UInt8] = []
         for t in 1...6 {
@@ -910,6 +916,13 @@ final class TX6Engine: ObservableObject {
     }
 
     private func clock(_ stamp: MIDITimeStamp) {
+        if clockMode != .follow {
+            if !strayClock { strayClock = true }
+            strayTimeout?.cancel()
+            let w = DispatchWorkItem { [weak self] in self?.strayClock = false }
+            strayTimeout = w
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: w)
+        }
         // quando il tempo lo dà Bobina, il clock che torna indietro è solo un'eco: si ignora
         guard clockMode != .send else { return }
         clockStamps.append(stamp)

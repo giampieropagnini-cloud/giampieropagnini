@@ -78,6 +78,12 @@ struct TX6StatusStrip: View {
             }
         }
         .padding(.top, 6)
+        if tx.strayClock && tx.clockMode != .follow {
+            Text("Il TX-6 manda il clock ma qui non serve, e intasa il bluetooth: sul TX-6 shift + select → CLOCK → OUT off.")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.rec)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
 
@@ -740,7 +746,7 @@ struct TX6TempoCard: View {
     @EnvironmentObject var tx: TX6Engine
 
     var body: some View {
-        Card(title: "tempo", note: "Tre modi. Bobina tiene il tempo per sé. Oppure lo dà al TX-6 (sul TX-6: CLOCK → SRC USB): il suo sequencer e gli effetti a tempo seguono Bobina. Oppure segue il TX-6 (sul TX-6: SRC INT, OUT acceso, e play sulla schermata del tempo).") {
+        Card(title: "tempo", note: "Tre modi. Bobina tiene il tempo per sé: è il più leggero, e col bluetooth e due macchine è quello da usare. Oppure lo dà al TX-6 (sul TX-6: CLOCK → SRC USB, o BLE col bluetooth): il suo sequencer e gli effetti a tempo seguono Bobina, ma partono 48 messaggi di clock al secondo. Oppure segue il TX-6 (sul TX-6: SRC INT, OUT acceso, e play sulla schermata del tempo).") {
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(TX6ClockMode.allCases) { m in
                     Chip(text: m.rawValue, on: tx.clockMode == m) { tx.clockMode = m }
