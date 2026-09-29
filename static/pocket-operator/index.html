@@ -42,6 +42,8 @@
   :root[data-po="ko"]{ --acc:#D33B34; --acc-soft:rgba(211,59,52,.12); }
   :root[data-po="speak"]{ --acc:#0F7F74; --acc-soft:rgba(15,127,116,.14); }
   :root[data-po="tutti"]{ --acc:#4A4E55; --acc-soft:rgba(74,78,85,.12); }
+  :root[data-po="midi"]{ --acc:#6E4FD0; --acc-soft:rgba(110,79,208,.12); }
+  :root[data-po="tele"]{ --acc:#52700F; --acc-soft:rgba(82,112,15,.13); }
 
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -64,6 +66,8 @@
     :root:not([data-theme="light"])[data-po="ko"]{ --acc:#FF6F65; --acc-soft:rgba(255,111,101,.16); }
     :root:not([data-theme="light"])[data-po="speak"]{ --acc:#3FC0B0; --acc-soft:rgba(63,192,176,.16); }
     :root:not([data-theme="light"])[data-po="tutti"]{ --acc:#A9AEB6; --acc-soft:rgba(169,174,182,.14); }
+    :root:not([data-theme="light"])[data-po="midi"]{ --acc:#A993FF; --acc-soft:rgba(169,147,255,.16); --acc-ink:#101214; }
+    :root:not([data-theme="light"])[data-po="tele"]{ --acc:#A9CF4F; --acc-soft:rgba(169,207,79,.15); --acc-ink:#101214; }
   }
   :root[data-theme="dark"]{
     --paper:#1A1D21; --card:#22262B; --ink:#ECEDE9; --muted:#9CA29B;
@@ -76,6 +80,8 @@
   :root[data-theme="dark"][data-po="ko"]{ --acc:#FF6F65; --acc-soft:rgba(255,111,101,.16); }
   :root[data-theme="dark"][data-po="speak"]{ --acc:#3FC0B0; --acc-soft:rgba(63,192,176,.16); }
   :root[data-theme="dark"][data-po="tutti"]{ --acc:#A9AEB6; --acc-soft:rgba(169,174,182,.14); }
+  :root[data-theme="dark"][data-po="midi"]{ --acc:#A993FF; --acc-soft:rgba(169,147,255,.16); --acc-ink:#101214; }
+  :root[data-theme="dark"][data-po="tele"]{ --acc:#A9CF4F; --acc-soft:rgba(169,207,79,.15); --acc-ink:#101214; }
 
   *{ box-sizing:border-box; }
   body{
@@ -107,7 +113,7 @@
     border:none; background:transparent; color:var(--muted); padding:6px 10px; cursor:pointer;
   }
   .theme button + button{ border-left:1px solid var(--rule); }
-  .theme button[aria-pressed="true"]{ background:var(--acc); color:#fff; }
+  .theme button[aria-pressed="true"]{ background:var(--acc); color:var(--acc-ink); }
   .theme button:focus-visible{ outline:2px solid var(--acc); outline-offset:-2px; }
   .tabs{ display:flex; gap:6px; margin-top:12px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
   .tabs::-webkit-scrollbar{ display:none; }
@@ -123,6 +129,8 @@
   .tab[data-k="ko"] .dot{ background:#D33B34; }
   .tab[data-k="speak"] .dot{ background:#0F7F74; }
   .tab[data-k="tutti"] .dot{ background:var(--muted); }
+  .tab[data-k="midi"] .dot{ background:#6E4FD0; }
+  .tab[data-k="tele"] .dot{ background:#52700F; }
   .tab:hover{ color:var(--ink); }
   .tab[aria-selected="true"]{ color:var(--ink); background:var(--paper); border-color:var(--rule); box-shadow:inset 0 3px 0 var(--acc); }
   .tab .sm{ font-weight:500; color:var(--muted); font-size:11.5px; }
@@ -165,7 +173,7 @@
   .cell i{ font-style:normal; font-size:9px; opacity:.7; }
   .cell.tiny{ font-size:8.5px; letter-spacing:-.01em; }
   .cell:hover{ border-color:var(--silk); color:var(--silk); }
-  .cell.on{ background:var(--acc); border-color:var(--acc); color:#fff; }
+  .cell.on{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
   .cell.hi{ box-shadow:0 0 0 2px var(--acc); color:var(--silk); }
   .unit-cap{ font-size:11px; color:var(--silk-dim); margin:10px 0 0; text-align:center; letter-spacing:.02em; }
   .unit-cap b{ color:var(--silk); font-weight:600; }
@@ -193,7 +201,7 @@
   .step::before{
     content:counter(s); position:absolute; left:13px; top:12px;
     font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
-    width:21px; height:21px; border-radius:50%; background:var(--acc); color:#fff; display:grid; place-items:center;
+    width:21px; height:21px; border-radius:50%; background:var(--acc); color:var(--acc-ink); display:grid; place-items:center;
   }
   .step > b{ display:block; font-weight:600; margin-bottom:3px; }
   .step .d{ color:var(--muted); }
@@ -284,6 +292,94 @@
   .note{ font-size:12.5px; color:var(--muted); max-width:70ch; }
   .note a{ color:var(--acc); }
   footer{ border-top:1px solid var(--rule); margin-top:8px; padding-top:16px; }
+  footer .note + .note{ margin-top:8px; }
+
+  /* ---------- scheda midi ---------- */
+  .cell .nt{ display:none; font-size:12px; font-weight:600; color:var(--lcd); letter-spacing:0; line-height:1.1; }
+  .unit.midi .cell .nt{ display:block; }
+  .unit.midi .cell i{ display:none; }
+  .unit.midi .cell.on .nt{ color:inherit; }
+  .src{
+    display:inline-block; vertical-align:1px; margin-left:6px; font-family:"IBM Plex Mono",monospace; font-style:normal;
+    font-size:10px; letter-spacing:.04em; border-radius:3px; padding:0 4px; white-space:nowrap;
+  }
+  .src.doc{ color:var(--muted); background:var(--rule-soft); border:1px solid var(--rule); }
+  .src.code{ color:var(--acc); border:1px solid var(--acc); }
+  .flag.misura{ border-style:dashed; border-color:var(--muted); color:var(--ink); white-space:nowrap; font-style:normal; }
+  code.cfg{ font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--rule-soft); border-radius:3px; padding:0 4px; overflow-wrap:anywhere; }
+  .what a,.note a,.sec-note a{ color:var(--acc); overflow-wrap:anywhere; }
+  .notegrid{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; max-width:420px; }
+  .ng{ border:1px solid var(--rule); border-radius:6px; background:var(--card); text-align:center; padding:6px 2px; font-family:"IBM Plex Mono",monospace; }
+  .ng small{ display:block; font-size:10px; color:var(--muted); letter-spacing:.02em; }
+  .ng b{ font-size:15px; font-weight:600; color:var(--acc); font-variant-numeric:tabular-nums; }
+
+  /* ---------- scheda telecomando ---------- */
+  .wrap.solo{ grid-template-columns:minmax(0,1fr); }
+  .wrap.solo .rail{ display:none; }
+  .tele{ display:grid; gap:28px; grid-template-columns:minmax(0,1fr); grid-template-areas:"conn" "face" "combo" "log"; }
+  .tl-conn{ grid-area:conn; min-width:0; }
+  .tl-face-sec{ grid-area:face; min-width:0; }
+  .tl-combo{ grid-area:combo; min-width:0; }
+  .tl-log-sec{ grid-area:log; min-width:0; }
+  @media (min-width:980px){
+    .tele{ grid-template-columns:420px minmax(0,1fr); gap:28px 34px; grid-template-areas:"face conn" "face log" "face combo"; align-items:start; }
+  }
+  .tl-card > * + *{ margin-top:12px; }
+  .tl-state{ margin:0; font-size:14.5px; font-weight:500; }
+  .tl-msg{ margin:6px 0 0; font-size:13.5px; color:var(--acc); font-weight:500; }
+  .tl-lab{ margin:0 0 6px; font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .tl-outs{ display:flex; flex-direction:column; gap:6px; }
+  .tl-row{ display:flex; flex-wrap:wrap; gap:8px; }
+  .tbtn{
+    min-height:44px; border:1px solid var(--rule); background:var(--card); color:var(--ink); border-radius:8px;
+    padding:10px 14px; font:inherit; font-size:14px; line-height:1.25; cursor:pointer; text-align:center;
+    overflow-wrap:anywhere; touch-action:manipulation;
+  }
+  .tbtn:hover,.nbtn:hover{ border-color:var(--ink); }
+  .tbtn.main,.tbtn[aria-pressed="true"]{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); font-weight:600; }
+  .tbtn.out{ text-align:left; }
+  .tbtn.sq{ min-width:48px; font-size:20px; padding:6px 12px; }
+  .tbtn:focus-visible,.pad:focus-visible,.nbtn:focus-visible{ outline:2px solid var(--acc); outline-offset:2px; }
+  .tl-ch{ display:flex; align-items:center; gap:10px; }
+  .tl-ch b{ font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:14px; min-width:88px; text-align:center; }
+  .tl-models{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+  .tl-models .tbtn{ padding:8px 4px; font-size:13px; }
+  .face{ background:var(--panel); border-radius:12px; padding:13px; color:var(--silk); box-shadow:var(--shadow); }
+  .face-grid{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+  .pad{
+    aspect-ratio:1/1; min-height:44px; min-width:0; padding:2px; cursor:pointer;
+    border:1px solid #343941; border-radius:6px; background:var(--panel-2); color:var(--silk);
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; line-height:1.1; text-align:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    overflow:hidden; touch-action:manipulation;
+  }
+  @media (max-width:560px){
+    .face{ padding:11px; }
+    .face-grid{ gap:6px; }
+    .pad{ font-size:10.5px; letter-spacing:-.02em; }
+  }
+  .pad .pn{ font-size:9.5px; color:var(--silk-dim); }
+  .pad.num .lb{ font-size:17px; font-weight:600; }
+  .pad.knob{ border-radius:50%; border:2px dashed var(--silk-dim); background:transparent; color:var(--silk-dim); cursor:not-allowed; }
+  .pad.knob .lb{ font-size:13px; font-weight:600; }
+  .pad.knob .pn{ font-size:8.5px; line-height:1.15; }
+  .pad[aria-pressed="true"]{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
+  .pad[aria-pressed="true"] .pn{ color:inherit; opacity:.8; }
+  .pad.tap{ background:var(--silk); border-color:var(--silk); color:var(--panel); }
+  .pad.tap .pn{ color:inherit; }
+  .numpad{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+  @media (min-width:560px){ .numpad{ grid-template-columns:repeat(8,minmax(0,1fr)); } }
+  .nbtn{
+    min-height:44px; min-width:0; border:1px solid var(--rule); background:var(--card); color:var(--ink); border-radius:8px;
+    font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:600; cursor:pointer; touch-action:manipulation;
+  }
+  .nbtn.tap,.tbtn.tap{ background:var(--acc-soft); border-color:var(--acc); }
+  .tl-log{
+    list-style:none; margin:0; padding:10px 12px; border-radius:10px; background:var(--panel); color:var(--silk-dim);
+    font-family:"IBM Plex Mono",monospace; font-size:12.5px; line-height:1.6; min-height:calc(8 * 1.6em + 20px);
+  }
+  .tl-log li{ overflow-wrap:anywhere; }
+  .tl-log li:last-child{ color:var(--lcd); }
   @media (prefers-reduced-motion:reduce){ *{ transition:none !important; animation:none !important; } }
 </style>
 
@@ -291,7 +387,7 @@
   <div class="topbar-in">
     <div class="brandrow">
       <h1 class="brand">prontuario <em>pocket operator</em></h1>
-      <span class="brandnote">tocca un tasto dello schema per vedere solo le sue combinazioni</span>
+      <span class="brandnote" id="brandnote">tocca un tasto dello schema per vedere solo le sue combinazioni</span>
       <div class="theme" role="group" aria-label="Aspetto della pagina">
         <button type="button" data-th="light" id="th-light">chiaro</button>
         <button type="button" data-th="auto" id="th-auto">auto</button>
@@ -302,8 +398,8 @@
   </div>
 </div>
 
-<main class="wrap">
-  <aside class="rail">
+<main class="wrap" id="wrap">
+  <aside class="rail" id="rail">
     <div class="unit" id="unit">
       <div class="silkrow"><b id="silkmodel">po-33 k.o!</b><span id="silkmic">microfono</span></div>
       <div class="lcd"><b id="lcd1">po-33 k.o!</b><span id="lcd2">micro sampler</span></div>
@@ -592,25 +688,48 @@
     if(b) applyTheme(b.dataset.th, true);
   });
 
-  var state = { dev:"ko", filter:null, q:"" };
+  var state = { dev:"ko", lastDev:"ko", filter:null, q:"", midiSel:null };
   var elContent = document.getElementById("content");
   var elTabs = document.getElementById("tabs");
   var elMatrix = document.getElementById("matrix");
+  var elUnit = document.getElementById("unit");
+  var elWrap = document.getElementById("wrap");
+
+  /* le schede: le quattro macchine, il confronto, l'adattatore MIDI e il telecomando */
+  var TABS = ORDER.concat(["tutti","midi","tele"]);
+  var BRANDNOTE = {
+    midi:"tocca un tasto dello schema per vedere la sua nota",
+    tele:"i tasti qui sotto mandano le note all'adattatore"
+  };
+  var BRANDNOTE_DEF = "tocca un tasto dello schema per vedere solo le sue combinazioni";
+
+  /* La mappa MIDI dell'adattatore di Hanz Tech (firmware 3.4.3, canale 1):
+     1-8 = note 68-75, 9-16 = note 60-67, poi i tasti funzione 76-82. */
+  var FN_NOTE = { sound:76, pattern:77, play:78, top:79, fx:80, bpm:81, write:82 };
+  function noteOfNum(n){ return n <= 8 ? 67 + n : 51 + n; }
 
   /* La macchina ha 23 tasti: sound, pattern e bpm in alto, le due manopole
      in alto a destra, i 16 tasti in un quadrato 4x4 e la colonna dei comandi
      a destra (il tasto proprio del modello, fx, play, write). */
-  function cell(tok, label, glyph, cls){
+  function cell(tok, label, glyph, cls, id, note){
     var b = document.createElement("button");
     b.type = "button";
     b.className = "cell" + (cls ? " " + cls : "");
     b.dataset.t = tok;
-    b.appendChild(document.createTextNode(label));
+    b.dataset.id = id;
+    var lb = document.createElement("span");
+    lb.className = "lb";
+    lb.textContent = label;
+    b.appendChild(lb);
     if(glyph){
       var i = document.createElement("i");
       i.textContent = glyph;
       b.appendChild(i);
     }
+    var nt = document.createElement("span");
+    nt.className = "nt";
+    nt.textContent = String(note);
+    b.appendChild(nt);
     return b;
   }
   (function buildMatrix(){
@@ -620,34 +739,50 @@
       { t:"play", label:"play", glyph:"\u25B6" },
       { t:"write", label:"write", glyph:"\u25CF" }
     ];
-    elMatrix.appendChild(cell("sound", "sound", null, "fn"));
-    elMatrix.appendChild(cell("pattern", "pattern", null, "fn"));
-    elMatrix.appendChild(cell("bpm", "bpm", null, "fn"));
-    elMatrix.appendChild(cell("A", "A", null, "knob"));
-    elMatrix.appendChild(cell("B", "B", null, "knob"));
+    elMatrix.appendChild(cell("sound", "sound", null, "fn", "sound", FN_NOTE.sound));
+    elMatrix.appendChild(cell("pattern", "pattern", null, "fn", "pattern", FN_NOTE.pattern));
+    elMatrix.appendChild(cell("bpm", "bpm", null, "fn", "bpm", FN_NOTE.bpm));
+    elMatrix.appendChild(cell("A", "A", null, "knob", "A", "\u2014"));
+    elMatrix.appendChild(cell("B", "B", null, "knob", "B", "\u2014"));
     for(var r = 0; r < 4; r++){
-      for(var c = 1; c <= 4; c++) elMatrix.appendChild(cell("keys", String(r * 4 + c)));
+      for(var c = 1; c <= 4; c++){
+        var n = r * 4 + c;
+        elMatrix.appendChild(cell("keys", String(n), null, null, "n" + n, noteOfNum(n)));
+      }
       var right = rightCol[r];
-      var b = cell(right.t, right.label, right.glyph, "fn");
+      var b = cell(right.t, right.label, right.glyph, "fn", right.t, FN_NOTE[right.t]);
       if(right.id) b.id = right.id;
       elMatrix.appendChild(b);
     }
   })();
 
   /* tab */
-  ORDER.concat(["tutti"]).forEach(function(k){
+  TABS.forEach(function(k){
     var t = document.createElement("button");
     t.type = "button"; t.className = "tab"; t.dataset.k = k; t.setAttribute("role","tab");
     if(k === "tutti"){ t.innerHTML = '<span class="dot"></span>confronto'; }
+    else if(k === "midi"){ t.innerHTML = '<span class="dot"></span>midi <span class="sm">adattatore</span>'; }
+    else if(k === "tele"){ t.innerHTML = '<span class="dot"></span>telecomando <span class="sm">web midi</span>'; }
     else { t.innerHTML = '<span class="dot"></span>' + DATA[k].name + ' <span class="sm">' + DATA[k].tag + '</span>'; }
-    t.addEventListener("click", function(){ state.dev = k; state.filter = null; state.q = ""; render(); });
+    t.addEventListener("click", function(){
+      /* uscendo dal telecomando nessun tasto del PO deve restare gi\u00F9 */
+      if(state.dev === "tele" && k !== "tele") tlReleaseAll(false, false);
+      if(DATA[k]) state.lastDev = k;
+      state.dev = k; state.filter = null; state.q = ""; state.midiSel = null;
+      render();
+    });
     elTabs.appendChild(t);
   });
 
   /* schema cliccabile */
-  document.getElementById("unit").addEventListener("click", function(e){
+  elUnit.addEventListener("click", function(e){
     var b = e.target.closest("[data-t]");
-    if(!b || state.dev === "tutti") return;
+    if(!b || state.dev === "tutti" || state.dev === "tele") return;
+    if(state.dev === "midi"){
+      state.midiSel = (state.midiSel === b.dataset.id) ? null : b.dataset.id;
+      renderMidiUnit();
+      return;
+    }
     state.filter = (state.filter === b.dataset.t) ? null : b.dataset.t;
     render();
   });
@@ -677,7 +812,7 @@
 
   function renderUnit(dev){
     var tb = document.getElementById("topbtn");
-    tb.textContent = dev.topLabel;
+    tb.querySelector(".lb").textContent = dev.topLabel;
     tb.classList.remove("tiny");
     document.getElementById("lcd1").textContent = dev.name;
     document.getElementById("lcd2").textContent = state.filter ? ("filtro · " + keyLabel(state.filter === "keys" ? "1-16" : state.filter, dev)) : dev.lcd;
@@ -829,7 +964,7 @@
     document.getElementById("lcd1").textContent = "confronto";
     document.getElementById("lcd2").textContent = "quattro macchine";
     var tb = document.getElementById("topbtn");
-    tb.textContent = "record acc style";
+    tb.querySelector(".lb").textContent = "record acc style";
     tb.classList.add("tiny");
     document.getElementById("silkmodel").textContent = "pocket operator";
     document.getElementById("silkmic").textContent = "quattro macchine, stessa pulsantiera";
@@ -877,12 +1012,575 @@
     elContent.innerHTML = html;
   }
 
+  /* ================= scheda midi: l'adattatore di Hanz Tech =================
+     Fonte di tutto: bobina/PO-RICERCA.md. Ogni riga porta da dove viene. */
+
+  function src(k){
+    if(k === "doc") return "<span class='src doc'>documentato</span>";
+    if(k === "code") return "<span class='src code'>dal codice</span>";
+    return "<span class='flag misura'>da misurare</span>";
+  }
+  function marks(m){ return (m || []).map(src).join(""); }
+  function kk(x){ return "<span class='kk'>" + esc(x) + "</span>"; }
+  function kn(x){ return "<span class='kk num'>" + esc(x) + "</span>"; }
+  var PL = "<span class='plus'>+</span>";
+  function cfg(x){ return "<code class='cfg'>" + esc(x) + "</code>"; }
+  function link(href, text){ return "<a href='" + href + "' target='_blank' rel='noopener'>" + text + "</a>"; }
+  function mrow(left, text, m, note){
+    return "<div class='row'><div class='combo'>" + left + "</div><div class='what'>" + text + marks(m) +
+           (note ? "<i>" + note + "</i>" : "") + "</div></div>";
+  }
+  function step(title, text){ return "<div class='step'><b>" + title + "</b><span class='d'>" + text + "</span></div>"; }
+
+  function midiSelText(){
+    var s = state.midiSel;
+    if(!s) return "tocca un tasto";
+    if(s === "A" || s === "B") return "manopola " + s + " · non via midi";
+    if(s.charAt(0) === "n"){ var n = +s.slice(1); return "tasto " + n + " = nota " + noteOfNum(n); }
+    return (s === "top" ? "tasto in alto" : s) + " = nota " + FN_NOTE[s];
+  }
+
+  function renderMidiUnit(){
+    var tb = document.getElementById("topbtn");
+    tb.querySelector(".lb").textContent = "record acc style";
+    tb.classList.add("tiny");
+    document.getElementById("silkmodel").textContent = "po midi adapter";
+    document.getElementById("silkmic").textContent = "hanz tech · canale 1";
+    document.getElementById("lcd1").textContent = "midi · ch 1";
+    document.getElementById("lcd2").textContent = midiSelText();
+    document.getElementById("unitcap").textContent = "su ogni tasto la sua nota midi";
+    document.querySelectorAll("#unit [data-t]").forEach(function(b){
+      b.classList.toggle("on", !!state.midiSel && b.dataset.id === state.midiSel);
+      b.classList.remove("hi");
+    });
+  }
+
+  function renderMidi(){
+    document.documentElement.setAttribute("data-po", "midi");
+    renderMidiUnit();
+    document.getElementById("spec").innerHTML = [
+      ["canale","1"],["tasto giù","note on"],["tasto su","note off"],["velocity","non conta"],
+      ["manopole A e B","non via midi"],["firmware letto","3.4.3 teensy · 3.4.0 esp32"]
+    ].map(function(r){ return "<div><dt>" + r[0] + "</dt><b>" + r[1] + "</b></div>"; }).join("");
+
+    var h = "";
+
+    /* 0. che cos'è, e la legenda dei segni */
+    h += "<section><h2 class='sec'>il po comandato via midi</h2>" +
+      "<p class='sec-note'>Con l'adattatore MIDI di Hanz Tech ogni tasto del PO diventa una nota: chi manda la nota preme il tasto." + src("doc") +
+      " Per provarlo subito c'è la scheda <b>telecomando</b>.</p>" +
+      "<p class='note'>Accanto a ogni cosa c'è da dove viene: " + src("doc") + " scritto nella wiki o nel manuale · " +
+      src("code") + " letto nel firmware · " + src("misura") + " ancora da provare con la macchina vera.</p></section>";
+
+    /* 1. lo schema con le note */
+    var ng = function(label, note){ return "<div class='ng'><small>" + label + "</small><b>" + note + "</b></div>"; };
+    var grid = "";
+    for(var n = 1; n <= 16; n++) grid += ng("tasto " + n, noteOfNum(n));
+    var fgrid = ng("sound", 76) + ng("pattern", 77) + ng("bpm", 81) + ng("A · B", "—") +
+                ng("in alto", 79) + ng("fx", 80) + ng("play", 78) + ng("write", 82);
+    h += "<section><h2 class='sec'>lo schema con le note</h2>" +
+      "<p class='sec-note'>Sullo schema della macchina ogni tasto porta la sua nota: toccane uno e il display te la dice. Tutto sul canale 1." + src("code") + "</p>" +
+      "<div class='notegrid' role='group' aria-label='i 16 tasti e le loro note'>" + grid + "</div>" +
+      "<div class='notegrid' role='group' aria-label='i tasti funzione e le loro note'>" + fgrid + "</div>" +
+      "<p class='note'>«In alto» è il tasto in alto a destra: record sul K.O! e sullo Speak, acc sul Tonic, style sul Sub. A e B non hanno nota: le manopole non si comandano via MIDI." + src("doc") + "</p>" +
+      "<p class='note'>Le due file di sotto (9-16) hanno le note più basse, 60-67; le due di sopra (1-8) le più alte, 68-75. Così sui 16 pad di una Beatstep Pro la fila di sotto suona la metà di sotto del PO." + src("doc") + "</p>" +
+      "<p class='note'>Il canale si cambia nelle impostazioni dell'adattatore, alla voce " + cfg("po_midi_channel") + "." + src("code") + "</p></section>";
+
+    /* 2. come funziona */
+    h += "<section><h2 class='sec'>come funziona</h2>" +
+      "<p class='sec-note'>L'adattatore preme i tasti al posto tuo. Contano solo due messaggi: Note On e Note Off." + src("code") + "</p>" +
+      "<div class='rows'>" +
+        mrow(kk("note on"), "Il tasto va giù.", ["code"]) +
+        mrow(kk("note off"), "Il tasto torna su.", ["code"], "È un Note Off vero (0x80). Se vale anche un Note On con velocity 0 non si sa ancora: il telecomando di questa pagina manda sempre 0x80." + src("misura")) +
+        mrow(kk("velocity"), "Non conta: piano o forte, il tasto è premuto uguale.", ["code"]) +
+        mrow(kk("tenere"), "Finché la nota resta accesa, il tasto resta premuto.", ["code"]) +
+        mrow(kk("un tocco"), "Quanto dev'essere lungo perché il PO lo senta?", ["misura"], "Il firmware tiene i suoi tocchi a 20 ms." + src("code") + " Bobina parte da 30 ms, il telecomando di questa pagina usa 60 ms.") +
+      "</div>" +
+      "<p class='sec-note'>Le combinazioni si fanno sovrapponendo le note. Esempio: " + kk("pattern") + PL + kn("5") + ", che passa al pattern 5." + src("code") + "</p>" +
+      "<div class='steps'>" +
+        step("nota 77 accesa", "pattern giù") +
+        step("nota 72 accesa", "5 giù, con pattern ancora giù") +
+        step("nota 72 spenta", "5 su") +
+        step("nota 77 spenta", "pattern su: il PO passa al pattern 5") +
+      "</div>" +
+      "<p class='note'>Il firmware fa così anche le sue combinazioni, con 20 ms fra un passo e l'altro." + src("code") + "</p></section>";
+
+    /* 3. cosa si fa e cosa no */
+    h += "<section><h2 class='sec'>cosa si fa e cosa no</h2>" +
+      "<p class='sec-note'>I 23 tasti ci sono tutti, le due manopole no." + src("doc") + " Quindi via MIDI si fa tutto quello che usa solo i tasti.</p>" +
+      "<div class='grp'><h3>sì</h3><div class='rows'>" +
+        mrow(kk("sound") + PL + kn("1-16"), "Scegliere il suono.") +
+        mrow(kk("pattern") + PL + kn("1-16"), "Scegliere il pattern, e fare le catene di pattern.") +
+        mrow(kk("write") + PL + kn("1-16"), "Scrivere e cancellare gli step.") +
+        mrow(kk("fx") + PL + kn("1-16"), "Gli effetti.") +
+        mrow(kk("acc · style") + PL + kn("1-16"), "Gli accenti sul Tonic, gli stili sul Sub.") +
+        mrow(kk("record") + PL + kn("1-16"), "Campionare sul K.O! e sullo Speak, dal microfono o dal line in.") +
+        mrow(kk("muti"), "Sul Tonic si tiene il tasto, sullo Speak sound + tasto.") +
+        mrow(kk("copia · cancella"), "Copiare e cancellare.") +
+        mrow(kk("bpm") + PL + kn("1-16"), "Il volume.") +
+        mrow(kk("bpm"), "I tre tempi preset: 80 · 120 · 140.") +
+        mrow(kk("record · acc · style") + PL + kk("bpm"), "Il modo di sync, da SY0 a SY5.") +
+      "</div></div>" +
+      "<div class='grp'><h3>no: vogliono A o B</h3><div class='rows'>" +
+        mrow(kk("bpm") + PL + kk("B"), "Il tempo fine.") +
+        mrow(kk("bpm") + PL + kk("A"), "Lo swing.") +
+        mrow(kk("write") + PL + kk("A · B"), "Registrare i movimenti delle manopole (parameter lock).") +
+        mrow(kn("1-16") + PL + kk("A · B"), "Cambiare nota o lunghezza di uno step.") +
+        mrow(kk("fx") + PL + kk("A · B"), "Regolare le pagine delle manopole.") +
+      "</div></div>" +
+      "<div class='grp'><h3>no: vuole le pile</h3><div class='rows'>" +
+        mrow(kn("pile"), "Il reset di fabbrica.") +
+      "</div></div>" +
+      "<p class='note'>Quindi il tempo del PO via MIDI è solo <b>80, 120 o 140</b> (bpm da solo), oppure quello che gli arriva dal sync. Il volume è bpm + 1-16." + src("doc") + "</p>" +
+      "<p class='note'>Sul PO-32 tonic, fuori dalla scrittura, i tasti suonano il suono selezionato o ognuno il suo? Da guardare sulla macchina: cambia come lo si suona dal vivo." + src("misura") + "</p></section>";
+
+    /* 4. l'adattatore */
+    h += "<section><h2 class='sec'>l'adattatore</h2>" +
+      "<p class='sec-note'>Due schede impilate e una mascherina stampata in 3D. Dei pogo pin, piccoli spilli a molla, toccano i contatti dei tasti del PO: niente saldature. Display e manopole restano liberi." + src("doc") + "</p>" +
+      "<div class='grp'><h3>versioni</h3><div class='rows'>" +
+        mrow(kk("V2"), "Teensy 4.1, firmware 2.4.x. Niente bluetooth.", ["code"]) +
+        mrow(kk("V3"), "Teensy 4.1 più un ESP32-C3 che fa solo da ponte bluetooth. Firmware 3.4.3 e 3.4.0.", ["code"], "105 $. Su Tindie è esaurito dal 16/3/2025." + src("doc")) +
+      "</div></div>" +
+      "<div class='grp'><h3>le prese della V3</h3><div class='rows'>" +
+        mrow(kk("micro USB"), "La corrente. E verso il computer o il telefono compare come «Teensy MIDI».", ["doc"]) +
+        mrow(kk("USB host"), "Per attaccarci un controller MIDI: al massimo 100-150 mA, per di più serve un hub alimentato.", ["doc"]) +
+        mrow(kk("DIN"), "MIDI in e out.", ["doc"]) +
+        mrow(kk("TRS"), "Jack 3,5 mm tipo A, in e out. Nella scatola ci sono due convertitori A/B.", ["doc"]) +
+        mrow(kk("bluetooth"), "MIDI senza fili, acceso con " + cfg("ble_midi_enabled = 1") + ". Si chiama «PO_MIDI_ADAPTER(BLE)».", ["doc"], "Il nome esatto è da controllare." + src("misura")) +
+        mrow(kk("sync out"), "Jack 3,5 mm: il clock MIDI diventa impulsi per il PO.", ["doc"]) +
+      "</div></div>" +
+      "<div class='grp'><h3>da sapere</h3><div class='rows'>" +
+        mrow(kk("mascherina"), "Se un tasto non risponde, sposta la mascherina: l'allineamento dei pin è la causa di quasi tutti i problemi.", ["doc"]) +
+        mrow(kk("serie 1x 2x 3x"), "Va bene su tutte e tre le serie di PO. Per le vecchie 1x e 2x c'è una scheda di sopra diversa, con due fermi laterali.", ["doc"]) +
+        mrow(kk("consumo"), "Col bluetooth acceso 150-200 mA: non si può alimentare da un OP-Z.", ["doc"]) +
+        mrow(kk("impostazioni"), "Col configuratore web " + link("https://pomawebconfig.hanztechnology.com/", "pomawebconfig.hanztechnology.com") +
+          ", solo da Chrome o Edge e solo col cavo USB. Oppure col file " + cfg("config.cfg") + " sulla microSD: se c'è la microSD, vince lei.", ["doc"],
+          "Il configuratore parla col Teensy sulla porta USB: dal bluetooth e dal MIDI non si configura niente." + src("code")) +
+      "</div></div></section>";
+
+    /* 5. scorciatoie a CC */
+    h += "<section><h2 class='sec'>scorciatoie a cc</h2>" +
+      "<p class='sec-note'>Spente di serie. Si accendono dal configuratore con " + cfg("po_cc_control = 1") + ". Poi un messaggio solo fa tutta la combinazione: un messaggio invece di quattro, perché la combinazione la fa il Teensy, 20 ms per passo." + src("code") + "</p>" +
+      "<div class='rows'>" +
+        mrow(kk("CC 10"), "sound + tasto 1-16", ["code"]) +
+        mrow(kk("CC 11"), "pattern + tasto 1-16", ["code"]) +
+        mrow(kk("CC 12"), "volume: bpm + tasto 1-16", ["code"]) +
+      "</div>" +
+      "<p class='note'>Il valore va da 0 a 15, uno per tasto. <b>Mai sopra 15</b>: il firmware leggerebbe fuori dalla sua tabella." + src("code") + "</p>" +
+      "<p class='note'>Accenderle non rompe niente: le note funzionano come prima. Col bluetooth conviene, perché un cambio di pattern a tempo diventa un pacchetto invece di quattro." + src("code") + "</p>" +
+      "<p class='note'>Un quarto CC, quello di " + cfg("midi_cc_knob_9") + " (valori 0-4), cambia cosa fanno le note: 0 normale, 1 i 16 pad diventano i tasti funzione, 2 fx tenuto, 3 tasto in alto tenuto, 4 write acceso." + src("code") + "</p>" +
+      "<p class='note'>Il telecomando di questa pagina usa solo le note: va anche con le scorciatoie spente.</p></section>";
+
+    /* 6. trasporto, clock e sync out */
+    var tondi = [60,75,80,100,120,125,150,200,240,250,300].map(function(x){ return kn(String(x)); }).join("");
+    h += "<section><h2 class='sec'>trasporto, clock e sync out</h2>" +
+      "<div class='rows'>" +
+        mrow(kk("clock · start · stop"), "Arrivano da qualunque ingresso e passano a tutte le uscite.", ["code"]) +
+        mrow(kk("disable_transport = 1"), "È così di serie: start e stop passano, ma il PO non li sente.", ["code"]) +
+        mrow(kk("disable_transport = 0"), "Start e continue premono play se l'adattatore crede che il PO sia fermo; stop lo ripreme se crede che suoni.", ["code"],
+          "Lo stato lo tiene l'adattatore, e cambia anche quando play arriva come nota. Se si sfasa, è da vedere." + src("misura")) +
+        mrow(kk("sync out"), "Va con " + cfg("sync_out_enabled = 1") + " e " + cfg("disable_transport = 0") + ". L'adattatore ricava il bpm dal clock a ogni battito (media degli ultimi quattro) e manda 2 impulsi per quarto da 6 ms, finché non arriva lo stop.", ["code"]) +
+        mrow(kk("scivola"), "Gli impulsi non sono agganciati al clock: l'adattatore va da solo, con un intervallo arrotondato al millisecondo. Ai tempi dove il conto non viene tondo, il PO scivola piano piano.", ["code","misura"],
+          "Esempio: a 128 bpm l'intervallo giusto è 234,375 ms e diventa 235. Lo 0,27 % più lento: circa 0,16 secondi al minuto.") +
+        mrow(kk("ritardo"), "Il bpm si aggiorna una volta a battito: un cambio di tempo arriva con un battito di ritardo.", ["code"]) +
+      "</div>" +
+      "<p class='sec-note'>I tempi senza scivolamento:" + src("code") + src("misura") + "</p>" +
+      "<div class='combo'>" + tondi + "</div></section>";
+
+    /* 7. a tempo col TX-6 */
+    h += "<section><h2 class='sec'>a tempo col tx-6</h2>" +
+      "<p class='sec-note'>La strada più precisa: il PO va col suo pattern e prende il tempo dal TX-6 con un cavo. Via MIDI gli arrivano solo i tasti: pattern, effetti, muti." + src("doc") + "</p>" +
+      "<div class='steps'>" +
+        step("Il TX-6 manda il sync", "Premi <span class='kk'>aux</span>, poi tieni <span class='kk'>shift</span> e gira <span class='kk'>select</span> fino a <b>sync 8</b>. Il canale sinistro porta gli impulsi, il destro l'audio." + src("doc")) +
+        step("Il cavo", "Un cavo stereo dall'aux del TX-6 all'ingresso del PO. Aux esce più forte di cue: 8 dBu contro 2." + src("doc")) +
+        step("Il PO su SY2", "Tieni il tasto in alto (record, acc o style) e tocca <span class='kk'>bpm</span> finché compare <b>SY2</b>: entra il sync, esce stereo. Nel telecomando è «cambia sync»." + src("doc")) +
+        step("Bobina tiene il tempo", "Nell'app Bobina il PO e il TX-6 stanno sullo stesso orologio: stessa battuta, e chi parte per secondo entra alla battuta dopo. Il TP-7 per ora ha ancora il suo." + src("misura")) +
+      "</div>" +
+      "<p class='note'><b>Perché non SY4 o SY5:</b> lì il PO mescola all'uscita anche il canale destro dell'ingresso, cioè l'audio che il TX-6 manda insieme al sync 8. E se il PO entra nel TX-6, il suono gira in tondo." + src("doc") + "</p>" +
+      "<p class='note'>Da vedere: se il TX-6 manda gli impulsi solo quando va il suo clock, e se il PO parte in battere." + src("misura") + "</p>" +
+      "<p class='note'>Si può fare anche col sync out dell'adattatore: ma serve il clock sul bluetooth, 48 messaggi al secondo in più, e c'è lo scivolamento visto sopra." + src("code") + "</p></section>";
+
+    /* 8. cosa manda indietro */
+    h += "<section><h2 class='sec'>cosa manda indietro</h2>" +
+      "<div class='rows'>" +
+        mrow(kk("niente di suo"), "I pin che toccano il PO sono solo uscite. L'adattatore non sa cosa c'è sul display, se il PO suona, quale pattern è acceso.", ["code"], "Per questo il telecomando ricorda solo quello che ha mandato.") +
+        mrow(kk("eco"), "Note, CC, start e stop che arrivano dal bluetooth tornano anche indietro sul bluetooth. Il clock no.", ["code"]) +
+        mrow(kk("smistatore"), "Quello che arriva dal bluetooth esce anche da DIN, TRS, USB e USB host.", ["code"],
+          "Una nota su un altro canale non preme niente, ma passa lo stesso: dal TRS out si può suonare un'altra macchina, per esempio una Volca, sullo stesso bluetooth." + src("code")) +
+      "</div></section>";
+
+    /* 9. registrazione a un tasto e looper */
+    h += "<section><h2 class='sec'>registrazione a un tasto e looper</h2>" +
+      "<p class='sec-note'>Solo sul PO-33 K.O!, e ancora in prova." + src("doc") + "</p>" +
+      "<div class='rows'>" +
+        mrow(kk("una nota per slot"), "Un Note On preme record + il tasto e comincia a registrare; il Note On dopo lascia.", ["doc","code"],
+          "Le note si scelgono nel configuratore (" + cfg("midi_note_record_1") + " … " + cfg("_16") + "; di serie 48, poi 10-24). Mentre registra, qualunque Note On sul canale del PO ferma la registrazione." + src("code")) +
+        mrow(kk("looper"), "Sulle tracce 1-8: finita la registrazione, rilancia il campione a ogni giro premendo il tasto 5.", ["doc","code"]) +
+        mrow(kk("nota 49"), "Avvia e ferma il looper.", ["doc","code"]) +
+        mrow(kk("nota 50"), "Cancella: preme sound, il tasto, record… e cancella il campione vero.", ["doc","code"]) +
+      "</div></section>";
+
+    /* 10. fonti */
+    h += "<footer><p class='note'><b>Fonti.</b> " +
+      link("https://hanztechnology.com/products/pocket-operator-midi-adapter-v3", "pagina del prodotto") + " · " +
+      link("https://github.com/Hanz-Tech/midi-adapter-v3-software", "firmware V3") + " e la sua " +
+      link("https://github.com/Hanz-Tech/midi-adapter-v3-software/wiki", "wiki") + " · " +
+      link("https://github.com/Hanz-Tech/midi-adapter-software", "firmware V2") + " · " +
+      link("https://github.com/Hanz-Tech/midi-adapter-v3-hardware", "schemi V3") + " · " +
+      link("https://github.com/Hanz-Tech/poma-web-configurator", "codice del configuratore") + " · " +
+      link("https://www.tindie.com/products/hanztech/pocket-operator-midi-adapter-v3/", "Tindie") + ".</p>" +
+      "<p class='note'>Dalla community: il " + link("https://github.com/Hanz-Tech/po-midi-ribbon-controller", "controller a nastro") +
+      " di Hanz e il suo " + link("https://github.com/Hanz-Tech/midi-adapter-software/tree/v2/looper", "looper in Python") + " per Beatstep Pro.</p>" +
+      "<p class='note'>«Dal codice» vuol dire firmware 3.4.3 del Teensy e 3.4.0 dell'ESP32, letti su GitHub il 29/9/2026. «Da misurare» diventa una misura solo con la macchina vera in mano.</p></footer>";
+
+    elContent.innerHTML = h;
+  }
+
+  /* ================= scheda telecomando: Web MIDI =================
+     Manda Note On e Note Off all'adattatore. Pensato per chi non può tenere
+     premuto: i tasti funzione si agganciano, i numeri fanno un tocco. */
+
+  var TL_STEP = 25;   /* ms fra un passo e l'altro delle combinazioni */
+  var TL_TAP = 60;    /* ms di un tocco */
+  var TL_VEL = 100;
+  var TL_AUTO = /teensy|po_midi|po-ma/i;
+  var tele = { access:null, outs:[], out:null, lastId:null, ch:1, held:[], busy:0, nums:false, model:null, log:[], msg:"" };
+
+  function tlSupported(){ return typeof navigator !== "undefined" && typeof navigator.requestMIDIAccess === "function"; }
+  function tlHex(bytes){ return bytes.map(function(x){ return (x < 16 ? "0" : "") + x.toString(16).toUpperCase(); }).join(" "); }
+  function tlName(n){
+    if(n >= 60 && n <= 75) return "tasto " + (n >= 68 ? n - 67 : n - 51);
+    var names = { 76:"sound", 77:"pattern", 78:"play", 79:DATA[tele.model || "ko"].topLabel, 80:"fx", 81:"bpm", 82:"write" };
+    return names[n] || ("nota " + n);
+  }
+  function tlIsHeld(n){ return tele.held.indexOf(n) > -1; }
+  function tlStart(){ return Math.max(performance.now(), tele.busy); }
+
+  function tlSend(bytes, at, what){
+    if(!tele.out) return false;
+    try{ tele.out.send(bytes, at); }
+    catch(err){
+      tele.msg = "Il messaggio non è partito: " + (err && err.message ? err.message : err);
+      tlPaint();
+      return false;
+    }
+    tele.log.push(tlHex(bytes) + " · " + what);
+    while(tele.log.length > 8) tele.log.shift();
+    return true;
+  }
+  function tlOn(n, at){ return tlSend([0x90 | (tele.ch - 1), n, TL_VEL], at, tlName(n) + " giù"); }
+  function tlOff(n, at){ return tlSend([0x80 | (tele.ch - 1), n, 0], at, tlName(n) + " su"); }
+
+  function tlNeedOut(){
+    if(!tlSupported()) tele.msg = "In questo browser il telecomando non può mandare niente.";
+    else if(!tele.access) tele.msg = "Prima premi «collega».";
+    else tele.msg = "Prima scegli l'uscita dell'adattatore.";
+    tlPaint();
+  }
+  function tlFlash(el){
+    if(!el) return;
+    el.classList.add("tap");
+    setTimeout(function(){ el.classList.remove("tap"); }, 180);
+  }
+
+  /* un tasto della faccia: se è giù lo lascia, altrimenti aggancia o fa un tocco */
+  function tlPad(n, kind, el){
+    if(!tele.out){ tlNeedOut(); return; }
+    tele.msg = "";
+    var t = tlStart();
+    if(tlIsHeld(n)){
+      tlOff(n, t);
+      tele.held.splice(tele.held.indexOf(n), 1);
+      tele.busy = t + TL_STEP;
+    } else if(kind === "fn" || (kind === "num" && tele.nums)){
+      if(tlOn(n, t)) tele.held.push(n);
+      tele.busy = t + TL_STEP;
+    } else {
+      if(tlOn(n, t)) tlOff(n, t + TL_TAP);
+      tele.busy = t + TL_TAP + TL_STEP;
+      tlFlash(el);
+    }
+    tlPaint();
+  }
+  /* un tocco singolo, per «tempo preset» */
+  function tlTap(n, el){
+    if(!tele.out){ tlNeedOut(); return; }
+    tele.msg = "";
+    if(tlIsHeld(n)){ tele.msg = "«" + tlName(n) + "» è già giù: toccalo sulla faccia per lasciarlo."; tlPaint(); return; }
+    var t = tlStart();
+    if(tlOn(n, t)) tlOff(n, t + TL_TAP);
+    tele.busy = t + TL_TAP + TL_STEP;
+    tlFlash(el);
+    tlPaint();
+  }
+  /* una combinazione: giù in ordine, su al contrario, 25 ms fra un passo e l'altro.
+     Se il primo tasto è già agganciato non lo ripreme e non lo lascia. */
+  function tlCombo(seq, el){
+    if(!tele.out){ tlNeedOut(); return; }
+    tele.msg = "";
+    for(var i = 1; i < seq.length; i++){
+      if(tlIsHeld(seq[i])){ tele.msg = "Prima lascia «" + tlName(seq[i]) + "»: è ancora giù."; tlPaint(); return; }
+    }
+    var press = seq.filter(function(n){ return !tlIsHeld(n); });
+    var t = tlStart(), k = 0;
+    press.forEach(function(n){ tlOn(n, t + TL_STEP * k++); });
+    press.slice().reverse().forEach(function(n){ tlOff(n, t + TL_STEP * k++); });
+    tele.busy = t + TL_STEP * k;
+    tlFlash(el);
+    tlPaint();
+  }
+  /* Note Off a tutti i tasti agganciati, l'ultimo agganciato per primo */
+  function tlReleaseAll(now, fromUser){
+    if(!tele.held.length){
+      if(fromUser){ tele.msg = "Nessun tasto è agganciato."; tlPaint(); }
+      return;
+    }
+    if(!tele.out){ if(fromUser) tlNeedOut(); return; }
+    var t = tlStart(), gap = now ? 0 : TL_STEP;
+    tele.held.slice().reverse().forEach(function(n, i){ tlOff(n, t + gap * i); });
+    tele.busy = t + gap * tele.held.length + TL_STEP;
+    tele.held = [];
+    if(fromUser) tele.msg = "";
+    tlPaint();
+  }
+  function tlChannel(d){
+    var c = Math.min(16, Math.max(1, tele.ch + d));
+    if(c === tele.ch) return;
+    if(tele.out) tlReleaseAll(false, false); else tele.held = [];
+    tele.ch = c;
+    tlPaint();
+  }
+  function tlUse(o){
+    if(tele.out && tele.out.id === o.id) return;
+    if(tele.out) tlReleaseAll(false, false);
+    if(o.id !== tele.lastId) tele.held = [];
+    tele.out = o; tele.lastId = o.id; tele.msg = "";
+  }
+  function tlPick(id){
+    var o = null;
+    tele.outs.forEach(function(x){ if(x.id === id) o = x; });
+    if(!o) return;
+    tlUse(o);
+    tlPaint();
+  }
+  function tlRefresh(){
+    if(!tele.access) return;
+    var list = [];
+    tele.access.outputs.forEach(function(o){ if(o.state !== "disconnected") list.push(o); });
+    tele.outs = list;
+    if(tele.out && !list.some(function(o){ return o.id === tele.out.id; })){
+      tele.out = null;
+      tele.msg = tele.held.length ? "L'uscita si è staccata. Quando torna, premi «lascia tutto»: un tasto del PO potrebbe essere rimasto giù." : "L'uscita si è staccata.";
+    }
+    if(!tele.out){
+      var pick = null;
+      list.forEach(function(o){ if(o.id === tele.lastId) pick = o; });
+      if(!pick) list.forEach(function(o){ if(!pick && TL_AUTO.test(o.name || "")) pick = o; });
+      if(pick) tlUse(pick);
+    }
+    tlPaintOuts();
+    tlPaint();
+  }
+  function tlConnect(){
+    if(!tlSupported()){ tlPaint(); return; }
+    tele.msg = "Il browser chiede il permesso di usare il MIDI…";
+    tlPaint();
+    var fail = function(err){
+      tele.msg = "Il browser non ha dato il permesso" + (err && err.name ? " (" + err.name + ")" : "") + ". Premi di nuovo «collega» e rispondi «consenti».";
+      tlPaint();
+    };
+    try{
+      navigator.requestMIDIAccess({ sysex:false }).then(function(acc){
+        tele.access = acc;
+        tele.msg = "";
+        acc.onstatechange = function(){ tlRefresh(); };
+        tlRefresh();
+      }, fail);
+    }catch(err){ fail(err); }
+  }
+
+  function tlStatus(){
+    if(!tlSupported()) return "Questo browser non ha il MIDI. Safari, anche su iPhone, non lo ha: usa Chrome o Edge sul Mac. Sull'iPhone c'è l'app Bobina.";
+    if(!tele.access) return "MIDI spento. Premi «collega»: il browser chiede il permesso.";
+    if(!tele.outs.length) return "Nessuna uscita MIDI. Accendi l'adattatore e collega il cavo USB, oppure il bluetooth (vedi sotto).";
+    if(!tele.out) return "Scegli qui sotto l'uscita dell'adattatore.";
+    return "Collegato a «" + (tele.out.name || "uscita senza nome") + "» · canale " + tele.ch + ".";
+  }
+
+  function tlPaintOuts(){
+    if(state.dev !== "tele") return;
+    var box = document.getElementById("tl-outs");
+    if(!box) return;
+    box.innerHTML = "";
+    tele.outs.forEach(function(o){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "tbtn out";
+      b.dataset.act = "out";
+      b.dataset.id = o.id;
+      b.textContent = (o.name || "uscita senza nome") + (o.manufacturer ? " · " + o.manufacturer : "");
+      box.appendChild(b);
+    });
+  }
+
+  /* aggiorna solo quello che cambia, senza ricostruire i tasti */
+  function tlPaint(){
+    if(state.dev !== "tele") return;
+    var st = document.getElementById("tl-state");
+    if(!st) return;
+    st.textContent = tlStatus();
+    var m = document.getElementById("tl-msg");
+    m.textContent = tele.msg;
+    m.hidden = !tele.msg;
+    var cb = document.getElementById("tl-connect");
+    cb.parentNode.hidden = !tlSupported();
+    cb.textContent = tele.access ? "ricollega" : "collega";
+    document.getElementById("tl-outs-wrap").hidden = !tele.outs.length;
+    elContent.querySelectorAll("[data-act='out']").forEach(function(b){
+      b.setAttribute("aria-pressed", tele.out && b.dataset.id === tele.out.id ? "true" : "false");
+    });
+    document.getElementById("tl-chv").textContent = "canale " + tele.ch;
+    document.getElementById("tl-chs").textContent = "canale " + tele.ch;
+    var dev = DATA[tele.model];
+    document.getElementById("tl-facename").textContent = dev.name;
+    elContent.querySelectorAll(".tl-top").forEach(function(e){ e.textContent = dev.topLabel; });
+    document.getElementById("tl-toppad").setAttribute("aria-label", dev.topLabel);
+    elContent.querySelectorAll("[data-act='model']").forEach(function(b){
+      b.setAttribute("aria-pressed", b.dataset.m === tele.model ? "true" : "false");
+    });
+    elContent.querySelectorAll(".pad[data-n]").forEach(function(p){
+      var n = +p.dataset.n, on = tlIsHeld(n);
+      var latch = p.dataset.kind === "fn" || (p.dataset.kind === "num" && tele.nums);
+      if(latch || on) p.setAttribute("aria-pressed", on ? "true" : "false");
+      else p.removeAttribute("aria-pressed");
+    });
+    var nb = document.getElementById("tl-nums");
+    nb.setAttribute("aria-pressed", tele.nums ? "true" : "false");
+    nb.textContent = "tieni anche i numeri: " + (tele.nums ? "sì" : "no");
+    document.getElementById("tl-release").textContent = "lascia tutto" + (tele.held.length ? " (" + tele.held.length + ")" : "");
+    document.getElementById("tl-log").innerHTML = tele.log.length ?
+      tele.log.map(function(l){ return "<li>" + esc(l) + "</li>"; }).join("") : "<li>ancora niente</li>";
+  }
+
+  function renderTele(){
+    document.documentElement.setAttribute("data-po", "tele");
+    if(!tele.model) tele.model = state.lastDev || "ko";
+
+    function pad(n, kind, label, name){
+      return "<button type='button' class='pad " + kind + "' data-act='pad' data-kind='" + kind + "' data-n='" + n + "' aria-label='" + name + "'>" +
+             "<span class='lb'>" + label + "</span><span class='pn'>" + n + "</span></button>";
+    }
+    function knob(x){
+      return "<button type='button' class='pad knob' disabled aria-label='manopola " + x + ", non via MIDI'>" +
+             "<span class='lb'>" + x + "</span><span class='pn'>non via<br>MIDI</span></button>";
+    }
+    function numRow(title, first){
+      var s = "<div class='grp'><h3>" + title + "</h3><div class='numpad' role='group' aria-label='" + title + "'>";
+      for(var i = 1; i <= 16; i++){
+        s += "<button type='button' class='nbtn' data-act='combo' data-seq='" + first + "," + noteOfNum(i) + "' aria-label='" + title + " " + i + "'>" + i + "</button>";
+      }
+      return s + "</div></div>";
+    }
+
+    var face = pad(76, "fn", "sound", "sound") + pad(77, "fn", "pattern", "pattern") + pad(81, "fn", "bpm", "bpm") + knob("A") + knob("B");
+    var right = ["top", "fx", "play", "write"];
+    for(var r = 0; r < 4; r++){
+      for(var c = 1; c <= 4; c++){ var k = r * 4 + c; face += pad(noteOfNum(k), "num", String(k), "tasto " + k); }
+      if(right[r] === "top"){
+        face += "<button type='button' class='pad fn' id='tl-toppad' data-act='pad' data-kind='fn' data-n='79' aria-label='record'>" +
+                "<span class='lb tl-top'>record</span><span class='pn'>79</span></button>";
+      }
+      else if(right[r] === "play") face += pad(78, "play", "play ▶", "play");
+      else face += pad(FN_NOTE[right[r]], "fn", right[r], right[r]);
+    }
+
+    var models = ORDER.map(function(k){
+      return "<button type='button' class='tbtn' data-act='model' data-m='" + k + "'>" + DATA[k].name + "</button>";
+    }).join("");
+
+    var h = "<div class='tele'>";
+
+    h += "<section class='tl-conn'><h2 class='sec'>collegare</h2>" +
+      "<div class='card tl-card'>" +
+        "<div role='status' aria-live='polite'><p class='tl-state' id='tl-state'></p><p class='tl-msg' id='tl-msg' hidden></p></div>" +
+        "<div class='tl-row'><button type='button' class='tbtn main' id='tl-connect' data-act='connect'>collega</button></div>" +
+        "<div id='tl-outs-wrap' hidden><p class='tl-lab'>uscite midi trovate</p><div class='tl-outs' id='tl-outs' role='group' aria-label='uscite MIDI'></div></div>" +
+        "<div class='tl-ch' role='group' aria-label='canale MIDI'>" +
+          "<button type='button' class='tbtn sq' data-act='ch' data-d='-1' aria-label='canale meno'>−</button>" +
+          "<b id='tl-chv'>canale 1</b>" +
+          "<button type='button' class='tbtn sq' data-act='ch' data-d='1' aria-label='canale più'>+</button>" +
+        "</div>" +
+      "</div>" +
+      "<p class='note'>Col cavo USB l'adattatore compare da solo come «Teensy MIDI». Col bluetooth, sul Mac va prima collegato: <b>Configurazione MIDI Audio → Finestra → Mostra finestra MIDI → icona del bluetooth</b>, e lì scegli l'adattatore.</p>" +
+      "</section>";
+
+    h += "<section class='tl-face-sec'><h2 class='sec'>la faccia del po</h2>" +
+      "<p class='sec-note'>I tasti funzione restano giù finché non li ritocchi: così fai le combinazioni un tocco alla volta. I numeri e play fanno un tocco di 60 ms.</p>" +
+      "<div class='tl-models' role='group' aria-label='modello del PO'>" + models + "</div>" +
+      "<div class='face'><div class='silkrow'><b id='tl-facename'>po</b><span>telecomando · <span id='tl-chs'>canale 1</span></span></div>" +
+        "<div class='face-grid'>" + face + "</div></div>" +
+      "<div class='tl-row'>" +
+        "<button type='button' class='tbtn' id='tl-nums' data-act='nums'>tieni anche i numeri: no</button>" +
+        "<button type='button' class='tbtn' id='tl-release' data-act='release'>lascia tutto</button>" +
+      "</div>" +
+      "<p class='note'>«Tieni anche i numeri» serve per fx + un tasto, che vale finché il tasto è giù, e per campionare con record + un tasto. A e B non si comandano via MIDI. Il telecomando non vede il display del PO: ricorda solo quello che ha mandato.</p>" +
+      "</section>";
+
+    h += "<section class='tl-log-sec'><h2 class='sec'>ultimi messaggi</h2>" +
+      "<ol class='tl-log' id='tl-log'></ol>" +
+      "<p class='note'>Gli ultimi 8, in byte: 9x = nota accesa, 8x = nota spenta (x = canale meno uno), poi il numero della nota e la forza, in esadecimale.</p>" +
+      "</section>";
+
+    h += "<section class='tl-combo'><h2 class='sec'>combinazioni pronte</h2>" +
+      "<p class='sec-note'>Un tocco fa tutta la combinazione. Per «pattern 5» partono: pattern giù, 5 giù, 5 su, pattern su, a 25 ms l'uno dall'altro.</p>" +
+      numRow("pattern", FN_NOTE.pattern) +
+      numRow("suono", FN_NOTE.sound) +
+      numRow("volume", FN_NOTE.bpm) +
+      "<p class='note'>Volume: con le cuffie non andare oltre 5.</p>" +
+      "<div class='grp'><h3>tempo e sync</h3><div class='tl-row'>" +
+        "<button type='button' class='tbtn' data-act='tap' data-n='81'>tempo preset (bpm)</button>" +
+        "<button type='button' class='tbtn' data-act='combo' data-seq='79,81'>cambia sync (<span class='tl-top'>record</span> + bpm)</button>" +
+      "</div></div>" +
+      "<p class='note'>«Tempo preset» cicla 80 · 120 · 140. «Cambia sync» cicla SY0-SY5: guarda il display del PO. Per stare a tempo col TX-6 serve SY2.</p>" +
+      "</section>";
+
+    h += "</div>";
+    elContent.innerHTML = h;
+    tlPaintOuts();
+    tlPaint();
+  }
+
+  /* i tasti del telecomando: un ascoltatore solo, che resta anche quando il contenuto cambia */
+  elContent.addEventListener("click", function(e){
+    if(state.dev !== "tele") return;
+    var b = e.target.closest("[data-act]");
+    if(!b || b.disabled) return;
+    var a = b.dataset.act;
+    if(a === "connect") tlConnect();
+    else if(a === "out") tlPick(b.dataset.id);
+    else if(a === "ch") tlChannel(+b.dataset.d);
+    else if(a === "model"){ tele.model = b.dataset.m; tlPaint(); }
+    else if(a === "pad") tlPad(+b.dataset.n, b.dataset.kind, b);
+    else if(a === "nums"){ tele.nums = !tele.nums; tlPaint(); }
+    else if(a === "release") tlReleaseAll(false, true);
+    else if(a === "combo") tlCombo(b.dataset.seq.split(",").map(Number), b);
+    else if(a === "tap") tlTap(+b.dataset.n, b);
+  });
+  /* chiudendo la pagina: nessun tasto del PO resta giù */
+  window.addEventListener("pagehide", function(){ tlReleaseAll(true, false); });
+  window.addEventListener("beforeunload", function(){ tlReleaseAll(true, false); });
+
   function render(keepFocus){
-    ORDER.concat(["tutti"]).forEach(function(k){
+    TABS.forEach(function(k){
       var t = elTabs.querySelector('[data-k="' + k + '"]');
       t.setAttribute("aria-selected", state.dev === k ? "true" : "false");
     });
+    elUnit.classList.toggle("midi", state.dev === "midi");
+    elWrap.classList.toggle("solo", state.dev === "tele");
+    document.getElementById("brandnote").textContent = BRANDNOTE[state.dev] || BRANDNOTE_DEF;
     if(state.dev === "tutti") renderCompare();
+    else if(state.dev === "midi") renderMidi();
+    else if(state.dev === "tele") renderTele();
     else renderDevice(state.dev);
     if(keepFocus){
       var q = document.getElementById("q");
