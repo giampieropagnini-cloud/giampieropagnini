@@ -35,6 +35,9 @@ final class MIDIIO {
     var onReceive: (([UInt8], MIDITimeStamp) -> Void)?
     /// Qualcosa si è collegato o scollegato. Chiamata sul main thread.
     var onSetupChanged: (() -> Void)?
+    /// Clock, start, continue e stop, chiamata subito sul filo di CoreMIDI (non sul main thread):
+    /// per chi deve andare a tempo anche mentre lo schermo è occupato. Facoltativa.
+    var onRealtime: ((UInt8, MIDITimeStamp) -> Void)?
 
     init() {
         mach_timebase_info(&timebase)
@@ -141,6 +144,11 @@ final class MIDIIO {
             chunks.append((Array(raw), stamp == 0 ? mach_absolute_time() : stamp))
             if i < count - 1 {
                 packet = UnsafePointer(MIDIPacketNext(packet))
+            }
+        }
+        if let realtime = onRealtime {
+            for (bytes, stamp) in chunks {
+                for b in bytes where b >= 0xF8 { realtime(b, stamp) }
             }
         }
         DispatchQueue.main.async { [weak self] in

@@ -34,6 +34,7 @@ Le prime quattro si fanno col cavo al **Mac** e l'ascoltatore (`strumenti/ascolt
 
 (qui i numeri veri, man mano)
 
-- Da sistemare: lo slider del main rimanda lo stesso valore molte volte (63 messaggi, molti uguali). Col bluetooth conviene mandare solo i cambi.
+- Sistemato: lo slider del main rimandava lo stesso valore molte volte.
+- 29/9/2026, col bluetooth: la batteria a passi suonava a tempo da fermi, ma andava a scatti quando si scorreva lo schermo. Causa: l'orologio dei passi girava sul filo dello schermo. Ora il sequencer ha un filo suo (TX6Sequencer.swift). Prova sul Mac con lo schermo bloccato 300 ms ogni 500: passi a 125,00 ms esatti, clock a 20,83 ms (strumenti/prova-sequencer). Da riprovare sul telefono.
 
 - Giampiero ricorda di aver già sincronizzato il TX-6 via bluetooth (il TP-7 invece il clock via bluetooth non lo manda: vedi PROVE.md). Da riprovare con la prova 17.

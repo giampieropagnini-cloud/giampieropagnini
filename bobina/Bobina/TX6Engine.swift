@@ -79,6 +79,8 @@ final class TX6Engine: ObservableObject {
 
     let io = MIDIIO()
     let live = TX6Live()
+    /// Il ritmo, su un filo tutto suo.
+    private(set) lazy var sequencer = TX6Sequencer(io: io)
     /// La sezione TP-7, per il ponte: il TX-6 in CTRL OUT comanda il TP-7.
     weak var tp7: Engine?
 
@@ -135,23 +137,23 @@ final class TX6Engine: ObservableObject {
     @Published var beatsOn = false
     @Published var beats: [[Bool]] = Array(repeating: Array(repeating: false, count: 16), count: 6) { didSet { save() } }
     /// Passi con manopola: a ogni passo un valore diverso per un parametro di una traccia.
-    @Published var lockOn = false { didSet { if !lockOn { restoreLock() } } }
+    @Published var lockOn = false { didSet { if !lockOn && oldValue && pulsing { restoreLock() } } }
     @Published var lockTrack = 1 { didSet { save() } }
     @Published var lockParam = TX6.Param.freq { didSet { save() } }
     @Published var locks: [Int?] = Array(repeating: nil, count: 16) { didSet { save() } }
 
     /// Melodia a passi: per ogni traccia sedici passi, ognuno una nota (0 = do … 12 = do sopra) o niente.
-    @Published var melodyOn = false { didSet { if !melodyOn { melodyOff() } } }
+    @Published var melodyOn = false { didSet { if !melodyOn { sequencer.melodyOffNow() } } }
     @Published var melodies: [[Int?]] = Array(repeating: Array(repeating: nil, count: 16), count: 6) { didSet { save() } }
     @Published var melodyOctaves: [Int] = Array(repeating: 4, count: 6) { didSet { save() } }
     /// Quanti sedicesimi dura ogni nota.
     @Published var melodyLength = 1 { didSet { save() } }
 
-    @Published var gateOn = false { didSet { if !gateOn { releaseGate() } } }
+    @Published var gateOn = false { didSet { if !gateOn { sequencer.releaseGateNow() } } }
     @Published var gate: [Bool] = [true, false, true, false, true, true, false, true, true, false, true, false, true, true, false, false] { didSet { save() } }
     @Published var gateTracks: Set<Int> = [1] { didSet { save() } }
 
-    @Published var pumpOn = false
+    @Published var pumpOn = false { didSet { if !pumpOn && oldValue && pulsing { restorePump() } } }
     @Published var pumpDepth = 0.7
     @Published var pumpRelease = 0.6
     @Published var pumpTracks: Set<Int> = [1] { didSet { save() } }
@@ -181,14 +183,13 @@ final class TX6Engine: ObservableObject {
     private var lastTick: MIDITimeStamp = 0
     private var anchorTime: MIDITimeStamp = 0
     private var anchorBeat = 0.0
-    private var nextSixteenth = 0
-    private var nextClockTick = 0
+    private var lastPlanAt: MIDITimeStamp = 0
+    private var lastBPMShown: MIDITimeStamp = 0
     private var lastSent: [[Int?]] = Array(repeating: Array(repeating: nil, count: TX6.Param.allCases.count), count: 6)
     private var lastModAt: MIDITimeStamp = 0
     private var masterSent: [Int?] = [nil, nil, nil]
     private var fxSent: [[Int?]] = [[nil, nil, nil], [nil, nil, nil]]
     private var fxReturnSent: Int?
-    private var gateState: Bool?
     private var driftLevels = Array(repeating: 1.0, count: 6)
     private var driftVelocity = Array(repeating: 0.0, count: 6)
     private var driftPanPos = Array(repeating: 0.0, count: 6)
@@ -201,7 +202,6 @@ final class TX6Engine: ObservableObject {
     private var clockCount = 0
     private var lastClockAt: MIDITimeStamp = 0
     private var held: [Int: [(track: Int, note: Int)]] = [:]
-    private var melodySounding: [Int: Int] = [:]
     private let motion = CMMotionManager()
     private let haptic = UIImpactFeedbackGenerator(style: .rigid)
 
@@ -209,6 +209,11 @@ final class TX6Engine: ObservableObject {
         load()
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, stamp in self?.received(bytes, stamp) }
+        let seq = sequencer
+        io.onRealtime = { status, stamp in seq.realtime(status, stamp) }
+        seq.onStep = { [weak self] i, t, hit in
+            DispatchQueue.main.async { self?.stepped(i, t, hit) }
+        }
         anchorTime = io.now()
         refreshPorts()
         startTimer()
@@ -276,9 +281,7 @@ final class TX6Engine: ObservableObject {
 
     func toggleMute(_ track: Int) {
         mutes[track - 1].toggle()
-        if !(gateOn && gateTracks.contains(track) && gateState == false) {
-            send(TX6.cc(TX6.ccMute, mutes[track - 1] ? 127 : 0, channel: track))
-        }
+        send(TX6.cc(TX6.ccMute, mutes[track - 1] ? 127 : 0, channel: track))
     }
 
     /// EQ piatto e filtro spento sulla traccia.
@@ -397,10 +400,6 @@ final class TX6Engine: ObservableObject {
         send(TX6.noteOff(n, channel: track), at: io.now() + io.ticks(ms: 180), quiet: true)
     }
 
-    private func melodyOff() {
-        for (track, n) in melodySounding { send(TX6.noteOff(n, channel: track), quiet: true) }
-        melodySounding.removeAll()
-    }
 
     // MARK: scene di Bobina
 
@@ -479,21 +478,59 @@ final class TX6Engine: ObservableObject {
     func toggleRun() {
         if running {
             running = false
-            if clockMode == .send { send(TX6.stop) }
-            releaseGate()
-            restoreLock()
-            melodyOff()
+            sequencer.stop(sendStop: clockMode == .send)
+            if clockMode == .send { note(TX6.stop, incoming: false) }
+            if beatsOn && lockOn { restoreLock() }
+            if pumpOn { restorePump() }
         } else {
             guard clockMode != .follow else { return }
             let start = io.now() + io.ticks(ms: 30)
+            // lo stesso istante anche per le onde, così vanno a tempo coi passi
             anchorTime = start
             anchorBeat = 0
-            nextSixteenth = 0
-            nextClockTick = 0
-            gateState = nil
-            if clockMode == .send { send(TX6.start, at: start) }
+            sequencer.update(makePlan())
+            sequencer.start(at: start)
+            if clockMode == .send { note(TX6.start, incoming: false) }
             running = true
         }
+    }
+
+    /// Tutto quello che il sequencer deve sapere, fotografato adesso.
+    private func makePlan() -> TX6Sequencer.Plan {
+        var p = TX6Sequencer.Plan()
+        p.bpm = max(40, min(300, bpm))
+        p.sendClock = clockMode == .send
+        p.follow = clockMode == .follow
+        p.padBase = padBase
+        p.beatsOn = beatsOn
+        p.beats = beats
+        p.lockOn = lockOn
+        p.lockTrack = lockTrack
+        p.lockCC = lockParam.cc
+        p.lockBase = values[lockTrack - 1][lockParam.rawValue]
+        p.locks = locks
+        p.melodyOn = melodyOn
+        p.melodies = melodies
+        p.melodyOctaves = melodyOctaves
+        p.melodyLength = melodyLength
+        p.gateOn = gateOn
+        p.gate = gate
+        p.gateTracks = gateTracks.sorted()
+        p.mutes = mutes
+        p.pumpOn = pumpOn
+        p.pumpDepth = pumpDepth
+        p.pumpRelease = pumpRelease
+        p.pumpTops = pumpTracks.sorted().map { tr in
+            (track: tr, top: Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))
+        }
+        return p
+    }
+
+    /// Un passo è partito: il quadratino e i pad si accendono quando suona davvero.
+    private func stepped(_ i: Int, _ t: MIDITimeStamp, _ hit: Set<Int>) {
+        let delay = msUntil(t) / 1000
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.live.step = i }
+        if !hit.isEmpty { flash(hit, at: t) }
     }
 
     /// Quando cambia il bpm il battito continua da dove era, alla nuova velocità.
@@ -542,19 +579,10 @@ final class TX6Engine: ObservableObject {
         let dt = lastTick == 0 ? 0.008 : min(0.1, io.ms(ticks: now &- lastTick) / 1000)
         lastTick = now
 
-        // i sedicesimi e il clock, preparati 120 ms prima: se lo schermo si attarda, il ritmo non se ne accorge
-        if running && clockMode != .follow {
-            let horizon = now + io.ticks(ms: 120)
-            while time(ofBeat: Double(nextSixteenth) / 4) < horizon {
-                fire(nextSixteenth % 16, at: max(now, time(ofBeat: Double(nextSixteenth) / 4)))
-                nextSixteenth += 1
-            }
-            if clockMode == .send {
-                while time(ofBeat: Double(nextClockTick) / 24) < horizon {
-                    send(TX6.clock, at: max(now, time(ofBeat: Double(nextClockTick) / 24)), quiet: true)
-                    nextClockTick += 1
-                }
-            }
+        // i passi li suona il sequencer sul suo filo: qui gli si passa solo il piano aggiornato
+        if io.ms(ticks: now &- lastPlanAt) >= 40 {
+            lastPlanAt = now
+            sequencer.update(makePlan())
         }
 
         driftUpdate(dt)
@@ -635,91 +663,15 @@ final class TX6Engine: ObservableObject {
         driftPanVel = Array(repeating: 0, count: 6)
     }
 
-    /// Un sedicesimo: batteria a passi, passi con manopola, cancello, pompa.
-    private func fire(_ i: Int, at t: MIDITimeStamp) {
-        let delay = msUntil(t) / 1000
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.live.step = i }
-
-        // col bluetooth ogni pacchetto costa: quello che parte nello stesso istante va insieme
-        var now: [UInt8] = []
-        var off: [UInt8] = []
-        var hit: Set<Int> = []
-
-        if beatsOn {
-            if lockOn {
-                let target = locks[i] ?? values[lockTrack - 1][lockParam.rawValue]
-                if target != lastSent[lockTrack - 1][lockParam.rawValue] {
-                    now += TX6.cc(lockParam.cc, target, channel: lockTrack)
-                    lastSent[lockTrack - 1][lockParam.rawValue] = target
-                }
-            }
-            for tr in 1...6 where beats[tr - 1][i] {
-                let n = padBase + TX6.padSteps[tr - 1]
-                now += TX6.noteOn(n, channel: TX6.masterChannel)
-                off += TX6.noteOff(n, channel: TX6.masterChannel)
-                hit.insert(tr)
-            }
-        }
-
-        if melodyOn {
-            var melodyEnd: [UInt8] = []
-            for tr in 1...6 {
-                guard let semi = melodies[tr - 1][i] else { continue }
-                let n = melodyNote(tr, semi)
-                now += TX6.noteOn(n, channel: tr)
-                melodyEnd += TX6.noteOff(n, channel: tr)
-                melodySounding[tr] = n
-            }
-            if !melodyEnd.isEmpty {
-                send(melodyEnd, at: t + io.ticks(ms: beatMs / 4 * Double(melodyLength) * 0.9), quiet: true)
-            }
-        }
-
-        if gateOn {
-            let open = gate[i]
-            if open != gateState {
-                gateState = open
-                for tr in gateTracks.sorted() {
-                    now += TX6.cc(TX6.ccMute, open ? (mutes[tr - 1] ? 127 : 0) : 127, channel: tr)
-                }
-            }
-        }
-
-        if !now.isEmpty { send(now, at: t, quiet: true) }
-        if !off.isEmpty { send(off, at: t + io.ticks(ms: 40), quiet: true) }
-        if !hit.isEmpty { flash(hit, at: t) }
-
-        if pumpOn && i % 4 == 0 {
-            let points = 6
-            let tops = pumpTracks.sorted().map { tr in
-                (tr, Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))
-            }
-            for k in 0...points {
-                let p = Double(k) / Double(points)
-                var bytes: [UInt8] = []
-                for (tr, top) in tops {
-                    let v = Int((top * (1 - pumpDepth * (1 - p) * (1 - p))).rounded())
-                    bytes += TX6.cc(TX6.Param.volume.cc, v, channel: tr)
-                    lastSent[tr - 1][TX6.Param.volume.rawValue] = v
-                }
-                if !bytes.isEmpty { send(bytes, at: t + io.ticks(ms: beatMs * pumpRelease * p), quiet: true) }
-            }
-        }
-    }
-
-    private func releaseGate() {
-        guard gateState != nil else { return }
-        gateState = nil
-        for tr in gateTracks.sorted() {
-            send(TX6.cc(TX6.ccMute, mutes[tr - 1] ? 127 : 0, channel: tr), quiet: true)
-        }
-    }
-
+    /// Fermati i passi con manopola, il parametro torna al tuo valore.
     private func restoreLock() {
-        let base = values[lockTrack - 1][lockParam.rawValue]
-        if lastSent[lockTrack - 1][lockParam.rawValue] != nil && lastSent[lockTrack - 1][lockParam.rawValue] != base {
-            sendParam(lockTrack, lockParam, base, quiet: true)
-        }
+        sendParam(lockTrack, lockParam, output(lockTrack, lockParam, io.now()), quiet: true)
+        sequencer.forgetLock()
+    }
+
+    /// Fermata la pompa, i volumi tornano al tuo valore.
+    private func restorePump() {
+        for tr in pumpTracks.sorted() { sendParam(tr, .volume, output(tr, .volume, io.now()), quiet: true) }
     }
 
     // MARK: movimento
@@ -748,11 +700,13 @@ final class TX6Engine: ObservableObject {
         note(m, incoming: true)
         if status == 0xFA || status == 0xFB {
             clockCount = 0
-            gateState = nil
             return
         }
         if status == 0xFC {
-            if clockMode == .follow { releaseGate(); restoreLock() }
+            if clockMode == .follow {
+                if beatsOn && lockOn { restoreLock() }
+                if pumpOn { restorePump() }
+            }
             return
         }
         guard status == 0xB0, m.count >= 3, let c = TX6.control(m[1]) else { return }
@@ -789,18 +743,22 @@ final class TX6Engine: ObservableObject {
     }
 
     private func clock(_ stamp: MIDITimeStamp) {
+        // quando il tempo lo dà Bobina, il clock che torna indietro è solo un'eco: si ignora
+        guard clockMode != .send else { return }
         clockStamps.append(stamp)
         if clockStamps.count > 49 { clockStamps.removeFirst() }
-        if clockStamps.count > 12, let first = clockStamps.first, let last = clockStamps.last, last > first {
+        if clockStamps.count > 24, let first = clockStamps.first, let last = clockStamps.last, last > first {
             let perTick = io.ms(ticks: last - first) / Double(clockStamps.count - 1)
-            let value = (60_000 / (perTick * 24) * 10).rounded() / 10
-            if clockBPM.map({ abs($0 - value) > 0.2 }) ?? true { clockBPM = value }
+            let value = (60_000 / (perTick * 24) * 2).rounded() / 2
+            // il numero sullo schermo cambia al massimo due volte al secondo: ridisegnare costa
+            let now = io.now()
+            if (clockBPM.map { abs($0 - value) >= 0.5 } ?? true) && io.ms(ticks: now &- lastBPMShown) > 500 {
+                clockBPM = value
+                lastBPMShown = now
+            }
         }
         lastClockAt = stamp
-        if clockMode == .follow {
-            if clockCount % 6 == 0 { fire((clockCount / 6) % 16, at: io.now()) }
-            if let c = clockBPM, abs(bpm - c) > 0.05 { bpm = max(40, min(300, c)) }
-        }
+        if clockMode == .follow, let c = clockBPM, abs(bpm - c) > 0.05 { bpm = max(40, min(300, c)) }
         clockCount += 1
         clockTimeout?.cancel()
         let w = DispatchWorkItem { [weak self] in
@@ -808,7 +766,12 @@ final class TX6Engine: ObservableObject {
             self.clockStamps.removeAll()
             self.clockBPM = nil
             self.lastClockAt = 0
-            if self.clockMode == .follow { self.releaseGate(); self.restoreLock() }
+            if self.clockMode == .follow {
+                self.sequencer.releaseGateNow()
+                self.sequencer.melodyOffNow()
+                if self.beatsOn && self.lockOn { self.restoreLock() }
+                if self.pumpOn { self.restorePump() }
+            }
         }
         clockTimeout = w
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: w)
