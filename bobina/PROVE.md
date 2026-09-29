@@ -12,7 +12,9 @@ iPhone 16 Pro Max (iOS 26.7, USB-C), TP-7 firmware 1.1.11, Bobina compilata con 
 | 6 | «segui il TP-7» | TP-7 su MIDI → sync, scheda Ritmo | ✅ 28/9/2026: il primo tentativo era sbagliato. Rifatto: arrivano start, clock e stop; col cancello acceso il suono si spezza a tempo, e i passi del cancello si cambiano mentre suona |
 | 7 | specchio dei tasti (TP-7 → Bobina) | TP-7 su MIDI → ctrl, scheda Collega | ✅ 28/9/2026: arrivano ▶ (cc 23), ■ (cc 24), ● (cc 22), mode (cc 28), premuto 127 e lasciato 0 |
 
-## Col bluetooth (29/9/2026, notte)
+| 8 | mixer: volume, deriva, ingressi, registrazione da Bobina | scheda Mixer, MIDI → sync | ✅ 29/9/2026: tutto funziona |
+
+## Col bluetooth (29/9/2026)
 
 - Collegamento: dopo «cerca il TP-7» Bobina sceglie da sola «TP-7 Bluetooth» in uscita e in ingresso ✅. Il collegamento è caduto una volta ed è tornato da solo.
 - In sync arrivano start, continue e stop (fa, fb, fc), ma **nessun impulso di clock**: col bluetooth «segui il TP-7» non può funzionare, e il cancello resta fermo. Col cavo il clock arriva.
@@ -23,9 +25,7 @@ iPhone 16 Pro Max (iOS 26.7, USB-C), TP-7 firmware 1.1.11, Bobina compilata con 
 ## Da provare (29/9 mattina)
 
 - loop (prova 4)
-- mixer: volume e muto della traccia 1
-- ingressi: guadagno dei minijack e registrazione da Bobina (in sync)
-- collegamento bluetooth
+- pad col bluetooth
 
 ## Misure sul Mac (TP-7 col cavo, ascoltatore CoreMIDI)
 
