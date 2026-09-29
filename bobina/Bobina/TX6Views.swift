@@ -261,7 +261,7 @@ struct TX6TrackView: View {
                     }
                 }
                 Card(title: "synth", note: "Con il synth acceso (menu → SYNTH). L'ordine dei suoni e dei pattern sui 128 valori è ancora da misurare: il display del TX-6 dice quale ha preso.") {
-                    ChipRow(items: TX6.sounds, selected: TX6.soundIndex(tx.value(t, .sound))) { tx.set(t, .sound, TX6.soundValue($0)) }
+                    SoundGrid(track: t)
                     ForEach([TX6.Param.freq, .length, .detune]) { p in
                         StepSlider(name: p.name, value: tx.value(t, p)) { tx.set(t, p, $0) }
                     }
@@ -382,6 +382,15 @@ struct TX6SuonaView: View {
 
     var body: some View {
         TX6Page(title: "Suona") {
+            Card(title: "i sei strumenti", note: "Ogni traccia del TX-6 è uno strumento. Scegli la traccia, poi il suono, e regola le barre: sono le stesse cose che sulla macchina fai con le manopoline. «prova» lo fa suonare. Serve il synth acceso (menu → SYNTH → play). L'ordine dei suoni sui 128 valori è ancora da misurare: il display del TX-6 dice quale ha preso.") {
+                OneTrackPicker(selected: beatTrack) { beatTrack = $0 }
+                SoundGrid(track: beatTrack)
+                ForEach([TX6.Param.volume, .freq, .length, .detune, .filter]) { p in
+                    StepSlider(name: p.name, value: tx.value(beatTrack, p), shown: p.shown(tx.value(beatTrack, p))) { tx.set(beatTrack, p, $0) }
+                }
+                Chip(text: "prova la traccia \(beatTrack)") { tx.hitPad(beatTrack) }
+            }
+
             Card(title: "tastiera", note: "Serve MIDI → NOTE on e il synth su play. Suona la traccia scelta a quella nota; con un accordo le sei tracce diventano sei voci.") {
                 OneTrackPicker(selected: tx.keyTrack) { tx.keyTrack = $0 }
                 HStack(spacing: 8) {
@@ -410,6 +419,7 @@ struct TX6SuonaView: View {
                         PressPad(lit: tx.flashPad == t, onPress: { tx.hitPad(t) }) {
                             VStack(spacing: 2) {
                                 Text("traccia \(t)").font(.system(.subheadline, design: .monospaced))
+                                Text(TX6.sounds[TX6.soundIndex(tx.value(t, .sound))]).font(.system(.caption, design: .monospaced))
                                 Text(["do", "re", "mi", "fa", "sol", "la"][t - 1]).font(.system(.caption2, design: .monospaced))
                             }
                         }
@@ -465,6 +475,30 @@ struct TX6SuonaView: View {
                                  current: tx.pulsing && tx.step == i) {
                             tx.locks[i] = tx.locks[i] == lockBrush ? nil : lockBrush
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// I suoni del synth divisi in gruppi, tutti visibili: col Controllo Vocale ognuno ha il suo numero.
+struct SoundGrid: View {
+    @EnvironmentObject var tx: TX6Engine
+    let track: Int
+
+    private let groups: [(name: String, sounds: [Int])] = [("onde", [0, 1, 2, 3]), ("batteria", [4, 5, 6, 7]), ("altro: campione, o note verso un altro synth", [8, 9])]
+
+    var body: some View {
+        let current = TX6.soundIndex(tx.value(track, .sound))
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(groups, id: \.name) { g in
+                Text(g.name)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                HStack(spacing: 6) {
+                    ForEach(g.sounds, id: \.self) { i in
+                        Chip(text: TX6.sounds[i], on: current == i) { tx.set(track, .sound, TX6.soundValue(i)) }
                     }
                 }
             }
