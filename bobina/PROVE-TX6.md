@@ -17,21 +17,23 @@ Le prime quattro si fanno col cavo al **Mac** e l'ascoltatore (`strumenti/ascolt
 | # | cosa | come | risultato |
 |---|---|---|---|
 | 5 | Bobina vede il TX-6 | cavo all'iPhone; in alto «collegato a TX-6» | da fare |
-| 6 | volume della traccia 1 | MIDI → CTRL IN; Mixer, tr 1 − e + | da fare |
+| 6 | volume della traccia 1 | MIDI → CTRL IN; Mixer, tr 1 − e + | ✅ 29/9/2026, via bluetooth: volumi delle tracce 1 e 2 (cc 7, canali 1-2) e main (cc 7, canale 7) |
 | 7 | il muto fa muto o solo | Mixer, M sulla traccia 2; poi menu SOLO su solo e riprova | da fare |
 | 8 | le scene a b c | salva scene diverse sul TX-6, poi Mixer → scene del TX-6 | da fare |
 | 9 | la tastiera | NOTE on, SYNTH → play; Suona, traccia 1 | da fare |
 | 10 | i sei pad: quale ottava | Suona, sei pad; cambia ottava finché suonano | da fare |
 | 11 | suoni, effetti, pattern: l'ordine sui 128 valori | traccia → synth; Effetti → i nomi; guardare il display | da fare |
 | 12 | start/stop e tempo ± | Ritmo → il trasporto del TX-6 | da fare |
-| 13 | Bobina dà il tempo | CLOCK → SRC USB; Ritmo → «Bobina dà il tempo al TX-6», ▶ | da fare |
-| 14 | Bobina segue il TX-6 | SRC INT, OUT acceso; Ritmo → «segui il TX-6»; play sul TX-6 | da fare |
+| 13 | Bobina dà il tempo | CLOCK → SRC USB (col bluetooth: BLE); Ritmo → «Bobina dà il tempo al TX-6», ▶ | ✅ 29/9/2026, via bluetooth con SRC BLE: Bobina manda start e clock, il TX-6 prende il tempo e parte |
+| 14 | Bobina segue il TX-6 | SRC INT, OUT acceso; Ritmo → «segui il TX-6»; play sul TX-6 | ✅ 29/9/2026, via bluetooth: arrivano start (FA) e clock, Bobina mostra lo stesso bpm del TX-6. Quindi il TX-6 manda il clock anche via bluetooth |
 | 15 | pompa, onda, scena che sfuma | Ritmo e Mixer, con musica che entra nel TX-6 | da fare |
 | 16 | il ponte verso il TP-7 | TX-6 su CTRL OUT col cavo, TP-7 col bluetooth; Collega → ponte | da fare |
-| 17 | bluetooth | BLE → ACCEPT; Collega → cerca il TX-6 | da fare |
+| 17 | bluetooth | BLE → ACCEPT; Collega → cerca il TX-6 | ✅ 29/9/2026: compare «TX-6 Bluetooth», Bobina lo sceglie da sola per mandare e ascoltare. Il TP-7 resta collegato in bluetooth nello stesso momento |
 
 ## Misure
 
 (qui i numeri veri, man mano)
+
+- Da sistemare: lo slider del main rimanda lo stesso valore molte volte (63 messaggi, molti uguali). Col bluetooth conviene mandare solo i cambi.
 
 - Giampiero ricorda di aver già sincronizzato il TX-6 via bluetooth (il TP-7 invece il clock via bluetooth non lo manda: vedi PROVE.md). Da riprovare con la prova 17.

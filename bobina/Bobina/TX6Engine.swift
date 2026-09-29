@@ -58,12 +58,27 @@ enum TX6ClockMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+/// Quello che cambia molte volte al secondo (il passo, i lampi dei pad, l'inclinazione, lo specchio):
+/// sta a parte, così a ogni passo si ridisegnano solo i quadratini e non tutta la pagina.
+final class TX6Live: ObservableObject {
+    @Published var step = 0
+    @Published var flash: Set<Int> = []
+    @Published var tilt = 0.0
+    @Published var morphProgress: Double?
+    @Published var faders: [Int?] = Array(repeating: nil, count: 6)
+    @Published var knobs: [[Int?]] = Array(repeating: Array(repeating: nil, count: 6), count: 3)
+    @Published var pressed: Set<String> = []
+    @Published var encoderSteps = 0
+    @Published var lastControl = "—"
+}
+
 /// La sezione TX-6 di Bobina. Come per il TP-7: vive sul main thread, i passi a tempo partono
 /// in anticipo con la marca temporale di CoreMIDI. Il TX-6 non racconta com'è messo:
 /// tutto quello che Bobina sa è quello che gli ha mandato.
 final class TX6Engine: ObservableObject {
 
     let io = MIDIIO()
+    let live = TX6Live()
     /// La sezione TP-7, per il ponte: il TX-6 in CTRL OUT comanda il TP-7.
     weak var tp7: Engine?
 
@@ -105,13 +120,11 @@ final class TX6Engine: ObservableObject {
     /// L'ottava delle note do-la sul canale 7 (da misurare: la guida non la dice).
     @Published var padBase = 60
     @Published private(set) var heldKeys: Set<Int> = []
-    @Published private(set) var flashPad: Int?
 
     // MARK: tempo
 
     @Published var bpm: Double = 120 { didSet { if oldValue != bpm { reanchor(oldBPM: oldValue) } } }
     @Published private(set) var running = false
-    @Published private(set) var step = 0
     @Published var clockMode = TX6ClockMode.own { didSet { if oldValue != clockMode && running { toggleRun() } } }
     @Published private(set) var clockBPM: Double?
 
@@ -146,19 +159,12 @@ final class TX6Engine: ObservableObject {
     @Published var tiltOn = false { didSet { if tiltOn { startMotion() } else { stopMotion() } } }
     @Published var tiltParam = TX6.Param.filter
     @Published var tiltTracks: Set<Int> = [1]
-    @Published private(set) var tilt = 0.0
 
     @Published var scenes: [TX6Scene] = [] { didSet { save() } }
     @Published var morphBars: Double = 2
-    @Published private(set) var morphProgress: Double?
 
     // MARK: quello che arriva dal TX-6 in CTRL OUT
 
-    @Published private(set) var faders: [Int?] = Array(repeating: nil, count: 6)
-    @Published private(set) var knobs: [[Int?]] = Array(repeating: Array(repeating: nil, count: 6), count: 3)
-    @Published private(set) var pressed: Set<String> = []
-    @Published private(set) var encoderSteps = 0
-    @Published private(set) var lastControl = "—"
     /// Il TX-6 comanda il TP-7: fader → volumi, tasti traccia → muti, FX I → play/stop.
     @Published var bridgeOn = false
 
@@ -173,6 +179,8 @@ final class TX6Engine: ObservableObject {
     private var lastSent: [[Int?]] = Array(repeating: Array(repeating: nil, count: TX6.Param.allCases.count), count: 6)
     private var lastModAt: MIDITimeStamp = 0
     private var masterSent: [Int?] = [nil, nil, nil]
+    private var fxSent: [[Int?]] = [[nil, nil, nil], [nil, nil, nil]]
+    private var fxReturnSent: Int?
     private var gateState: Bool?
     private var driftLevels = Array(repeating: 1.0, count: 6)
     private var driftVelocity = Array(repeating: 0.0, count: 6)
@@ -274,6 +282,7 @@ final class TX6Engine: ObservableObject {
 
     func setMaster(_ i: Int, _ v: Int) {
         let v = max(0, min(127, v))
+        guard v != masterSent[i] else { return }
         master[i] = v
         sendMaster(i, v, quiet: false)
     }
@@ -308,13 +317,19 @@ final class TX6Engine: ObservableObject {
     }
 
     func setFxParam(_ i: Int, _ k: Int, _ v: Int) {
-        fxParams[i][k] = max(0, min(127, v))
-        send(TX6.cc(TX6.ccFxParams[k], fxParams[i][k], channel: TX6.fxChannels[i]))
+        let v = max(0, min(127, v))
+        guard v != fxSent[i][k] else { return }
+        fxParams[i][k] = v
+        fxSent[i][k] = v
+        send(TX6.cc(TX6.ccFxParams[k], v, channel: TX6.fxChannels[i]))
     }
 
     func setFxReturn(_ v: Int) {
-        fxReturn = max(0, min(127, v))
-        send(TX6.cc(TX6.ccFxReturn, fxReturn, channel: TX6.fxChannels[0]))
+        let v = max(0, min(127, v))
+        guard v != fxReturnSent else { return }
+        fxReturn = v
+        fxReturnSent = v
+        send(TX6.cc(TX6.ccFxReturn, v, channel: TX6.fxChannels[0]))
     }
 
     func setFx2Place(_ index: Int) {
@@ -351,11 +366,15 @@ final class TX6Engine: ObservableObject {
         let off = (time == 0 ? io.now() : time) + io.ticks(ms: 40)
         send(TX6.noteOff(n, channel: TX6.masterChannel), at: off, quiet: true)
         if fromUser { haptic.impactOccurred() }
+        flash([track], at: time)
+    }
+
+    private func flash(_ tracks: Set<Int>, at time: MIDITimeStamp) {
         let delay = time == 0 ? 0 : msUntil(time)
         DispatchQueue.main.asyncAfter(deadline: .now() + delay / 1000) { [weak self] in
-            self?.flashPad = track
+            self?.live.flash = tracks
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.09) { [weak self] in
-                if self?.flashPad == track { self?.flashPad = nil }
+                if self?.live.flash == tracks { self?.live.flash = [] }
             }
         }
     }
@@ -378,11 +397,11 @@ final class TX6Engine: ObservableObject {
     func recall(_ s: TX6Scene, fade: Bool) {
         if fade {
             morph = (from: snapshot("da"), to: s, start: io.now(), length: max(0.25, morphBars) * 4 * beatMs)
-            morphProgress = 0
+            live.morphProgress = 0
             return
         }
         morph = nil
-        morphProgress = nil
+        live.morphProgress = nil
         apply(s, fraction: 1, force: true)
     }
 
@@ -409,6 +428,7 @@ final class TX6Engine: ObservableObject {
         let r = Int((Double(a.fxReturn) + Double(s.fxReturn - a.fxReturn) * p).rounded())
         if force || r != fxReturn {
             fxReturn = r
+            fxReturnSent = r
             send(TX6.cc(TX6.ccFxReturn, r, channel: TX6.fxChannels[0]), quiet: true)
         }
         if force { logText("scena «\(s.name)» mandata") }
@@ -498,9 +518,9 @@ final class TX6Engine: ObservableObject {
         let dt = lastTick == 0 ? 0.008 : min(0.1, io.ms(ticks: now &- lastTick) / 1000)
         lastTick = now
 
-        // i sedicesimi e il clock, preparati 60 ms prima
+        // i sedicesimi e il clock, preparati 120 ms prima: se lo schermo si attarda, il ritmo non se ne accorge
         if running && clockMode != .follow {
-            let horizon = now + io.ticks(ms: 60)
+            let horizon = now + io.ticks(ms: 120)
             while time(ofBeat: Double(nextSixteenth) / 4) < horizon {
                 fire(nextSixteenth % 16, at: max(now, time(ofBeat: Double(nextSixteenth) / 4)))
                 nextSixteenth += 1
@@ -518,22 +538,28 @@ final class TX6Engine: ObservableObject {
         if let m = morph {
             let p = min(1, io.ms(ticks: now &- m.start) / m.length)
             apply(m.to, fraction: p, from: m.from)
-            morphProgress = p
-            if p >= 1 { morph = nil; morphProgress = nil }
+            let shown = (p * 100).rounded() / 100
+            if live.morphProgress != shown { live.morphProgress = shown }
+            if p >= 1 { morph = nil; live.morphProgress = nil }
         }
 
         // le modulazioni continue: al massimo una volta ogni 30 ms, e solo se il valore cambia
         guard io.ms(ticks: now &- lastModAt) >= 30 else { return }
         lastModAt = now
+        var batch: [UInt8] = []
         for t in 1...6 {
             for p in TX6.Param.allCases where p.continuous {
                 if p == .volume && pumpOn && pulsing && pumpTracks.contains(t) { continue }
                 if beatsOn && lockOn && pulsing && t == lockTrack && p == lockParam { continue }
                 let out = output(t, p, now)
                 let current = lastSent[t - 1][p.rawValue] ?? values[t - 1][p.rawValue]
-                if out != current { sendParam(t, p, out, quiet: true) }
+                if out != current {
+                    batch += TX6.cc(p.cc, out, channel: t)
+                    lastSent[t - 1][p.rawValue] = out
+                }
             }
         }
+        if !batch.isEmpty { send(batch, quiet: true) }
     }
 
     /// Il valore che deve avere adesso un parametro: il tuo, più onde, deriva e inclinazione.
@@ -545,7 +571,7 @@ final class TX6Engine: ObservableObject {
         for (i, w) in waves.enumerated() where w.on && w.param == p && w.tracks.contains(t) {
             v += w.depth * waveValue(i, w, now)
         }
-        if tiltOn && tiltParam == p && tiltTracks.contains(t) { v += tilt * 63 }
+        if tiltOn && tiltParam == p && tiltTracks.contains(t) { v += live.tilt * 63 }
         return max(0, min(127, Int(v.rounded())))
     }
 
@@ -588,17 +614,26 @@ final class TX6Engine: ObservableObject {
     /// Un sedicesimo: batteria a passi, passi con manopola, cancello, pompa.
     private func fire(_ i: Int, at t: MIDITimeStamp) {
         let delay = msUntil(t) / 1000
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.step = i }
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.live.step = i }
+
+        // col bluetooth ogni pacchetto costa: quello che parte nello stesso istante va insieme
+        var now: [UInt8] = []
+        var off: [UInt8] = []
+        var hit: Set<Int> = []
 
         if beatsOn {
             if lockOn {
                 let target = locks[i] ?? values[lockTrack - 1][lockParam.rawValue]
                 if target != lastSent[lockTrack - 1][lockParam.rawValue] {
-                    sendParam(lockTrack, lockParam, target, at: t, quiet: true)
+                    now += TX6.cc(lockParam.cc, target, channel: lockTrack)
+                    lastSent[lockTrack - 1][lockParam.rawValue] = target
                 }
             }
             for tr in 1...6 where beats[tr - 1][i] {
-                hitPad(tr, at: t + io.ticks(ms: 1), fromUser: false)
+                let n = padBase + TX6.padSteps[tr - 1]
+                now += TX6.noteOn(n, channel: TX6.masterChannel)
+                off += TX6.noteOff(n, channel: TX6.masterChannel)
+                hit.insert(tr)
             }
         }
 
@@ -607,20 +642,29 @@ final class TX6Engine: ObservableObject {
             if open != gateState {
                 gateState = open
                 for tr in gateTracks.sorted() {
-                    send(TX6.cc(TX6.ccMute, open ? (mutes[tr - 1] ? 127 : 0) : 127, channel: tr), at: t, quiet: true)
+                    now += TX6.cc(TX6.ccMute, open ? (mutes[tr - 1] ? 127 : 0) : 127, channel: tr)
                 }
             }
         }
 
+        if !now.isEmpty { send(now, at: t, quiet: true) }
+        if !off.isEmpty { send(off, at: t + io.ticks(ms: 40), quiet: true) }
+        if !hit.isEmpty { flash(hit, at: t) }
+
         if pumpOn && i % 4 == 0 {
             let points = 6
-            for tr in pumpTracks.sorted() {
-                let top = Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1)
-                for k in 0...points {
-                    let p = Double(k) / Double(points)
+            let tops = pumpTracks.sorted().map { tr in
+                (tr, Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))
+            }
+            for k in 0...points {
+                let p = Double(k) / Double(points)
+                var bytes: [UInt8] = []
+                for (tr, top) in tops {
                     let v = Int((top * (1 - pumpDepth * (1 - p) * (1 - p))).rounded())
-                    sendParam(tr, .volume, v, at: t + io.ticks(ms: beatMs * pumpRelease * p), quiet: true)
+                    bytes += TX6.cc(TX6.Param.volume.cc, v, channel: tr)
+                    lastSent[tr - 1][TX6.Param.volume.rawValue] = v
                 }
+                if !bytes.isEmpty { send(bytes, at: t + io.ticks(ms: beatMs * pumpRelease * p), quiet: true) }
             }
         }
     }
@@ -648,13 +692,13 @@ final class TX6Engine: ObservableObject {
         motion.startDeviceMotionUpdates(to: .main) { [weak self] data, _ in
             guard let self = self, let d = data else { return }
             // inclinato a destra apre, a sinistra chiude: 45° = tutta la corsa
-            self.tilt = max(-1, min(1, d.attitude.roll / (.pi / 4)))
+            self.live.tilt = max(-1, min(1, d.attitude.roll / (.pi / 4)))
         }
     }
 
     private func stopMotion() {
         motion.stopDeviceMotionUpdates()
-        tilt = 0
+        live.tilt = 0
     }
 
     // MARK: ricezione
@@ -676,17 +720,17 @@ final class TX6Engine: ObservableObject {
         guard status == 0xB0, m.count >= 3, let c = TX6.control(m[1]) else { return }
         let v = Int(m[2])
         switch c {
-        case .fader(let t): faders[t - 1] = v
-        case .knob(let r, let t): knobs[r - 1][t - 1] = v
-        case .encoder: encoderSteps += TX6.relative(m[2])
+        case .fader(let t): live.faders[t - 1] = v
+        case .knob(let r, let t): live.knobs[r - 1][t - 1] = v
+        case .encoder: live.encoderSteps += TX6.relative(m[2])
         default:
-            if v > 0 { pressed.insert(c.name) } else { pressed.remove(c.name) }
+            if v > 0 { live.pressed.insert(c.name) } else { live.pressed.remove(c.name) }
         }
         if c == .encoder {
             let d = TX6.relative(m[2])
-            lastControl = "select girato \(d > 0 ? "+" : "")\(d)"
+            live.lastControl = "select girato \(d > 0 ? "+" : "")\(d)"
         } else if v > 0 || c.name.hasPrefix("fader") || c.name.hasPrefix("manopola") {
-            lastControl = "\(c.name) · cc \(m[1]) = \(v)"
+            live.lastControl = "\(c.name) · cc \(m[1]) = \(v)"
         }
         if bridgeOn { bridge(c, m[2]) }
     }
