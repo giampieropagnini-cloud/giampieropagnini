@@ -141,6 +141,8 @@ final class Engine: ObservableObject {
     private var ramp: (from: Double, to: Double, start: MIDITimeStamp, length: Double, stopAfter: Double?)?
     private var bendQuietUntil: MIDITimeStamp = 0
     private var gateState: Bool?
+    /// L'istante dell'ultimo passo già consegnato a CoreMIDI.
+    private var lastFiredAt: MIDITimeStamp = 0
     private var clockStamps: [MIDITimeStamp] = []
     private var clockTimeout: DispatchWorkItem?
     private let motion = CMMotionManager()
@@ -500,9 +502,10 @@ final class Engine: ObservableObject {
         let dt = lastTick == 0 ? 0.008 : min(0.1, io.ms(ticks: now &- lastTick) / 1000)
         lastTick = now
 
-        // i passi a tempo, preparati 60 ms prima
+        // i passi a tempo, preparati 150 ms prima: CoreMIDI li consegna all'istante giusto,
+        // così il ritmo non inciampa se lo schermo tiene occupato il main thread (per esempio scorrendo)
         if running && !followClock {
-            let horizon = now + io.ticks(ms: 60)
+            let horizon = now + io.ticks(ms: 150)
             if nextStepAt < now { nextStepAt = now }
             while nextStepAt < horizon {
                 fire(stepIndex, at: nextStepAt)
@@ -594,6 +597,7 @@ final class Engine: ObservableObject {
 
     /// Un sedicesimo: sequencer, balbettio, cancello, pompa, collage.
     private func fire(_ i: Int, at t: MIDITimeStamp) {
+        lastFiredAt = max(lastFiredAt, t)
         let shown = i
         let delay = msUntil(t) / 1000
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.step = shown }
@@ -645,8 +649,10 @@ final class Engine: ObservableObject {
     private func releaseGate() {
         guard gateState != nil else { return }
         gateState = nil
+        // i muti già preparati in anticipo arriverebbero dopo: il rilascio va messo in coda a loro
+        let when = lastFiredAt > io.now() ? lastFiredAt + io.ticks(ms: 1) : 0
         for tr in gateTracks.sorted() {
-            send(TP7.cc(TP7.ccMute, mutes[tr - 1] ? 127 : 0, channel: tr), quiet: true)
+            send(TP7.cc(TP7.ccMute, mutes[tr - 1] ? 127 : 0, channel: tr), at: when, quiet: true)
         }
     }
 
