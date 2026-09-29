@@ -17,7 +17,7 @@ struct NastroView: View {
                     .frame(maxWidth: .infinity)
             }
 
-            Card(title: "trasporto", note: "⏮ riavvolge e suona dall'inizio, ▶ riparte da dove sei, ■ si ferma; ■ di nuovo torna all'inizio, come sulla macchina. ● registra su un file nuovo, ■ chiude la ripresa. Tieni premuto «dito» per fermare il nastro come col dito sulla bobina.") {
+            Card(title: "trasporto", note: "⏮ riavvolge e suona dall'inizio, ▶ riparte da dove sei, ■ si ferma; ■ di nuovo torna all'inizio, come sulla macchina. ● registra su un file nuovo, ■ chiude la ripresa. Tieni premuto «dito» per fermare il nastro come col dito sulla bobina. ⏪ ⏩ avvolgono velocissimi: un tocco parte, un altro si ferma.") {
                 HStack(spacing: 8) {
                     Chip(text: "⏮") { engine.fromTop() }
                     Chip(text: "▶", on: engine.rolling && !engine.recording) { engine.play() }
@@ -28,6 +28,10 @@ struct NastroView: View {
                              onRelease: { engine.holdStill(false) },
                              label: { Text("dito").font(.system(.subheadline, design: .monospaced)) })
                         .frame(height: 36)
+                }
+                HStack(spacing: 8) {
+                    Chip(text: "⏪", on: engine.winding < 0) { engine.wind(-1) }
+                    Chip(text: "⏩", on: engine.winding > 0) { engine.wind(1) }
                 }
             }
 
