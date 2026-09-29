@@ -923,6 +923,7 @@ final class TX6Engine: ObservableObject {
             strayTimeout = w
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: w)
         }
+        if clockStamps.isEmpty && lastClockAt == 0 { trace("TX-6 manda il clock (porta \(sources.first(where: { $0.id == sourceID })?.name ?? "?"))") }
         // quando il tempo lo dà Bobina, il clock che torna indietro è solo un'eco: si ignora
         guard clockMode != .send else { return }
         clockStamps.append(stamp)
