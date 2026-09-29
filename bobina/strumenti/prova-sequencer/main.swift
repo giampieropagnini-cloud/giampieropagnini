@@ -3,7 +3,7 @@
 // restare a 125 ms esatti (120 bpm) e il clock a 20,83 ms.
 //
 //   cd bobina/Bobina && DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun swiftc -O \
-//     MIDI.swift TX6.swift TX6Sequencer.swift ../strumenti/prova-sequencer/main.swift -o /tmp/prova && /tmp/prova
+//     MIDI.swift TX6.swift BobinaClock.swift TX6Sequencer.swift ../strumenti/prova-sequencer/main.swift -o /tmp/prova && /tmp/prova
 import Foundation
 import CoreMIDI
 

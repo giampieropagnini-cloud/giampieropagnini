@@ -187,9 +187,17 @@ final class TX6Engine: ObservableObject {
 
     // MARK: tempo
 
-    @Published var bpm: Double = 120 { didSet { if oldValue != bpm { reanchor(oldBPM: oldValue) } } }
+    /// Il tempo vero sta in BobinaClock (lo stesso dei PO): qui lo si mostra e lo si cambia.
+    @Published var bpm: Double = BobinaClock.shared.bpm {
+        didSet { if oldValue != bpm && clockMode != .follow { BobinaClock.shared.setBPM(bpm) } }
+    }
     @Published private(set) var running = false
-    @Published var clockMode = TX6ClockMode.own { didSet { if oldValue != clockMode && running { toggleRun() } } }
+    @Published var clockMode = TX6ClockMode.own {
+        didSet {
+            if oldValue == .follow && clockMode != .follow { sequencer.clockLost() }
+            if oldValue != clockMode && running { toggleRun() }
+        }
+    }
     @Published private(set) var clockBPM: Double?
     /// Il TX-6 manda il clock ma Bobina non lo segue: col bluetooth sono 48 messaggi al secondo sprecati.
     @Published private(set) var strayClock = false
@@ -253,8 +261,6 @@ final class TX6Engine: ObservableObject {
 
     private var timer: DispatchSourceTimer?
     private var lastTick: MIDITimeStamp = 0
-    private var anchorTime: MIDITimeStamp = 0
-    private var anchorBeat = 0.0
     private var lastPlanAt: MIDITimeStamp = 0
     private var lastBPMShown: MIDITimeStamp = 0
     private var strayTimeout: DispatchWorkItem?
@@ -272,7 +278,6 @@ final class TX6Engine: ObservableObject {
     private var morph: (from: TX6Scene, to: TX6Scene, start: MIDITimeStamp, length: Double)?
     private var clockStamps: [MIDITimeStamp] = []
     private var clockTimeout: DispatchWorkItem?
-    private var clockCount = 0
     private var lastClockAt: MIDITimeStamp = 0
     private var held: [Int: [(track: Int, note: Int)]] = [:]
     private let motion = CMMotionManager()
@@ -290,7 +295,11 @@ final class TX6Engine: ObservableObject {
         seq.onSwitched = { [weak self] id in
             DispatchQueue.main.async { self?.switched(id) }
         }
-        anchorTime = io.now()
+        // il tempo cambiato da un'altra sezione (i PO): qui si mostra e basta, BobinaClock è già a posto
+        NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
+            guard let self = self, let v = n.object as? Double, self.clockMode != .follow, abs(self.bpm - v) > 0.0001 else { return }
+            self.bpm = v
+        }
         refreshPorts()
         startTimer()
     }
@@ -657,9 +666,7 @@ final class TX6Engine: ObservableObject {
         } else {
             guard clockMode != .follow else { return }
             let start = io.now() + io.ticks(ms: 30)
-            // lo stesso istante anche per le onde, così vanno a tempo coi passi
-            anchorTime = start
-            anchorBeat = 0
+            // le onde leggono la stessa griglia di BobinaClock: vanno a tempo coi passi
             sequencer.update(makePlan())
             sequencer.start(at: start)
             if clockMode == .send { note(TX6.start, incoming: false) }
@@ -706,30 +713,9 @@ final class TX6Engine: ObservableObject {
         if !hit.isEmpty { flash(hit, at: t) }
     }
 
-    /// Quando cambia il bpm il battito continua da dove era, alla nuova velocità.
-    private func reanchor(oldBPM: Double) {
-        let now = io.now()
-        anchorBeat = beat(at: now, bpm: oldBPM)
-        anchorTime = now
-    }
-
-    private func beat(at t: MIDITimeStamp, bpm b: Double) -> Double {
-        let ms = t >= anchorTime ? io.ms(ticks: t - anchorTime) : -io.ms(ticks: anchorTime - t)
-        return anchorBeat + ms / (60_000 / max(40, min(300, b)))
-    }
-
-    private func time(ofBeat b: Double) -> MIDITimeStamp {
-        anchorTime + io.ticks(ms: (b - anchorBeat) * beatMs)
-    }
-
-    /// Dove siamo nel battito: dal clock del TX-6 se lo seguiamo, altrimenti dal tempo di Bobina.
+    /// Dove siamo nel battito: la griglia di BobinaClock (quando seguiamo il TX-6, la sposta il suo clock).
     private func beatNow(_ now: MIDITimeStamp) -> Double {
-        if clockMode == .follow, clockBPM != nil, lastClockAt != 0 {
-            let tickMs = beatMs / 24
-            let frac = min(1, io.ms(ticks: now &- lastClockAt) / tickMs)
-            return (Double(max(0, clockCount - 1)) + frac) / 24
-        }
-        return beat(at: now, bpm: bpm)
+        BobinaClock.shared.snapshot().beat(at: now)
     }
 
     private func msUntil(_ t: MIDITimeStamp) -> Double {
@@ -871,10 +857,7 @@ final class TX6Engine: ObservableObject {
         if status == 0xF8 { clock(stamp); return }
         trace("TX-6 manda " + m.map { String(format: "%02x", $0) }.joined(separator: " "))
         note(m, incoming: true)
-        if status == 0xFA || status == 0xFB {
-            clockCount = 0
-            return
-        }
+        if status == 0xFA || status == 0xFB { return }
         if status == 0xFC {
             if clockMode == .follow {
                 if beatsOn && lockOn { restoreLock() }
@@ -940,7 +923,6 @@ final class TX6Engine: ObservableObject {
         }
         lastClockAt = stamp
         if clockMode == .follow, let c = clockBPM, abs(bpm - c) > 0.05 { bpm = max(40, min(300, c)) }
-        clockCount += 1
         clockTimeout?.cancel()
         let w = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
@@ -948,6 +930,7 @@ final class TX6Engine: ObservableObject {
             self.clockBPM = nil
             self.lastClockAt = 0
             if self.clockMode == .follow {
+                self.sequencer.clockLost()
                 self.sequencer.releaseGateNow()
                 self.sequencer.melodyOffNow()
                 if self.beatsOn && self.lockOn { self.restoreLock() }
