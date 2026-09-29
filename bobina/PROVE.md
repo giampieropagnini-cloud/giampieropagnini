@@ -22,6 +22,7 @@ iPhone 16 Pro Max (iOS 26.7, USB-C), TP-7 firmware 1.1.11, Bobina compilata con 
 - Il muto (M nel Mixer) arriva ✅. Il cancello col tempo di Bobina (tap, «segui il TP-7» spento) spezza il suono a tempo ✅: i messaggi a tempo viaggiano bene anche col bluetooth.
 - In ctrl arrivano i giri della bobina del TP-7 (cc 30) ✅.
 - Provato anche al contrario (TP-7 su scan, Bobina «fatti trovare»): il collegamento non si è formato, quindi niente di misurato. La sincronizzazione bluetooth che Giampiero ricordava era col TX-6, non col TP-7.
+- Con TP-7 e TX-6 insieme in bluetooth sono arrivati circa 50 impulsi di clock al secondo, quasi certamente dal TX-6 (aveva CLOCK → OUT acceso); dal TP-7 solo continue e stop. La misura col solo TP-7 (accept) resta: zero impulsi.
 
 ## Misure sul Mac (TP-7 col cavo, ascoltatore CoreMIDI)
 
