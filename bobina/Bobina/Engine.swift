@@ -40,6 +40,8 @@ final class Engine: ObservableObject {
     /// Il nastro è stato fermato da Bobina (60 + 708): il pitch bend resta fermo lì.
     @Published private(set) var halted = false
     @Published private(set) var lever = TP7.leverCenter
+    /// Avvolgimento veloce: −1 indietro, +1 avanti, 0 fermo.
+    @Published private(set) var winding = 0
 
     // MARK: effetti continui
 
@@ -209,6 +211,7 @@ final class Engine: ObservableObject {
     }
 
     private func forceLever(_ value: Int) {
+        winding = 0
         lever = -1
         setLever(value)
     }
@@ -306,6 +309,20 @@ final class Engine: ObservableObject {
         rolling = true
     }
 
+    /// ⏪ ⏩: la leva tutta indietro o tutta avanti, cioè l'avvolgimento velocissimo della macchina.
+    /// Un tocco parte, un altro tocco (o un altro tasto del trasporto) si ferma: niente da tenere premuto.
+    func wind(_ direction: Int) {
+        if winding == direction {
+            winding = 0
+            setLever(TP7.leverCenter)
+            return
+        }
+        ramp = nil
+        halted = false
+        winding = direction
+        setLever(direction > 0 ? 127 : 0)
+    }
+
     // MARK: bobina virtuale
 
     private var scrubbing = false
@@ -313,6 +330,7 @@ final class Engine: ObservableObject {
 
     /// Il dito sulla bobina virtuale: la sua velocità diventa la leva.
     func scrub(_ value: Int) {
+        winding = 0
         scrubbing = true
         lastScrubAt = io.now()
         // agli estremi (0 e 127) il TP-7 passa al riavvolgimento velocissimo: meglio restarne lontani
