@@ -33,7 +33,30 @@ final class TX6Sequencer {
         var pumpRelease = 0.6
         /// Per ogni traccia della pompa, il volume di partenza.
         var pumpTops: [(track: Int, top: Double)] = []
+        /// Il pattern che la pagina crede di suonare.
+        var patternID: UUID?
     }
+
+    /// Un pattern pronto a entrare all'inizio della prossima battuta.
+    struct Part {
+        var id: UUID
+        var beats: [[Bool]]
+        var melodies: [[Int?]]
+        var melodyOctaves: [Int]
+        var melodyLength: Int
+        var locks: [Int?]
+        var lockTrack: Int
+        var lockCC: UInt8
+        var lockBase: Int
+        var gate: [Bool]
+        /// I suoni delle tracce, mandati all'attacco della battuta.
+        var soundBytes: [UInt8]
+        /// Il tempo del pattern, se cambia anche quello.
+        var bpm: Double?
+    }
+
+    /// Un pattern è entrato (sul filo del sequencer).
+    var onSwitched: ((UUID) -> Void)?
 
     /// Un passo è partito (sul filo del sequencer): il numero, l'istante, i pad che hanno suonato.
     var onStep: ((Int, MIDITimeStamp, Set<Int>) -> Void)?
@@ -55,6 +78,8 @@ final class TX6Sequencer {
     private var lockSent: Int?
     private var melodySounding: [Int: Int] = [:]
     private var clockCount = 0
+    private var pending: Part?
+    private var override: Part?
     private let lookahead = 150.0
 
     init(io: MIDIIO) {
@@ -104,6 +129,10 @@ final class TX6Sequencer {
         }
     }
 
+    /// Il pattern entra all'inizio della prossima battuta.
+    func queuePattern(_ part: Part) { queue.async { [self] in pending = part } }
+    func cancelPending() { queue.async { [self] in pending = nil } }
+
     func releaseGateNow() { queue.async { [self] in releaseGate(plan()) } }
     func melodyOffNow() { queue.async { [self] in melodyOff() } }
     func forgetLock() { queue.async { [self] in lockSent = nil } }
@@ -123,7 +152,12 @@ final class TX6Sequencer {
                 releaseGate(p)
                 melodyOff()
             case 0xF8:
-                if clockCount % 6 == 0 { fire((clockCount / 6) % 16, at: io.now(), p) }
+                if clockCount % 6 == 0 {
+                    let i = (clockCount / 6) % 16
+                    let t = io.now()
+                    let prefix = switchIfDue(i, at: t)
+                    fire(i, at: t, effective(p), prefix: prefix)
+                }
                 clockCount += 1
             default:
                 break
@@ -155,7 +189,7 @@ final class TX6Sequencer {
 
     private func tick() {
         guard running else { return }
-        let p = plan()
+        var p = effective(plan())
         let now = io.now()
         if p.bpm != bpm {
             // il battito continua da dove era, alla nuova velocità
@@ -165,7 +199,11 @@ final class TX6Sequencer {
         }
         let horizon = now + io.ticks(ms: lookahead)
         while time(ofBeat: Double(nextSixteenth) / 4) < horizon {
-            fire(nextSixteenth % 16, at: max(now, time(ofBeat: Double(nextSixteenth) / 4)), p)
+            let i = nextSixteenth % 16
+            let t = max(now, time(ofBeat: Double(nextSixteenth) / 4))
+            let prefix = switchIfDue(i, at: t)
+            if !prefix.isEmpty || override != nil { p = effective(plan()) }
+            fire(i, at: t, p, prefix: prefix)
             nextSixteenth += 1
         }
         if p.sendClock {
@@ -176,12 +214,51 @@ final class TX6Sequencer {
         }
     }
 
+    // MARK: i pattern
+
+    /// All'inizio della battuta entra il pattern in attesa: i suoni partono nello stesso pacchetto delle note.
+    private func switchIfDue(_ i: Int, at t: MIDITimeStamp) -> [UInt8] {
+        guard i == 0, let part = pending else { return [] }
+        pending = nil
+        override = part
+        lockSent = nil
+        if running, let b = part.bpm, b != bpm {
+            anchorBeat = beat(at: t)
+            anchorTime = t
+            bpm = b
+        }
+        onSwitched?(part.id)
+        return part.soundBytes.isEmpty ? [0xFE] : part.soundBytes
+    }
+
+    /// Il piano col pattern appena entrato, finché la pagina non se ne accorge.
+    private func effective(_ base: Plan) -> Plan {
+        guard let o = override else { return base }
+        if base.patternID == o.id {
+            override = nil
+            return base
+        }
+        var p = base
+        p.beats = o.beats
+        p.melodies = o.melodies
+        p.melodyOctaves = o.melodyOctaves
+        p.melodyLength = o.melodyLength
+        p.locks = o.locks
+        p.lockTrack = o.lockTrack
+        p.lockCC = o.lockCC
+        p.lockBase = o.lockBase
+        p.gate = o.gate
+        if let b = o.bpm { p.bpm = b }
+        return p
+    }
+
     // MARK: un sedicesimo
 
     /// Batteria a passi, passi con manopola, melodia, cancello, pompa.
     /// Col bluetooth ogni pacchetto costa: quello che parte nello stesso istante va insieme.
-    private func fire(_ i: Int, at t: MIDITimeStamp, _ p: Plan) {
-        var now: [UInt8] = []
+    private func fire(_ i: Int, at t: MIDITimeStamp, _ p: Plan, prefix: [UInt8] = []) {
+        // 0xFE (active sensing) è solo un segnaposto per «è entrato un pattern senza suoni»: non si manda
+        var now: [UInt8] = prefix == [0xFE] ? [] : prefix
         var off: [UInt8] = []
         var hit: Set<Int> = []
         let stepMs = 60_000 / max(40, min(300, p.bpm)) / 4

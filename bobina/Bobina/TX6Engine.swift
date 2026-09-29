@@ -36,6 +36,66 @@ struct TX6Wave: Codable, Equatable {
     var depth: Double = 30
 }
 
+/// Un pattern: batteria, melodie, passi con manopola, cancello, i suoni delle sei tracce e il tempo.
+struct TX6Pattern: Codable, Identifiable, Equatable {
+    var id = UUID()
+    var name: String
+    var beats: [[Bool]]
+    var melodies: [[Int?]]
+    var melodyOctaves: [Int]
+    var melodyLength: Int
+    var locks: [Int?]
+    var lockTrack: Int
+    var lockParam: TX6.Param
+    var gate: [Bool]
+    /// Per ogni traccia: suono, frequenza, lunghezza, detune (valori MIDI).
+    var sounds: [[Int]]
+    var bpm: Double
+
+    /// I parametri di suono che un pattern si porta dietro, in quest'ordine.
+    static let soundParams: [TX6.Param] = [.sound, .freq, .length, .detune]
+
+    /// Gli stili pronti. Tracce: 1 cassa, 2 rullante, 3 battimani, 4 charleston, 5 basso, 6 melodia.
+    static let styles: [TX6Pattern] = [
+        style("house", bpm: 124, kick: [0, 4, 8, 12], clap: [4, 12], hat: [2, 6, 10, 14],
+              bass: [(2, 9), (6, 9), (10, 9), (14, 7)], lead: [(0, 12), (8, 7)], length: 1),
+        style("techno", bpm: 130, kick: [0, 4, 8, 12], clap: [4, 12], hat: [0, 2, 4, 6, 8, 10, 12, 14],
+              bass: [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15].map { ($0, 0) }, length: 1),
+        style("hip hop", bpm: 90, kick: [0, 7, 10], snare: [4, 12], hat: [0, 2, 4, 6, 8, 10, 12, 14],
+              bass: [(0, 0), (7, 0), (10, 3)], lead: [(0, 7), (4, 3), (8, 5), (12, 3)], length: 2),
+        style("reggaeton", bpm: 95, kick: [0, 4, 8, 12], snare: [3, 6, 11, 14], hat: [0, 2, 4, 6, 8, 10, 12, 14],
+              bass: [(0, 0), (4, 0), (8, 5), (12, 7)], length: 1),
+        style("drum'n'bass", bpm: 172, kick: [0, 10], snare: [4, 12], hat: [0, 2, 4, 6, 8, 10, 12, 14],
+              bass: [(0, 4), (10, 4)], length: 4),
+        style("electro", bpm: 128, kick: [0, 6, 10], snare: [4, 12], hat: [2, 6, 10, 14],
+              bass: [(0, 0), (3, 0), (6, 3), (10, 5), (13, 3)], length: 1),
+        style("ambient", bpm: 80, hat: [0, 8], bass: [(0, 0), (8, 5)], lead: [(0, 0), (4, 4), (8, 7), (12, 11)],
+              length: 4, bassSound: 0, leadSound: 1)
+    ]
+
+    private static func style(_ name: String, bpm: Double, kick: [Int] = [], snare: [Int] = [], clap: [Int] = [], hat: [Int] = [],
+                              bass: [(Int, Int)] = [], lead: [(Int, Int)] = [], length: Int,
+                              bassSound: Int = 2, leadSound: Int = 3) -> TX6Pattern {
+        func row(_ steps: [Int]) -> [Bool] { (0..<16).map { steps.contains($0) } }
+        func line(_ notes: [(Int, Int)]) -> [Int?] {
+            var r = [Int?](repeating: nil, count: 16)
+            for (step, semi) in notes { r[step] = semi }
+            return r
+        }
+        let empty = [Bool](repeating: false, count: 16)
+        let silent = [Int?](repeating: nil, count: 16)
+        let sounds = [4, 5, 6, 7, bassSound, leadSound].map { [TX6.soundValue($0), 64, 64, 64] }
+        return TX6Pattern(name: name,
+                          beats: [row(kick), row(snare), row(clap), row(hat), empty, empty],
+                          melodies: [silent, silent, silent, silent, line(bass), line(lead)],
+                          melodyOctaves: [4, 4, 4, 4, 2, 4],
+                          melodyLength: length,
+                          locks: Array(repeating: nil, count: 16), lockTrack: 1, lockParam: .freq,
+                          gate: Array(repeating: true, count: 16),
+                          sounds: sounds, bpm: bpm)
+    }
+}
+
 enum TX6Chord: String, CaseIterable, Identifiable {
     case single = "una nota", major = "maggiore", minor = "minore", sus = "sospeso", seventh = "settima"
     var id: String { rawValue }
@@ -170,6 +230,14 @@ final class TX6Engine: ObservableObject {
     @Published var tiltTracks: Set<Int> = [1]
 
     @Published var scenes: [TX6Scene] = [] { didSet { save() } }
+
+    /// I pattern salvati, quello che suona e quello che entra alla prossima battuta.
+    @Published var patterns: [TX6Pattern] = [] { didSet { save() } }
+    @Published private(set) var currentPatternID: UUID?
+    @Published private(set) var currentPatternName: String?
+    @Published private(set) var pendingPatternName: String?
+    /// Cambiando pattern cambia anche il tempo.
+    @Published var patternTempo = true
     @Published var morphBars: Double = 2
 
     // MARK: quello che arriva dal TX-6 in CTRL OUT
@@ -213,6 +281,9 @@ final class TX6Engine: ObservableObject {
         io.onRealtime = { status, stamp in seq.realtime(status, stamp) }
         seq.onStep = { [weak self] i, t, hit in
             DispatchQueue.main.async { self?.stepped(i, t, hit) }
+        }
+        seq.onSwitched = { [weak self] id in
+            DispatchQueue.main.async { self?.switched(id) }
         }
         anchorTime = io.now()
         refreshPorts()
@@ -401,6 +472,101 @@ final class TX6Engine: ObservableObject {
     }
 
 
+    // MARK: pattern
+
+    /// Suona un pattern: se il ritmo gira entra all'inizio della prossima battuta, se no subito.
+    func play(_ pat: TX6Pattern) {
+        if pulsing {
+            var part = makePart(pat)
+            if !patternTempo || clockMode == .follow { part.bpm = nil }
+            pendingPatternName = pat.name
+            sequencer.queuePattern(part)
+        } else {
+            adopt(pat, sendSounds: true)
+        }
+    }
+
+    func cancelPendingPattern() {
+        sequencer.cancelPending()
+        pendingPatternName = nil
+    }
+
+    /// Salva quello che suona adesso come pattern nuovo.
+    func saveNewPattern() {
+        var n = patterns.count + 1
+        while patterns.contains(where: { $0.name == "pattern \(n)" }) { n += 1 }
+        let pat = capture(name: "pattern \(n)")
+        patterns.append(pat)
+        currentPatternID = pat.id
+        currentPatternName = pat.name
+    }
+
+    /// Riscrive un pattern con quello che suona adesso.
+    func overwrite(_ pat: TX6Pattern) {
+        guard let k = patterns.firstIndex(where: { $0.id == pat.id }) else { return }
+        var fresh = capture(name: pat.name)
+        fresh.id = pat.id
+        patterns[k] = fresh
+        currentPatternID = pat.id
+        currentPatternName = pat.name
+    }
+
+    func deletePattern(_ pat: TX6Pattern) { patterns.removeAll { $0.id == pat.id } }
+
+    private func capture(name: String) -> TX6Pattern {
+        TX6Pattern(name: name, beats: beats, melodies: melodies, melodyOctaves: melodyOctaves, melodyLength: melodyLength,
+                   locks: locks, lockTrack: lockTrack, lockParam: lockParam, gate: gate,
+                   sounds: (0..<6).map { t in TX6Pattern.soundParams.map { values[t][$0.rawValue] } },
+                   bpm: bpm)
+    }
+
+    private func makePart(_ pat: TX6Pattern) -> TX6Sequencer.Part {
+        var bytes: [UInt8] = []
+        for t in 1...6 {
+            for (k, param) in TX6Pattern.soundParams.enumerated() {
+                bytes += TX6.cc(param.cc, pat.sounds[t - 1][k], channel: t)
+            }
+        }
+        let lockBase = TX6Pattern.soundParams.firstIndex(of: pat.lockParam).map { pat.sounds[pat.lockTrack - 1][$0] }
+            ?? values[pat.lockTrack - 1][pat.lockParam.rawValue]
+        return TX6Sequencer.Part(id: pat.id, beats: pat.beats, melodies: pat.melodies, melodyOctaves: pat.melodyOctaves,
+                                 melodyLength: pat.melodyLength, locks: pat.locks, lockTrack: pat.lockTrack,
+                                 lockCC: pat.lockParam.cc, lockBase: lockBase, gate: pat.gate,
+                                 soundBytes: bytes, bpm: pat.bpm)
+    }
+
+    /// Il sequencer ha fatto entrare un pattern: la pagina si mette in pari (i suoni sono già partiti).
+    private func switched(_ id: UUID) {
+        guard let pat = (patterns + TX6Pattern.styles).first(where: { $0.id == id }) else { return }
+        adopt(pat, sendSounds: false)
+    }
+
+    private func adopt(_ pat: TX6Pattern, sendSounds: Bool) {
+        beats = pat.beats
+        melodies = pat.melodies
+        melodyOctaves = pat.melodyOctaves
+        melodyLength = pat.melodyLength
+        locks = pat.locks
+        lockTrack = pat.lockTrack
+        lockParam = pat.lockParam
+        gate = pat.gate
+        var bytes: [UInt8] = []
+        for t in 1...6 {
+            for (k, param) in TX6Pattern.soundParams.enumerated() {
+                let v = pat.sounds[t - 1][k]
+                values[t - 1][param.rawValue] = v
+                lastSent[t - 1][param.rawValue] = v
+                bytes += TX6.cc(param.cc, v, channel: t)
+            }
+        }
+        if sendSounds { send(bytes, quiet: true) }
+        if patternTempo && clockMode != .follow { bpm = pat.bpm }
+        currentPatternID = pat.id
+        currentPatternName = pat.name
+        pendingPatternName = nil
+        logText("pattern «\(pat.name)»")
+    }
+
     // MARK: scene di Bobina
 
     private func snapshot(_ name: String) -> TX6Scene {
@@ -520,6 +686,7 @@ final class TX6Engine: ObservableObject {
         p.pumpOn = pumpOn
         p.pumpDepth = pumpDepth
         p.pumpRelease = pumpRelease
+        p.patternID = currentPatternID
         p.pumpTops = pumpTracks.sorted().map { tr in
             (track: tr, top: Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))
         }
@@ -792,6 +959,7 @@ final class TX6Engine: ObservableObject {
         var melodies: [[Int?]]?
         var melodyOctaves: [Int]?
         var melodyLength: Int?
+        var patterns: [TX6Pattern]?
     }
 
     private var loading = false
@@ -800,7 +968,7 @@ final class TX6Engine: ObservableObject {
         guard !loading else { return }
         let s = Saved(beats: beats, gate: gate, gateTracks: gateTracks.sorted(), pumpTracks: pumpTracks.sorted(),
                       locks: locks, lockTrack: lockTrack, lockParam: lockParam, waves: waves, scenes: scenes,
-                      melodies: melodies, melodyOctaves: melodyOctaves, melodyLength: melodyLength)
+                      melodies: melodies, melodyOctaves: melodyOctaves, melodyLength: melodyLength, patterns: patterns)
         if let data = try? JSONEncoder().encode(s) {
             UserDefaults.standard.set(data, forKey: "bobina.tx6")
         }
@@ -823,6 +991,9 @@ final class TX6Engine: ObservableObject {
         if let m = s.melodies, m.count == 6, m.allSatisfy({ $0.count == 16 }) { melodies = m }
         if let o = s.melodyOctaves, o.count == 6 { melodyOctaves = o }
         if let l = s.melodyLength { melodyLength = l }
+        if let ps = s.patterns {
+            patterns = ps.filter { $0.beats.count == 6 && $0.melodies.count == 6 && $0.sounds.count == 6 && $0.gate.count == 16 && $0.locks.count == 16 }
+        }
         loading = false
     }
 }

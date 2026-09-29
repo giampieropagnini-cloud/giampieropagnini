@@ -376,6 +376,8 @@ struct TX6SuonaView: View {
 
     var body: some View {
         TX6Page(title: "Suona") {
+            TX6PatternCard()
+
             Card(title: "i sei strumenti", note: "Ogni traccia del TX-6 è uno strumento. Scegli la traccia, poi il suono, e regola le barre: sono le stesse cose che sulla macchina fai con le manopoline. «prova» lo fa suonare. Serve il synth acceso (menu → SYNTH → play). L'ordine dei suoni sui 128 valori è ancora da misurare: il display del TX-6 dice quale ha preso.") {
                 OneTrackPicker(selected: beatTrack) { beatTrack = $0 }
                 SoundGrid(track: beatTrack)
@@ -453,6 +455,58 @@ struct TX6SuonaView: View {
                             filled: { tx.locks[$0] != nil },
                             tap: { tx.locks[$0] = tx.locks[$0] == lockBrush ? nil : lockBrush })
             }
+        }
+    }
+}
+
+/// Stili pronti e pattern salvati: se il ritmo gira, il cambio arriva all'inizio della battuta.
+struct TX6PatternCard: View {
+    @EnvironmentObject var tx: TX6Engine
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
+
+    var body: some View {
+        Card(title: "pattern e stili", note: "Un pattern è tutto quello che suona: batteria, melodie, suoni delle sei tracce e tempo. Tocca uno stile o un tuo pattern: se il ritmo gira, entra all'inizio della prossima battuta. Gli stili usano le tracce così: 1 cassa, 2 rullante, 3 battimani, 4 charleston, 5 basso, 6 melodia.") {
+            HStack(spacing: 8) {
+                Chip(text: tx.running ? "■" : "▶", on: tx.running) { tx.toggleRun() }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("suona: " + (tx.currentPatternName ?? "—"))
+                        .font(.system(.subheadline, design: .monospaced))
+                    if let next = tx.pendingPatternName {
+                        Text("poi: \(next), alla battuta")
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(Palette.accent)
+                    }
+                }
+                Spacer()
+                if tx.pendingPatternName != nil {
+                    Chip(text: "annulla") { tx.cancelPendingPattern() }
+                }
+            }
+            Toggle("cambia anche il tempo", isOn: $tx.patternTempo)
+            Text("stili")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(TX6Pattern.styles) { st in
+                    GridChip(text: st.name, on: tx.currentPatternID == st.id) { tx.play(st) }
+                }
+            }
+            Text("i tuoi pattern")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+            if tx.patterns.isEmpty {
+                Text("ancora nessuno: prepara batteria e melodia, poi «salva come pattern nuovo»")
+                    .font(.footnote)
+                    .foregroundStyle(Palette.dim)
+            }
+            ForEach(tx.patterns) { pat in
+                HStack(spacing: 6) {
+                    GridChip(text: pat.name, on: tx.currentPatternID == pat.id) { tx.play(pat) }
+                    Chip(text: "salva qui") { tx.overwrite(pat) }
+                    Chip(text: "✕") { tx.deletePattern(pat) }
+                }
+            }
+            Chip(text: "salva come pattern nuovo") { tx.saveNewPattern() }
         }
     }
 }
