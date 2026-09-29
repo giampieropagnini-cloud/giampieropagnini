@@ -125,7 +125,6 @@ final class MIDIIO {
 
     private func read(_ list: UnsafePointer<MIDIPacketList>) {
         let count = Int(list.pointee.numPackets)
-        trace("arrivano \(count) pacchetti")
         guard count > 0 else { return }
         let listOffset = MemoryLayout<MIDIPacketList>.offset(of: \MIDIPacketList.packet) ?? 4
         let dataOffset = MemoryLayout<MIDIPacket>.offset(of: \MIDIPacket.data) ?? 10
