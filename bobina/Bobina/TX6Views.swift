@@ -434,6 +434,8 @@ struct TX6SuonaView: View {
                     .foregroundStyle(Palette.dim)
             }
 
+            TX6MelodyCard()
+
             Card(title: "passi con manopola", note: "A ogni passo un valore diverso per un parametro di una traccia, mandato un attimo prima del colpo: sei suoni diversi dalla stessa traccia. Scegli il pennello e tocca i passi; «vuoto» lascia il valore normale.") {
                 Toggle("accesi (con la batteria)", isOn: $tx.lockOn)
                 OneTrackPicker(selected: tx.lockTrack) { tx.lockTrack = $0 }
@@ -452,6 +454,84 @@ struct TX6SuonaView: View {
                             tap: { tx.locks[$0] = tx.locks[$0] == lockBrush ? nil : lockBrush })
             }
         }
+    }
+}
+
+/// La melodia a passi: una traccia alla volta, ogni passo una nota.
+struct TX6MelodyCard: View {
+    @EnvironmentObject var tx: TX6Engine
+    @State private var track = 1
+    @State private var brush: Int? = 0
+
+    private let names = ["do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "sol#", "la", "la#", "si", "do↑"]
+    private let columns7 = Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
+
+    var body: some View {
+        Card(title: "melodia a passi", note: "Sedici passi per ogni traccia: in ogni passo una nota. Scegli la traccia, tocca una nota (il pennello) e poi i passi dove la vuoi: la senti subito. Ritocca un passo con la stessa nota per svuotarlo. Più tracce con la melodia suonano insieme. Serve NOTE on e il synth su play; parte col tempo della scheda Ritmo, insieme alla batteria.") {
+            HStack {
+                Toggle("accesa", isOn: $tx.melodyOn)
+                Chip(text: tx.running ? "■" : "▶", on: tx.running) { tx.toggleRun() }
+            }
+            OneTrackPicker(selected: track) { track = $0 }
+            HStack(spacing: 8) {
+                Chip(text: "ottava −") { tx.melodyOctaves[track - 1] = max(1, tx.melodyOctaves[track - 1] - 1) }
+                Text("do\(tx.melodyOctaves[track - 1])")
+                    .font(.system(.subheadline, design: .monospaced))
+                    .frame(minWidth: 44)
+                Chip(text: "ottava +") { tx.melodyOctaves[track - 1] = min(7, tx.melodyOctaves[track - 1] + 1) }
+            }
+            Text("pennello")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+            LazyVGrid(columns: columns7, spacing: 6) {
+                GridChip(text: "vuoto", on: brush == nil) { brush = nil }
+                ForEach(0..<13, id: \.self) { k in
+                    GridChip(text: names[k], on: brush == k) { brush = k }
+                }
+            }
+            TX6StepGrid(live: tx.live, pulsing: tx.pulsing,
+                        label: { tx.melodies[track - 1][$0].map { names[$0] } ?? "·" },
+                        filled: { tx.melodies[track - 1][$0] != nil },
+                        tap: { i in
+                            let now = tx.melodies[track - 1][i] == brush ? nil : brush
+                            tx.melodies[track - 1][i] = now
+                            if let k = now { tx.preview(track, k) }
+                        })
+            HStack(spacing: 6) {
+                Text("ogni nota dura")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                ForEach([(1, "1/16"), (2, "1/8"), (4, "1/4")], id: \.0) { l in
+                    Chip(text: l.1, on: tx.melodyLength == l.0) { tx.melodyLength = l.0 }
+                }
+            }
+            HStack(spacing: 8) {
+                Chip(text: "svuota la traccia \(track)") { tx.melodies[track - 1] = Array(repeating: nil, count: 16) }
+                Text("con note: " + ((1...6).filter { tx.melodies[$0 - 1].contains { $0 != nil } }.map { "\($0)" }.joined(separator: " ")).ifEmpty("nessuna"))
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+            }
+        }
+    }
+}
+
+/// Un tasto che riempie la sua colonna, per le griglie strette.
+struct GridChip: View {
+    let text: String
+    var on = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(text)
+                .font(.system(.footnote, design: .monospaced))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity, minHeight: 38)
+                .background(RoundedRectangle(cornerRadius: 8).fill(on ? Palette.accent : Color(white: 0.18)))
+                .foregroundStyle(on ? Color.black : Color.white)
+        }
+        .buttonStyle(.plain)
     }
 }
 

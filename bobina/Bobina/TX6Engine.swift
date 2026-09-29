@@ -140,6 +140,13 @@ final class TX6Engine: ObservableObject {
     @Published var lockParam = TX6.Param.freq { didSet { save() } }
     @Published var locks: [Int?] = Array(repeating: nil, count: 16) { didSet { save() } }
 
+    /// Melodia a passi: per ogni traccia sedici passi, ognuno una nota (0 = do … 12 = do sopra) o niente.
+    @Published var melodyOn = false { didSet { if !melodyOn { melodyOff() } } }
+    @Published var melodies: [[Int?]] = Array(repeating: Array(repeating: nil, count: 16), count: 6) { didSet { save() } }
+    @Published var melodyOctaves: [Int] = Array(repeating: 4, count: 6) { didSet { save() } }
+    /// Quanti sedicesimi dura ogni nota.
+    @Published var melodyLength = 1 { didSet { save() } }
+
     @Published var gateOn = false { didSet { if !gateOn { releaseGate() } } }
     @Published var gate: [Bool] = [true, false, true, false, true, true, false, true, true, false, true, false, true, true, false, false] { didSet { save() } }
     @Published var gateTracks: Set<Int> = [1] { didSet { save() } }
@@ -194,6 +201,7 @@ final class TX6Engine: ObservableObject {
     private var clockCount = 0
     private var lastClockAt: MIDITimeStamp = 0
     private var held: [Int: [(track: Int, note: Int)]] = [:]
+    private var melodySounding: [Int: Int] = [:]
     private let motion = CMMotionManager()
     private let haptic = UIImpactFeedbackGenerator(style: .rigid)
 
@@ -379,6 +387,21 @@ final class TX6Engine: ObservableObject {
         }
     }
 
+    /// La nota MIDI di un passo della melodia.
+    func melodyNote(_ track: Int, _ semitone: Int) -> Int { 12 * (melodyOctaves[track - 1] + 1) + semitone }
+
+    /// Quando metti una nota in un passo la senti subito, breve.
+    func preview(_ track: Int, _ semitone: Int) {
+        let n = melodyNote(track, semitone)
+        send(TX6.noteOn(n, channel: track), quiet: true)
+        send(TX6.noteOff(n, channel: track), at: io.now() + io.ticks(ms: 180), quiet: true)
+    }
+
+    private func melodyOff() {
+        for (track, n) in melodySounding { send(TX6.noteOff(n, channel: track), quiet: true) }
+        melodySounding.removeAll()
+    }
+
     // MARK: scene di Bobina
 
     private func snapshot(_ name: String) -> TX6Scene {
@@ -459,6 +482,7 @@ final class TX6Engine: ObservableObject {
             if clockMode == .send { send(TX6.stop) }
             releaseGate()
             restoreLock()
+            melodyOff()
         } else {
             guard clockMode != .follow else { return }
             let start = io.now() + io.ticks(ms: 30)
@@ -637,6 +661,20 @@ final class TX6Engine: ObservableObject {
             }
         }
 
+        if melodyOn {
+            var melodyEnd: [UInt8] = []
+            for tr in 1...6 {
+                guard let semi = melodies[tr - 1][i] else { continue }
+                let n = melodyNote(tr, semi)
+                now += TX6.noteOn(n, channel: tr)
+                melodyEnd += TX6.noteOff(n, channel: tr)
+                melodySounding[tr] = n
+            }
+            if !melodyEnd.isEmpty {
+                send(melodyEnd, at: t + io.ticks(ms: beatMs / 4 * Double(melodyLength) * 0.9), quiet: true)
+            }
+        }
+
         if gateOn {
             let open = gate[i]
             if open != gateState {
@@ -788,6 +826,9 @@ final class TX6Engine: ObservableObject {
         var lockParam: TX6.Param
         var waves: [TX6Wave]
         var scenes: [TX6Scene]
+        var melodies: [[Int?]]?
+        var melodyOctaves: [Int]?
+        var melodyLength: Int?
     }
 
     private var loading = false
@@ -795,7 +836,8 @@ final class TX6Engine: ObservableObject {
     private func save() {
         guard !loading else { return }
         let s = Saved(beats: beats, gate: gate, gateTracks: gateTracks.sorted(), pumpTracks: pumpTracks.sorted(),
-                      locks: locks, lockTrack: lockTrack, lockParam: lockParam, waves: waves, scenes: scenes)
+                      locks: locks, lockTrack: lockTrack, lockParam: lockParam, waves: waves, scenes: scenes,
+                      melodies: melodies, melodyOctaves: melodyOctaves, melodyLength: melodyLength)
         if let data = try? JSONEncoder().encode(s) {
             UserDefaults.standard.set(data, forKey: "bobina.tx6")
         }
@@ -815,6 +857,9 @@ final class TX6Engine: ObservableObject {
         lockParam = s.lockParam
         waves = s.waves
         scenes = s.scenes.filter { $0.values.count == 6 && $0.values.allSatisfy { $0.count == TX6.Param.allCases.count } }
+        if let m = s.melodies, m.count == 6, m.allSatisfy({ $0.count == 16 }) { melodies = m }
+        if let o = s.melodyOctaves, o.count == 6 { melodyOctaves = o }
+        if let l = s.melodyLength { melodyLength = l }
         loading = false
     }
 }

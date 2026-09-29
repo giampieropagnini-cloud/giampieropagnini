@@ -91,6 +91,8 @@ struct StepCell: View {
         Button(action: action) {
             Text(label)
                 .font(.system(.subheadline, design: .monospaced))
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, minHeight: 40)
                 .background(
                     RoundedRectangle(cornerRadius: 7)
