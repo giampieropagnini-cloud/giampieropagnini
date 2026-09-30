@@ -35,6 +35,19 @@ struct NastroView: View {
                 }
             }
 
+            Card(title: "prova leva", note: "Per trovare un ▶ che vada anche in cue. Col TP-7 fermo tocca un numero: la leva resta lì finché non ne tocchi un altro. 64 è il centro.") {
+                HStack(spacing: 6) {
+                    ForEach([58, 60, 62, 64], id: \.self) { v in
+                        Chip(text: "\(v)", on: engine.lever == v) { engine.testLever(v) }
+                    }
+                }
+                HStack(spacing: 6) {
+                    ForEach([66, 68, 70, 72], id: \.self) { v in
+                        Chip(text: "\(v)", on: engine.lever == v) { engine.testLever(v) }
+                    }
+                }
+            }
+
             SpeedCard()
 
             Card(title: "tape stop", note: "Il nastro rallenta fino a fermarsi, come un registratore a cui manca la corrente; alla fine arriva lo stop. Avvio fa il contrario: parte fermo e prende velocità.") {

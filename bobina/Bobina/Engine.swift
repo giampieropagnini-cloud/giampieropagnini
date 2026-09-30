@@ -325,6 +325,15 @@ final class Engine: ObservableObject {
         setLever(direction > 0 ? 127 : 0)
     }
 
+    /// Prova: la leva resta sul valore scelto (64 è il centro). Serve a trovare un ▶ e un ■
+    /// fatti con la leva, che il TP-7 ascolta anche in cue, dove start e stop li ignora.
+    func testLever(_ value: Int) {
+        winding = 0
+        ramp = nil
+        halted = false
+        setLever(value)
+    }
+
     // MARK: bobina virtuale
 
     private var scrubbing = false
