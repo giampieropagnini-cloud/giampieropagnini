@@ -364,6 +364,16 @@
   .pad.knob .lb{ font-size:13px; font-weight:600; }
   .pad.knob .pn{ font-size:8.5px; line-height:1.15; }
   .pad[aria-pressed="true"]{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
+  /* ogni tasto è diviso in due: sopra un tocco, sotto «tieni» (resta giù finché non lo ritocchi) */
+  .split{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .split .pad{ aspect-ratio:auto; min-height:48px; flex:1 1 auto; }
+  .hold{
+    min-height:36px; min-width:0; padding:2px; cursor:pointer; touch-action:manipulation;
+    border:1px dashed #4A5058; border-radius:6px; background:transparent; color:var(--silk-dim);
+    font-family:"IBM Plex Mono",monospace; font-size:11px;
+  }
+  .hold[aria-pressed="true"]{ background:var(--acc); border:1px solid var(--acc); color:var(--acc-ink); font-weight:600; }
+  .hold:focus-visible{ outline:2px solid var(--acc); outline-offset:2px; }
   .pad[aria-pressed="true"] .pn{ color:inherit; opacity:.8; }
   .pad.tap{ background:var(--silk); border-color:var(--silk); color:var(--panel); }
   .pad.tap .pn{ color:inherit; }
@@ -1244,7 +1254,7 @@
   var TL_TAP = 60;    /* ms di un tocco */
   var TL_VEL = 100;
   var TL_AUTO = /teensy|po_midi|po-ma/i;
-  var tele = { access:null, outs:[], out:null, lastId:null, ch:1, held:[], busy:0, nums:false, model:null, log:[], msg:"" };
+  var tele = { access:null, outs:[], out:null, lastId:null, ch:1, held:[], busy:0, model:null, log:[], msg:"" };
 
   function tlSupported(){ return typeof navigator !== "undefined" && typeof navigator.requestMIDIAccess === "function"; }
   function tlHex(bytes){ return bytes.map(function(x){ return (x < 16 ? "0" : "") + x.toString(16).toUpperCase(); }).join(" "); }
@@ -1292,14 +1302,23 @@
       tlOff(n, t);
       tele.held.splice(tele.held.indexOf(n), 1);
       tele.busy = t + TL_STEP;
-    } else if(kind === "fn" || (kind === "num" && tele.nums)){
-      if(tlOn(n, t)) tele.held.push(n);
-      tele.busy = t + TL_STEP;
     } else {
       if(tlOn(n, t)) tlOff(n, t + TL_TAP);
       tele.busy = t + TL_TAP + TL_STEP;
       tlFlash(el);
     }
+    tlPaint();
+  }
+  /* la metà «tieni»: giù finché non la ritocchi */
+  function tlHold(n){
+    if(!tele.out){ tlNeedOut(); return; }
+    tele.msg = "";
+    var t = tlStart();
+    if(tlIsHeld(n)){
+      tlOff(n, t);
+      tele.held.splice(tele.held.indexOf(n), 1);
+    } else if(tlOn(n, t)) tele.held.push(n);
+    tele.busy = t + TL_STEP;
     tlPaint();
   }
   /* un tocco singolo, per «tempo preset» */
@@ -1445,18 +1464,19 @@
     document.getElementById("tl-facename").textContent = dev.name;
     elContent.querySelectorAll(".tl-top").forEach(function(e){ e.textContent = dev.topLabel; });
     document.getElementById("tl-toppad").setAttribute("aria-label", dev.topLabel);
+    document.getElementById("tl-tophold").setAttribute("aria-label", "tieni " + dev.topLabel);
     elContent.querySelectorAll("[data-act='model']").forEach(function(b){
       b.setAttribute("aria-pressed", b.dataset.m === tele.model ? "true" : "false");
     });
     elContent.querySelectorAll(".pad[data-n]").forEach(function(p){
-      var n = +p.dataset.n, on = tlIsHeld(n);
-      var latch = p.dataset.kind === "fn" || (p.dataset.kind === "num" && tele.nums);
-      if(latch || on) p.setAttribute("aria-pressed", on ? "true" : "false");
+      if(tlIsHeld(+p.dataset.n)) p.setAttribute("aria-pressed", "true");
       else p.removeAttribute("aria-pressed");
     });
-    var nb = document.getElementById("tl-nums");
-    nb.setAttribute("aria-pressed", tele.nums ? "true" : "false");
-    nb.textContent = "tieni anche i numeri: " + (tele.nums ? "sì" : "no");
+    elContent.querySelectorAll(".hold[data-n]").forEach(function(h){
+      var on = tlIsHeld(+h.dataset.n);
+      h.setAttribute("aria-pressed", on ? "true" : "false");
+      h.textContent = on ? "lascia" : "tieni";
+    });
     document.getElementById("tl-release").textContent = "lascia tutto" + (tele.held.length ? " (" + tele.held.length + ")" : "");
     document.getElementById("tl-log").innerHTML = tele.log.length ?
       tele.log.map(function(l){ return "<li>" + esc(l) + "</li>"; }).join("") : "<li>ancora niente</li>";
@@ -1466,9 +1486,12 @@
     document.documentElement.setAttribute("data-po", "tele");
     if(!tele.model) tele.model = state.lastDev || "ko";
 
+    function hold(n, name, id){
+      return "<button type='button' class='hold' data-act='hold' data-n='" + n + "'" + (id ? " id='" + id + "'" : "") + " aria-label='tieni " + name + "'>tieni</button>";
+    }
     function pad(n, kind, label, name){
-      return "<button type='button' class='pad " + kind + "' data-act='pad' data-kind='" + kind + "' data-n='" + n + "' aria-label='" + name + "'>" +
-             "<span class='lb'>" + label + "</span><span class='pn'>" + n + "</span></button>";
+      return "<div class='split'><button type='button' class='pad " + kind + "' data-act='pad' data-kind='" + kind + "' data-n='" + n + "' aria-label='" + name + "'>" +
+             "<span class='lb'>" + label + "</span><span class='pn'>" + n + "</span></button>" + hold(n, name) + "</div>";
     }
     function knob(x){
       return "<button type='button' class='pad knob' disabled aria-label='manopola " + x + ", non via MIDI'>" +
@@ -1487,8 +1510,8 @@
     for(var r = 0; r < 4; r++){
       for(var c = 1; c <= 4; c++){ var k = r * 4 + c; face += pad(noteOfNum(k), "num", String(k), "tasto " + k); }
       if(right[r] === "top"){
-        face += "<button type='button' class='pad fn' id='tl-toppad' data-act='pad' data-kind='fn' data-n='79' aria-label='record'>" +
-                "<span class='lb tl-top'>record</span><span class='pn'>79</span></button>";
+        face += "<div class='split'><button type='button' class='pad fn' id='tl-toppad' data-act='pad' data-kind='fn' data-n='79' aria-label='record'>" +
+                "<span class='lb tl-top'>record</span><span class='pn'>79</span></button>" + hold(79, "record", "tl-tophold") + "</div>";
       }
       else if(right[r] === "play") face += pad(78, "play", "play ▶", "play");
       else face += pad(FN_NOTE[right[r]], "fn", right[r], right[r]);
@@ -1515,15 +1538,14 @@
       "</section>";
 
     h += "<section class='tl-face-sec'><h2 class='sec'>la faccia del po</h2>" +
-      "<p class='sec-note'>I tasti funzione restano giù finché non li ritocchi: così fai le combinazioni un tocco alla volta. I numeri e play fanno un tocco di 60 ms.</p>" +
+      "<p class='sec-note'>Ogni tasto è diviso in due. Sopra lo tocchi una volta (60 ms). Sotto, «tieni», resta giù finché non lo ritocchi: per pattern + 5 tieni pattern, tocca 5, ritocca «lascia».</p>" +
       "<div class='tl-models' role='group' aria-label='modello del PO'>" + models + "</div>" +
       "<div class='face'><div class='silkrow'><b id='tl-facename'>po</b><span>telecomando · <span id='tl-chs'>canale 1</span></span></div>" +
         "<div class='face-grid'>" + face + "</div></div>" +
       "<div class='tl-row'>" +
-        "<button type='button' class='tbtn' id='tl-nums' data-act='nums'>tieni anche i numeri: no</button>" +
         "<button type='button' class='tbtn' id='tl-release' data-act='release'>lascia tutto</button>" +
       "</div>" +
-      "<p class='note'>«Tieni anche i numeri» serve per fx + un tasto, che vale finché il tasto è giù, e per campionare con record + un tasto. A e B non si comandano via MIDI. Il telecomando non vede il display del PO: ricorda solo quello che ha mandato.</p>" +
+      "<p class='note'>«Tieni» sui numeri serve per fx + un tasto, che vale finché il tasto è giù, e per campionare con record + un tasto. Toccare sopra un tasto tenuto lo lascia. A e B non si comandano via MIDI. Il telecomando non vede il display del PO: ricorda solo quello che ha mandato.</p>" +
       "</section>";
 
     h += "<section class='tl-log-sec'><h2 class='sec'>ultimi messaggi</h2>" +
@@ -1561,7 +1583,7 @@
     else if(a === "ch") tlChannel(+b.dataset.d);
     else if(a === "model"){ tele.model = b.dataset.m; tlPaint(); }
     else if(a === "pad") tlPad(+b.dataset.n, b.dataset.kind, b);
-    else if(a === "nums"){ tele.nums = !tele.nums; tlPaint(); }
+    else if(a === "hold") tlHold(+b.dataset.n);
     else if(a === "release") tlReleaseAll(false, true);
     else if(a === "combo") tlCombo(b.dataset.seq.split(",").map(Number), b);
     else if(a === "tap") tlTap(+b.dataset.n, b);

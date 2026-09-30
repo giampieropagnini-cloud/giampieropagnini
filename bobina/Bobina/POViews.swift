@@ -96,10 +96,8 @@ struct POTastiView: View {
                     .foregroundStyle(Palette.dim)
             }
 
-            Card(title: "la faccia", note: "Come sulla macchina. I tasti funzione restano giù finché non li ritocchi: tocca pattern, poi 5, poi di nuovo pattern. I numeri e play fanno un tocco. Le manopole A e B via MIDI non si muovono.") {
+            Card(title: "la faccia", note: "Come sulla macchina. Ogni tasto è diviso in due: sopra lo tocchi una volta, sotto («tieni») resta giù finché non lo ritocchi. Per pattern + 5: tieni pattern, tocca 5, ritocca tieni. Le manopole A e B via MIDI non si muovono.") {
                 POFace(live: po.live)
-                Toggle("tieni anche i numeri", isOn: $po.latchNumbers)
-                    .font(.footnote)
                 HStack {
                     Chip(text: "lascia tutto", on: !po.held.isEmpty) { po.releaseAll() }
                     Spacer()
@@ -167,7 +165,7 @@ struct POFace: View {
                                 .font(.system(size: 8, design: .monospaced))
                         }
                         .foregroundStyle(Palette.dim)
-                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .frame(maxWidth: .infinity, minHeight: 84)
                         .background(Circle().stroke(Palette.cardEdge, lineWidth: 1).padding(4))
                         .accessibilityHidden(true)
                     }
@@ -177,6 +175,8 @@ struct POFace: View {
     }
 }
 
+/// Un tasto del PO diviso in due: sopra un tocco, sotto «tieni» (resta giù finché non lo ritocchi).
+/// Due tasti veri, ognuno col suo nome, così col Controllo Vocale si prende quello giusto.
 struct POKeyButton: View {
     @EnvironmentObject var po: POEngine
     let key: PO.Key
@@ -184,23 +184,42 @@ struct POKeyButton: View {
     let flash: Bool
 
     var body: some View {
-        let on = held || flash
-        Button { po.touch(key) } label: {
-            Text(key.label(po.model))
-                .font(.system(key.isNumber ? .body : .footnote, design: .monospaced))
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-                .frame(maxWidth: .infinity, minHeight: 52)
-                .background(
-                    RoundedRectangle(cornerRadius: 9)
-                        .fill(on ? Palette.accent : key.isNumber ? Color(white: 0.2) : Color(white: 0.12))
-                )
-                .overlay(RoundedRectangle(cornerRadius: 9).stroke(Palette.cardEdge, lineWidth: 1))
-                .foregroundStyle(on ? Color.black : Color.white)
+        let name = key.label(po.model)
+        let spoken = key.isNumber ? "tasto \(name)" : name
+        VStack(spacing: 3) {
+            Button { po.touch(key) } label: {
+                Text(name)
+                    .font(.system(key.isNumber ? .body : .footnote, design: .monospaced))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(held || flash ? Palette.accent : key.isNumber ? Color(white: 0.24) : Color(white: 0.17))
+                    )
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.cardEdge, lineWidth: 1))
+                    .foregroundStyle(held || flash ? Color.black : Color.white)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(spoken)
+
+            Button { po.toggleHold(key) } label: {
+                Text(held ? "lascia" : "tieni")
+                    .font(.system(.caption2, design: .monospaced))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(held ? Palette.accent.opacity(0.55) : Color(white: 0.09))
+                    )
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.cardEdge, lineWidth: 1))
+                    .foregroundStyle(held ? Color.black : Palette.dim)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(held ? "lascia \(spoken)" : "tieni \(spoken)")
+            .accessibilityAddTraits(held ? .isSelected : [])
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(key.isNumber ? "tasto \(key.label(po.model))" : key.label(po.model))
-        .accessibilityAddTraits(held ? .isSelected : [])
     }
 }
 

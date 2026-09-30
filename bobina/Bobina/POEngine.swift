@@ -38,8 +38,6 @@ final class POEngine: ObservableObject {
     @Published var channel = 1 { didSet { save() } }
     /// Le scorciatoie a CC sono accese nel configuratore dell'adattatore.
     @Published var useCC = false { didSet { save() } }
-    /// Anche i tasti 1-16 si agganciano (per fx + tasto, che vale finché il tasto è tenuto).
-    @Published var latchNumbers = false { didSet { if !latchNumbers { releaseNumbers() } } }
     /// I tasti tenuti giù dalla faccia.
     @Published private(set) var held: Set<PO.Key> = []
 
@@ -153,15 +151,14 @@ final class POEngine: ObservableObject {
 
     // MARK: la faccia
 
-    /// Un tocco sulla faccia. I tasti funzione si agganciano (primo tocco giù, secondo su);
-    /// i numeri e play fanno un tocco, a meno che «tieni anche i numeri» sia acceso.
+    /// La metà di sotto di un tasto: lo tiene giù, ritoccata lo lascia.
+    func toggleHold(_ k: PO.Key) {
+        if held.contains(k) { release(k) } else { hold(k) }
+    }
+
+    /// La metà di sopra: un tocco. Se il tasto era tenuto, lo lascia.
     func touch(_ k: PO.Key) {
-        let latches = !k.isNumber && k != .play || (k.isNumber && latchNumbers)
-        if latches {
-            if held.contains(k) { release(k) } else { hold(k) }
-        } else {
-            tap(k)
-        }
+        if held.contains(k) { release(k) } else { tap(k) }
     }
 
     func hold(_ k: PO.Key) {
@@ -190,10 +187,6 @@ final class POEngine: ObservableObject {
         let bytes = held.sorted { $0.note < $1.note }.flatMap { PO.noteOff($0, channel: channel) }
         held.removeAll()
         send(bytes)
-    }
-
-    private func releaseNumbers() {
-        for k in held where k.isNumber { release(k) }
     }
 
     /// Tieni un tasto, premi un numero, lascia. Col CC acceso è un messaggio solo.
