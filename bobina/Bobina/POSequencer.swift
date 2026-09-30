@@ -68,7 +68,9 @@ final class POSequencer {
     var onSent: (([UInt8]) -> Void)?
 
     private let io: MIDIIO
-    private let queue = DispatchQueue(label: "bobina.po.ritmo", qos: .userInteractive)
+    /// Il suo posto sulla griglia di Bobina: ogni PO entra ed esce per conto suo.
+    private let member: BobinaClock.Member
+    private let queue: DispatchQueue
     private let lock = NSLock()
     private var shared = Plan()
 
@@ -95,8 +97,10 @@ final class POSequencer {
     private let lookahead = 150.0
     private let gap = 25.0
 
-    init(io: MIDIIO) {
+    init(io: MIDIIO, member: BobinaClock.Member = .po) {
         self.io = io
+        self.member = member
+        queue = DispatchQueue(label: "bobina.\(member.rawValue).ritmo", qos: .userInteractive)
     }
 
     // MARK: dalla pagina
@@ -132,7 +136,7 @@ final class POSequencer {
                 let k = (cur.beat(at: max(start, sent + io.ticks(ms: 1))) * 24).rounded(.up)
                 start = cur.time(ofBeat: k / 24)
             }
-            let (l, first) = BobinaClock.shared.join(.po, at: start)
+            let (l, first) = BobinaClock.shared.join(member, at: start)
             line = l
             nextSixteenth = Int((first * 4).rounded())
             firstStep = nextSixteenth
@@ -162,7 +166,7 @@ final class POSequencer {
             guard running else { return }
             let p = plan()
             running = false
-            BobinaClock.shared.leave(.po)
+            BobinaClock.shared.leave(member)
             if !p.clockAlways { stopTimer() }
             var bytes: [UInt8] = []
             for k in offsAt.values.flatMap({ $0 }) { bytes += PO.noteOff(k, channel: p.channel) }

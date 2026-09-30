@@ -8,11 +8,11 @@ Se una prova fallisce, prima di cambiare il codice si ricontrolla come è stata 
 
 | # | cosa | come | risultato |
 |---|---|---|---|
-| 1 | Bobina vede l'adattatore, e come si chiama | Collega → cerca l'adattatore; poi in alto «collegato a …» | da fare |
-| 2 | un tasto | PO fermo. Tasti → 1 | da fare |
-| 3 | tutti i 23 tasti rispondono | Tasti → uno per uno; guardare il display (i tasti funzione: tocca per giù, ritocca per su) | da fare |
+| 1 | Bobina vede l'adattatore, e come si chiama | Collega → cerca l'adattatore; poi in alto «collegato a …» | ✅ 30/9/2026, via bluetooth: «PO MIDI Adapter (BLE) Bluetooth». Due adattatori si chiamano uguale |
+| 2 | un tasto | PO fermo. Tasti → 1 | ✅ 30/9/2026 |
+| 3 | tutti i 23 tasti rispondono | Tasti → uno per uno (sopra un tocco, sotto «tieni») | ✅ 30/9/2026: «funzionano tutti i tasti» |
 | 4 | il tocco più corto | Suona → passi dal vivo, tasto 1 su un passo, premuto «tocco» (35 ms), ▶ | da fare |
-| 5 | una combinazione | Tasti → in un tocco → pattern 2; il display dice il pattern | da fare |
+| 5 | una combinazione | Tasti → in un tocco → pattern 2; il display dice il pattern | ✅ 30/9/2026: «tutte le combinazioni» |
 | 6 | sul tonic un tasto suona il suo suono o quello scelto | PO-32, fermo: Tasti → 1, poi 5 | da fare |
 | 7 | un effetto | PO che suona (play). Tasti → un effetto per un momento → 1 | da fare |
 | 8 | l'eco | Collega → monitor: tornano indietro le frecce ← ? | da fare |
@@ -42,5 +42,7 @@ Se una prova fallisce, prima di cambiare il codice si ricontrolla come è stata 
 ## Misure
 
 (qui i numeri veri, man mano)
+
+- 30/9/2026: con due adattatori via bluetooth Bobina ne comandava uno solo alla volta (una porta per tutta la sezione). Ora ogni PO ha il suo motore e la sua porta (PO 1, PO 2 in cima alle schede); Bobina li divide da sola fra le porte con lo stesso nome. Prova sul Mac: due PO partiti insieme, scarto 0,000 ms; fermato il PO 1, il PO 2 continua sulla griglia.
 
 - 29/9/2026, sul Mac senza macchine (strumenti/prova-po), TX-6 e PO sulla stessa griglia, schermo bloccato 300 ms ogni 500: il PO entra sul passo 16 del TX-6 (inizio di battuta), i suoi passi cadono a 0,000 ms da quelli del TX-6, a 125,00 ms esatti. Lo stesso tasto ripremuto viene lasciato 20 ms prima. fx giù 20 ms prima del numero, e intanto i passi dal vivo tacciono. Col sync out: clock a 20,83 ms esatti, start nel pacchetto del primo impulso della battuta.

@@ -2,9 +2,19 @@ import SwiftUI
 
 // MARK: - le quattro schermate dei Pocket Operator
 
-/// Tasti, Suona, Ritmo, Collega. Riapre l'ultima scheda usata. La barra in basso prende il colore del PO.
+/// Le pagine comandano il PO scelto in cima (PO 1, PO 2…): qui si passa il suo motore a tutte.
 struct POTabs: View {
-    @EnvironmentObject var po: POEngine
+    @EnvironmentObject var bank: POBank
+
+    var body: some View {
+        POTabsBody(po: bank.unit)
+            .environmentObject(bank.unit)
+    }
+}
+
+/// Tasti, Suona, Ritmo, Collega. Riapre l'ultima scheda usata. La barra in basso prende il colore del PO.
+struct POTabsBody: View {
+    @ObservedObject var po: POEngine
     @AppStorage("bobina.po.scheda") private var tab = 0
 
     var body: some View {
@@ -43,12 +53,55 @@ extension PO.Model {
     }
 }
 
+/// In cima a ogni scheda: quale PO stai comandando. Ognuno ha il colore del suo modello.
+struct POSlotPicker: View {
+    @EnvironmentObject var bank: POBank
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(bank.units.indices, id: \.self) { i in
+                POSlotChip(unit: bank.units[i], selected: bank.current == i) { bank.current = i }
+            }
+        }
+    }
+}
+
+struct POSlotChip: View {
+    @ObservedObject var unit: POEngine
+    let selected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 1) {
+                HStack(spacing: 4) {
+                    Circle().fill(unit.connected ? Color.green : Palette.rec).frame(width: 7, height: 7)
+                    Text(unit.title).font(.system(.subheadline, design: .monospaced).weight(.bold))
+                    if unit.running { Text("▶").font(.caption2) }
+                }
+                Text(unit.model.short).font(.system(.caption2, design: .monospaced))
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .frame(maxWidth: .infinity, minHeight: 46)
+            .background(RoundedRectangle(cornerRadius: 9).fill(selected ? unit.model.color : unit.model.color.opacity(0.16)))
+            .overlay(RoundedRectangle(cornerRadius: 9).stroke(unit.model.color, lineWidth: selected ? 0 : 1.5))
+            .foregroundStyle(selected ? Color.black : unit.model.color)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(unit.title), \(unit.model.name)")
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
 /// La fascia in cima a ogni scheda: il nome del PO scelto, nel suo colore.
 struct POBanner: View {
     @EnvironmentObject var po: POEngine
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Text(po.title)
+                .font(.system(.title3, design: .monospaced).weight(.bold))
             Text(po.model.name)
                 .font(.system(.title2, design: .rounded).weight(.bold))
             Text(po.model.tag)
@@ -62,7 +115,7 @@ struct POBanner: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 12).fill(po.model.color))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(po.model.name), \(po.model.tag)")
+        .accessibilityLabel("\(po.title): \(po.model.name), \(po.model.tag)")
     }
 }
 
@@ -75,6 +128,7 @@ struct POPage<Content: View>: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
+                    POSlotPicker()
                     POBanner()
                     POStatusStrip()
                     content()
@@ -97,7 +151,7 @@ struct POStatusStrip: View {
             Circle()
                 .fill(po.connected ? Color.green : Palette.rec)
                 .frame(width: 8, height: 8)
-            Text(po.connected ? "\(po.model.short) · \(po.connectedName)" : "adattatore non collegato · vai su Collega")
+            Text(po.connected ? (po.destinations.first { $0.id == po.destinationID }.map { po.portName($0) } ?? po.connectedName) : "\(po.title): adattatore non collegato · vai su Collega")
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(Palette.dim)
                 .lineLimit(1)
@@ -480,6 +534,7 @@ struct POTiltReadout: View {
 
 struct PORitmoView: View {
     @EnvironmentObject var po: POEngine
+    @EnvironmentObject var bank: POBank
 
     var body: some View {
         POPage(title: "Ritmo") {
@@ -514,7 +569,13 @@ struct PORitmoView: View {
                         }
                     }
                 }
-                Chip(text: po.running ? "■ ferma il PO" : "▶ fai partire il PO", on: po.running) { po.toggleRun() }
+                Chip(text: po.running ? "■ ferma il \(po.title)" : "▶ fai partire il \(po.title)", on: po.running) { po.toggleRun() }
+                Chip(text: bank.anyRunning ? "■ ferma tutti i PO" : "▶ tutti i PO insieme", on: bank.anyRunning) {
+                    if bank.anyRunning { bank.stopAll() } else { bank.startAll() }
+                }
+                Text("Ogni PO ha il suo modo di stare a tempo, i suoi passi e i suoi effetti: si scelgono dai tasti PO 1, PO 2 in cima.")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
                 if po.othersRunning && !po.running {
                     Text("suona già il TX-6: il PO entrerà all'inizio della battuta")
                         .font(.system(.caption, design: .monospaced))
@@ -571,19 +632,51 @@ struct PORitmoView: View {
 
 struct POCollegaView: View {
     @EnvironmentObject var po: POEngine
+    @EnvironmentObject var bank: POBank
     @State private var showBluetooth = false
 
     var body: some View {
         POPage(title: "Collega") {
-            Card(title: "col bluetooth", note: "Solo l'adattatore V3 ha il bluetooth (sulla scheda: «POMA V3.x»), e va acceso nel configuratore (ble_midi_enabled = 1). Accendi l'adattatore, poi qui «cerca l'adattatore»: dovrebbe chiamarsi PO_MIDI_ADAPTER.") {
-                Chip(text: "cerca l'adattatore") { showBluetooth = true }
+            Card(title: "col bluetooth", note: "Solo l'adattatore V3 ha il bluetooth. Accendi gli adattatori, poi «cerca gli adattatori» e collegali tutti dalla lista: si chiamano tutti «PO MIDI Adapter (BLE)». Bobina li divide da sola fra PO 1, PO 2…; qui sotto «prova» ti fa sentire quale PO risponde.") {
+                Chip(text: "cerca gli adattatori") { showBluetooth = true }
+            }
+
+            Card(title: "a quale adattatore parla il \(po.title)", note: "Tocca un adattatore per darlo al \(po.title). «prova» preme l'1: senti quale PO suona.") {
+                if po.destinations.filter({ $0.looksLikePO }).isEmpty {
+                    Text("nessun adattatore collegato")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                }
+                ForEach(po.destinations.filter { $0.looksLikePO }) { p in
+                    HStack(spacing: 8) {
+                        GridChip(text: po.portName(p), on: po.destinationID == p.id) { po.destinationID = p.id }
+                        if let other = po.user(of: p) {
+                            Text("è del \(other)")
+                                .font(.system(.caption2, design: .monospaced))
+                                .foregroundStyle(Palette.dim)
+                        }
+                    }
+                }
+                HStack(spacing: 6) {
+                    GridChip(text: "prova il \(po.title)") { po.identify() }
+                    GridChip(text: "aggiorna l'elenco") { for u in bank.units { u.refreshPorts() } }
+                }
+            }
+
+            Card(title: "quanti PO", note: "Uno per adattatore, fino a quattro. Tutti sulla stessa battuta del TX-6.") {
+                HStack(spacing: 6) {
+                    GridChip(text: "aggiungi un PO") { bank.add() }
+                        .disabled(bank.units.count >= POBank.maxUnits)
+                    GridChip(text: "togli il PO \(bank.units.count)") { bank.removeLast() }
+                        .disabled(bank.units.count <= 2)
+                }
             }
 
             Card(title: "col cavo", note: "Dalla micro USB dell'adattatore all'iPhone, con un cavo USB-C – micro USB: compare come «Teensy MIDI» e l'iPhone lo alimenta. Col TX-6 o il TP-7 sullo stesso USB-C serve un hub.") {
                 EmptyView()
             }
 
-            Card(title: "a chi parla Bobina", note: "Di solito sceglie da sola l'adattatore.") {
+            Card(title: "tutte le porte", note: "Per un adattatore che non si chiama come gli altri (per esempio col cavo: «Teensy MIDI»).") {
                 HStack {
                     Text("manda a")
                         .font(.system(.caption, design: .monospaced))
@@ -592,7 +685,7 @@ struct POCollegaView: View {
                     Picker("manda a", selection: $po.destinationID) {
                         Text("nessuno").tag(MIDIUniqueIDOrNil.none)
                         ForEach(po.destinations) { p in
-                            Text(p.name).tag(MIDIUniqueIDOrNil.some(p.id))
+                            Text(po.portName(p)).tag(MIDIUniqueIDOrNil.some(p.id))
                         }
                     }
                 }
@@ -646,12 +739,12 @@ struct POCollegaView: View {
                     Spacer()
                     Button("fine") {
                         showBluetooth = false
-                        po.refreshPorts()
                     }
                 }
                 .padding()
                 BluetoothMIDIPicker()
             }
+            .onDisappear { for u in bank.units { u.refreshPorts() } }
         }
     }
 }

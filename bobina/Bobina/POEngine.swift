@@ -13,19 +13,91 @@ final class POLive: ObservableObject {
     @Published var tiltFx: Int?
 }
 
-/// Il motore della sezione Pocket Operator: parla all'adattatore di Hanz, tiene i tasti agganciati,
+/// Tutti i PO collegati, uno per adattatore (da 1 a 4). Ognuno ha il suo motore; tutti stanno sulla
+/// griglia di BobinaClock, quindi suonano insieme e a tempo col TX-6. Le pagine comandano quello scelto.
+final class POBank: ObservableObject {
+    @Published private(set) var units: [POEngine]
+    @Published var current: Int { didSet { UserDefaults.standard.set(current, forKey: "bobina.po.attivo") } }
+
+    static let maxUnits = 4
+
+    init() {
+        let saved = UserDefaults.standard.integer(forKey: "bobina.po.quanti")
+        let n = max(2, min(POBank.maxUnits, saved))
+        units = (0..<n).map { POEngine(slot: $0) }
+        current = max(0, min(n - 1, UserDefaults.standard.integer(forKey: "bobina.po.attivo")))
+        // le porte si scelgono dopo, in fila: così due adattatori con lo stesso nome non finiscono sullo stesso PO
+        for u in units { u.bank = self }
+        for u in units { u.refreshPorts() }
+    }
+
+    var unit: POEngine { units[current] }
+    var anyRunning: Bool { units.contains { $0.running } }
+
+    /// Le porte già prese dagli altri PO.
+    func taken(except slot: Int) -> (destinations: Set<MIDIUniqueID>, sources: Set<MIDIUniqueID>) {
+        let others = units.filter { $0.slot != slot }
+        return (Set(others.compactMap { $0.destinationID }), Set(others.compactMap { $0.sourceID }))
+    }
+
+    /// Tutti i PO partono nello stesso istante, quindi sulla stessa battuta.
+    func startAll() {
+        let t = units[0].io.now() + units[0].io.ticks(ms: 30)
+        for u in units where !u.running && u.connected { u.start(at: t) }
+        objectWillChange.send()
+    }
+
+    func stopAll() {
+        for u in units where u.running { u.toggleRun() }
+        objectWillChange.send()
+    }
+
+    func add() {
+        guard units.count < POBank.maxUnits else { return }
+        let u = POEngine(slot: units.count)
+        u.bank = self
+        units.append(u)
+        u.refreshPorts()
+        UserDefaults.standard.set(units.count, forKey: "bobina.po.quanti")
+    }
+
+    func removeLast() {
+        guard units.count > 2, let last = units.last else { return }
+        if last.running { last.toggleRun() }
+        last.releaseAll()
+        last.shutdown()
+        units.removeLast()
+        if current >= units.count { current = units.count - 1 }
+        UserDefaults.standard.set(units.count, forKey: "bobina.po.quanti")
+    }
+}
+
+/// Il motore di un Pocket Operator: parla al suo adattatore di Hanz, tiene i tasti agganciati,
 /// passa il piano al sequencer e segue l'orologio unico di Bobina.
 final class POEngine: ObservableObject {
 
+    /// Il suo numero: 0 = PO 1.
+    let slot: Int
+    weak var bank: POBank?
     let io = MIDIIO()
     let live = POLive()
-    private(set) lazy var sequencer = POSequencer(io: io)
+    private(set) lazy var sequencer = POSequencer(io: io, member: BobinaClock.po(slot))
+
+    var member: BobinaClock.Member { BobinaClock.po(slot) }
+    var title: String { "PO \(slot + 1)" }
+    private var storeKey: String { slot == 0 ? "bobina.po" : "bobina.po.\(slot + 1)" }
+    private var portKey: String { "bobina.po.porta.\(slot + 1)" }
 
     // MARK: collegamento
 
     @Published var destinations: [MIDIPort] = []
     @Published var sources: [MIDIPort] = []
-    @Published var destinationID: MIDIUniqueID? { didSet { applyPorts() } }
+    @Published var destinationID: MIDIUniqueID? {
+        didSet {
+            applyPorts()
+            if let d = destinationID { UserDefaults.standard.set(Int(d), forKey: portKey) }
+        }
+    }
     @Published var sourceID: MIDIUniqueID? { didSet { applyPorts() } }
     @Published private(set) var viaBluetooth = false
 
@@ -95,7 +167,12 @@ final class POEngine: ObservableObject {
     private var loading = false
     private var taps: [Date] = []
 
-    init() {
+    init(slot: Int) {
+        self.slot = slot
+        // un modello diverso per ogni nuovo PO, senza salvarlo sopra quello di ieri
+        loading = true
+        if slot > 0 { model = [.ko, .tonic, .sub, .speak][slot] }
+        loading = false
         load()
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, stamp in self?.received(bytes, stamp) }
@@ -105,12 +182,22 @@ final class POEngine: ObservableObject {
         sequencer.onSent = { [weak self] bytes in
             DispatchQueue.main.async { self?.note(bytes, incoming: false) }
         }
-        NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
+        bpmObserver = NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
             guard let self = self, let v = n.object as? Double, abs(self.bpm - v) > 0.0001 else { return }
             self.bpm = v
         }
-        refreshPorts()
         startTimer()
+    }
+
+    private var bpmObserver: NSObjectProtocol?
+
+    /// Tolto dal banco: niente più timer né notifiche.
+    func shutdown() {
+        timer?.cancel()
+        timer = nil
+        stopMotion()
+        if let o = bpmObserver { NotificationCenter.default.removeObserver(o) }
+        io.use(destination: 0, source: 0)
     }
 
     // MARK: porte
@@ -119,13 +206,49 @@ final class POEngine: ObservableObject {
         destinations = io.destinations()
         sources = io.sources()
         trace("PO · destinazioni: " + destinations.map { $0.name }.joined(separator: " · ") + " · sorgenti: " + sources.map { $0.name }.joined(separator: " · "))
+        let taken = bank?.taken(except: slot) ?? (destinations: [], sources: [])
         if destinationID == nil || !destinations.contains(where: { $0.id == destinationID }) {
-            destinationID = destinations.first(where: { $0.looksLikePO })?.id
+            // prima la porta di ieri, poi il primo adattatore che nessun altro PO sta usando
+            let saved = MIDIUniqueID(truncatingIfNeeded: UserDefaults.standard.integer(forKey: portKey))
+            if saved != 0, destinations.contains(where: { $0.id == saved }), !taken.destinations.contains(saved) {
+                destinationID = saved
+            } else {
+                destinationID = destinations.first(where: { $0.looksLikePO && !taken.destinations.contains($0.id) })?.id
+            }
         }
-        if sourceID == nil || !sources.contains(where: { $0.id == sourceID }) {
-            sourceID = sources.first(where: { $0.looksLikePO })?.id
+        // l'ascolto è la sorgente dello stesso adattatore (serve solo per l'eco nel monitor)
+        if let d = destinations.first(where: { $0.id == destinationID }), let s = POEngine.source(of: d.ref),
+           let match = sources.first(where: { $0.ref == s }) {
+            if sourceID != match.id { sourceID = match.id }
+        } else if sourceID == nil || !sources.contains(where: { $0.id == sourceID }) {
+            sourceID = sources.first(where: { $0.looksLikePO && !taken.sources.contains($0.id) })?.id
         }
         applyPorts()
+    }
+
+    /// La sorgente che sta nello stesso apparecchio di una destinazione (col bluetooth: lo stesso adattatore).
+    static func source(of destination: MIDIEndpointRef) -> MIDIEndpointRef? {
+        var entity = MIDIEntityRef()
+        guard MIDIEndpointGetEntity(destination, &entity) == noErr, entity != 0, MIDIEntityGetNumberOfSources(entity) > 0 else { return nil }
+        let s = MIDIEntityGetSource(entity, 0)
+        return s == 0 ? nil : s
+    }
+
+    /// Il nome da mostrare per una porta: se due adattatori si chiamano uguale, anche il numero.
+    func portName(_ p: MIDIPort) -> String {
+        let same = destinations.filter { $0.name == p.name }
+        guard same.count > 1, let i = same.firstIndex(where: { $0.id == p.id }) else { return p.name }
+        return "\(p.name) · \(i + 1)"
+    }
+
+    /// Quale altro PO usa questa porta, se qualcuno la usa.
+    func user(of p: MIDIPort) -> String? {
+        bank?.units.first { $0.slot != slot && $0.destinationID == p.id }?.title
+    }
+
+    /// Preme l'1 su questo adattatore: si sente quale PO risponde.
+    func identify() {
+        tap(.number(1))
     }
 
     private func applyPorts() {
@@ -233,10 +356,17 @@ final class POEngine: ObservableObject {
             running = false
             sequencer.stop()
         } else {
-            sequencer.update(makePlan())
-            sequencer.start(at: ms(30))
-            running = true
+            start(at: ms(30))
         }
+        bank?.objectWillChange.send()
+    }
+
+    /// Parte all'istante `t` (o alla battuta dopo, se qualcuno suona già).
+    func start(at t: MIDITimeStamp) {
+        guard !running else { return }
+        sequencer.update(makePlan())
+        sequencer.start(at: t)
+        running = true
     }
 
     private func makePlan() -> POSequencer.Plan {
@@ -298,7 +428,7 @@ final class POEngine: ObservableObject {
         let line = BobinaClock.shared.snapshot()
         let following = line.followedBy != nil
         if following != followingTX6 { followingTX6 = following }
-        let others = line.running && !BobinaClock.shared.isMember(.po)
+        let others = line.running && !BobinaClock.shared.isMember(member)
         if others != othersRunning { othersRunning = others }
     }
 
@@ -391,11 +521,11 @@ final class POEngine: ObservableObject {
         let s = Saved(model: model, channel: channel, useCC: useCC, sync: sync, leadMs: leadMs, liveSteps: liveSteps,
                       holdSteps: holdSteps, fxSteps: fxSteps, fxEvery: fxEvery, song: song, gate: gate,
                       gateLow: gateLow, gateHigh: gateHigh, tiltSet: tiltSet)
-        if let data = try? JSONEncoder().encode(s) { UserDefaults.standard.set(data, forKey: "bobina.po") }
+        if let data = try? JSONEncoder().encode(s) { UserDefaults.standard.set(data, forKey: storeKey) }
     }
 
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: "bobina.po"),
+        guard let data = UserDefaults.standard.data(forKey: storeKey),
               let s = try? JSONDecoder().decode(Saved.self, from: data),
               s.liveSteps.count == 16, s.liveSteps.allSatisfy({ $0.count == 16 }), s.fxSteps.count == 16,
               s.gate.count == 16, s.tiltSet.count == 4, !s.song.isEmpty else { return }

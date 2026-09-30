@@ -4,7 +4,7 @@ import SwiftUI
 struct BobinaApp: App {
     @StateObject private var engine = Engine()
     @StateObject private var tx6 = TX6Engine()
-    @StateObject private var po = POEngine()
+    @StateObject private var po = POBank()
 
     var body: some Scene {
         WindowGroup {

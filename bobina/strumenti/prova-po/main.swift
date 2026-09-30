@@ -4,6 +4,7 @@
 // 2. Passi dal vivo: lo stesso tasto su passi di fila va lasciato 20 ms prima di ripremerlo.
 // 3. Effetti a tempo: fx giù 20 ms prima del numero, e intanto i passi dal vivo tacciono.
 // 4. Sync out dell'adattatore: clock sempre acceso, start al primo passo, niente impulsi doppi.
+// 5. Due PO, due adattatori: partono insieme, stessi istanti; se il primo si ferma il secondo continua.
 //
 //   cd bobina/Bobina && DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun swiftc -O \
 //     MIDI.swift TX6.swift PO.swift BobinaClock.swift TX6Sequencer.swift POSequencer.swift ../strumenti/prova-po/main.swift -o /tmp/prova-po && /tmp/prova-po
@@ -132,3 +133,25 @@ if let s0 = startAt, let i = clk.firstIndex(where: { $0.0 == s0 }) {
     for (t, b) in clk[max(0, i - 3)..<min(clk.count, i + 4)] { print(String(format: "   %8.2f ms", t >= s0 ? ms(t - s0) : -ms(s0 - t)), b.map { String(format: "%02x", $0) }.joined(separator: " ")) }
 }
 if let s0 = startAt { for (a, b) in zip(clocks.dropFirst(), clocks) where ms(a - b) < 20 || ms(a - b) > 21.7 { print(String(format: "   intervallo storto %.2f ms a %.1f ms dallo start", ms(a - b), a >= s0 ? ms(a - s0) : -ms(s0 - a))) } }
+
+// ---------- 5. due PO insieme
+let po2IO = MIDIIO(); po2IO.use(destination: fake("po2"), source: 0)
+let po2 = POSequencer(io: po2IO, member: .po2)
+var a = POSequencer.Plan(); a.liveOn = true; a.live[0] = (0..<16).map { $0 % 2 == 0 }
+var b = POSequencer.Plan(); b.liveOn = true; b.live[8] = (0..<16).map { $0 % 2 == 0 }
+po.update(a); po2.update(b)
+run(0.1)
+_ = take("po"); _ = take("po2")
+let t0 = poIO.now() + poIO.ticks(ms: 30)
+po.start(at: t0); po2.start(at: t0)
+run(1.2)
+po.stop()
+run(1.2)
+let still = BobinaClock.shared.snapshot().running
+po2.stop()
+run(0.3)
+let s1 = take("po").filter { noteOns($0.1).contains(68) }.map { $0.0 }
+let s2 = take("po2").filter { noteOns($0.1).contains(60) }.map { $0.0 }
+let pairs = zip(s1, s2).map { abs($0.0 >= $0.1 ? ms($0.0 - $0.1) : ms($0.1 - $0.0)) }
+print(String(format: "5. PO 1: %d colpi, PO 2: %d colpi; scarto fra i due al massimo %.3f ms; fermato il PO 1 la griglia va ancora: %@",
+             s1.count, s2.count, pairs.max() ?? -1, still ? "sì" : "NO"))

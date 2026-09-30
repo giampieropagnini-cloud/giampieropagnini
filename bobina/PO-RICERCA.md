@@ -27,7 +27,7 @@ Fonti: [hanztechnology.com](https://hanztechnology.com/products/pocket-operator-
   - **micro USB**: alimentazione, e verso un computer (o un telefono) compare come **«Teensy MIDI»**;
   - **USB host**: ci si attaccano controller MIDI, massimo 100-150 mA (per di più serve un hub alimentato);
   - **MIDI DIN** in e out, **TRS 3,5 mm tipo A** in e out (nella scatola due convertitori A/B);
-  - **bluetooth MIDI**: acceso con `ble_midi_enabled = 1`, si chiama **«PO_MIDI_ADAPTER(BLE)»** (❓ il nome esatto);
+  - **bluetooth MIDI**: acceso con `ble_midi_enabled = 1`. La wiki dice «PO_MIDI_ADAPTER(BLE)»; 📏 sull'iPhone compare come **«PO MIDI Adapter (BLE) Bluetooth»**, e due adattatori si chiamano uguale (30/9/2026);
   - **sync out** 3,5 mm: il clock MIDI diventa impulsi per il PO.
 - 📄 Consumo col bluetooth acceso 150-200 mA: non si può alimentare da un OP-Z.
 - 📄 Le impostazioni si cambiano col **configuratore web** (Chrome, [pomawebconfig.hanztechnology.com](https://pomawebconfig.hanztechnology.com/)) oppure col file `config.cfg` sulla microSD. Se c'è la microSD vince lei. 🔎 Il configuratore parla col Teensy sulla porta seriale USB (115200, comandi JSON `READALL` e `SAVEALL`): **dal bluetooth e dal MIDI non si configura niente.**

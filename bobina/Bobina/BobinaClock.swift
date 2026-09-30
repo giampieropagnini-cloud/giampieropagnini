@@ -15,7 +15,10 @@ extension Notification.Name {
 final class BobinaClock {
     static let shared = BobinaClock()
 
-    enum Member: String { case tx6, po, tp7 }
+    /// Chi suona sulla griglia. Ogni PO (ogni adattatore) è uno a sé: po, po2, po3, po4.
+    enum Member: String { case tx6, po, po2, po3, po4, tp7 }
+
+    static func po(_ slot: Int) -> Member { [.po, .po2, .po3, .po4][max(0, min(3, slot))] }
 
     /// Una fotografia della griglia, da leggere senza lock.
     struct Timeline {
