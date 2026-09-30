@@ -48,7 +48,7 @@ struct RitmoView: View {
                 }
                 LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(0..<16, id: \.self) { i in
-                        StepCell(label: engine.seq[i].map { "\($0 + 1)" } ?? "·",
+                        PulseStepCell(label: engine.seq[i].map { "\($0 + 1)" } ?? "·",
                                  filled: engine.seq[i] != nil,
                                  index: i, pulse: engine.pulse, pulsing: engine.pulsing) {
                             engine.seq[i] = (engine.seq[i] == brush) ? nil : brush
@@ -61,7 +61,7 @@ struct RitmoView: View {
                 Toggle("acceso", isOn: $engine.gateOn)
                 LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(0..<16, id: \.self) { i in
-                        StepCell(label: engine.gate[i] ? "■" : "·",
+                        PulseStepCell(label: engine.gate[i] ? "■" : "·",
                                  filled: engine.gate[i],
                                  index: i, pulse: engine.pulse, pulsing: engine.pulsing) {
                             engine.gate[i].toggle()
@@ -81,8 +81,8 @@ struct RitmoView: View {
     }
 }
 
-/// Una casella: guarda il passo in Pulse, così a ogni sedicesimo si ridisegna solo lei.
-struct StepCell: View {
+/// Una casella del TP-7: guarda il passo in Pulse, così a ogni sedicesimo si ridisegna solo lei.
+struct PulseStepCell: View {
     let label: String
     let filled: Bool
     let index: Int
@@ -90,7 +90,16 @@ struct StepCell: View {
     let pulsing: Bool
     let action: () -> Void
 
-    private var current: Bool { pulsing && pulse.step == index }
+    var body: some View {
+        StepCell(label: label, filled: filled, current: pulsing && pulse.step == index, action: action)
+    }
+}
+
+struct StepCell: View {
+    let label: String
+    let filled: Bool
+    let current: Bool
+    let action: () -> Void
 
     var body: some View {
         Button(action: action) {
