@@ -2,8 +2,9 @@ import SwiftUI
 
 // MARK: - le quattro schermate dei Pocket Operator
 
-/// Tasti, Suona, Ritmo, Collega. Riapre l'ultima scheda usata.
+/// Tasti, Suona, Ritmo, Collega. Riapre l'ultima scheda usata. La barra in basso prende il colore del PO.
 struct POTabs: View {
+    @EnvironmentObject var po: POEngine
     @AppStorage("bobina.po.scheda") private var tab = 0
 
     var body: some View {
@@ -17,6 +18,51 @@ struct POTabs: View {
             POCollegaView()
                 .tabItem { Label("Collega", systemImage: "cable.connector") }.tag(3)
         }
+        .tint(po.model.color)
+    }
+}
+
+/// Ogni PO ha il suo colore, lo stesso del prontuario (le versioni per lo sfondo scuro).
+extension PO.Model {
+    var color: Color {
+        switch self {
+        case .sub: return Color(red: 0.48, green: 0.59, blue: 1.0)     // blu
+        case .tonic: return Color(red: 0.94, green: 0.56, blue: 0.29)  // arancio
+        case .ko: return Color(red: 1.0, green: 0.44, blue: 0.40)      // rosso
+        case .speak: return Color(red: 0.25, green: 0.75, blue: 0.69)  // verde acqua
+        }
+    }
+
+    var tag: String {
+        switch self {
+        case .sub: return "basso"
+        case .tonic: return "batteria"
+        case .ko: return "sampler"
+        case .speak: return "voce"
+        }
+    }
+}
+
+/// La fascia in cima a ogni scheda: il nome del PO scelto, nel suo colore.
+struct POBanner: View {
+    @EnvironmentObject var po: POEngine
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Text(po.model.name)
+                .font(.system(.title2, design: .rounded).weight(.bold))
+            Text(po.model.tag)
+                .font(.system(.subheadline, design: .monospaced))
+                .opacity(0.75)
+            Spacer()
+        }
+        .foregroundStyle(Color.black)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(po.model.color))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(po.model.name), \(po.model.tag)")
     }
 }
 
@@ -29,6 +75,7 @@ struct POPage<Content: View>: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
+                    POBanner()
                     POStatusStrip()
                     content()
                 }
@@ -72,7 +119,19 @@ struct POModelPicker: View {
     var body: some View {
         HStack(spacing: 6) {
             ForEach(PO.Model.allCases) { m in
-                GridChip(text: m.short, on: po.model == m) { po.model = m }
+                Button { po.model = m } label: {
+                    Text(m.short)
+                        .font(.system(.footnote, design: .monospaced).weight(po.model == m ? .bold : .regular))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(po.model == m ? m.color : m.color.opacity(0.18)))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(m.color, lineWidth: 1.5))
+                        .foregroundStyle(po.model == m ? Color.black : m.color)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(m.name)
+                .accessibilityAddTraits(po.model == m ? .isSelected : [])
             }
         }
     }
