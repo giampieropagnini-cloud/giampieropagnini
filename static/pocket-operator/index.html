@@ -374,6 +374,21 @@
   }
   .hold[aria-pressed="true"]{ background:var(--acc); border:1px solid var(--acc); color:var(--acc-ink); font-weight:600; }
   .hold:focus-visible{ outline:2px solid var(--acc); outline-offset:2px; }
+  /* i tasti funzione, ognuno col suo colore; la metà «tieni» è lo stesso colore, più scuro. I numeri restano grigi */
+  [data-n="76"]{ --k:#6194FA; } [data-n="77"]{ --k:#AD7AFA; } [data-n="81"]{ --k:#38C2B8; }
+  [data-n="79"]{ --k:#F25C54; } [data-n="80"]{ --k:#F7CC42; } [data-n="78"]{ --k:#66D166; } [data-n="82"]{ --k:#F273B3; }
+  .split .pad[data-n="76"],.split .pad[data-n="77"],.split .pad[data-n="81"],.split .pad[data-n="79"],
+  .split .pad[data-n="80"],.split .pad[data-n="78"],.split .pad[data-n="82"]{
+    background:var(--k); border-color:var(--k); color:#15171A; font-weight:600;
+  }
+  .split .pad[data-n="76"] .pn,.split .pad[data-n="77"] .pn,.split .pad[data-n="81"] .pn,.split .pad[data-n="79"] .pn,
+  .split .pad[data-n="80"] .pn,.split .pad[data-n="78"] .pn,.split .pad[data-n="82"] .pn{ color:inherit; opacity:.7; }
+  .hold[data-n="76"],.hold[data-n="77"],.hold[data-n="81"],.hold[data-n="79"],.hold[data-n="80"],.hold[data-n="78"],.hold[data-n="82"]{
+    background:#555; background:color-mix(in srgb, var(--k) 55%, #000); border:1px solid transparent; color:#F1F0EC;
+  }
+  /* tenuto: la metà «tieni» diventa bianca e il tasto prende un bordo bianco */
+  .split .pad[aria-pressed="true"]{ outline:3px solid #FFFFFF; outline-offset:-3px; }
+  .hold[aria-pressed="true"],.hold[data-n][aria-pressed="true"]{ background:#FFFFFF; border:1px solid #FFFFFF; color:#15171A; font-weight:700; }
   .pad[aria-pressed="true"] .pn{ color:inherit; opacity:.8; }
   .pad.tap{ background:var(--silk); border-color:var(--silk); color:var(--panel); }
   .pad.tap .pn{ color:inherit; }

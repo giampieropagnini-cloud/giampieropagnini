@@ -175,8 +175,32 @@ struct POFace: View {
     }
 }
 
+/// I colori dei tasti funzione, uno per tasto; i numeri restano grigi.
+extension PO.Key {
+    var rgb: (Double, Double, Double)? {
+        switch self {
+        case .sound: return (0.38, 0.58, 0.98)    // blu
+        case .pattern: return (0.68, 0.48, 0.98)  // viola
+        case .bpm: return (0.22, 0.76, 0.72)      // verde acqua
+        case .special: return (0.95, 0.36, 0.33)  // rosso
+        case .fx: return (0.97, 0.80, 0.26)       // giallo
+        case .play: return (0.40, 0.82, 0.40)     // verde
+        case .write: return (0.95, 0.45, 0.70)    // rosa
+        default: return nil
+        }
+    }
+
+    /// Il colore del tasto; `dark` = la metà «tieni», un po' più scura.
+    func color(dark: Bool = false) -> Color {
+        guard let (r, g, b) = rgb else { return Color(white: dark ? 0.12 : 0.24) }
+        let k = dark ? 0.55 : 1
+        return Color(red: r * k, green: g * k, blue: b * k)
+    }
+}
+
 /// Un tasto del PO diviso in due: sopra un tocco, sotto «tieni» (resta giù finché non lo ritocchi).
 /// Due tasti veri, ognuno col suo nome, così col Controllo Vocale si prende quello giusto.
+/// Tenuto: la metà «tieni» diventa bianca e il tasto prende un bordo bianco.
 struct POKeyButton: View {
     @EnvironmentObject var po: POEngine
     let key: PO.Key
@@ -186,35 +210,36 @@ struct POKeyButton: View {
     var body: some View {
         let name = key.label(po.model)
         let spoken = key.isNumber ? "tasto \(name)" : name
+        let colored = key.rgb != nil
         VStack(spacing: 3) {
             Button { po.touch(key) } label: {
                 Text(name)
-                    .font(.system(key.isNumber ? .body : .footnote, design: .monospaced))
+                    .font(.system(key.isNumber ? .body : .footnote, design: .monospaced).weight(colored ? .semibold : .regular))
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(held || flash ? Palette.accent : key.isNumber ? Color(white: 0.24) : Color(white: 0.17))
+                            .fill(flash ? Palette.accent : key.color())
                     )
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.cardEdge, lineWidth: 1))
-                    .foregroundStyle(held || flash ? Color.black : Color.white)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(held ? Color.white : Palette.cardEdge, lineWidth: held ? 3 : 1))
+                    .foregroundStyle(colored || flash ? Color.black : Color.white)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(spoken)
 
             Button { po.toggleHold(key) } label: {
                 Text(held ? "lascia" : "tieni")
-                    .font(.system(.caption2, design: .monospaced))
+                    .font(.system(.caption2, design: .monospaced).weight(held ? .bold : .regular))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity, minHeight: 36)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(held ? Palette.accent.opacity(0.55) : Color(white: 0.09))
+                            .fill(held ? Color.white : key.color(dark: true))
                     )
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.cardEdge, lineWidth: 1))
-                    .foregroundStyle(held ? Color.black : Palette.dim)
+                    .foregroundStyle(held ? Color.black : Color.white.opacity(0.85))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(held ? "lascia \(spoken)" : "tieni \(spoken)")
