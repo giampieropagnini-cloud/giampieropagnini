@@ -48,9 +48,9 @@ struct RitmoView: View {
                 }
                 LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(0..<16, id: \.self) { i in
-                        StepCell(label: engine.seq[i].map { "\($0 + 1)" } ?? "·",
+                        PulseStepCell(label: engine.seq[i].map { "\($0 + 1)" } ?? "·",
                                  filled: engine.seq[i] != nil,
-                                 current: engine.pulsing && engine.step == i) {
+                                 index: i, pulse: engine.pulse, pulsing: engine.pulsing) {
                             engine.seq[i] = (engine.seq[i] == brush) ? nil : brush
                         }
                     }
@@ -61,9 +61,9 @@ struct RitmoView: View {
                 Toggle("acceso", isOn: $engine.gateOn)
                 LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(0..<16, id: \.self) { i in
-                        StepCell(label: engine.gate[i] ? "■" : "·",
+                        PulseStepCell(label: engine.gate[i] ? "■" : "·",
                                  filled: engine.gate[i],
-                                 current: engine.pulsing && engine.step == i) {
+                                 index: i, pulse: engine.pulse, pulsing: engine.pulsing) {
                             engine.gate[i].toggle()
                         }
                     }
@@ -78,6 +78,20 @@ struct RitmoView: View {
                 TrackPicker(tracks: $engine.pumpTracks)
             }
         }
+    }
+}
+
+/// Una casella del TP-7: guarda il passo in Pulse, così a ogni sedicesimo si ridisegna solo lei.
+struct PulseStepCell: View {
+    let label: String
+    let filled: Bool
+    let index: Int
+    @ObservedObject var pulse: Pulse
+    let pulsing: Bool
+    let action: () -> Void
+
+    var body: some View {
+        StepCell(label: label, filled: filled, current: pulsing && pulse.step == index, action: action)
     }
 }
 

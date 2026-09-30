@@ -22,7 +22,7 @@ struct PadView: View {
 
                 LazyVGrid(columns: columns, spacing: 8) {
                     ForEach(0..<16, id: \.self) { i in
-                        PressPad(lit: engine.flashPad == i, onPress: { engine.hitPad(i) }, label: {
+                        FlashingPad(pulse: engine.pulse, index: i, onPress: { engine.hitPad(i) }, label: {
                             VStack(spacing: 2) {
                                 Text("\(i + 1)").font(.system(.title3, design: .monospaced))
                                 Text("nota \(TP7.padBase + i)").font(.system(size: 9, design: .monospaced)).opacity(0.6)
@@ -87,5 +87,17 @@ struct PadView: View {
                 }
             }
         }
+    }
+}
+
+/// Il pad che lampeggia quando il sequencer lo suona: guarda Pulse, così si ridisegna solo lui.
+struct FlashingPad<Label: View>: View {
+    @ObservedObject var pulse: Pulse
+    let index: Int
+    let onPress: () -> Void
+    @ViewBuilder let label: () -> Label
+
+    var body: some View {
+        PressPad(lit: pulse.flashPad == index, onPress: onPress, label: label)
     }
 }
