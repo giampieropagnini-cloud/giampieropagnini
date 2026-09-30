@@ -13,6 +13,21 @@ final class POLive: ObservableObject {
     @Published var tiltFx: Int?
 }
 
+/// Il monitor sta a parte anche lui: le righe arrivano mentre il ritmo gira, e se le pubblicasse il motore
+/// SwiftUI ridisegnerebbe tutta la pagina, menu «passa a…» compreso, e il tocco sul menu si perderebbe.
+final class POLogBook: ObservableObject {
+    @Published private(set) var lines: [LogLine] = []
+    @Published var paused = false
+
+    func add(_ line: LogLine) {
+        guard !paused else { return }
+        lines.insert(line, at: 0)
+        if lines.count > 150 { lines.removeLast(lines.count - 150) }
+    }
+
+    func clear() { lines.removeAll() }
+}
+
 /// Tutti i PO collegati, uno per adattatore (da 1 a 4). Ognuno ha il suo motore; tutti stanno sulla
 /// griglia di BobinaClock, quindi suonano insieme e a tempo col TX-6. Le pagine comandano quello scelto.
 final class POBank: ObservableObject {
@@ -156,8 +171,7 @@ final class POEngine: ObservableObject {
 
     // MARK: monitor
 
-    @Published private(set) var log: [LogLine] = []
-    @Published var logPaused = false
+    let logBook = POLogBook()
 
     // MARK: interni
 
@@ -183,7 +197,9 @@ final class POEngine: ObservableObject {
             DispatchQueue.main.async { self?.note(bytes, incoming: false) }
         }
         bpmObserver = NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
-            guard let self = self, let v = n.object as? Double, abs(self.bpm - v) > 0.0001 else { return }
+            // il numero mostrato è intero: seguendo il TX-6 il bpm misurato tremola di qualche decimo, e ridisegnare
+            // la pagina a ogni decimo farebbe perdere i tocchi sul menu
+            guard let self = self, let v = n.object as? Double, abs(self.bpm - v) >= 0.5 || self.bpm.rounded() != v.rounded() else { return }
             self.bpm = v
         }
         startTimer()
@@ -331,6 +347,22 @@ final class POEngine: ObservableObject {
         io.send(PO.noteOn(then, channel: channel), at: ms(25))
         io.send(PO.noteOff(then, channel: channel), at: ms(65))
         io.send(PO.noteOff(first, channel: channel), at: ms(90))
+    }
+
+    /// Cancella il pattern acceso: tasto in alto tenuto + pattern (record, acc o style). Sul PO sparisce
+    /// subito, senza conferma. Se qualcosa era tenuto dalla faccia lo si lascia prima, se no la combinazione non parte pulita.
+    func clearPattern() {
+        if held.isEmpty {
+            pair(.special, .pattern)
+        } else {
+            releaseAll()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in self?.pair(.special, .pattern) }
+        }
+        logText("cancella il pattern (\(model.special) + pattern)")
+    }
+
+    private func logText(_ text: String) {
+        logBook.add(LogLine(incoming: false, text: text, raw: ""))
     }
 
     /// Un effetto per un momento: fx + tasto per `ms` millisecondi.
@@ -489,13 +521,12 @@ final class POEngine: ObservableObject {
     // MARK: monitor
 
     private func note(_ bytes: [UInt8], incoming: Bool) {
-        guard !logPaused, !bytes.isEmpty else { return }
+        guard !logBook.paused, !bytes.isEmpty else { return }
         let raw = bytes.prefix(12).map { String(format: "%02x", $0) }.joined(separator: " ")
-        log.insert(LogLine(incoming: incoming, text: PO.describe(bytes, model: model), raw: raw), at: 0)
-        if log.count > 150 { log.removeLast(log.count - 150) }
+        logBook.add(LogLine(incoming: incoming, text: PO.describe(bytes, model: model), raw: raw))
     }
 
-    func clearLog() { log.removeAll() }
+    func clearLog() { logBook.clear() }
 
     // MARK: memoria
 

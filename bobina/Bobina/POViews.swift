@@ -220,6 +220,20 @@ struct POTastiView: View {
                 }
             }
 
+            Card(title: "cancella il pattern", note: po.model == .sub
+                 ? "Un tocco: \(po.model.special) tenuto + pattern. Cancella il pattern acceso, subito e senza ritorno. Sul sub la combinazione è da confermare: guarda il display."
+                 : "Un tocco: \(po.model.special) tenuto + pattern. Cancella il pattern acceso, subito e senza ritorno.") {
+                Button { po.clearPattern() } label: {
+                    Text("cancella il pattern")
+                        .font(.system(.headline, design: .monospaced))
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(Palette.rec))
+                        .foregroundStyle(Color.white)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("cancella il pattern del \(po.title)")
+            }
+
             Card(title: "in un tocco", note: "La combinazione la fa Bobina: tiene il tasto, preme il numero, lascia.") {
                 HStack(spacing: 6) {
                     ForEach(PO.Shortcut.allCases, id: \.rawValue) { s in
@@ -753,16 +767,25 @@ struct POMonitorCard: View {
     @EnvironmentObject var po: POEngine
 
     var body: some View {
+        POMonitorLines(book: po.logBook)
+    }
+}
+
+/// Le righe del monitor: guardano solo il loro quaderno, non il motore.
+struct POMonitorLines: View {
+    @ObservedObject var book: POLogBook
+
+    var body: some View {
         Card(title: "monitor", note: "→ parte da Bobina · ← torna dall'adattatore (è solo l'eco: l'adattatore non manda niente di suo). I passi a tempo non vengono scritti, per non affollare.") {
             HStack {
-                Toggle("in pausa", isOn: $po.logPaused)
+                Toggle("in pausa", isOn: $book.paused)
                     .font(.footnote)
                 Spacer()
-                Button("pulisci") { po.clearLog() }
+                Button("pulisci") { book.clear() }
                     .font(.footnote)
             }
             VStack(alignment: .leading, spacing: 3) {
-                ForEach(po.log.prefix(40)) { line in
+                ForEach(book.lines.prefix(40)) { line in
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text(line.incoming ? "←" : "→")
                             .foregroundStyle(Palette.accent)
@@ -774,7 +797,7 @@ struct POMonitorCard: View {
                     }
                     .font(.system(size: 11, design: .monospaced))
                 }
-                if po.log.isEmpty {
+                if book.lines.isEmpty {
                     Text("ancora niente")
                         .font(.system(size: 11, design: .monospaced))
                         .foregroundStyle(Palette.dim)

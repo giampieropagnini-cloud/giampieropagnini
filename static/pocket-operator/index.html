@@ -338,6 +338,7 @@
   .tbtn:hover,.nbtn:hover{ border-color:var(--ink); }
   .tbtn.main,.tbtn[aria-pressed="true"]{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); font-weight:600; }
   .tbtn.out{ text-align:left; }
+  .tbtn.danger{ background:#C62F2A; border-color:#C62F2A; color:#FFFFFF; font-weight:600; }
   .tbtn.sq{ min-width:48px; font-size:20px; padding:6px 12px; }
   .tbtn:focus-visible,.pad:focus-visible,.nbtn:focus-visible{ outline:2px solid var(--acc); outline-offset:2px; }
   .tl-ch{ display:flex; align-items:center; gap:10px; }
@@ -1574,6 +1575,10 @@
       numRow("suono", FN_NOTE.sound) +
       numRow("volume", FN_NOTE.bpm) +
       "<p class='note'>Volume: con le cuffie non andare oltre 5.</p>" +
+      "<div class='grp'><h3>cancellare</h3><div class='tl-row'>" +
+        "<button type='button' class='tbtn danger' data-act='combo' data-seq='79,77' aria-label='cancella il pattern'>cancella il pattern (<span class='tl-top'>record</span> + pattern)</button>" +
+      "</div></div>" +
+      "<p class='note'>Cancella il pattern acceso, subito e senza ritorno. Sul K.O! e sullo Speak è record + pattern, sul Tonic acc + pattern; sul Sub (style + pattern) è da confermare.</p>" +
       "<div class='grp'><h3>tempo e sync</h3><div class='tl-row'>" +
         "<button type='button' class='tbtn' data-act='tap' data-n='81'>tempo preset (bpm)</button>" +
         "<button type='button' class='tbtn' data-act='combo' data-seq='79,81'>cambia sync (<span class='tl-top'>record</span> + bpm)</button>" +
