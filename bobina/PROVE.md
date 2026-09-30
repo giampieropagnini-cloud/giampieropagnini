@@ -13,6 +13,7 @@ iPhone 16 Pro Max (iOS 26.7, USB-C), TP-7 firmware 1.1.11, Bobina compilata con 
 | 7 | specchio dei tasti (TP-7 → Bobina) | TP-7 su MIDI → ctrl, scheda Collega | ✅ 28/9/2026: arrivano ▶ (cc 23), ■ (cc 24), ● (cc 22), mode (cc 28), premuto 127 e lasciato 0 |
 
 | 9 | ⏪ ⏩ avvolgimento veloce (cc 18 a 0 e 127) | scheda Nastro | ✅ 29/9/2026: avanti e indietro velocissimi. Ma arrivato in fondo **non passa alla canzone dopo**: via MIDI non c'è modo di cambiare canzone |
+| 10 | ▶ in cue con la leva | scheda Nastro, TP-7 su cue e fermo, leva tenuta su un valore | ✅ 30/9/2026: a **60** il nastro suona a velocità normale. Attenzione: la leva lasciata a 60 mentre il nastro suona da solo (dopo un pad) lo tiene fermo, e la sequenza sembra non andare |
 | 8 | mixer: volume, deriva, ingressi, registrazione da Bobina | scheda Mixer, MIDI → sync | ✅ 29/9/2026: tutto funziona |
 
 ## Col bluetooth (29/9/2026)

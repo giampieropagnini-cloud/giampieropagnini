@@ -35,16 +35,13 @@ struct NastroView: View {
                 }
             }
 
-            Card(title: "prova leva", note: "Per trovare un ▶ che vada anche in cue. Col TP-7 fermo tocca un numero: la leva resta lì finché non ne tocchi un altro. 64 è il centro.") {
-                HStack(spacing: 6) {
-                    ForEach([58, 60, 62, 64], id: \.self) { v in
-                        Chip(text: "\(v)", on: engine.lever == v) { engine.testLever(v) }
-                    }
-                }
-                HStack(spacing: 6) {
-                    ForEach([66, 68, 70, 72], id: \.self) { v in
-                        Chip(text: "\(v)", on: engine.lever == v) { engine.testLever(v) }
-                    }
+            Card(title: "trasporto in cue", note: "Col TP-7 su MIDI → cue il ▶ di sopra non funziona: usa questi. ▶ fa correre il nastro con la leva; dopo un pad il nastro suona da solo, e ■ lo tiene fermo finché non ripremi ▶.") {
+                HStack(spacing: 8) {
+                    Chip(text: "▶", on: engine.cueTape == .leverPlay || engine.cueTape == .playing) { engine.cuePlay() }
+                    Chip(text: "■", on: engine.cueTape == .stopped || engine.cueTape == .frozen) { engine.cueStop() }
+                    Text(cueTapeLabel)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
                 }
             }
 
@@ -176,6 +173,17 @@ struct MotionCard: View {
 }
 
 /// La velocità dell'inclinazione, aggiornata 30 volte al secondo: guarda Pulse e si ridisegna da sola.
+private extension NastroView {
+    var cueTapeLabel: String {
+        switch engine.cueTape {
+        case .stopped: return "fermo"
+        case .leverPlay: return "suona con la leva"
+        case .playing: return "suona"
+        case .frozen: return "tenuto fermo"
+        }
+    }
+}
+
 struct MotionReadout: View {
     @ObservedObject var pulse: Pulse
 
