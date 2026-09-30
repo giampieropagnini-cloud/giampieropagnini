@@ -13,6 +13,15 @@ struct LogLine: Identifiable {
 
 enum LoopState { case off, started, on }
 
+/// Quello che cambia molte volte al secondo (la casella del passo, il pad che lampeggia, la velocità
+/// dell'inclinazione) vive a parte: così si ridisegnano solo le griglie che lo mostrano, non tutta la pagina.
+/// Se cambiasse dentro Engine, a ogni sedicesimo SwiftUI rifarebbe anche il menu «passa a…», e i tocchi si perderebbero.
+final class Pulse: ObservableObject {
+    @Published var step = 0
+    @Published var flashPad: Int?
+    @Published var motionSpeed = 1.0
+}
+
 /// Tutto quello che Bobina sa e fa. Vive sul main thread; i messaggi a tempo partono
 /// in anticipo con la marca temporale di CoreMIDI, così il ritmo non dipende dallo schermo.
 final class Engine: ObservableObject {
@@ -55,7 +64,8 @@ final class Engine: ObservableObject {
             if motionOn { startMotion() } else { stopMotion() }
         }
     }
-    @Published private(set) var motionSpeed = 1.0
+    let pulse = Pulse()
+    private var motionSpeed: Double { pulse.motionSpeed }
     @Published var shakeAction = ShakeAction.tapeStop
 
     enum ShakeAction: String, CaseIterable, Identifiable {
@@ -70,14 +80,13 @@ final class Engine: ObservableObject {
     @Published var markMode = false { didSet { if oldValue != markMode { send(TP7.cc(TP7.ccCueRec, markMode ? 127 : 0)) } } }
     @Published var padsSet: Set<Int> = []
     @Published private(set) var lastPad: Int?
-    @Published private(set) var flashPad: Int?
 
     // MARK: tempo e giochi a tempo
 
     /// Da 40 a 240: i limiti li tengono i controlli.
     @Published var bpm: Double = 120
     @Published private(set) var running = false
-    @Published private(set) var step = 0
+    var step: Int { pulse.step }
     /// Col TP-7 su MIDI → sync, i passi li detta il suo clock (il tempo del file, anche quando lo rallenti).
     @Published var followClock = false { didSet { if followClock && running { toggleRun() } } }
     private var clockTicks = 0
@@ -385,9 +394,9 @@ final class Engine: ObservableObject {
     private func flash(_ index: Int, at time: MIDITimeStamp) {
         let delay = time == 0 ? 0 : msUntil(time)
         DispatchQueue.main.asyncAfter(deadline: .now() + delay / 1000) { [weak self] in
-            self?.flashPad = index
+            self?.pulse.flashPad = index
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.09) { [weak self] in
-                if self?.flashPad == index { self?.flashPad = nil }
+                if self?.pulse.flashPad == index { self?.pulse.flashPad = nil }
             }
         }
     }
@@ -614,7 +623,7 @@ final class Engine: ObservableObject {
         lastFiredAt = max(lastFiredAt, t)
         let shown = i
         let delay = msUntil(t) / 1000
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.step = shown }
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.pulse.step = shown }
 
         if seqOn, let pad = seq[i] {
             hitPad(pad, at: t, fromUser: false)
@@ -685,7 +694,7 @@ final class Engine: ObservableObject {
             guard let self = self, let d = data else { return }
             // inclinato a destra accelera, a sinistra rallenta: 45° = raddoppio o metà
             let roll = max(-1.2, min(1.2, d.attitude.roll))
-            self.motionSpeed = max(TP7.minSpeed, min(TP7.maxSpeed, pow(2, roll / (.pi / 4))))
+            self.pulse.motionSpeed = max(TP7.minSpeed, min(TP7.maxSpeed, pow(2, roll / (.pi / 4))))
             let a = d.userAcceleration
             let g = sqrt(a.x * a.x + a.y * a.y + a.z * a.z)
             if g > 2.2 && Date().timeIntervalSince(self.lastShake) > 1.2 {
@@ -697,7 +706,7 @@ final class Engine: ObservableObject {
 
     private func stopMotion() {
         motion.stopDeviceMotionUpdates()
-        motionSpeed = 1
+        pulse.motionSpeed = 1
     }
 
     private func shake() {

@@ -163,9 +163,7 @@ struct MotionCard: View {
         Card(title: "col corpo", note: "Inclina il telefono a destra per accelerare, a sinistra per rallentare: 45° = doppio o metà. Scuotilo per l'azione che scegli.") {
             Toggle("inclinazione", isOn: $engine.motionOn)
             if engine.motionOn {
-                Text(String(format: "adesso ×%.2f", engine.motionSpeed))
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.accent)
+                MotionReadout(pulse: engine.pulse)
             }
             Picker("scuoti", selection: $engine.shakeAction) {
                 ForEach(Engine.ShakeAction.allCases) { a in
@@ -174,5 +172,16 @@ struct MotionCard: View {
             }
             .pickerStyle(.segmented)
         }
+    }
+}
+
+/// La velocità dell'inclinazione, aggiornata 30 volte al secondo: guarda Pulse e si ridisegna da sola.
+struct MotionReadout: View {
+    @ObservedObject var pulse: Pulse
+
+    var body: some View {
+        Text(String(format: "adesso ×%.2f", pulse.motionSpeed))
+            .font(.system(.caption, design: .monospaced))
+            .foregroundStyle(Palette.accent)
     }
 }
