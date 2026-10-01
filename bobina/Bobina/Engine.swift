@@ -85,6 +85,11 @@ final class Engine: ObservableObject {
 
     @Published var markMode = false { didSet { if oldValue != markMode { send(TP7.cc(TP7.ccCueRec, markMode ? 127 : 0)) } } }
     @Published var padsSet: Set<Int> = []
+    /// Pad «finché lo tieni»: il nastro suona solo mentre un pad è premuto, e si ferma quando lo lasci.
+    @Published var padHold = UserDefaults.standard.bool(forKey: "bobina.padHold") {
+        didSet { UserDefaults.standard.set(padHold, forKey: "bobina.padHold") }
+    }
+    private var heldPads = Set<Int>()
     @Published private(set) var lastPad: Int?
 
     // MARK: tempo e giochi a tempo
@@ -494,6 +499,29 @@ final class Engine: ObservableObject {
     }
 
     func forgetPads() { padsSet.removeAll(); lastPad = nil }
+
+    /// Il dito sul pad: salta al segno e suona.
+    func padDown(_ index: Int) {
+        heldPads.insert(index)
+        hitPad(index)
+    }
+
+    /// Il dito che lascia il pad: con «finché lo tieni» il nastro si ferma, ma solo quando non resta
+    /// nessun pad premuto. In «segna» no: lì i pad mettono i segni. La registrazione non si tocca.
+    func padUp(_ index: Int) {
+        heldPads.remove(index)
+        guard padHold, !markMode, heldPads.isEmpty else { return }
+        switch cueTape {
+        case .leverPlay:
+            forceLever(TP7.leverCenter)
+            cueTape = .stopped
+        case .playing:
+            holdStill(true)
+            cueTape = .frozen
+        case .stopped, .frozen:
+            break
+        }
+    }
 
     /// ⏮ ⏭ canzone: in un «album» (un file con un segno all'inizio di ogni canzone, legato ai pad 1-16)
     /// passano alla canzone prima o dopo. Sempre in «richiama»: in «segna» sposterebbero i segni.
