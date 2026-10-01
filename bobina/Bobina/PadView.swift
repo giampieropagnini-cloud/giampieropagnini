@@ -42,6 +42,10 @@ struct PadView: View {
                 }
             }
 
+            Card(title: "trasporto in cue", note: "Gli stessi tasti della scheda Nastro, qui sotto i pad: ▶ fa correre il nastro, ■ lo ferma, ● arma (la ripresa parte dal ▶ della macchina), ⏮ ⏭ canzone passano al segno prima o dopo.") {
+                CueTransportControls()
+            }
+
             Card(title: "balbettio", note: "Tieni premuto: l'ultimo pad si ripete a tempo, come un beat repeat. Il tempo è quello della scheda Ritmo.") {
                 HStack(spacing: 8) {
                     ForEach(0..<4, id: \.self) { k in

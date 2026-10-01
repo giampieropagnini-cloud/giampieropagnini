@@ -36,21 +36,7 @@ struct NastroView: View {
             }
 
             Card(title: "trasporto in cue", note: "Col TP-7 su MIDI → cue i tasti di sopra non funzionano: usa questi. ▶ fa correre il nastro in avanti con la leva, ■ lo ferma. Un pad sposta il nastro al suo segno e, se era fermo, lo fa partire. «dito» lo tiene fermo finché lo tieni premuto. ● arma soltanto: in cue la registrazione parte solo col ▶ della macchina, e il ■ di qui la chiude. Se il nastro l'hai fatto partire dalla macchina, fermalo dalla macchina. ⏮ e ⏭ canzone passano al segno prima o dopo: in un album, alla canzone prima o dopo.") {
-                HStack(spacing: 8) {
-                    Chip(text: "▶", on: engine.cueTape == .leverPlay || engine.cueTape == .playing) { engine.cuePlay() }
-                    Chip(text: "■", on: engine.cueTape == .stopped || engine.cueTape == .frozen) { engine.cueStop() }
-                    Chip(text: "●", on: engine.recording, color: Palette.rec) { engine.cueRecord() }
-                    Text(cueTapeLabel)
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(Palette.dim)
-                }
-                HStack(spacing: 8) {
-                    Chip(text: "⏮ canzone") { engine.skipSong(-1) }
-                    Chip(text: "⏭ canzone") { engine.skipSong(1) }
-                    Text(engine.lastPad.map { "canzone \($0 + 1)" } ?? "")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(Palette.dim)
-                }
+                CueTransportControls()
             }
 
             SpeedCard()
@@ -181,13 +167,34 @@ struct MotionCard: View {
 }
 
 /// La velocità dell'inclinazione, aggiornata 30 volte al secondo: guarda Pulse e si ridisegna da sola.
-private extension NastroView {
-    var cueTapeLabel: String {
+/// ▶ ■ ● e ⏮ ⏭ canzone per il TP-7 su cue: stanno in Nastro e, sotto i pad, in Pad.
+struct CueTransportControls: View {
+    @EnvironmentObject var engine: Engine
+
+    private var label: String {
         switch engine.cueTape {
         case .stopped: return "fermo"
         case .leverPlay: return "suona con la leva"
         case .playing: return "suona"
         case .frozen: return "tenuto fermo"
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Chip(text: "▶", on: engine.cueTape == .leverPlay || engine.cueTape == .playing) { engine.cuePlay() }
+            Chip(text: "■", on: engine.cueTape == .stopped || engine.cueTape == .frozen) { engine.cueStop() }
+            Chip(text: "●", on: engine.recording, color: Palette.rec) { engine.cueRecord() }
+            Text(label)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+        }
+        HStack(spacing: 8) {
+            Chip(text: "⏮ canzone") { engine.skipSong(-1) }
+            Chip(text: "⏭ canzone") { engine.skipSong(1) }
+            Text(engine.lastPad.map { "canzone \($0 + 1)" } ?? "")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
         }
     }
 }
