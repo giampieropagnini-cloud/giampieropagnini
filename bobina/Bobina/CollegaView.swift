@@ -21,23 +21,34 @@ struct CollegaView: View {
             }
 
             Card(title: "a chi parla Bobina", note: "Di solito sceglie da sola il TP-7. Se hai altro collegato, scegli qui.") {
-                Picker("manda a", selection: $engine.destinationID) {
-                    Text("nessuno").tag(MIDIUniqueIDOrNil.none)
-                    ForEach(engine.destinations) { p in
-                        Text(p.name).tag(MIDIUniqueIDOrNil.some(p.id))
+                // il menu mostra solo il nome scelto: l'etichetta va scritta accanto, se no i due «TP-7» sembrano uguali
+                HStack {
+                    Text("manda a").foregroundStyle(Palette.dim)
+                    Spacer()
+                    Picker("manda a", selection: $engine.destinationID) {
+                        Text("nessuno").tag(MIDIUniqueIDOrNil.none)
+                        ForEach(engine.destinations) { p in
+                            Text(p.name).tag(MIDIUniqueIDOrNil.some(p.id))
+                        }
                     }
+                    .labelsHidden()
                 }
-                Picker("ascolta", selection: $engine.sourceID) {
-                    Text("nessuno").tag(MIDIUniqueIDOrNil.none)
-                    ForEach(engine.sources) { p in
-                        Text(p.name).tag(MIDIUniqueIDOrNil.some(p.id))
+                HStack {
+                    Text("ascolta").foregroundStyle(Palette.dim)
+                    Spacer()
+                    Picker("ascolta", selection: $engine.sourceID) {
+                        Text("nessuno").tag(MIDIUniqueIDOrNil.none)
+                        ForEach(engine.sources) { p in
+                            Text(p.name).tag(MIDIUniqueIDOrNil.some(p.id))
+                        }
                     }
+                    .labelsHidden()
                 }
                 Button("aggiorna l'elenco") { engine.refreshPorts() }
                     .font(.footnote)
             }
 
-            Card(title: "come va messo il TP-7", note: "Tieni mode → MIDI. Su off, cue e sync ascolta i comandi di Bobina. cue serve per i pad; sync gli fa mandare il suo tempo (Bobina lo può seguire), ma i pad non vanno. ctrl lo trasforma in controller: qui vedi i suoi tasti, ma non ascolta più niente, e resta così anche scollegato.") {
+            Card(title: "come va messo il TP-7", note: "Tieni mode → MIDI. cue serve per i pad: lì play e stop si fanno con «trasporto in cue» nella scheda Nastro. sync fa andare il trasporto normale e manda il suo tempo, che Bobina segue solo col cavo; i pad non vanno. ctrl lo trasforma in controller: qui vedi i suoi tasti, ma non ascolta più niente, e resta così anche scollegato.") {
                 EmptyView()
             }
 

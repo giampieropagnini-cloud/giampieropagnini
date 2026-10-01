@@ -699,7 +699,7 @@ final class Engine: ObservableObject {
     private func currentBend() -> Int { TP7.bendFor(speed: currentSpeedFactor()) }
 
     /// Il TP-7 è collegato col bluetooth: iOS chiama queste porte «… Bluetooth».
-    private var overBluetooth: Bool { connectedName.lowercased().contains("bluetooth") }
+    var overBluetooth: Bool { connectedName.lowercased().contains("bluetooth") }
 
     /// Il pitch bend parte solo se cambia davvero, al massimo ogni 12 ms col cavo e ogni 40 ms col bluetooth:
     /// ogni invio è un pacchetto, e un bluetooth solo, con due macchine, si intasa.

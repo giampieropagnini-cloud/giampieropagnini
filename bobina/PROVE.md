@@ -33,8 +33,7 @@ iPhone 16 Pro Max (iOS 26.7, USB-C), TP-7 firmware 1.1.11, Bobina compilata con 
 - In ctrl: cc 22/23/24/28 premuto e lasciato, cc 30 della bobina relativo (1-3 avanti, 125-127 indietro).
 - In sync: fa allo ▶, clock regolare per tutta la riproduzione (110 BPM col file di prova), fc allo ■.
 
-## Da sistemare
+## Sistemato
 
-- Ritmo: se il TP-7 è collegato col bluetooth, «segui il TP-7» deve dire che il tempo arriva solo col cavo, e proporre tap.
-
-- Collega → «a chi parla Bobina»: i due menu mostrano entrambi «TP-7» senza dire quale è l'uscita e quale l'ingresso.
+- Ritmo: con «segui il TP-7» acceso e il TP-7 in bluetooth, una riga avvisa che il tempo arriva solo col cavo (1/10/2026).
+- Collega → «a chi parla Bobina»: accanto ai due menu c'è scritto «manda a» e «ascolta» (1/10/2026).
