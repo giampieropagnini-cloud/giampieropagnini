@@ -1357,10 +1357,12 @@
       if(tlIsHeld(seq[i])){ tele.msg = "Prima lascia «" + tlName(seq[i]) + "»: è ancora giù."; tlPaint(); return; }
     }
     var press = seq.filter(function(n){ return !tlIsHeld(n); });
+    /* due tasti funzione insieme (cancella, sync) vogliono i tempi di un dito: coi 25 ms il PO non cancellava */
+    var step = el && el.dataset.slow ? 120 : TL_STEP;
     var t = tlStart(), k = 0;
-    press.forEach(function(n){ tlOn(n, t + TL_STEP * k++); });
-    press.slice().reverse().forEach(function(n){ tlOff(n, t + TL_STEP * k++); });
-    tele.busy = t + TL_STEP * k;
+    press.forEach(function(n){ tlOn(n, t + step * k++); });
+    press.slice().reverse().forEach(function(n){ tlOff(n, t + step * k++); });
+    tele.busy = t + step * k;
     tlFlash(el);
     tlPaint();
   }
@@ -1576,12 +1578,12 @@
       numRow("volume", FN_NOTE.bpm) +
       "<p class='note'>Volume: con le cuffie non andare oltre 5.</p>" +
       "<div class='grp'><h3>cancellare</h3><div class='tl-row'>" +
-        "<button type='button' class='tbtn danger' data-act='combo' data-seq='79,77' aria-label='cancella il pattern'>cancella il pattern (<span class='tl-top'>record</span> + pattern)</button>" +
+        "<button type='button' class='tbtn danger' data-act='combo' data-seq='79,77' data-slow='1' aria-label='cancella il pattern'>cancella il pattern (<span class='tl-top'>record</span> + pattern)</button>" +
       "</div></div>" +
       "<p class='note'>Cancella il pattern acceso, subito e senza ritorno. Sul K.O! e sullo Speak è record + pattern, sul Tonic acc + pattern; sul Sub (style + pattern) è da confermare.</p>" +
       "<div class='grp'><h3>tempo e sync</h3><div class='tl-row'>" +
         "<button type='button' class='tbtn' data-act='tap' data-n='81'>tempo preset (bpm)</button>" +
-        "<button type='button' class='tbtn' data-act='combo' data-seq='79,81'>cambia sync (<span class='tl-top'>record</span> + bpm)</button>" +
+        "<button type='button' class='tbtn' data-act='combo' data-seq='79,81' data-slow='1'>cambia sync (<span class='tl-top'>record</span> + bpm)</button>" +
       "</div></div>" +
       "<p class='note'>«Tempo preset» cicla 80 · 120 · 140. «Cambia sync» cicla SY0-SY5: guarda il display del PO. Per stare a tempo col TX-6 serve SY2.</p>" +
       "</section>";

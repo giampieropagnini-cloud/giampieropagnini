@@ -359,12 +359,22 @@ final class POEngine: ObservableObject {
     /// subito, senza conferma. Se qualcosa era tenuto dalla faccia lo si lascia prima, se no la combinazione non parte pulita.
     func clearPattern() {
         if held.isEmpty {
-            pair(.special, .pattern)
+            slowPair(.special, .pattern)
         } else {
             releaseAll()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in self?.pair(.special, .pattern) }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in self?.slowPair(.special, .pattern) }
         }
         logText("cancella il pattern (\(model.special) + pattern)")
+    }
+
+    /// Due tasti funzione insieme, coi tempi di un dito: il primo giù, dopo 80 ms il secondo, tenuto 170 ms,
+    /// poi si lasciano. Il 30/9/2026 «record + pattern» coi tempi delle combinazioni coi numeri (40 ms) non cancellava.
+    func slowPair(_ first: PO.Key, _ then: PO.Key) {
+        send(PO.noteOn(first, channel: channel))
+        io.send(PO.noteOn(then, channel: channel), at: ms(80))
+        io.send(PO.noteOff(then, channel: channel), at: ms(250))
+        io.send(PO.noteOff(first, channel: channel), at: ms(350))
+        note(PO.noteOn(then, channel: channel) + PO.noteOff(then, channel: channel) + PO.noteOff(first, channel: channel), incoming: false)
     }
 
     private func logText(_ text: String) {

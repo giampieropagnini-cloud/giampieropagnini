@@ -265,7 +265,7 @@ struct POTastiView: View {
 
             Card(title: "servizio", note: "Il modo di sync si legge sul display del PO: SY0 niente, SY2 riceve il sync (quello da usare col TX-6).") {
                 HStack(spacing: 6) {
-                    GridChip(text: "modo di sync") { po.pair(.special, .bpm) }
+                    GridChip(text: "modo di sync") { po.slowPair(.special, .bpm) }
                     GridChip(text: "tempo preset") { po.tap(.bpm) }
                     GridChip(text: "play") { po.tap(.play) }
                 }
@@ -628,7 +628,7 @@ struct PORitmoView: View {
 
             Card(title: "sul PO", note: "Il PO non dice mai com'è messo: il modo di sync e il play si guardano sul display.") {
                 HStack(spacing: 6) {
-                    GridChip(text: "modo di sync") { po.pair(.special, .bpm) }
+                    GridChip(text: "modo di sync") { po.slowPair(.special, .bpm) }
                     GridChip(text: "play") { po.tap(.play) }
                     GridChip(text: "tempo preset") { po.tap(.bpm) }
                 }
