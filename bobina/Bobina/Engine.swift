@@ -367,6 +367,11 @@ final class Engine: ObservableObject {
         case .leverPlay:
             forceLever(TP7.leverCenter)
             cueTape = .stopped
+            if recording {
+                send(TP7.cc(TP7.ccArm, 0))
+                armed = false
+                recording = false
+            }
         case .playing:
             holdStill(true)
             cueTape = .frozen
@@ -375,20 +380,28 @@ final class Engine: ObservableObject {
         }
     }
 
-    /// Un pad in «richiama» fa suonare il nastro da solo: la leva del ▶ in cue va tolta, se no lo frenerebbe.
+    /// In cue un pad sposta il nastro al suo segno ma non lo fa partire (provato il 1/10/2026):
+    /// se il nastro è fermo, Bobina lo fa correre con la leva, così il pad suona da lì.
+    /// Se corre già con la leva, la leva resta: toglierla lo fermerebbe.
     private func padStartsTape(at time: MIDITimeStamp) {
-        if cueTape == .leverPlay || cueTape == .frozen {
-            if cueTape == .frozen {
-                let restore = currentBend()
-                send(TP7.bend(restore), at: time, quiet: true)
-                lastBendSent = restore
-            }
-            halted = false
-            lever = TP7.leverCenter
-            send(TP7.cc(TP7.ccLever, TP7.leverCenter), at: time, quiet: true)
-        }
-        // il sequencer passa di qui a ogni colpo: si pubblica solo quando cambia davvero
-        if cueTape != .playing { cueTape = .playing }
+        guard cueTape == .stopped else { return }
+        ramp = nil
+        halted = false
+        winding = 0
+        lever = TP7.leverCuePlay
+        send(TP7.cc(TP7.ccLever, TP7.leverCuePlay), at: time, quiet: true)
+        cueTape = .leverPlay
+    }
+
+    /// ● in cue: arma e fa correre il nastro con la leva. Da provare: in registrazione il TP-7 ascolta la leva.
+    func cueRecord() {
+        send(TP7.cc(TP7.ccArm, 127))
+        armed = true
+        ramp = nil
+        halted = false
+        forceLever(TP7.leverCuePlay)
+        cueTape = .leverPlay
+        recording = true
     }
 
     // MARK: bobina virtuale
