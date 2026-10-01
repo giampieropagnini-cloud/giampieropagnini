@@ -35,7 +35,7 @@ struct NastroView: View {
                 }
             }
 
-            Card(title: "trasporto in cue", note: "Col TP-7 su MIDI → cue i tasti di sopra non funzionano: usa questi. ▶ fa correre il nastro con la leva, ■ lo ferma. Un pad sposta il nastro al suo segno e, se era fermo, lo fa partire. ● arma soltanto: la registrazione la fai partire col ▶ della macchina, e il ■ di qui la chiude. Se il nastro l'hai fatto partire dalla macchina, fermalo dalla macchina.") {
+            Card(title: "trasporto in cue", note: "Col TP-7 su MIDI → cue i tasti di sopra non funzionano: usa questi. ▶ fa correre il nastro in avanti con la leva, ■ lo ferma. Un pad fa partire il nastro dal suo segno, e dopo ■ lo tiene fermo e ▶ lo lascia ripartire. ● arma soltanto: la registrazione la fai partire col ▶ della macchina, e il ■ di qui la chiude. Se il nastro l'hai fatto partire dalla macchina, fermalo dalla macchina.") {
                 HStack(spacing: 8) {
                     Chip(text: "▶", on: engine.cueTape == .leverPlay || engine.cueTape == .playing) { engine.cuePlay() }
                     Chip(text: "■", on: engine.cueTape == .stopped || engine.cueTape == .frozen) { engine.cueStop() }

@@ -50,7 +50,8 @@ final class Engine: ObservableObject {
     @Published private(set) var halted = false
     @Published private(set) var lever = TP7.leverCenter
     /// Il trasporto col TP-7 su cue, dove start e stop li ignora: ▶ e ■ si fanno con la leva.
-    /// fermo · suona con la leva (60) · suona da solo (dopo un pad) · tenuto fermo (60 + pitch bend, come «dito»).
+    /// fermo (64) · suona con la leva (68, il TP-7 resta «fermo» ma il nastro corre) ·
+    /// suona (dopo un pad, il TP-7 è in play e la leva a 64 è la velocità normale) · tenuto fermo (60 + pitch bend +708, come «dito»).
     enum CueTape { case stopped, leverPlay, playing, frozen }
     @Published private(set) var cueTape = CueTape.stopped
 
@@ -388,17 +389,22 @@ final class Engine: ObservableObject {
         }
     }
 
-    /// In cue un pad sposta il nastro al suo segno ma non lo fa partire (provato il 1/10/2026):
-    /// se il nastro è fermo, Bobina lo fa correre con la leva, così il pad suona da lì.
-    /// Se corre già con la leva, la leva resta: toglierla lo fermerebbe.
+    /// Un pad in «richiama» fa partire il TP-7 in play dal suo segno. In play la leva cambia significato:
+    /// 64 è la velocità normale, 68 andrebbe più veloce, 60 + pitch bend +708 lo ferma. Quindi la leva torna a 64.
     private func padStartsTape(at time: MIDITimeStamp) {
-        guard cueTape == .stopped else { return }
-        ramp = nil
-        halted = false
-        winding = 0
-        lever = TP7.leverCuePlay
-        send(TP7.cc(TP7.ccLever, TP7.leverCuePlay), at: time, quiet: true)
-        cueTape = .leverPlay
+        if cueTape == .leverPlay || cueTape == .frozen {
+            if cueTape == .frozen {
+                let restore = currentBend()
+                send(TP7.bend(restore), at: time, quiet: true)
+                lastBendSent = restore
+            }
+            halted = false
+            winding = 0
+            lever = TP7.leverCenter
+            send(TP7.cc(TP7.ccLever, TP7.leverCenter), at: time, quiet: true)
+        }
+        // il sequencer passa di qui a ogni colpo: si pubblica solo quando cambia davvero
+        if cueTape != .playing { cueTape = .playing }
     }
 
     /// ● in cue: arma soltanto. La ripresa parte solo dal ▶ della macchina (provato il 1/10/2026);
