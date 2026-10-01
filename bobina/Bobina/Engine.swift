@@ -152,6 +152,7 @@ final class Engine: ObservableObject {
     private var flutterPhase = 0.0
     private var drift = 0.0
     private var lastTick: MIDITimeStamp = 0
+    private var leverRemindedAt: MIDITimeStamp = 0
     private var ramp: (from: Double, to: Double, start: MIDITimeStamp, length: Double, stopAfter: Double?)?
     private var bendQuietUntil: MIDITimeStamp = 0
     private var gateState: Bool?
@@ -360,7 +361,10 @@ final class Engine: ObservableObject {
         case .frozen:
             holdStill(false)
             cueTape = .playing
-        case .leverPlay, .playing:
+        case .leverPlay:
+            // il TP-7 può essersi fermato da solo (fine del file, o leva rilasciata): si riprova sempre
+            forceLever(TP7.leverCuePlay)
+        case .playing:
             break
         }
     }
@@ -599,6 +603,12 @@ final class Engine: ObservableObject {
         }
 
         driftTick(now, dt)
+
+        // ▶ in cue: la leva si ricorda al TP-7 due volte al secondo, nel caso la lasci andare da sola
+        if cueTape == .leverPlay && lever == TP7.leverCuePlay && io.ms(ticks: now &- leverRemindedAt) > 500 {
+            leverRemindedAt = now
+            io.send(TP7.cc(TP7.ccLever, TP7.leverCuePlay))
+        }
 
         // dito fermo sulla bobina virtuale: la leva torna al centro
         if scrubbing && lever != TP7.leverCenter && io.ms(ticks: now &- lastScrubAt) > 90 {
