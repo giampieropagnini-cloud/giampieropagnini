@@ -6,6 +6,10 @@ struct BobinaApp: App {
     @StateObject private var tx6 = TX6Engine()
     @StateObject private var po = POBank()
 
+    init() {
+        IOS27.install()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

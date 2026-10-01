@@ -890,6 +890,10 @@ struct TX6CollegaView: View {
 
             TX6MonitorCard()
         }
+        #if DEBUG
+        // per le prove nel simulatore: -bobina.prova.bluetooth YES apre subito la ricerca
+        .onAppear { if UserDefaults.standard.bool(forKey: "bobina.prova.bluetooth") { showBluetooth = true } }
+        #endif
         .sheet(isPresented: $showBluetooth) {
             VStack(spacing: 0) {
                 HStack {
