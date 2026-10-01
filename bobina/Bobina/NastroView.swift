@@ -35,20 +35,13 @@ struct NastroView: View {
                 }
             }
 
-            Card(title: "trasporto in cue", note: "Col TP-7 su MIDI → cue i tasti di sopra non funzionano: usa questi. ▶ fa correre il nastro in avanti con la leva, ■ lo ferma. Un pad sposta il nastro al suo segno e, se era fermo, lo fa partire. «dito» lo tiene fermo finché lo tieni premuto. ● arma soltanto: in cue la registrazione parte solo col ▶ della macchina, e il ■ di qui la chiude. Se il nastro l'hai fatto partire dalla macchina, fermalo dalla macchina.") {
-                HStack(spacing: 8) {
-                    Chip(text: "▶", on: engine.cueTape == .leverPlay || engine.cueTape == .playing) { engine.cuePlay() }
-                    Chip(text: "■", on: engine.cueTape == .stopped || engine.cueTape == .frozen) { engine.cueStop() }
-                    Chip(text: "●", on: engine.recording, color: Palette.rec) { engine.cueRecord() }
-                    Text(cueTapeLabel)
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(Palette.dim)
-                }
+            Card(title: "trasporto in cue", note: "Col TP-7 su MIDI → cue i tasti di sopra non funzionano: usa questi. ▶ fa correre il nastro in avanti con la leva, ■ lo ferma. Un pad sposta il nastro al suo segno e, se era fermo, lo fa partire. «dito» lo tiene fermo finché lo tieni premuto. ● arma soltanto: in cue la registrazione parte solo col ▶ della macchina, e il ■ di qui la chiude. Se il nastro l'hai fatto partire dalla macchina, fermalo dalla macchina. ⏮ e ⏭ canzone passano al segno prima o dopo: in un album, alla canzone prima o dopo.") {
+                CueTransportControls()
             }
 
             SpeedCard()
 
-            Card(title: "tape stop", note: "Il nastro rallenta fino a fermarsi, come un registratore a cui manca la corrente; alla fine arriva lo stop. Avvio fa il contrario: parte fermo e prende velocità.") {
+            Card(title: "tape stop", note: "Il nastro rallenta fino a fermarsi, come un registratore a cui manca la corrente; alla fine arriva lo stop. Avvio fa il contrario: parte fermo e prende velocità. Col nastro mosso dalla leva (▶ in cue) rallenta e riparte a scalini; col play vero in modo continuo.") {
                 ValueSlider(name: "durata", value: $stopSeconds, range: 0.2...4, shown: String(format: "%.1f s", stopSeconds))
                 HStack {
                     Chip(text: "tape stop", color: Palette.rec) { engine.tapeStop(seconds: stopSeconds) }
@@ -129,6 +122,7 @@ struct SpeedCard: View {
                 get: { log2(engine.speed) },
                 set: { engine.speed = pow(2, $0) }
             )
+            LeverPlayHint()
             ValueSlider(name: "velocità", value: octave, range: -1...1, shown: String(format: "×%.2f", engine.speed))
             HStack(spacing: 6) {
                 ForEach([0.5, 0.75, 1.0, 1.5, 2.0], id: \.self) { s in
@@ -147,6 +141,7 @@ struct WowCard: View {
     var body: some View {
         Card(title: "nastro stanco", note: "Wow e flutter: la velocità ondeggia piano e trema veloce, come una cassetta vecchia. Si somma alla velocità scelta sopra.") {
             Toggle("acceso", isOn: $engine.wowOn)
+            LeverPlayHint()
             ValueSlider(name: "ondeggia", value: $engine.wowDepth, range: 0...1, shown: "\(Int(engine.wowDepth * 100))%")
             ValueSlider(name: "lentezza", value: $engine.wowRate, range: 0.1...4, shown: String(format: "%.1f Hz", engine.wowRate))
             ValueSlider(name: "tremolio", value: $engine.flutter, range: 0...1, shown: "\(Int(engine.flutter * 100))%")
@@ -160,6 +155,7 @@ struct MotionCard: View {
     var body: some View {
         Card(title: "col corpo", note: "Inclina il telefono a destra per accelerare, a sinistra per rallentare: 45° = doppio o metà. Scuotilo per l'azione che scegli.") {
             Toggle("inclinazione", isOn: $engine.motionOn)
+            if engine.motionOn { LeverPlayHint() }
             if engine.motionOn {
                 MotionReadout(pulse: engine.pulse)
             }
@@ -174,13 +170,47 @@ struct MotionCard: View {
 }
 
 /// La velocità dell'inclinazione, aggiornata 30 volte al secondo: guarda Pulse e si ridisegna da sola.
-private extension NastroView {
-    var cueTapeLabel: String {
+/// ▶ ■ ● e ⏮ ⏭ canzone per il TP-7 su cue: stanno in Nastro e, sotto i pad, in Pad.
+struct CueTransportControls: View {
+    @EnvironmentObject var engine: Engine
+
+    private var label: String {
         switch engine.cueTape {
         case .stopped: return "fermo"
         case .leverPlay: return "suona con la leva"
         case .playing: return "suona"
         case .frozen: return "tenuto fermo"
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Chip(text: "▶", on: engine.cueTape == .leverPlay || engine.cueTape == .playing) { engine.cuePlay() }
+            Chip(text: "■", on: engine.cueTape == .stopped || engine.cueTape == .frozen) { engine.cueStop() }
+            Chip(text: "●", on: engine.recording, color: Palette.rec) { engine.cueRecord() }
+            Text(label)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+        }
+        HStack(spacing: 8) {
+            Chip(text: "⏮ canzone") { engine.skipSong(-1) }
+            Chip(text: "⏭ canzone") { engine.skipSong(1) }
+            Text(engine.lastPad.map { "canzone \($0 + 1)" } ?? "")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+        }
+    }
+}
+
+/// Velocità, nastro stanco e inclinazione usano il pitch bend, che il TP-7 sente solo nel play vero.
+struct LeverPlayHint: View {
+    @EnvironmentObject var engine: Engine
+
+    var body: some View {
+        if engine.cueTape == .leverPlay {
+            Text("adesso il nastro lo spinge la leva (▶ in cue) e questo non si sente: serve il play vero, ▶ della macchina o TP-7 su sync")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.rec)
         }
     }
 }

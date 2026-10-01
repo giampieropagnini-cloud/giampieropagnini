@@ -85,6 +85,11 @@ final class Engine: ObservableObject {
 
     @Published var markMode = false { didSet { if oldValue != markMode { send(TP7.cc(TP7.ccCueRec, markMode ? 127 : 0)) } } }
     @Published var padsSet: Set<Int> = []
+    /// Pad «finché lo tieni»: il nastro suona solo mentre un pad è premuto, e si ferma quando lo lasci.
+    @Published var padHold = UserDefaults.standard.bool(forKey: "bobina.padHold") {
+        didSet { UserDefaults.standard.set(padHold, forKey: "bobina.padHold") }
+    }
+    private var heldPads = Set<Int>()
     @Published private(set) var lastPad: Int?
 
     // MARK: tempo e giochi a tempo
@@ -154,6 +159,11 @@ final class Engine: ObservableObject {
     private var drift = 0.0
     private var lastTick: MIDITimeStamp = 0
     private var leverRemindedAt: MIDITimeStamp = 0
+    /// Scalini di leva a tempo (tape stop e avvio col nastro mosso dalla leva): il tick li manda uno alla volta.
+    private var leverSteps: [(value: Int, at: MIDITimeStamp)] = []
+    private var leverStepsEnd: CueTape?
+    /// L'ultimo trasporto usato era quello in cue: tape stop e avvio lo usano per sapere come fermare e partire.
+    private var lastTransportCue = false
     private var ramp: (from: Double, to: Double, start: MIDITimeStamp, length: Double, stopAfter: Double?)?
     private var bendQuietUntil: MIDITimeStamp = 0
     private var gateState: Bool?
@@ -233,6 +243,7 @@ final class Engine: ObservableObject {
     }
 
     private func forceLever(_ value: Int) {
+        cancelLeverSteps()
         winding = 0
         lever = -1
         setLever(value)
@@ -240,6 +251,7 @@ final class Engine: ObservableObject {
 
     /// ▶ continue: riparte da dove si trova.
     func play() {
+        lastTransportCue = false
         ramp = nil
         halted = false
         forceLever(TP7.leverCenter)
@@ -251,6 +263,7 @@ final class Engine: ObservableObject {
 
     /// ⏮ start: riavvolge e suona dall'inizio del file.
     func fromTop() {
+        lastTransportCue = false
         ramp = nil
         halted = false
         forceLever(TP7.leverCenter)
@@ -262,6 +275,7 @@ final class Engine: ObservableObject {
 
     /// ■ stop: si ferma dov'è. Premuto di nuovo da fermo torna all'inizio, come sulla macchina.
     func stop() {
+        lastTransportCue = false
         ramp = nil
         halted = false
         forceLever(TP7.leverCenter)
@@ -276,6 +290,7 @@ final class Engine: ObservableObject {
 
     /// ● registra: arma e parte. Nasce sempre un file nuovo; ■ chiude la ripresa.
     func record() {
+        lastTransportCue = false
         send(TP7.cc(TP7.ccArm, 127))
         armed = true
         forceLever(TP7.leverCenter)
@@ -291,6 +306,7 @@ final class Engine: ObservableObject {
         ramp = nil
         switch cueTape {
         case .leverPlay:
+            cancelLeverSteps()
             setLever(on ? TP7.leverCenter : TP7.leverCuePlay)
         case .stopped:
             break
@@ -308,7 +324,13 @@ final class Engine: ObservableObject {
     }
 
     /// Tape stop: il nastro rallenta fino a ×0,5 col pitch bend, poi la leva lo porta a zero e lo stop lo ferma.
+    /// Col nastro mosso dalla leva (▶ in cue) il pitch bend non si sente: lì la leva scende a scalini fino al centro.
     func tapeStop(seconds: Double) {
+        if cueTape == .leverPlay {
+            startLeverSteps([TP7.leverCuePlay - 1, TP7.leverCuePlay - 2, TP7.leverCuePlay - 3, TP7.leverCenter],
+                            seconds: seconds, end: .stopped)
+            return
+        }
         halted = false
         let length = max(0.1, seconds) * 1000
         ramp = (from: currentSpeedFactor(), to: TP7.minSpeed, start: io.now(), length: length * 0.8, stopAfter: length * 0.2)
@@ -317,6 +339,19 @@ final class Engine: ObservableObject {
     private func finishTapeStop(tail: Double) {
         let t0 = io.now()
         bendQuietUntil = t0 + io.ticks(ms: tail + 40)
+        if lastTransportCue {
+            // in cue lo stop (FC) è ignorato: alla fine il nastro resta tenuto fermo come sotto il dito,
+            // e il ▶ in cue lo lascia ripartire
+            send(TP7.cc(TP7.ccLever, TP7.leverCenter - 2), quiet: true)
+            send(TP7.cc(TP7.ccLever, TP7.leverHalt), at: t0 + io.ticks(ms: tail), quiet: true)
+            send(TP7.bend(TP7.haltBend), at: t0 + io.ticks(ms: tail), quiet: true)
+            lastBendSent = TP7.haltBend
+            lever = TP7.leverHalt
+            halted = true
+            rolling = false
+            cueTape = .frozen
+            return
+        }
         send(TP7.cc(TP7.ccLever, TP7.leverCenter - 1), quiet: true)
         send(TP7.cc(TP7.ccLever, TP7.leverCenter - 2), at: t0 + io.ticks(ms: tail * 0.5), quiet: true)
         send(TP7.stop, at: t0 + io.ticks(ms: tail))
@@ -330,7 +365,13 @@ final class Engine: ObservableObject {
     }
 
     /// Avvio: parte fermo, la leva lo sblocca, il pitch bend lo porta a velocità.
+    /// In cue a nastro fermo (o mosso dalla leva) il play vero non c'è: la leva sale a scalini fino a 68.
     func tapeStart(seconds: Double) {
+        if lastTransportCue && (cueTape == .stopped || cueTape == .leverPlay) {
+            startLeverSteps([TP7.leverCenter + 1, TP7.leverCenter + 2, TP7.leverCenter + 3, TP7.leverCuePlay],
+                            seconds: seconds, end: .leverPlay)
+            return
+        }
         let length = max(0.1, seconds) * 1000
         let t0 = io.now()
         halted = false
@@ -342,6 +383,25 @@ final class Engine: ObservableObject {
         lever = TP7.leverCenter
         ramp = (from: TP7.minSpeed, to: max(TP7.minSpeed, speed), start: t0 + io.ticks(ms: length * 0.2), length: length * 0.8, stopAfter: nil)
         rolling = true
+        cueTape = .playing
+    }
+
+    private func cancelLeverSteps() {
+        leverSteps.removeAll()
+        leverStepsEnd = nil
+    }
+
+    /// Una scala di valori di leva distribuita su `seconds`: il primo subito, l'ultimo alla fine.
+    private func startLeverSteps(_ values: [Int], seconds: Double, end: CueTape) {
+        cancelLeverSteps()
+        ramp = nil
+        halted = false
+        winding = 0
+        let t0 = io.now()
+        let length = max(0.1, seconds) * 1000
+        let last = Double(max(1, values.count - 1))
+        leverSteps = values.enumerated().map { k, v in (value: v, at: t0 + io.ticks(ms: length * Double(k) / last)) }
+        leverStepsEnd = end
     }
 
     /// ⏪ ⏩: la leva tutta indietro o tutta avanti, cioè l'avvolgimento velocissimo della macchina.
@@ -354,6 +414,7 @@ final class Engine: ObservableObject {
         }
         ramp = nil
         halted = false
+        cancelLeverSteps()
         if cueTape == .leverPlay { cueTape = .stopped }
         winding = direction
         setLever(direction > 0 ? 127 : 0)
@@ -361,6 +422,7 @@ final class Engine: ObservableObject {
 
     /// ▶ in cue: da fermo la leva a 60 fa correre il nastro; se era tenuto fermo dopo un pad, lo lascia andare.
     func cuePlay() {
+        lastTransportCue = true
         switch cueTape {
         case .stopped:
             ramp = nil
@@ -380,6 +442,13 @@ final class Engine: ObservableObject {
 
     /// ■ in cue: toglie la leva del ▶, oppure, se il nastro suona da solo dopo un pad, lo tiene fermo come «dito».
     func cueStop() {
+        lastTransportCue = true
+        if !leverSteps.isEmpty {
+            // un avvio a scalini in corso: si ferma qui
+            forceLever(TP7.leverCenter)
+            cueTape = .stopped
+            return
+        }
         if recording {
             send(TP7.cc(TP7.ccArm, 0))
             armed = false
@@ -401,6 +470,8 @@ final class Engine: ObservableObject {
     /// (provato il 1/10/2026). Se è fermo, Bobina lo fa correre in avanti con la leva; se corre già, la leva resta.
     /// Se era tenuto fermo durante il play, il pad lo lascia ripartire dal segno.
     private func padStartsTape(at time: MIDITimeStamp) {
+        lastTransportCue = true
+        if !leverSteps.isEmpty { cancelLeverSteps() }
         switch cueTape {
         case .stopped:
             ramp = nil
@@ -426,6 +497,7 @@ final class Engine: ObservableObject {
     /// ● in cue: arma soltanto (cc 14). Provato il 1/10/2026, con la leva sia a 60 sia a 68: in cue la ripresa
     /// parte solo dal ▶ della macchina. Il ■ in cue la chiude, perché il disarmo (cc 14 a 0) la ferma.
     func cueRecord() {
+        lastTransportCue = true
         send(TP7.cc(TP7.ccArm, 127))
         armed = true
         recording = true
@@ -438,6 +510,7 @@ final class Engine: ObservableObject {
 
     /// Il dito sulla bobina virtuale: la sua velocità diventa la leva.
     func scrub(_ value: Int) {
+        cancelLeverSteps()
         winding = 0
         if cueTape == .leverPlay { cueTape = .stopped }
         scrubbing = true
@@ -494,6 +567,41 @@ final class Engine: ObservableObject {
     }
 
     func forgetPads() { padsSet.removeAll(); lastPad = nil }
+
+    /// Fra quali pad pescano il collage e «scuoti → cue a caso»: quelli segnati in Bobina, oppure, se non
+    /// ne hai segnati (banche e album hanno i segni già scritti nel file), tutti e 16.
+    private var randomPadPool: [Int] { padsSet.isEmpty ? Array(0..<16) : Array(padsSet) }
+
+    /// Il dito sul pad: salta al segno e suona.
+    func padDown(_ index: Int) {
+        heldPads.insert(index)
+        hitPad(index)
+    }
+
+    /// Il dito che lascia il pad: con «finché lo tieni» il nastro si ferma, ma solo quando non resta
+    /// nessun pad premuto. In «segna» no: lì i pad mettono i segni. La registrazione non si tocca.
+    func padUp(_ index: Int) {
+        heldPads.remove(index)
+        guard padHold, !markMode, heldPads.isEmpty else { return }
+        switch cueTape {
+        case .leverPlay:
+            forceLever(TP7.leverCenter)
+            cueTape = .stopped
+        case .playing:
+            holdStill(true)
+            cueTape = .frozen
+        case .stopped, .frozen:
+            break
+        }
+    }
+
+    /// ⏮ ⏭ canzone: in un «album» (un file con un segno all'inizio di ogni canzone, legato ai pad 1-16)
+    /// passano alla canzone prima o dopo. Sempre in «richiama»: in «segna» sposterebbero i segni.
+    func skipSong(_ step: Int) {
+        if markMode { markMode = false }
+        let current = lastPad ?? (step > 0 ? -1 : 0)
+        hitPad((current + step + 16) % 16)
+    }
 
     // MARK: balbettio e collage (partono col tempo di Bobina)
 
@@ -625,6 +733,17 @@ final class Engine: ObservableObject {
         }
 
         driftTick(now, dt)
+
+        // gli scalini di leva di tape stop e avvio, al loro momento
+        while let next = leverSteps.first, next.at <= now {
+            leverSteps.removeFirst()
+            lever = next.value
+            io.send(TP7.cc(TP7.ccLever, next.value))
+            if leverSteps.isEmpty, let end = leverStepsEnd {
+                leverStepsEnd = nil
+                cueTape = end
+            }
+        }
 
         // ▶ in cue: la leva si ricorda al TP-7 due volte al secondo, nel caso la lasci andare da sola
         if cueTape == .leverPlay && lever == TP7.leverCuePlay && io.ms(ticks: now &- leverRemindedAt) > 500 {
@@ -760,8 +879,8 @@ final class Engine: ObservableObject {
             }
         }
 
-        if collageOn && i % max(1, collageEvery) == 0 && !padsSet.isEmpty && Double.random(in: 0..<1) < collageChance {
-            if let pad = padsSet.randomElement() {
+        if collageOn && i % max(1, collageEvery) == 0 && Double.random(in: 0..<1) < collageChance {
+            if let pad = randomPadPool.randomElement() {
                 hitPad(pad, at: t, fromUser: false)
             }
         }
@@ -810,7 +929,7 @@ final class Engine: ObservableObject {
     private func shake() {
         switch shakeAction {
         case .tapeStop: tapeStop(seconds: 0.8)
-        case .randomCue: if let p = padsSet.randomElement() { hitPad(p, fromUser: false) }
+        case .randomCue: if let p = randomPadPool.randomElement() { hitPad(p, fromUser: false) }
         case .nothing: break
         }
     }
