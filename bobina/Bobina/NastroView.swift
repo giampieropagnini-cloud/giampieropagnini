@@ -11,10 +11,7 @@ struct NastroView: View {
                 ReelView()
                     .frame(height: 250)
                     .frame(maxWidth: .infinity)
-                Text("leva \(engine.lever < 0 ? TP7.leverCenter : engine.lever)")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.dim)
-                    .frame(maxWidth: .infinity)
+                LeverReadout(live: engine.live)
             }
 
             Card(title: "trasporto", note: "⏮ riavvolge e suona dall'inizio, ▶ riparte da dove sei, ■ si ferma; ■ di nuovo torna all'inizio, come sulla macchina. ● registra su un file nuovo, ■ chiude la ripresa. Tieni premuto «dito» per fermare il nastro come col dito sulla bobina. ⏪ ⏩ avvolgono velocissimi: un tocco parte, un altro si ferma.") {
@@ -212,6 +209,18 @@ struct LeverPlayHint: View {
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(Palette.rec)
         }
+    }
+}
+
+/// «leva 64» sotto la bobina: guarda Live, così lo scratch ridisegna solo questa scritta.
+struct LeverReadout: View {
+    @ObservedObject var live: Live
+
+    var body: some View {
+        Text("leva \(live.lever)")
+            .font(.system(.caption, design: .monospaced))
+            .foregroundStyle(Palette.dim)
+            .frame(maxWidth: .infinity)
     }
 }
 
