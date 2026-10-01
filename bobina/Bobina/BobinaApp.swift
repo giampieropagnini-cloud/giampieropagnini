@@ -17,6 +17,14 @@ struct BobinaApp: App {
                 .onAppear {
                     UIApplication.shared.isIdleTimerDisabled = true
                     tx6.tp7 = engine
+                    #if DEBUG
+                    engine.io.label = "tp7"
+                    tx6.io.label = "tx6"
+                    for (i, u) in po.units.enumerated() { u.io.label = "po\(i + 1)" }
+                    Diagnostics.shared.start(watch: [("tp7", engine.objectWillChange), ("tx6", tx6.objectWillChange),
+                                                     ("tx6 passo", tx6.live.objectWillChange), ("tx6 lato", tx6.side.objectWillChange), ("po banco", po.objectWillChange)]
+                                             + po.units.enumerated().map { ("po\($0.offset + 1)", $0.element.objectWillChange) })
+                    #endif
                 }
         }
     }

@@ -29,6 +29,8 @@ final class MIDIIO {
     private(set) var destination = MIDIEndpointRef()
     private(set) var source = MIDIEndpointRef()
     private(set) var ready = false
+    /// Il nome della macchina, per la diagnosi.
+    var label = "midi"
     private var timebase = mach_timebase_info_data_t()
 
     /// Un messaggio completo arrivato dal TP-7. Chiamata sul main thread.
@@ -122,12 +124,18 @@ final class MIDIIO {
             }
         }
         _ = MIDISend(outPort, destination, list)
+        #if DEBUG
+        Diagnostics.shared.count("MIDI fuori " + label)
+        #endif
     }
 
     // MARK: ricezione
 
     private func read(_ list: UnsafePointer<MIDIPacketList>) {
         let count = Int(list.pointee.numPackets)
+        #if DEBUG
+        Diagnostics.shared.count("MIDI dentro " + label, count)
+        #endif
         guard count > 0 else { return }
         let listOffset = MemoryLayout<MIDIPacketList>.offset(of: \MIDIPacketList.packet) ?? 4
         let dataOffset = MemoryLayout<MIDIPacket>.offset(of: \MIDIPacket.data) ?? 10

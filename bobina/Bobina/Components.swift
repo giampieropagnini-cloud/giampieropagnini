@@ -40,6 +40,9 @@ struct Page<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
+        #if DEBUG
+        let _ = Diagnostics.shared.count("pagina tp7 " + title)
+        #endif
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {

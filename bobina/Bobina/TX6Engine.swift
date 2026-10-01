@@ -2,6 +2,7 @@ import Foundation
 import CoreMIDI
 import CoreMotion
 import UIKit
+import QuartzCore
 
 extension MIDIPort {
     var looksLikeTX6: Bool {
@@ -121,8 +122,15 @@ enum TX6ClockMode: String, CaseIterable, Identifiable {
 /// Quello che cambia molte volte al secondo (il passo, i lampi dei pad, l'inclinazione, lo specchio):
 /// sta a parte, così a ogni passo si ridisegnano solo i quadratini e non tutta la pagina.
 final class TX6Live: ObservableObject {
+    /// Il passo che suona: cambia una volta per sedicesimo, e i pad della batteria si accendono da qui.
     @Published var step = 0
+    /// I pad toccati a mano.
     @Published var flash: Set<Int> = []
+}
+
+/// Il resto di quello che cambia spesso, ma non a ogni passo: inclinazione, scene che sfumano, specchio di CTRL OUT.
+/// Sta a parte da `TX6Live`, così il passo che avanza non ridisegna anche questi.
+final class TX6Side: ObservableObject {
     @Published var tilt = 0.0
     @Published var morphProgress: Double?
     @Published var faders: [Int?] = Array(repeating: nil, count: 6)
@@ -139,6 +147,7 @@ final class TX6Engine: ObservableObject {
 
     let io = MIDIIO()
     let live = TX6Live()
+    let side = TX6Side()
     /// Il ritmo, su un filo tutto suo.
     private(set) lazy var sequencer = TX6Sequencer(io: io)
     /// La sezione TP-7, per il ponte: il TX-6 in CTRL OUT comanda il TP-7.
@@ -600,11 +609,11 @@ final class TX6Engine: ObservableObject {
     func recall(_ s: TX6Scene, fade: Bool) {
         if fade {
             morph = (from: snapshot("da"), to: s, start: io.now(), length: max(0.25, morphBars) * 4 * beatMs)
-            live.morphProgress = 0
+            side.morphProgress = 0
             return
         }
         morph = nil
-        live.morphProgress = nil
+        side.morphProgress = nil
         apply(s, fraction: 1, force: true)
     }
 
@@ -710,7 +719,6 @@ final class TX6Engine: ObservableObject {
     private func stepped(_ i: Int, _ t: MIDITimeStamp, _ hit: Set<Int>) {
         let delay = msUntil(t) / 1000
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.live.step = i }
-        if !hit.isEmpty { flash(hit, at: t) }
     }
 
     /// Dove siamo nel battito: la griglia di BobinaClock (quando seguiamo il TX-6, la sposta il suo clock).
@@ -734,6 +742,10 @@ final class TX6Engine: ObservableObject {
     }
 
     private func tick() {
+        #if DEBUG
+        let began = CACurrentMediaTime()
+        defer { Diagnostics.shared.add("ms orologio tx6", (CACurrentMediaTime() - began) * 1000) }
+        #endif
         let now = io.now()
         let dt = lastTick == 0 ? 0.008 : min(0.1, io.ms(ticks: now &- lastTick) / 1000)
         lastTick = now
@@ -750,8 +762,8 @@ final class TX6Engine: ObservableObject {
             let p = min(1, io.ms(ticks: now &- m.start) / m.length)
             apply(m.to, fraction: p, from: m.from)
             let shown = (p * 100).rounded() / 100
-            if live.morphProgress != shown { live.morphProgress = shown }
-            if p >= 1 { morph = nil; live.morphProgress = nil }
+            if side.morphProgress != shown { side.morphProgress = shown }
+            if p >= 1 { morph = nil; side.morphProgress = nil }
         }
 
         // le modulazioni continue: al massimo una volta ogni 30 ms (60 col bluetooth), e solo se il valore cambia
@@ -782,7 +794,7 @@ final class TX6Engine: ObservableObject {
         for (i, w) in waves.enumerated() where w.on && w.param == p && w.tracks.contains(t) {
             v += w.depth * waveValue(i, w, now)
         }
-        if tiltOn && tiltParam == p && tiltTracks.contains(t) { v += live.tilt * 63 }
+        if tiltOn && tiltParam == p && tiltTracks.contains(t) { v += side.tilt * 63 }
         return max(0, min(127, Int(v.rounded())))
     }
 
@@ -841,13 +853,13 @@ final class TX6Engine: ObservableObject {
         motion.startDeviceMotionUpdates(to: .main) { [weak self] data, _ in
             guard let self = self, let d = data else { return }
             // inclinato a destra apre, a sinistra chiude: 45° = tutta la corsa
-            self.live.tilt = max(-1, min(1, d.attitude.roll / (.pi / 4)))
+            self.side.tilt = max(-1, min(1, d.attitude.roll / (.pi / 4)))
         }
     }
 
     private func stopMotion() {
         motion.stopDeviceMotionUpdates()
-        live.tilt = 0
+        side.tilt = 0
     }
 
     // MARK: ricezione
@@ -868,17 +880,17 @@ final class TX6Engine: ObservableObject {
         guard status == 0xB0, m.count >= 3, let c = TX6.control(m[1]) else { return }
         let v = Int(m[2])
         switch c {
-        case .fader(let t): live.faders[t - 1] = v
-        case .knob(let r, let t): live.knobs[r - 1][t - 1] = v
-        case .encoder: live.encoderSteps += TX6.relative(m[2])
+        case .fader(let t): side.faders[t - 1] = v
+        case .knob(let r, let t): side.knobs[r - 1][t - 1] = v
+        case .encoder: side.encoderSteps += TX6.relative(m[2])
         default:
-            if v > 0 { live.pressed.insert(c.name) } else { live.pressed.remove(c.name) }
+            if v > 0 { side.pressed.insert(c.name) } else { side.pressed.remove(c.name) }
         }
         if c == .encoder {
             let d = TX6.relative(m[2])
-            live.lastControl = "select girato \(d > 0 ? "+" : "")\(d)"
+            side.lastControl = "select girato \(d > 0 ? "+" : "")\(d)"
         } else if v > 0 || c.name.hasPrefix("fader") || c.name.hasPrefix("manopola") {
-            live.lastControl = "\(c.name) · cc \(m[1]) = \(v)"
+            side.lastControl = "\(c.name) · cc \(m[1]) = \(v)"
         }
         if bridgeOn { bridge(c, m[2]) }
     }

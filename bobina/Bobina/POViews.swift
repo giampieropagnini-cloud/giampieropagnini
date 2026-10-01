@@ -125,6 +125,9 @@ struct POPage<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
+        #if DEBUG
+        let _ = Diagnostics.shared.count("pagina po " + title)
+        #endif
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {

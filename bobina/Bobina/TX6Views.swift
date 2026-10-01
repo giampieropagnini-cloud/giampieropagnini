@@ -50,6 +50,9 @@ struct TX6Page<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
+        #if DEBUG
+        let _ = Diagnostics.shared.count("pagina tx6 " + title)
+        #endif
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
@@ -302,7 +305,7 @@ struct TX6ScenesCard: View {
         Card(title: "scene che sfumano", note: "Fotografa quello che hai mandato al TX-6 (volumi, EQ, mandate, synth, muti, generale). «Sfuma» ci arriva piano, in tante battute quante scegli, al tempo della scheda Ritmo; «di colpo» la manda tutta subito.") {
             HStack(spacing: 8) {
                 Chip(text: "fotografa adesso") { tx.saveScene() }
-                TX6MorphReadout(live: tx.live)
+                TX6MorphReadout(side: tx.side)
             }
             HStack(spacing: 6) {
                 Text("sfuma in")
@@ -614,6 +617,9 @@ struct TX6StepGrid: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 8)
 
     var body: some View {
+        #if DEBUG
+        let _ = Diagnostics.shared.count("griglia passi tx6")
+        #endif
         LazyVGrid(columns: columns, spacing: 6) {
             ForEach(0..<16, id: \.self) { i in
                 StepCell(label: label(i), filled: filled(i), current: pulsing && live.step == i) { tap(i) }
@@ -632,7 +638,7 @@ struct TX6PadGrid: View {
     var body: some View {
         LazyVGrid(columns: columns, spacing: 8) {
             ForEach(1...6, id: \.self) { t in
-                PressPad(lit: live.flash.contains(t), onPress: { tx.hitPad(t) }) {
+                PressPad(lit: live.flash.contains(t) || (tx.pulsing && tx.beatsOn && tx.beats[t - 1][live.step]), onPress: { tx.hitPad(t) }) {
                     VStack(spacing: 2) {
                         Text("traccia \(t)").font(.system(.subheadline, design: .monospaced))
                         Text(TX6.sounds[TX6.soundIndex(tx.value(t, .sound))]).font(.system(.caption, design: .monospaced))
@@ -646,10 +652,10 @@ struct TX6PadGrid: View {
 }
 
 struct TX6MorphReadout: View {
-    @ObservedObject var live: TX6Live
+    @ObservedObject var side: TX6Side
 
     var body: some View {
-        if let p = live.morphProgress {
+        if let p = side.morphProgress {
             Text("sfuma… \(Int(p * 100))%")
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(Palette.accent)
@@ -658,10 +664,10 @@ struct TX6MorphReadout: View {
 }
 
 struct TX6TiltReadout: View {
-    @ObservedObject var live: TX6Live
+    @ObservedObject var side: TX6Side
 
     var body: some View {
-        Text(String(format: "inclinazione %+.0f%%", live.tilt * 100))
+        Text(String(format: "inclinazione %+.0f%%", side.tilt * 100))
             .font(.system(.caption, design: .monospaced))
             .foregroundStyle(Palette.accent)
     }
@@ -744,7 +750,7 @@ struct TX6RitmoView: View {
                 Toggle("accesa", isOn: $tx.tiltOn)
                 ParamMenu(selected: tx.tiltParam) { tx.tiltParam = $0 }
                 TrackPicker(tracks: $tx.tiltTracks)
-                if tx.tiltOn { TX6TiltReadout(live: tx.live) }
+                if tx.tiltOn { TX6TiltReadout(side: tx.side) }
             }
         }
     }
@@ -863,7 +869,7 @@ struct TX6CollegaView: View {
                     .font(.footnote)
             }
 
-            TX6MirrorCard(live: tx.live)
+            TX6MirrorCard(side: tx.side)
 
             Card(title: "il TX-6 comanda il TP-7", note: "TX-6 su CTRL OUT col cavo, TP-7 collegato alla sezione TP-7 (per esempio col bluetooth). I fader diventano i volumi del TP-7, i tasti traccia i suoi muti, FX I è play e stop, FX II un tape stop, la manopola select la velocità (premuta torna a ×1).") {
                 Toggle("acceso", isOn: $tx.bridgeOn)
@@ -904,7 +910,7 @@ struct TX6CollegaView: View {
 /// In CTRL OUT il TX-6 manda fader, manopole e tasti: qui si vedono.
 struct TX6MirrorCard: View {
     @EnvironmentObject var tx: TX6Engine
-    @ObservedObject var live: TX6Live
+    @ObservedObject var side: TX6Side
 
     private func cell(_ v: Int?) -> some View {
         Text(v.map { "\($0)" } ?? "·")
@@ -921,7 +927,7 @@ struct TX6MirrorCard: View {
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(Palette.dim)
                         .frame(width: 30, alignment: .leading)
-                    ForEach(0..<6, id: \.self) { t in cell(live.knobs[r][t]) }
+                    ForEach(0..<6, id: \.self) { t in cell(side.knobs[r][t]) }
                 }
             }
             HStack(spacing: 4) {
@@ -929,23 +935,23 @@ struct TX6MirrorCard: View {
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundStyle(Palette.dim)
                     .frame(width: 30, alignment: .leading)
-                ForEach(0..<6, id: \.self) { t in cell(live.faders[t]) }
+                ForEach(0..<6, id: \.self) { t in cell(side.faders[t]) }
             }
             HStack(spacing: 4) {
                 ForEach(["tasto traccia 1", "tasto traccia 2", "tasto traccia 3", "tasto traccia 4", "tasto traccia 5", "tasto traccia 6", "select premuto", "FX I", "FX II", "shift", "aux", "cue"], id: \.self) { name in
                     Text(name.hasPrefix("tasto") ? String(name.suffix(1)) : name == "select premuto" ? "sel" : name)
                         .font(.system(size: 10, design: .monospaced))
                         .frame(maxWidth: .infinity, minHeight: 26)
-                        .background(RoundedRectangle(cornerRadius: 5).fill(live.pressed.contains(name) ? Palette.accent : Color(white: 0.18)))
-                        .foregroundStyle(live.pressed.contains(name) ? Color.black : Color.white)
+                        .background(RoundedRectangle(cornerRadius: 5).fill(side.pressed.contains(name) ? Palette.accent : Color(white: 0.18)))
+                        .foregroundStyle(side.pressed.contains(name) ? Color.black : Color.white)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                 }
             }
             HStack {
-                Text(live.lastControl)
+                Text(side.lastControl)
                 Spacer()
-                Text("select \(live.encoderSteps > 0 ? "+" : "")\(live.encoderSteps)")
+                Text("select \(side.encoderSteps > 0 ? "+" : "")\(side.encoderSteps)")
             }
             .font(.system(.caption, design: .monospaced))
             .foregroundStyle(Palette.dim)
