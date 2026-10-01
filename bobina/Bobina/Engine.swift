@@ -285,17 +285,25 @@ final class Engine: ObservableObject {
     }
 
     /// Tenuto premuto: il nastro resta fermo come sotto il dito, e riparte quando lasci.
+    /// Se il nastro corre con la leva (▶ in cue) il dito è la leva al centro; durante il play è 60 + pitch bend +708;
+    /// a nastro fermo non fa niente, perché la leva a 60 lo farebbe riavvolgere.
     func holdStill(_ on: Bool) {
         ramp = nil
-        if on {
-            halted = true
-            forceLever(TP7.leverHalt)
-            sendBend(TP7.haltBend, force: true)
-        } else {
-            halted = false
-            forceLever(TP7.leverCenter)
-            sendBend(currentBend(), force: true)
-            if cueTape == .leverPlay { cueTape = .stopped }
+        switch cueTape {
+        case .leverPlay:
+            setLever(on ? TP7.leverCenter : TP7.leverCuePlay)
+        case .stopped:
+            break
+        case .playing, .frozen:
+            if on {
+                halted = true
+                forceLever(TP7.leverHalt)
+                sendBend(TP7.haltBend, force: true)
+            } else {
+                halted = false
+                forceLever(TP7.leverCenter)
+                sendBend(currentBend(), force: true)
+            }
         }
     }
 
@@ -389,22 +397,30 @@ final class Engine: ObservableObject {
         }
     }
 
-    /// Un pad in «richiama» fa partire il TP-7 in play dal suo segno. In play la leva cambia significato:
-    /// 64 è la velocità normale, 68 andrebbe più veloce, 60 + pitch bend +708 lo ferma. Quindi la leva torna a 64.
+    /// In cue un pad fa saltare il nastro al suo segno, ma suona solo se il nastro sta già correndo
+    /// (provato il 1/10/2026). Se è fermo, Bobina lo fa correre in avanti con la leva; se corre già, la leva resta.
+    /// Se era tenuto fermo durante il play, il pad lo lascia ripartire dal segno.
     private func padStartsTape(at time: MIDITimeStamp) {
-        if cueTape == .leverPlay || cueTape == .frozen {
-            if cueTape == .frozen {
-                let restore = currentBend()
-                send(TP7.bend(restore), at: time, quiet: true)
-                lastBendSent = restore
-            }
+        switch cueTape {
+        case .stopped:
+            ramp = nil
             halted = false
             winding = 0
+            lever = TP7.leverCuePlay
+            send(TP7.cc(TP7.ccLever, TP7.leverCuePlay), at: time, quiet: true)
+            cueTape = .leverPlay
+        case .frozen:
+            let restore = currentBend()
+            send(TP7.bend(restore), at: time, quiet: true)
+            lastBendSent = restore
+            halted = false
             lever = TP7.leverCenter
             send(TP7.cc(TP7.ccLever, TP7.leverCenter), at: time, quiet: true)
+            cueTape = .playing
+        case .leverPlay, .playing:
+            // il sequencer passa di qui a ogni colpo: niente da cambiare, niente da pubblicare
+            break
         }
-        // il sequencer passa di qui a ogni colpo: si pubblica solo quando cambia davvero
-        if cueTape != .playing { cueTape = .playing }
     }
 
     /// ● in cue: arma soltanto. La ripresa parte solo dal ▶ della macchina (provato il 1/10/2026);
