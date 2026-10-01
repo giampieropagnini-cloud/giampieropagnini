@@ -423,17 +423,12 @@ final class Engine: ObservableObject {
         }
     }
 
-    /// ● in cue: arma (cc 14) e fa correre il nastro in avanti con la leva. Il 1/10/2026 la prima prova
-    /// non partiva, ma la leva era a 60, cioè all'indietro; secondo lucidyan/tp7-midi in registrazione
-    /// la leva funziona, quindi si riprova a 68. Il ■ in cue la chiude, perché il disarmo (cc 14 a 0) la ferma.
+    /// ● in cue: arma soltanto (cc 14). Provato il 1/10/2026, con la leva sia a 60 sia a 68: in cue la ripresa
+    /// parte solo dal ▶ della macchina. Il ■ in cue la chiude, perché il disarmo (cc 14 a 0) la ferma.
     func cueRecord() {
         send(TP7.cc(TP7.ccArm, 127))
         armed = true
         recording = true
-        ramp = nil
-        halted = false
-        forceLever(TP7.leverCuePlay)
-        cueTape = .leverPlay
     }
 
     // MARK: bobina virtuale
