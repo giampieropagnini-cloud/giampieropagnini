@@ -192,6 +192,9 @@ final class Engine: ObservableObject {
     private let haptic = UIImpactFeedbackGenerator(style: .rigid)
 
     init() {
+        // su iOS 27 il pannello bluetooth di Apple chiudeva l'app: la riparazione è in IOS27.swift
+        // (trovata dalla sessione TX-6). Chiamarla due volte non fa danni.
+        IOS27.install()
         load()
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, stamp in self?.received(bytes, stamp) }
