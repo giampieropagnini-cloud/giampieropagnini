@@ -13,7 +13,7 @@ struct PadView: View {
         Page(title: "Pad") {
             Card(title: "cue", note: engine.markMode
                  ? "SEGNA: fai suonare il TP-7 e tocca i pad nei punti buoni: ogni pad lega la sua nota al punto dove passa il nastro. Serve MIDI → cue e la schermata CUE aperta (▲). Se non segna, tieni premuto ● sulla macchina mentre tocchi il pad: è il modo ufficiale."
-                 : "RICHIAMA: ogni pad fa saltare il nastro al suo cue e suona da lì. I pad segnati sono bordati d'arancio. Dopo ogni salto Bobina rimanda al TP-7 volumi e muti, che lui azzererebbe.") {
+                 : "RICHIAMA: ogni pad fa saltare il nastro al suo cue e suona da lì. Con «finché lo tieni premuto» suona solo mentre tieni il dito sul pad. I pad segnati sono bordati d'arancio. Dopo ogni salto Bobina rimanda al TP-7 volumi e muti, che lui azzererebbe.") {
                 Picker("modo", selection: $engine.markMode) {
                     Text("richiama").tag(false)
                     Text("segna").tag(true)
@@ -22,7 +22,7 @@ struct PadView: View {
 
                 LazyVGrid(columns: columns, spacing: 8) {
                     ForEach(0..<16, id: \.self) { i in
-                        FlashingPad(pulse: engine.pulse, index: i, onPress: { engine.hitPad(i) }, label: {
+                        FlashingPad(pulse: engine.pulse, index: i, onPress: { engine.padDown(i) }, onRelease: { engine.padUp(i) }, label: {
                             VStack(spacing: 2) {
                                 Text("\(i + 1)").font(.system(.title3, design: .monospaced))
                                 Text("nota \(TP7.padBase + i)").font(.system(size: 9, design: .monospaced)).opacity(0.6)
@@ -35,11 +35,17 @@ struct PadView: View {
                         )
                     }
                 }
+                Toggle("suona finché lo tieni premuto", isOn: $engine.padHold)
+                    .font(.subheadline)
                 HStack {
                     Spacer()
                     Button("dimentica i segni") { engine.forgetPads() }
                         .font(.footnote)
                 }
+            }
+
+            Card(title: "trasporto in cue", note: "Gli stessi tasti della scheda Nastro, qui sotto i pad: ▶ fa correre il nastro, ■ lo ferma, ● arma (la ripresa parte dal ▶ della macchina), ⏮ ⏭ canzone passano al segno prima o dopo.") {
+                CueTransportControls()
             }
 
             Card(title: "balbettio", note: "Tieni premuto: l'ultimo pad si ripete a tempo, come un beat repeat. Il tempo è quello della scheda Ritmo.") {
@@ -95,9 +101,10 @@ struct FlashingPad<Label: View>: View {
     @ObservedObject var pulse: Pulse
     let index: Int
     let onPress: () -> Void
+    var onRelease: () -> Void = {}
     @ViewBuilder let label: () -> Label
 
     var body: some View {
-        PressPad(lit: pulse.flashPad == index, onPress: onPress, label: label)
+        PressPad(lit: pulse.flashPad == index, onPress: onPress, onRelease: onRelease, label: label)
     }
 }

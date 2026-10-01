@@ -52,7 +52,7 @@ Tieni **mode** per aprire il menu, poi:
 - **Le cose di velocità funzionano solo mentre il TP-7 suona davvero** (▶ in sync, o il play della macchina). Riguarda velocità, nastro stanco, tape stop e inclinazione; il nastro mosso dalla leva (trasporto in cue) non le sente. La velocità resta anche dopo uno stop: il display non la mostra.
 - **La leva a nastro fermo** vale come una velocità: 64 fermo, 68 avanti a ×1, 60 indietro a ×1. «dito» tiene fermo il nastro solo mentre suona o corre con la leva.
 - **In cue un pad sposta il nastro al suo segno, ma suona solo se il nastro corre.** Per questo, se il nastro è fermo, il pad lo fa partire con la leva.
-- **Cambiare registrazione via MIDI non si può**: ⏩ arriva in fondo al file e si ferma lì. Si cambia sulla macchina.
+- **Cambiare registrazione**: un comando MIDI non c'è, ma con menu → **PLAY → resume** sul TP-7 i tasti ⏪ ⏩ attraversano tutti i file. Oppure un **album** (`strumenti/banche/album.py`): più registrazioni in un file, e ⏮ ⏭ canzone.
 - **Il loop via MIDI** funziona solo con la schermata LOOP aperta sulla macchina (▲, poi loop). **I pad** vogliono la schermata CUE.
 - **Registrare da Bobina** (in sync) crea sempre un file nuovo; ■ chiude la ripresa. In cue serve il ▶ della macchina.
 - **Il TP-7 non racconta mai com'è messo.** Bobina non può sapere se sta suonando o se il loop è acceso: si ricorda solo quello che gli ha mandato.
