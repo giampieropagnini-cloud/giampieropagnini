@@ -213,7 +213,7 @@ struct POTastiView: View {
             }
 
             Card(title: "la faccia", note: "Come sulla macchina. Ogni tasto è diviso in due: sopra lo tocchi una volta, sotto («tieni») resta giù finché non lo ritocchi. Per pattern + 5: tieni pattern, tocca 5, ritocca tieni. Le manopole A e B via MIDI non si muovono.") {
-                POFace(live: po.live)
+                POFace(flashes: po.flashes)
                 HStack {
                     Chip(text: "lascia tutto", on: !po.held.isEmpty) { po.releaseAll() }
                     Spacer()
@@ -277,7 +277,7 @@ struct POTastiView: View {
 /// La pulsantiera: sound, pattern, bpm e le manopole in alto; i 16 tasti in un quadrato e la colonna a destra.
 struct POFace: View {
     @EnvironmentObject var po: POEngine
-    @ObservedObject var live: POLive
+    @ObservedObject var flashes: POFlash
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 5)
 
@@ -286,7 +286,7 @@ struct POFace: View {
             ForEach(0..<5, id: \.self) { r in
                 ForEach(0..<5, id: \.self) { c in
                     if let k = PO.face[r][c] {
-                        POKeyButton(key: k, held: po.held.contains(k), flash: k.number.map { live.flash.contains($0) } ?? false)
+                        POKeyButton(key: k, held: po.held.contains(k), flash: k.number.map { flashes.keys.contains($0) } ?? false)
                     } else {
                         VStack(spacing: 2) {
                             Text(c == 3 ? "A" : "B")

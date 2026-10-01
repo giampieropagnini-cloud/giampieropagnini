@@ -7,10 +7,15 @@ import SwiftUI
 /// sta a parte, così a ogni passo si ridisegnano solo i quadratini e non tutta la pagina.
 final class POLive: ObservableObject {
     @Published var step = 0
-    @Published var flash: Set<Int> = []
     @Published var tilt = 0.0
     /// L'effetto scelto dall'inclinazione adesso, per mostrarlo.
     @Published var tiltFx: Int?
+}
+
+/// I tasti che lampeggiano quando suonano: a parte anche dal passo, così la faccia del PO (46 tasti)
+/// si ridisegna solo quando un tasto suona, non a ogni sedicesimo.
+final class POFlash: ObservableObject {
+    @Published var keys: Set<Int> = []
 }
 
 /// Il monitor sta a parte anche lui: le righe arrivano mentre il ritmo gira, e se le pubblicasse il motore
@@ -96,6 +101,7 @@ final class POEngine: ObservableObject {
     weak var bank: POBank?
     let io = MIDIIO()
     let live = POLive()
+    let flashes = POFlash()
     private(set) lazy var sequencer = POSequencer(io: io, member: BobinaClock.po(slot))
 
     var member: BobinaClock.Member { BobinaClock.po(slot) }
@@ -434,8 +440,8 @@ final class POEngine: ObservableObject {
     private func flash(_ keys: Set<Int>, at t: MIDITimeStamp) {
         let delay = msUntil(t) / 1000
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-            self?.live.flash.formUnion(keys)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { self?.live.flash.subtract(keys) }
+            self?.flashes.keys.formUnion(keys)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { self?.flashes.keys.subtract(keys) }
         }
     }
 
