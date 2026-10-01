@@ -31,6 +31,11 @@ enum TP7 {
     static let ccMute: UInt8 = 120
 
     static let leverCenter = 64
+    /// A nastro fermo la leva vale come una velocità: 64 fermo, 68 avanti ×1, 60 indietro ×1
+    /// (lucidyan/tp7-midi, MIDI_SPEC.md). È il ▶ che funziona anche in cue, dove start e continue vengono ignorati.
+    /// Il 30/9/2026 avevamo scelto 60: suonava, ma all'indietro, e si fermava arrivato all'inizio.
+    /// Durante il play (dopo ▶ o un cue) la leva cambia significato: 64 è il play normale e il fermo è 60 + pitch bend +708.
+    static let leverCuePlay = 68
     /// Mentre suona, 60 più il pitch bend +708 lo tengono fermo come sotto il dito.
     static let leverHalt = 60
     static let haltBend = 708

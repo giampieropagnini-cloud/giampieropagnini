@@ -22,14 +22,15 @@ Il tasto «passa a…» in alto a destra di ogni pagina passa da una sezione all
 
 ### Sezione Pocket Operator
 
-- **Tasti**: la faccia del PO scelto (sub, tonic, K.O!, speak) con la disposizione vera. I tasti funzione si agganciano (tocca pattern, poi 5, poi di nuovo pattern), i numeri fanno un tocco. Pattern, suono e volume in un tocco, un effetto per un momento, il modo di sync.
+- **PO 1, PO 2…** in cima a ogni scheda: un PO per adattatore (da due a quattro), ognuno col colore del suo modello; suonano insieme, sulla stessa battuta.
+- **Tasti**: la faccia del PO scelto (sub, tonic, K.O!, speak) con la disposizione vera. Ogni tasto è diviso in due: sopra un tocco, sotto «tieni» (resta giù finché non lo ritocchi); i tasti funzione hanno ognuno il suo colore. Pattern, suono e volume in un tocco, «cancella il pattern», un effetto per un momento, il modo di sync.
 - **Suona**: i **passi dal vivo** (Bobina preme i tasti del PO a tempo: sedici passi per ognuno dei sedici tasti), gli **effetti a tempo** (anche solo nell'ultima di ogni 2, 4, 8 battute), i **pattern a tempo** (una battuta per casella), il **cancello** (sul tonic un muto vero, sugli altri col volume) e **col corpo** (inclinando il telefono, quattro effetti).
 - **Ritmo**: come sta a tempo (Bobina lo suona · cavo sync dal TX-6 · sync out dell'adattatore · senza cavo), il tempo comune col TX-6, l'anticipo per il ritardo del bluetooth.
 - **Collega**: bluetooth o cavo, il canale, le scorciatoie a CC, il monitor e le tabelle MIDI dell'adattatore.
 
 Quello che si sa dell'adattatore è in `PO-RICERCA.md`, le prove con le macchine vere in `PROVE-PO.md`.
 
-> **Attenzione:** il codice è stato scritto e controllato riga per riga, ma non ancora compilato su un Mac. Se Xcode segnala un errore, vedi in fondo.
+> Compilata con Xcode 26.6 e 27.0 e provata col TP-7 vero, col cavo e col bluetooth, fra il 28/9 e il 1/10/2026: quello che funziona e quello che no è in `PROVE.md`.
 
 ---
 
@@ -56,9 +57,9 @@ Con l'Apple ID gratuito l'app resta valida **7 giorni**: quando smette di aprirs
 Tieni **mode** per aprire il menu, poi:
 
 - **MIDI**
-  - `off`, `cue` o `sync`: in tutte e tre il TP-7 ascolta Bobina.
-  - `cue` serve per i pad: le note diventano cue.
-  - `sync` fa mandare al TP-7 il suo tempo: in Ritmo, «segui il TP-7» fa dettare i passi al nastro. In sync però i pad non vanno.
+  - `cue` serve per i pad: le note diventano cue. Qui il TP-7 ignora ▶ ■ ● normali: usa **Nastro → trasporto in cue**, dove play e stop si fanno con la leva. Per registrare, ● in cue arma e il ▶ lo premi sulla macchina; ■ in cue chiude la ripresa.
+  - `sync`: funziona il trasporto normale (▶ ■ ⏮ ●) e il TP-7 manda il suo tempo: in Ritmo, «segui il TP-7» fa dettare i passi al nastro, **ma solo col cavo** (col bluetooth il tempo non arriva). In sync però i pad non vanno.
+  - `off`: secondo le misure si comporta come sync, senza mandare il tempo. Non l'abbiamo provato.
   - `ctrl` trasforma il TP-7 in controller: in Collega vedi i suoi tasti. Ma in `ctrl` non ascolta più niente, e l'impostazione resta anche scollegato: rimettila come prima quando hai finito.
 - **Col cavo**: collega il TP-7 acceso all'iPhone. In Collega compare «TP-7» e Bobina lo sceglie da sola.
   - Finché è collegato, il TP-7 fa anche da scheda audio dell'iPhone.
@@ -89,12 +90,15 @@ Tieni **shift** e premi **select** per il menu, poi:
 
 ## Cose da sapere (TP-7)
 
-- **Le cose di velocità funzionano solo mentre il TP-7 suona.** Riguarda velocità, nastro stanco, tape stop e inclinazione. Premi ▶ in Bobina o sulla macchina, oppure fai partire un cue da un pad. La velocità resta anche dopo uno stop: il display non la mostra.
+- **Le cose di velocità funzionano solo mentre il TP-7 suona davvero** (▶ in sync, o il play della macchina). Riguarda velocità, nastro stanco, tape stop e inclinazione; il nastro mosso dalla leva (trasporto in cue) non le sente. La velocità resta anche dopo uno stop: il display non la mostra.
+- **La leva a nastro fermo** vale come una velocità: 64 fermo, 68 avanti a ×1, 60 indietro a ×1. «dito» tiene fermo il nastro solo mentre suona o corre con la leva.
+- **In cue un pad sposta il nastro al suo segno, ma suona solo se il nastro corre.** Per questo, se il nastro è fermo, il pad lo fa partire con la leva.
+- **Cambiare registrazione via MIDI non si può**: ⏩ arriva in fondo al file e si ferma lì. Si cambia sulla macchina.
 - **Il loop via MIDI** funziona solo con la schermata LOOP aperta sulla macchina (▲, poi loop). **I pad** vogliono la schermata CUE.
-- **Registrare da Bobina** crea sempre un file nuovo; ■ chiude la ripresa.
+- **Registrare da Bobina** (in sync) crea sempre un file nuovo; ■ chiude la ripresa. In cue serve il ▶ della macchina.
 - **Il TP-7 non racconta mai com'è messo.** Bobina non può sapere se sta suonando o se il loop è acceso: si ricorda solo quello che gli ha mandato.
 - **I pad in modalità «segna»** legano la loro nota al punto dove passa il nastro in quel momento. Se non segnano, tieni premuto ● sulla macchina mentre tocchi il pad: è il modo ufficiale. La ricetta:
-  1. apri una registrazione lunga e premi play;
+  1. apri una registrazione lunga e falla correre (▶ di «trasporto in cue»);
   2. tocca i pad a tempo nei punti buoni;
   3. passa a «richiama» e suonali;
   4. mettili nel sequencer di Ritmo.
@@ -104,10 +108,12 @@ Tieni **shift** e premi **select** per il menu, poi:
 
 ## Se Xcode segnala un errore
 
-Bobina è stata scritta senza un Mac a disposizione, quindi è possibile che Xcode trovi qualche errore di battitura al primo tentativo. Si può fare così:
+Con Xcode 26.6 e 27.0 compila senza errori. Se una versione futura di Xcode ne segnalasse, si può fare così:
 
 - da Xcode 26.3 c'è Claude dentro Xcode: *Settings → Intelligence*, accedi, e chiedigli di sistemare gli errori di compilazione;
 - oppure copia il messaggio d'errore (riga e file) e incollalo a Claude nella stessa conversazione in cui è nata l'app.
+
+Se l'iPhone ha una versione di iOS più nuova di Xcode, l'installazione si ferma con «developer disk image could not be mounted»: va aggiornato Xcode dal Mac App Store. Se sull'iPhone «Verify App» resta bloccato, cancella Bobina, reinstallala e riprova.
 
 ## Dove sono le cose
 

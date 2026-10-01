@@ -49,6 +49,12 @@ final class Engine: ObservableObject {
     /// Il nastro è stato fermato da Bobina (60 + 708): il pitch bend resta fermo lì.
     @Published private(set) var halted = false
     @Published private(set) var lever = TP7.leverCenter
+    /// Il trasporto col TP-7 su cue, dove start e stop li ignora: ▶ e ■ si fanno con la leva.
+    /// fermo (64) · suona con la leva (68, il TP-7 resta «fermo» ma il nastro corre) ·
+    /// suona (dopo un pad, il TP-7 è in play e la leva a 64 è la velocità normale) · tenuto fermo (60 + pitch bend +708, come «dito»).
+    enum CueTape { case stopped, leverPlay, playing, frozen }
+    @Published private(set) var cueTape = CueTape.stopped
+
     /// Avvolgimento veloce: −1 indietro, +1 avanti, 0 fermo.
     @Published private(set) var winding = 0
 
@@ -147,6 +153,7 @@ final class Engine: ObservableObject {
     private var flutterPhase = 0.0
     private var drift = 0.0
     private var lastTick: MIDITimeStamp = 0
+    private var leverRemindedAt: MIDITimeStamp = 0
     private var ramp: (from: Double, to: Double, start: MIDITimeStamp, length: Double, stopAfter: Double?)?
     private var bendQuietUntil: MIDITimeStamp = 0
     private var gateState: Bool?
@@ -195,6 +202,10 @@ final class Engine: ObservableObject {
 
     func send(_ bytes: [UInt8], at time: MIDITimeStamp = 0, quiet: Bool = false) {
         io.send(bytes, at: time)
+        if let first = bytes.first, first & 0xF0 != 0xE0 {
+            let ahead = time > io.now() ? Int(io.ms(ticks: time - io.now())) : 0
+            trace("manda " + TP7.describe(bytes, incoming: false) + (ahead > 0 ? " tra \(ahead) ms" : ""))
+        }
         if !quiet { note(bytes, incoming: false) }
     }
 
@@ -235,6 +246,7 @@ final class Engine: ObservableObject {
         sendBend(currentBend(), force: true)
         send(TP7.continuePlay)
         rolling = true
+        cueTape = .playing
     }
 
     /// ⏮ start: riavvolge e suona dall'inizio del file.
@@ -245,6 +257,7 @@ final class Engine: ObservableObject {
         sendBend(currentBend(), force: true)
         send(TP7.start)
         rolling = true
+        cueTape = .playing
     }
 
     /// ■ stop: si ferma dov'è. Premuto di nuovo da fermo torna all'inizio, come sulla macchina.
@@ -254,6 +267,7 @@ final class Engine: ObservableObject {
         forceLever(TP7.leverCenter)
         send(TP7.stop)
         rolling = false
+        cueTape = .stopped
         if recording {
             recording = false
             armed = false
@@ -271,16 +285,25 @@ final class Engine: ObservableObject {
     }
 
     /// Tenuto premuto: il nastro resta fermo come sotto il dito, e riparte quando lasci.
+    /// Se il nastro corre con la leva (▶ in cue) il dito è la leva al centro; durante il play è 60 + pitch bend +708;
+    /// a nastro fermo non fa niente, perché la leva a 60 lo farebbe riavvolgere.
     func holdStill(_ on: Bool) {
         ramp = nil
-        if on {
-            halted = true
-            forceLever(TP7.leverHalt)
-            sendBend(TP7.haltBend, force: true)
-        } else {
-            halted = false
-            forceLever(TP7.leverCenter)
-            sendBend(currentBend(), force: true)
+        switch cueTape {
+        case .leverPlay:
+            setLever(on ? TP7.leverCenter : TP7.leverCuePlay)
+        case .stopped:
+            break
+        case .playing, .frozen:
+            if on {
+                halted = true
+                forceLever(TP7.leverHalt)
+                sendBend(TP7.haltBend, force: true)
+            } else {
+                halted = false
+                forceLever(TP7.leverCenter)
+                sendBend(currentBend(), force: true)
+            }
         }
     }
 
@@ -303,6 +326,7 @@ final class Engine: ObservableObject {
         lastBendSent = restore
         lever = TP7.leverCenter
         rolling = false
+        cueTape = .stopped
     }
 
     /// Avvio: parte fermo, la leva lo sblocca, il pitch bend lo porta a velocità.
@@ -330,17 +354,81 @@ final class Engine: ObservableObject {
         }
         ramp = nil
         halted = false
+        if cueTape == .leverPlay { cueTape = .stopped }
         winding = direction
         setLever(direction > 0 ? 127 : 0)
     }
 
-    /// Prova: la leva resta sul valore scelto (64 è il centro). Serve a trovare un ▶ e un ■
-    /// fatti con la leva, che il TP-7 ascolta anche in cue, dove start e stop li ignora.
-    func testLever(_ value: Int) {
-        winding = 0
-        ramp = nil
-        halted = false
-        setLever(value)
+    /// ▶ in cue: da fermo la leva a 60 fa correre il nastro; se era tenuto fermo dopo un pad, lo lascia andare.
+    func cuePlay() {
+        switch cueTape {
+        case .stopped:
+            ramp = nil
+            halted = false
+            forceLever(TP7.leverCuePlay)
+            cueTape = .leverPlay
+        case .frozen:
+            holdStill(false)
+            cueTape = .playing
+        case .leverPlay:
+            // il TP-7 può essersi fermato da solo (fine del file, o leva rilasciata): si riprova sempre
+            forceLever(TP7.leverCuePlay)
+        case .playing:
+            break
+        }
+    }
+
+    /// ■ in cue: toglie la leva del ▶, oppure, se il nastro suona da solo dopo un pad, lo tiene fermo come «dito».
+    func cueStop() {
+        if recording {
+            send(TP7.cc(TP7.ccArm, 0))
+            armed = false
+            recording = false
+        }
+        switch cueTape {
+        case .leverPlay:
+            forceLever(TP7.leverCenter)
+            cueTape = .stopped
+        case .playing:
+            holdStill(true)
+            cueTape = .frozen
+        case .stopped, .frozen:
+            break
+        }
+    }
+
+    /// In cue un pad fa saltare il nastro al suo segno, ma suona solo se il nastro sta già correndo
+    /// (provato il 1/10/2026). Se è fermo, Bobina lo fa correre in avanti con la leva; se corre già, la leva resta.
+    /// Se era tenuto fermo durante il play, il pad lo lascia ripartire dal segno.
+    private func padStartsTape(at time: MIDITimeStamp) {
+        switch cueTape {
+        case .stopped:
+            ramp = nil
+            halted = false
+            winding = 0
+            lever = TP7.leverCuePlay
+            send(TP7.cc(TP7.ccLever, TP7.leverCuePlay), at: time, quiet: true)
+            cueTape = .leverPlay
+        case .frozen:
+            let restore = currentBend()
+            send(TP7.bend(restore), at: time, quiet: true)
+            lastBendSent = restore
+            halted = false
+            lever = TP7.leverCenter
+            send(TP7.cc(TP7.ccLever, TP7.leverCenter), at: time, quiet: true)
+            cueTape = .playing
+        case .leverPlay, .playing:
+            // il sequencer passa di qui a ogni colpo: niente da cambiare, niente da pubblicare
+            break
+        }
+    }
+
+    /// ● in cue: arma soltanto (cc 14). Provato il 1/10/2026, con la leva sia a 60 sia a 68: in cue la ripresa
+    /// parte solo dal ▶ della macchina. Il ■ in cue la chiude, perché il disarmo (cc 14 a 0) la ferma.
+    func cueRecord() {
+        send(TP7.cc(TP7.ccArm, 127))
+        armed = true
+        recording = true
     }
 
     // MARK: bobina virtuale
@@ -351,6 +439,7 @@ final class Engine: ObservableObject {
     /// Il dito sulla bobina virtuale: la sua velocità diventa la leva.
     func scrub(_ value: Int) {
         winding = 0
+        if cueTape == .leverPlay { cueTape = .stopped }
         scrubbing = true
         lastScrubAt = io.now()
         // agli estremi (0 e 127) il TP-7 passa al riavvolgimento velocissimo: meglio restarne lontani
@@ -373,7 +462,10 @@ final class Engine: ObservableObject {
             if markMode { padsSet.insert(index) }
             haptic.impactOccurred()
         }
-        if !markMode { resendMixer(after: time) }
+        if !markMode {
+            padStartsTape(at: time)
+            resendMixer(after: time)
+        }
         flash(index, at: time)
     }
 
@@ -534,6 +626,12 @@ final class Engine: ObservableObject {
 
         driftTick(now, dt)
 
+        // ▶ in cue: la leva si ricorda al TP-7 due volte al secondo, nel caso la lasci andare da sola
+        if cueTape == .leverPlay && lever == TP7.leverCuePlay && io.ms(ticks: now &- leverRemindedAt) > 500 {
+            leverRemindedAt = now
+            io.send(TP7.cc(TP7.ccLever, TP7.leverCuePlay))
+        }
+
         // dito fermo sulla bobina virtuale: la leva torna al centro
         if scrubbing && lever != TP7.leverCenter && io.ms(ticks: now &- lastScrubAt) > 90 {
             setLever(TP7.leverCenter)
@@ -601,7 +699,7 @@ final class Engine: ObservableObject {
     private func currentBend() -> Int { TP7.bendFor(speed: currentSpeedFactor()) }
 
     /// Il TP-7 è collegato col bluetooth: iOS chiama queste porte «… Bluetooth».
-    private var overBluetooth: Bool { connectedName.lowercased().contains("bluetooth") }
+    var overBluetooth: Bool { connectedName.lowercased().contains("bluetooth") }
 
     /// Il pitch bend parte solo se cambia davvero, al massimo ogni 12 ms col cavo e ogni 40 ms col bluetooth:
     /// ogni invio è un pacchetto, e un bluetooth solo, con due macchine, si intasa.

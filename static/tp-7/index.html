@@ -646,8 +646,8 @@
           <thead><tr><th>voce</th><th>ascolta i comandi?</th><th>le note fanno cue?</th><th>manda</th></tr></thead>
           <tbody>
             <tr><td><span class="kk">off</span></td><td>sì: cc, pitch bend, start/stop</td><td>no</td><td>niente</td></tr>
-            <tr><td><span class="kk">cue</span></td><td>sì</td><td>sì</td><td>niente</td></tr>
-            <tr><td><span class="kk">sync</span></td><td>sì</td><td>no</td><td>il suo clock, mentre il nastro gira<i>Al tempo del file per la velocità reale: se rallenti il nastro, rallenta anche il clock.</i></td></tr>
+            <tr><td><span class="kk">cue</span></td><td>sì, ma <b>non start, continue e stop</b> <span class="flag">misurato</span><i>Provato il 28/9/2026: in cue il TP-7 li ignora. Play e stop si fanno con la leva: cc 18 a 68 parte, a 64 si ferma.</i></td><td>sì</td><td>niente</td></tr>
+            <tr><td><span class="kk">sync</span></td><td>sì</td><td>no</td><td>il suo clock, mentre il nastro gira, più start, continue e stop<i>Al tempo del file per la velocità reale: se rallenti il nastro, rallenta anche il clock. Solo col cavo: via bluetooth arrivano start, continue e stop, ma il clock no.</i></td></tr>
             <tr><td><span class="kk">ctrl</span></td><td>no, niente</td><td>no</td><td>i suoi tasti, la bobina e la leva<i>Entrando si ferma, e resta così anche scollegato. Il memo da spento registra lo stesso.</i></td></tr>
           </tbody>
         </table></div>
@@ -656,14 +656,14 @@
 
       <section>
         <h2 class="sec">trasporto · start, continue, stop</h2>
-        <p class="sec-note">Non sono nella tabella ufficiale, ma funzionano: sono i messaggi di trasporto standard, gli stessi che manda un DAW.</p>
+        <p class="sec-note">Non sono nella tabella ufficiale, ma funzionano: sono i messaggi di trasporto standard, gli stessi che manda un DAW. <b>Solo con MIDI su sync</b> (e, secondo le misure, su off): in cue il TP-7 li ignora, e lì play e stop si fanno con la leva, più giù. <span class="flag">misurato</span></p>
         <div class="tablewrap"><table>
           <thead><tr><th>messaggio</th><th>cosa fa</th></tr></thead>
           <tbody>
             <tr><td><span class="kk">FA · start</span></td><td>riavvolge all'inizio e suona <span class="flag">misurato</span></td></tr>
             <tr><td><span class="kk">FB · continue</span></td><td>suona da dove si trova<i>Rimette anche la leva a velocità normale.</i></td></tr>
             <tr><td><span class="kk">FC · stop</span></td><td>si ferma dov'è<i>Un secondo stop da fermo riavvolge all'inizio, come sulla macchina. Toglie anche l'armamento.</i></td></tr>
-            <tr><td><span class="kk">cc 14 = 127</span> poi <span class="kk">FB</span></td><td>registra: nasce un file nuovo, e FC chiude la ripresa <span class="flag">misurato</span></td></tr>
+            <tr><td><span class="kk">cc 14 = 127</span> poi <span class="kk">FB</span></td><td>registra: nasce un file nuovo, e FC chiude la ripresa <span class="flag">misurato</span><i>Solo in sync. In cue il cc 14 arma e basta: la ripresa parte solo col ▶ della macchina, e cc 14 = 0 la chiude (provato il 1/10/2026).</i></td></tr>
             <tr><td><span class="kk">F8 · clock</span></td><td>ignorato: il TP-7 non segue il tempo di nessuno</td></tr>
           </tbody>
         </table></div>
@@ -674,14 +674,14 @@
         <div class="tablewrap"><table>
           <thead><tr><th>messaggio</th><th>canale</th><th>cosa fa</th></tr></thead>
           <tbody>
-            <tr><td><span class="kk">note on 0–127</span></td><td>tutti</td><td>Cue: la nota si lega al punto dove la segni, poi lo richiama<i>Per segnare: MIDI su cue e ● tenuto sulla macchina mentre arriva la nota. Per richiamare: la stessa nota, e il nastro parte da lì. Via MIDI i cue non si cancellano.</i></td></tr>
+            <tr><td><span class="kk">note on 0–127</span></td><td>tutti</td><td>Cue: la nota si lega al punto dove la segni, poi lo richiama<i>Per segnare: MIDI su cue e cc 16 = 127 (oppure ● tenuto sulla macchina) mentre arriva la nota. Per richiamare: cc 16 = 0 e la stessa nota: il nastro salta lì, ma suona solo se sta già correndo, col play della macchina o con la leva a 68. Via MIDI i cue non si cancellano.</i></td></tr>
             <tr><td><span class="kk">note off</span></td><td>tutti</td><td>Nella tabella ufficiale, ma nessuno ha visto un effetto</td></tr>
             <tr><td><span class="kk">pitch bend</span></td><td>tutti</td><td>Velocità, da ×0,5 a ×2 (tabella più giù)<i>Solo mentre suona. Resta anche dopo stop e play, si moltiplica con la SPD della macchina, e il display non la mostra: ricordati di rimetterla a zero.</i></td></tr>
             <tr><td><span class="kk">cc 7</span></td><td>1–6</td><td>Volume della traccia: il canale è la traccia<i>Si vede nel MIX della macchina. Torna al massimo quando un cue o un loop cambia traccia.</i></td></tr>
             <tr><td><span class="kk">cc 120</span></td><td>1–6</td><td>Muto: 127 muta, 0 riaccende<i>Assoluto, non un interruttore. Per il resto del mondo il cc 120 è «panico» (all sound off): un tasto panico può mettere i muti.</i></td></tr>
             <tr><td><span class="kk">cc 9</span></td><td>1–3</td><td>Guadagno del minijack 1-3: dB = valore × 42 / 127<i>Prima del mixer, per quello che entra dal vivo. 64 = +21 dB. I canali 4-6 non fanno niente.</i></td></tr>
-            <tr><td><span class="kk">cc 14</span></td><td>tutti</td><td>Arma la registrazione (la luce rossa lampeggia)<i>Da solo non registra: serve anche FB.</i></td></tr>
-            <tr><td><span class="kk">cc 16</span></td><td>tutti</td><td>Modo «segna cue» <span class="flag">da confermare</span><i>Nelle misure non ha fatto niente di visibile: tenere ● sulla macchina è la strada sicura.</i></td></tr>
+            <tr><td><span class="kk">cc 14</span></td><td>tutti</td><td>Arma la registrazione (la luce rossa lampeggia)<i>Da solo non registra: in sync serve anche FB, in cue il ▶ della macchina. A 0 disarma, e chiude una ripresa in corso.</i></td></tr>
+            <tr><td><span class="kk">cc 16</span></td><td>tutti</td><td>Modo «segna cue»: 127 le note segnano, 0 le richiamano <span class="flag">provato</span><i>Nelle misure di op1-lfo-hero non aveva fatto niente di visibile; con l'app Bobina, il 29/9 e il 1/10/2026, le note hanno segnato e richiamato i cue. Se non segna, tenere ● sulla macchina resta la strada sicura.</i></td></tr>
             <tr><td><span class="kk">cc 17</span></td><td>tutti</td><td>Loop: 1 = inizio, 2 = fine, 0 = spento<i>Solo con la schermata LOOP aperta sulla macchina. Senza l'inizio la fine è ignorata; a loop acceso si può solo spegnere.</i></td></tr>
             <tr><td><span class="kk">cc 18</span></td><td>tutti</td><td>La leva: 64 al centro, si somma al nastro (tabella qui sotto)</td></tr>
           </tbody>
@@ -692,6 +692,7 @@
       <section>
         <h2 class="sec">la leva · cc 18</h2>
         <p class="sec-note">Ogni passo dal centro aggiunge circa ×0,26 alla velocità, in avanti sopra 64 e indietro sotto. Si somma a quello che il nastro sta già facendo. <span class="flag">misurato</span></p>
+        <p class="sec-note"><b>In cue è il trasporto</b>: 68 suona in avanti, 64 si ferma, e il nastro tiene la velocità finché la leva resta lì. Un cue richiamato col nastro che corre salta e continua da lì. <span class="flag">provato</span></p>
         <div class="tablewrap"><table>
           <thead><tr><th>valore</th><th>a nastro fermo</th><th>mentre suona</th></tr></thead>
           <tbody>
@@ -704,6 +705,7 @@
             <tr><td><span class="kk">0</span> · <span class="kk">127</span></td><td colspan="2">riavvolgimento velocissimo, ×250-300, dopo due secondi di rincorsa: in dieci secondi fa quaranta minuti di nastro</td></tr>
           </tbody>
         </table></div>
+        <p class="note">Il «fermo come sotto il dito» (60 più pitch bend +708) vale solo mentre suona: a nastro fermo la leva a 60 riavvolge a ×1 fino all'inizio del file.</p>
       </section>
 
       <section>
@@ -744,7 +746,8 @@
         <ul class="plain">
           <li>Manda 24 impulsi per quarto, e solo mentre il nastro gira: da fermo tace, e tace anche quando lo muove la leva.</li>
           <li>Il tempo è quello scritto nel file (menu di registrazione → TEMPO, prima di registrare; 110 bpm se non lo cambi), moltiplicato per la velocità reale: rallenti il nastro e rallenta il clock.</li>
-          <li>Non manda start e stop; il clock gira anche all'indietro, quindi non dice il verso.</li>
+          <li>Manda anche start (FA) quando parte, continue (FB) quando riprende e stop (FC) quando si ferma. <span class="flag">misurato</span> Il clock gira anche all'indietro, quindi non dice il verso.</li>
+          <li>Solo col cavo: via bluetooth il clock non arriva (provato il 29/9/2026 con un iPhone). Col cavo è regolare, 44 impulsi al secondo con un file a 110 bpm.</li>
           <li>Il clock che arriva lo ignora: il TP-7 fa sempre da capo, mai da seguace.</li>
         </ul>
       </section>
@@ -757,7 +760,10 @@
             <tr><td>play da dove sei</td><td class="mono">FB</td></tr>
             <tr><td>da capo</td><td class="mono">FA</td></tr>
             <tr><td>stop pulito (solo se suona)</td><td class="mono">B0 12 40 · FC · E0 00 40</td></tr>
-            <tr><td>registra una ripresa</td><td class="mono">B0 0E 7F · FB … FC</td></tr>
+            <tr><td>registra una ripresa (in sync)</td><td class="mono">B0 0E 7F · FB … FC</td></tr>
+            <tr><td>registra in cue (il via dalla macchina)</td><td class="mono">B0 0E 7F · ▶ sul TP-7 … B0 0E 00</td></tr>
+            <tr><td>play in cue (con la leva)</td><td class="mono">B0 12 44</td></tr>
+            <tr><td>stop in cue (leva al centro)</td><td class="mono">B0 12 40</td></tr>
             <tr><td>fermo come sotto il dito</td><td class="mono">B0 12 3C · E0 44 45</td></tr>
             <tr><td>indietro a ×1 (mentre suona)</td><td class="mono">B0 12 38 · E0 64 4B</td></tr>
             <tr><td>muta la traccia 2</td><td class="mono">B1 78 7F</td></tr>
@@ -805,6 +811,10 @@
           <li>Il clock in arrivo.</li>
           <li>Lo stop mentre lo porta la leva: la leva continua.</li>
           <li>Il cc 17 senza la schermata LOOP aperta.</li>
+          <li>Start, continue e stop con MIDI su cue.</li>
+          <li>Registrare in cue senza il ▶ della macchina, anche con la leva.</li>
+          <li>Cambiare registrazione: non c'è un comando per passare al file dopo o prima, e l'avvolgimento veloce arriva in fondo e si ferma lì.</li>
+          <li>Il clock via bluetooth.</li>
         </ul>
         <p class="note">Mai provati da nessuno: program change, MMC, song position, altri cc, canali diversi dall'1, la velocity delle note.</p>
       </section>
@@ -905,7 +915,7 @@
       <section>
         <h2 class="sec">col telefono</h2>
         <div class="callout">
-          <p><b>Bobina</b> è l'app per iPhone nata da questa ricerca: bobina da girare col dito, trasporto e registrazione, velocità, nastro stanco, tape stop, velocità inclinando il telefono, sedici pad di cue, balbettio, collage, loop a tempo, sequencer di nastro, cancello, pompa, deriva, lo specchio dei tasti in ctrl e tutte le tabelle. Parla col TP-7 col cavo USB-C o col bluetooth.</p>
+          <p><b>Bobina</b> è l'app per iPhone nata da questa ricerca: bobina da girare col dito, trasporto e registrazione (anche in cue, con la leva), velocità, nastro stanco, tape stop, velocità inclinando il telefono, sedici pad di cue, balbettio, collage, loop a tempo, sequencer di nastro, cancello, pompa, deriva, lo specchio dei tasti in ctrl e tutte le tabelle. Parla col TP-7 col cavo USB-C o col bluetooth.</p>
           <p class="dim">È nella cartella <span class="mono">bobina</span> del sito, con le istruzioni in <span class="mono">LEGGIMI.md</span>: si installa dal Mac con Xcode.</p>
         </div>
         <ul class="plain">
@@ -967,7 +977,7 @@
           <h3>collegamento</h3>
           <ol class="recipe">
             <li>Collega il TP-7 acceso col cavo USB-C (o via bluetooth: menu → BLE → accept, poi accoppialo in Configurazione MIDI Audio).</li>
-            <li>Sul TP-7, menu → <b>MIDI</b>: <b>off</b>, <b>cue</b> o <b>sync</b> per comandarlo da qui (<b>cue</b> serve per i pad); <b>ctrl</b> per usare i suoi tasti.</li>
+            <li>Sul TP-7, menu → <b>MIDI</b>: <b>sync</b> (o off) per ▶ ■ ●; <b>cue</b> per i pad, ma lì ▶ e ■ non vanno: porta la leva a 68 per partire e a 64 per fermarti; <b>ctrl</b> per usare i suoi tasti.</li>
             <li>Premi collega e dai il permesso al browser.</li>
           </ol>
           <div class="btnrow">
@@ -988,7 +998,7 @@
         <div class="grid2">
           <div class="card">
             <h3>trasporto <span class="sm">FA · FB · FC · cc 18</span></h3>
-            <p class="dim">⏮ riavvolge e suona, ▶ riparte da dove sei, ■ si ferma (due volte: torna all'inizio), ● registra su un file nuovo. ◀◀, ▶▶ e «dito» vanno tenuti premuti. Dalla tastiera del Mac lo spazio fa ▶ e ■.</p>
+            <p class="dim">⏮ riavvolge e suona, ▶ riparte da dove sei, ■ si ferma (due volte: torna all'inizio), ● registra su un file nuovo. ◀◀, ▶▶ e «dito» vanno tenuti premuti; «dito» vale solo mentre suona. Dalla tastiera del Mac lo spazio fa ▶ e ■. Con MIDI su cue questi tasti non vanno: usa la leva (68 parte, 64 ferma).</p>
             <div class="btnrow">
               <button type="button" class="btn big" id="t-top" title="da capo (FA)">⏮</button>
               <button type="button" class="btn big" id="t-play" title="play da dove si trova (FB)">▶</button>

@@ -9,8 +9,13 @@ struct RitmoView: View {
 
     var body: some View {
         Page(title: "Ritmo") {
-            Card(title: "tempo", note: "Il metronomo lo tiene Bobina. Oppure metti il TP-7 su MIDI → sync e accendi «segui il TP-7»: i passi li detta il nastro, al tempo del file, anche quando lo rallenti o lo acceleri. In sync però i pad non funzionano (servono in cue): vanno cancello, pompa e deriva.") {
+            Card(title: "tempo", note: "Il metronomo lo tiene Bobina. Oppure metti il TP-7 su MIDI → sync, collegalo col cavo e accendi «segui il TP-7»: i passi li detta il nastro, al tempo del file, anche quando lo rallenti o lo acceleri. Col bluetooth il TP-7 il tempo non lo manda: lì usa tap. In sync però i pad non funzionano (servono in cue): vanno cancello, pompa e deriva.") {
                 Toggle("segui il TP-7 (MIDI → sync)", isOn: $engine.followClock)
+                if engine.followClock && engine.overBluetooth {
+                    Text("col bluetooth il tempo del TP-7 non arriva: collegalo col cavo, oppure spegni e usa tap")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.rec)
+                }
                 HStack(spacing: 10) {
                     Chip(text: "−") { engine.bpm = max(40, engine.bpm - 1) }
                     Text("\(Int(engine.bpm))")
