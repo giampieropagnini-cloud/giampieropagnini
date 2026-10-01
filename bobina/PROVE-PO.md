@@ -28,7 +28,7 @@ Se una prova fallisce, prima di cambiare il codice si ricontrolla come è stata 
 | 13 | pattern a tempo | come la 11; Suona → pattern a tempo, 1 · 2. Il cambio arriva sulla battuta o una battuta dopo? | da fare |
 | 14 | effetti a tempo | come la 11; Suona → effetti a tempo, un effetto sui passi 13-16 | da fare |
 | 15 | cancello | sul tonic: muto tenendo 1-4; sugli altri: col volume | da fare |
-| 16 | senza cavo | Ritmo → senza cavo, 120 su Bobina e sul PO (bpm fino a 120), ▶: quanto si allontana in 5 minuti? | da fare |
+| 16 | senza cavo | Ritmo → senza cavo, 120 su Bobina e sul PO (bpm fino a 120), ▶: quanto si allontana in 5 minuti? | ✅ 1/10/2026, due PO con «▶ tutti i PO insieme»: partono nello stesso istante. Da misurare quanto si allontanano coi minuti |
 | 17 | inclinazione | Suona → col corpo; inclinare a destra e a sinistra | da fare |
 
 ## Col configuratore web (Chrome sul Mac, cavo USB)
@@ -43,6 +43,7 @@ Se una prova fallisce, prima di cambiare il codice si ricontrolla come è stata 
 
 (qui i numeri veri, man mano)
 
+- 1/10/2026: in «Bobina lo suona» coi passi vuoti il PO restava fermo (giusto, ma non si capiva) e il play premuto da Bobina durava 40 ms. Ora 60 ms come i tasti che funzionano, e Ritmo avvisa. Con «senza cavo» i due PO partono insieme.
 - 30/9/2026: con due adattatori via bluetooth Bobina ne comandava uno solo alla volta (una porta per tutta la sezione). Ora ogni PO ha il suo motore e la sua porta (PO 1, PO 2 in cima alle schede); Bobina li divide da sola fra le porte con lo stesso nome. Prova sul Mac: due PO partiti insieme, scarto 0,000 ms; fermato il PO 1, il PO 2 continua sulla griglia.
 
 - 29/9/2026, sul Mac senza macchine (strumenti/prova-po), TX-6 e PO sulla stessa griglia, schermo bloccato 300 ms ogni 500: il PO entra sul passo 16 del TX-6 (inizio di battuta), i suoi passi cadono a 0,000 ms da quelli del TX-6, a 125,00 ms esatti. Lo stesso tasto ripremuto viene lasciato 20 ms prima. fx giù 20 ms prima del numero, e intanto i passi dal vivo tacciono. Col sync out: clock a 20,83 ms esatti, start nel pacchetto del primo impulso della battuta.
