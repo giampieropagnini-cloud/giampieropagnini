@@ -587,6 +587,11 @@ struct PORitmoView: View {
                     }
                 }
                 Chip(text: po.running ? "■ ferma il \(po.title)" : "▶ fai partire il \(po.title)", on: po.running) { po.toggleRun() }
+                if po.sync == .live && !(po.liveOn && po.liveSteps.contains { $0.contains(true) }) {
+                    Text("In «Bobina lo suona» il PO resta fermo e suona solo i passi di Suona → passi dal vivo, che adesso sono spenti o vuoti. Per far partire il pattern del PO scegli un altro modo qui sopra.")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.rec)
+                }
                 Chip(text: bank.anyRunning ? "■ ferma tutti i PO" : "▶ tutti i PO insieme", on: bank.anyRunning) {
                     if bank.anyRunning { bank.stopAll() } else { bank.startAll() }
                 }

@@ -58,7 +58,7 @@ Fonti: [hanztechnology.com](https://hanztechnology.com/products/pocket-operator-
 - 📄 Le due file basse (9-16) sono 60-67 e le due alte (1-8) 68-75: così sui 16 pad di una Beatstep Pro la fila di sotto suona la metà di sotto del PO.
 - 📄 Il modello «OP-Z» del file (`config_opz.cfg`) usa altre note e il canale 14: non ci riguarda.
 - 🔎 Note Off vero (0x80). ❓ Se un Note On con velocity 0 viene preso come rilascio: Bobina manda sempre 0x80.
-- ❓ **Quanto dev'essere lungo un tocco** perché il PO lo senta. Il firmware tiene i suoi a 20 ms: Bobina parte da 30 ms.
+- ❓ **Quanto dev'essere lungo un tocco** perché il PO lo senta. Il firmware tiene i suoi a 20 ms. 📏 60 ms funzionano su tutti i tasti (30/9/2026): Bobina usa 60 ms dappertutto.
 
 ### Registrazione a un tasto e looper (solo PO-33, in prova)
 

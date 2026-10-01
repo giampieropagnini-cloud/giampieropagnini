@@ -178,7 +178,7 @@ final class POSequencer {
             case .adapter: bytes = PO.stop + bytes
             case .tx6, .ear:
                 bytes += PO.noteOn(.play, channel: p.channel)
-                io.send(PO.noteOff(.play, channel: p.channel), at: io.now() + io.ticks(ms: 40))
+                io.send(PO.noteOff(.play, channel: p.channel), at: io.now() + io.ticks(ms: 60))
             }
             if !bytes.isEmpty { send(bytes, at: 0) }
         }
@@ -319,7 +319,7 @@ final class POSequencer {
         for k in wanted {
             ons += PO.noteOn(k, channel: ch)
             if p.holdSteps <= 0 {
-                io.send(PO.noteOff(k, channel: ch), at: t + io.ticks(ms: 35))
+                io.send(PO.noteOff(k, channel: ch), at: t + io.ticks(ms: 60))
             } else {
                 offsAt[n + p.holdSteps, default: []].append(k)
             }
@@ -365,7 +365,7 @@ final class POSequencer {
 
     private func tap(_ k: PO.Key, at t: MIDITimeStamp, _ p: Plan) {
         send(PO.noteOn(k, channel: p.channel), at: t)
-        io.send(PO.noteOff(k, channel: p.channel), at: t + io.ticks(ms: 40))
+        io.send(PO.noteOff(k, channel: p.channel), at: t + io.ticks(ms: 60))
     }
 
     private func releaseFx(_ p: Plan) -> [UInt8] {

@@ -11,7 +11,7 @@ Se una prova fallisce, prima di cambiare il codice si ricontrolla come è stata 
 | 1 | Bobina vede l'adattatore, e come si chiama | Collega → cerca l'adattatore; poi in alto «collegato a …» | ✅ 30/9/2026, via bluetooth: «PO MIDI Adapter (BLE) Bluetooth». Due adattatori si chiamano uguale |
 | 2 | un tasto | PO fermo. Tasti → 1 | ✅ 30/9/2026 |
 | 3 | tutti i 23 tasti rispondono | Tasti → uno per uno (sopra un tocco, sotto «tieni») | ✅ 30/9/2026: «funzionano tutti i tasti» |
-| 4 | il tocco più corto | Suona → passi dal vivo, tasto 1 su un passo, premuto «tocco» (35 ms), ▶ | da fare |
+| 4 | il tocco più corto | Suona → passi dal vivo, tasto 1 su un passo, premuto «tocco» (60 ms), ▶ | da fare |
 | 5 | una combinazione | Tasti → in un tocco → pattern 2; il display dice il pattern | ✅ 30/9/2026: «tutte le combinazioni» |
 | 6 | sul tonic un tasto suona il suo suono o quello scelto | PO-32, fermo: Tasti → 1, poi 5 | da fare |
 | 7 | un effetto | PO che suona (play). Tasti → un effetto per un momento → 1 | da fare |

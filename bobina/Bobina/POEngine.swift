@@ -142,7 +142,7 @@ final class POEngine: ObservableObject {
     @Published private(set) var running = false
     @Published var sync = POSync.live { didSet { if oldValue != sync && running { toggleRun() }; save() } }
     /// Col sync out dell'adattatore il clock va sempre, così sa il tempo prima dello start.
-    @Published var clockAlways = false
+    @Published var clockAlways = true
     /// Quanto prima parte tutto, per il ritardo del bluetooth.
     @Published var leadMs = 0.0 { didSet { save() } }
     /// Il tempo lo sta dando il TX-6 (Bobina segue il suo clock): qui non si cambia.
