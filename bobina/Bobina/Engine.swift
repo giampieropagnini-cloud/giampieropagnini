@@ -22,6 +22,21 @@ final class Pulse: ObservableObject {
     @Published var motionSpeed = 1.0
 }
 
+/// Quello che cambia decine di volte al secondo mentre giri la bobina, o mentre il TP-7 in ctrl manda i suoi
+/// tasti: vive a parte come Pulse, così si ridisegnano solo le scritte che lo mostrano e non tutte le pagine.
+/// (Misurato dalla sessione TX-6 il 1/10/2026: con la leva in Engine lo scratch dava 80-120 cambi al secondo.)
+final class Live: ObservableObject {
+    @Published var lever = TP7.leverCenter
+    @Published var pressed: Set<UInt8> = []
+    @Published var wheelSteps = 0
+    @Published var rocker = 0
+}
+
+/// Il monitor dei messaggi: anche lui a parte, perché durante lo scratch o col TP-7 in ctrl si riempie di continuo.
+final class LogBook: ObservableObject {
+    @Published var lines: [LogLine] = []
+}
+
 /// Tutto quello che Bobina sa e fa. Vive sul main thread; i messaggi a tempo partono
 /// in anticipo con la marca temporale di CoreMIDI, così il ritmo non dipende dallo schermo.
 final class Engine: ObservableObject {
@@ -34,7 +49,8 @@ final class Engine: ObservableObject {
     @Published var sources: [MIDIPort] = []
     @Published var destinationID: MIDIUniqueID? { didSet { applyPorts() } }
     @Published var sourceID: MIDIUniqueID? { didSet { applyPorts() } }
-    @Published private(set) var log: [LogLine] = []
+    let logBook = LogBook()
+    let live = Live()
     @Published var logPaused = false
 
     var connected: Bool { io.destination != 0 }
@@ -48,7 +64,9 @@ final class Engine: ObservableObject {
     @Published var speed: Double = 1.0
     /// Il nastro è stato fermato da Bobina (60 + 708): il pitch bend resta fermo lì.
     @Published private(set) var halted = false
-    @Published private(set) var lever = TP7.leverCenter
+    private(set) var lever = TP7.leverCenter {
+        didSet { if lever >= 0 && live.lever != lever { live.lever = lever } }
+    }
     /// Il trasporto col TP-7 su cue, dove start e stop li ignora: ▶ e ■ si fanno con la leva.
     /// fermo (64) · suona con la leva (68, il TP-7 resta «fermo» ma il nastro corre) ·
     /// suona (dopo un pad, il TP-7 è in play e la leva a 64 è la velocità normale) · tenuto fermo (60 + pitch bend +708, come «dito»).
@@ -142,9 +160,7 @@ final class Engine: ObservableObject {
 
     // MARK: quello che arriva dal TP-7 (in ctrl) e il clock
 
-    @Published private(set) var pressed: Set<UInt8> = []
-    @Published private(set) var wheelSteps = 0
-    @Published private(set) var rocker = 0
+    var pressed: Set<UInt8> { live.pressed }
     @Published private(set) var clockBPM: Double?
 
     // MARK: interni
@@ -222,11 +238,11 @@ final class Engine: ObservableObject {
     private func note(_ bytes: [UInt8], incoming: Bool) {
         guard !logPaused else { return }
         let raw = bytes.prefix(12).map { String(format: "%02x", $0) }.joined(separator: " ")
-        log.insert(LogLine(incoming: incoming, text: TP7.describe(bytes, incoming: incoming), raw: raw), at: 0)
-        if log.count > 150 { log.removeLast(log.count - 150) }
+        logBook.lines.insert(LogLine(incoming: incoming, text: TP7.describe(bytes, incoming: incoming), raw: raw), at: 0)
+        if logBook.lines.count > 150 { logBook.lines.removeLast(logBook.lines.count - 150) }
     }
 
-    func clearLog() { log.removeAll() }
+    func clearLog() { logBook.lines.removeAll() }
 
     // MARK: trasporto
 
@@ -235,11 +251,11 @@ final class Engine: ObservableObject {
     @Published private(set) var recording = false
 
     /// La leva finta (cc 18): 64 centro. Si somma a quello che il nastro sta già facendo.
-    func setLever(_ value: Int) {
+    func setLever(_ value: Int, quiet: Bool = false) {
         let v = max(0, min(127, value))
         guard v != lever else { return }
         lever = v
-        send(TP7.cc(TP7.ccLever, v))
+        send(TP7.cc(TP7.ccLever, v), quiet: quiet)
     }
 
     private func forceLever(_ value: Int) {
@@ -507,6 +523,7 @@ final class Engine: ObservableObject {
 
     private var scrubbing = false
     private var lastScrubAt: MIDITimeStamp = 0
+    private var lastScrubSentAt: MIDITimeStamp = 0
 
     /// Il dito sulla bobina virtuale: la sua velocità diventa la leva.
     func scrub(_ value: Int) {
@@ -515,8 +532,13 @@ final class Engine: ObservableObject {
         if cueTape == .leverPlay { cueTape = .stopped }
         scrubbing = true
         lastScrubAt = io.now()
-        // agli estremi (0 e 127) il TP-7 passa al riavvolgimento velocissimo: meglio restarne lontani
-        setLever(max(16, min(112, value)))
+        // col bluetooth al massimo un messaggio ogni 30 ms: con due macchine il canale si intasa
+        let now = io.now()
+        if overBluetooth && io.ms(ticks: now &- lastScrubSentAt) < 30 { return }
+        lastScrubSentAt = now
+        // agli estremi (0 e 127) il TP-7 passa al riavvolgimento velocissimo: meglio restarne lontani.
+        // quiet: lo scratch non riempie il monitor, che ridisegnerebbe la pagina a ogni passo
+        setLever(max(16, min(112, value)), quiet: true)
     }
 
     func endScrub() {
@@ -943,12 +965,12 @@ final class Engine: ObservableObject {
         note(m, incoming: true)
         if status & 0xF0 == 0xB0, m.count >= 3 {
             if TP7.buttonNames[m[1]] != nil {
-                if m[2] > 0 { pressed.insert(m[1]) } else { pressed.remove(m[1]) }
+                if m[2] > 0 { live.pressed.insert(m[1]) } else { live.pressed.remove(m[1]) }
             } else if m[1] == TP7.ccWheel {
-                wheelSteps += TP7.wheelDelta(m[2])
+                live.wheelSteps += TP7.wheelDelta(m[2])
             }
         } else if status & 0xF0 == 0xE0, m.count >= 3 {
-            rocker = (Int(m[2]) << 7 | Int(m[1])) - 8192
+            live.rocker = (Int(m[2]) << 7 | Int(m[1])) - 8192
         }
     }
 

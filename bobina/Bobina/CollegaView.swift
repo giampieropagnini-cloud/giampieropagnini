@@ -52,7 +52,7 @@ struct CollegaView: View {
                 EmptyView()
             }
 
-            MirrorCard()
+            MirrorCard(live: engine.live)
 
             NavigationLink {
                 TabelleView()
@@ -67,7 +67,7 @@ struct CollegaView: View {
             }
             .buttonStyle(.plain)
 
-            MonitorCard()
+            MonitorCard(book: engine.logBook)
         }
         .sheet(isPresented: $showBluetooth) {
             VStack(spacing: 0) {
@@ -123,6 +123,7 @@ struct BluetoothMIDIAdvertiser: UIViewControllerRepresentable {
 /// In modalità ctrl il TP-7 manda i suoi tasti: qui si accendono.
 struct MirrorCard: View {
     @EnvironmentObject var engine: Engine
+    @ObservedObject var live: Live
 
     private let order: [UInt8] = [22, 23, 24, 25, 26, 27, 20, 21, 28]
 
@@ -133,14 +134,14 @@ struct MirrorCard: View {
                     Text(TP7.buttonNames[cc].map { String($0.prefix(2)).trimmingCharacters(in: .whitespaces) } ?? "?")
                         .font(.system(.caption, design: .monospaced))
                         .frame(maxWidth: .infinity, minHeight: 32)
-                        .background(RoundedRectangle(cornerRadius: 6).fill(engine.pressed.contains(cc) ? Palette.accent : Color(white: 0.18)))
-                        .foregroundStyle(engine.pressed.contains(cc) ? Color.black : Color.white)
+                        .background(RoundedRectangle(cornerRadius: 6).fill(live.pressed.contains(cc) ? Palette.accent : Color(white: 0.18)))
+                        .foregroundStyle(live.pressed.contains(cc) ? Color.black : Color.white)
                 }
             }
             HStack {
-                Text("bobina \(engine.wheelSteps > 0 ? "+" : "")\(engine.wheelSteps)")
+                Text("bobina \(live.wheelSteps > 0 ? "+" : "")\(live.wheelSteps)")
                 Spacer()
-                Text("leva \(engine.rocker)")
+                Text("leva \(live.rocker)")
             }
             .font(.system(.caption, design: .monospaced))
             .foregroundStyle(Palette.dim)
@@ -155,6 +156,7 @@ struct MirrorCard: View {
 
 struct MonitorCard: View {
     @EnvironmentObject var engine: Engine
+    @ObservedObject var book: LogBook
 
     var body: some View {
         Card(title: "monitor", note: "← arriva dal TP-7 · → parte da Bobina. Gli effetti continui non vengono scritti, per non affollare.") {
@@ -166,7 +168,7 @@ struct MonitorCard: View {
                     .font(.footnote)
             }
             VStack(alignment: .leading, spacing: 3) {
-                ForEach(engine.log.prefix(40)) { line in
+                ForEach(book.lines.prefix(40)) { line in
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text(line.incoming ? "←" : "→")
                             .foregroundStyle(Palette.accent)
@@ -178,7 +180,7 @@ struct MonitorCard: View {
                     }
                     .font(.system(size: 11, design: .monospaced))
                 }
-                if engine.log.isEmpty {
+                if book.lines.isEmpty {
                     Text("ancora niente")
                         .font(.system(size: 11, design: .monospaced))
                         .foregroundStyle(Palette.dim)
