@@ -20,9 +20,6 @@ struct PadView: View {
                 }
                 .pickerStyle(.segmented)
 
-                Toggle("suona finché lo tieni premuto", isOn: $engine.padHold)
-                    .font(.subheadline)
-
                 LazyVGrid(columns: columns, spacing: 8) {
                     ForEach(0..<16, id: \.self) { i in
                         FlashingPad(pulse: engine.pulse, index: i, onPress: { engine.padDown(i) }, onRelease: { engine.padUp(i) }, label: {
@@ -38,6 +35,8 @@ struct PadView: View {
                         )
                     }
                 }
+                Toggle("suona finché lo tieni premuto", isOn: $engine.padHold)
+                    .font(.subheadline)
                 HStack {
                     Spacer()
                     Button("dimentica i segni") { engine.forgetPads() }
