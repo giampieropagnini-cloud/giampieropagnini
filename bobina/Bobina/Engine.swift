@@ -200,6 +200,10 @@ final class Engine: ObservableObject {
 
     func send(_ bytes: [UInt8], at time: MIDITimeStamp = 0, quiet: Bool = false) {
         io.send(bytes, at: time)
+        if let first = bytes.first, first & 0xF0 != 0xE0 {
+            let ahead = time > io.now() ? Int(io.ms(ticks: time - io.now())) : 0
+            trace("manda " + TP7.describe(bytes, incoming: false) + (ahead > 0 ? " tra \(ahead) ms" : ""))
+        }
         if !quiet { note(bytes, incoming: false) }
     }
 
@@ -363,15 +367,15 @@ final class Engine: ObservableObject {
 
     /// ■ in cue: toglie la leva del ▶, oppure, se il nastro suona da solo dopo un pad, lo tiene fermo come «dito».
     func cueStop() {
+        if recording {
+            send(TP7.cc(TP7.ccArm, 0))
+            armed = false
+            recording = false
+        }
         switch cueTape {
         case .leverPlay:
             forceLever(TP7.leverCenter)
             cueTape = .stopped
-            if recording {
-                send(TP7.cc(TP7.ccArm, 0))
-                armed = false
-                recording = false
-            }
         case .playing:
             holdStill(true)
             cueTape = .frozen
@@ -393,14 +397,11 @@ final class Engine: ObservableObject {
         cueTape = .leverPlay
     }
 
-    /// ● in cue: arma e fa correre il nastro con la leva. Da provare: in registrazione il TP-7 ascolta la leva.
+    /// ● in cue: arma soltanto. La ripresa parte solo dal ▶ della macchina (provato il 1/10/2026);
+    /// il ■ in cue la chiude, perché il disarmo (cc 14 a 0) la ferma.
     func cueRecord() {
         send(TP7.cc(TP7.ccArm, 127))
         armed = true
-        ramp = nil
-        halted = false
-        forceLever(TP7.leverCuePlay)
-        cueTape = .leverPlay
         recording = true
     }
 
