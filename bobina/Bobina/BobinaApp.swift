@@ -5,6 +5,7 @@ struct BobinaApp: App {
     @StateObject private var engine = Engine()
     @StateObject private var tx6 = TX6Engine()
     @StateObject private var po = POBank()
+    @StateObject private var opz = OPZEngine()
 
     init() {
         IOS27.install()
@@ -16,6 +17,7 @@ struct BobinaApp: App {
                 .environmentObject(engine)
                 .environmentObject(tx6)
                 .environmentObject(po)
+                .environmentObject(opz)
                 .preferredColorScheme(.dark)
                 .tint(Palette.accent)
                 .onAppear {
@@ -25,8 +27,9 @@ struct BobinaApp: App {
                     engine.io.label = "tp7"
                     tx6.io.label = "tx6"
                     for (i, u) in po.units.enumerated() { u.io.label = "po\(i + 1)" }
+                    opz.io.label = "opz"
                     Diagnostics.shared.start(watch: [("tp7", engine.objectWillChange), ("tx6", tx6.objectWillChange),
-                                                     ("tx6 passo", tx6.live.objectWillChange), ("tx6 lato", tx6.side.objectWillChange), ("po banco", po.objectWillChange)]
+                                                     ("tx6 passo", tx6.live.objectWillChange), ("tx6 lato", tx6.side.objectWillChange), ("po banco", po.objectWillChange), ("opz", opz.objectWillChange), ("opz battito", opz.live.objectWillChange)]
                                              + po.units.enumerated().map { ("po\($0.offset + 1)", $0.element.objectWillChange) })
                     #endif
                 }
@@ -34,7 +37,7 @@ struct BobinaApp: App {
     }
 }
 
-/// La sezione della macchina scelta: TP-7, TX-6 o Pocket Operator (il tasto in alto a destra le scambia).
+/// La sezione della macchina scelta: TP-7, TX-6, Pocket Operator o OP-Z (il tasto in alto a destra le scambia).
 struct ContentView: View {
     @AppStorage("bobina.macchina") private var machine = "tp7"
 
@@ -42,6 +45,7 @@ struct ContentView: View {
         switch machine {
         case "tx6": TX6Tabs()
         case "po": POTabs()
+        case "opz": OPZTabs()
         default: TP7Tabs()
         }
     }
