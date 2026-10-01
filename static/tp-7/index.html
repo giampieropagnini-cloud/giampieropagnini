@@ -1,0 +1,1880 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Prontuario TP-7</title>
+<meta name="description" content="Tutte le combinazioni del registratore teenage engineering TP-7, il menu, l'uso col Mac, il MIDI e un telecomando MIDI da usare in Chrome.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F1F0EC">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1A1D21">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TP-7">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icona.png">
+<link rel="icon" href="icona.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme:light dark;
+    --paper:#F1F0EC;
+    --card:#FFFFFF;
+    --ink:#15171A;
+    --muted:#74786F;
+    --rule:#D9D8D1;
+    --rule-soft:#E7E6E0;
+    --chip:#14161A;
+    --chip-ink:#EDEEE9;
+    --alu-1:#E6E7E3;
+    --alu-2:#C4C6C1;
+    --alu-edge:#A9ACA6;
+    --alu-ink:#2A2D31;
+    --alu-dim:#6A6E68;
+    --oled:#0B0C0E;
+    --oled-ink:#F2F3EF;
+    --acc:#C9531C;
+    --acc-ink:#FFFFFF;
+    --acc-soft:rgba(201,83,28,.12);
+    --rec:#D8342C;
+    --memo:#E8741E;
+    --ok:#2F7D4F;
+    --shadow:0 1px 0 rgba(20,22,26,.05), 0 8px 24px -18px rgba(20,22,26,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1A1D21;
+      --card:#22262B;
+      --ink:#ECEDE9;
+      --muted:#9CA29B;
+      --rule:#353A41;
+      --rule-soft:#2B3036;
+      --chip:#0A0C0F;
+      --chip-ink:#E4E6E0;
+      --alu-1:#B9BBB6;
+      --alu-2:#9A9C97;
+      --alu-edge:#7C7F79;
+      --alu-ink:#16181B;
+      --alu-dim:#3E423E;
+      --acc:#FF8A50;
+      --acc-ink:#15171A;
+      --acc-soft:rgba(255,138,80,.16);
+      --ok:#5CC38A;
+      --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 30px -20px #000;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1A1D21; --card:#22262B; --ink:#ECEDE9; --muted:#9CA29B;
+    --rule:#353A41; --rule-soft:#2B3036; --chip:#0A0C0F; --chip-ink:#E4E6E0;
+    --alu-1:#B9BBB6; --alu-2:#9A9C97; --alu-edge:#7C7F79; --alu-ink:#16181B; --alu-dim:#3E423E;
+    --acc:#FF8A50; --acc-ink:#15171A; --acc-soft:rgba(255,138,80,.16); --ok:#5CC38A;
+    --shadow:0 1px 0 rgba(0,0,0,.4), 0 10px 30px -20px #000;
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:15px; line-height:1.5;
+    -webkit-text-size-adjust:100%;
+  }
+  [hidden]{ display:none !important; }
+  a{ color:var(--acc); }
+  h1,h2,h3{ font-family:"Archivo",Helvetica,Arial,sans-serif; font-weight:600; letter-spacing:-.02em; text-wrap:balance; margin:0; }
+  .mono{ font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace; }
+
+  /* ---------- barra alta ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:40;
+    background:var(--paper);
+    background:color-mix(in srgb, var(--paper) 88%, transparent);
+    -webkit-backdrop-filter:blur(10px);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--rule);
+  }
+  .topbar-in{ max-width:1180px; margin:0 auto; padding:14px 16px 0; padding-top:calc(14px + env(safe-area-inset-top, 0px)); }
+  .brandrow{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .brand{ font-size:19px; }
+  .brand em{ font-style:normal; color:var(--muted); font-weight:500; }
+  .brandnote{ font-size:12.5px; color:var(--muted); }
+  .theme{ margin-left:auto; display:flex; border:1px solid var(--rule); border-radius:7px; overflow:hidden; background:var(--card); }
+  .theme button{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.02em;
+    border:none; background:transparent; color:var(--muted); padding:6px 10px; cursor:pointer;
+  }
+  .theme button + button{ border-left:1px solid var(--rule); }
+  .theme button[aria-pressed="true"]{ background:var(--acc); color:var(--acc-ink); }
+  .tabs{ display:flex; gap:6px; margin-top:12px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
+  .tabs::-webkit-scrollbar{ display:none; }
+  .tab{
+    flex:0 0 auto; border:1px solid var(--rule); border-bottom:none; background:var(--card);
+    border-radius:7px 7px 0 0; padding:8px 13px 9px; cursor:pointer; color:var(--muted);
+    font-family:"Archivo",Helvetica,Arial,sans-serif; font-size:13.5px; font-weight:600; letter-spacing:-.01em;
+    display:flex; align-items:center; gap:8px; position:relative; top:1px;
+  }
+  .tab .dot{ width:9px; height:9px; border-radius:2px; background:var(--muted); opacity:.55; }
+  .tab[data-k="tele"] .dot{ background:var(--rec); opacity:1; }
+  .tab:hover{ color:var(--ink); }
+  .tab[aria-selected="true"]{ color:var(--ink); background:var(--paper); border-color:var(--rule); box-shadow:inset 0 3px 0 var(--acc); }
+  .tab[aria-selected="true"] .dot{ background:var(--acc); opacity:1; }
+
+  /* ---------- impaginato ---------- */
+  .wrap{
+    max-width:1180px; margin:0 auto; display:grid; gap:26px; grid-template-columns:1fr;
+    padding:22px calc(16px + env(safe-area-inset-right, 0px)) calc(64px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
+  }
+  @media (min-width:980px){
+    .wrap{ grid-template-columns:340px minmax(0,1fr); gap:34px; align-items:start; }
+    .rail{ position:sticky; top:112px; }
+  }
+  .rail{ display:flex; flex-direction:column; gap:16px; min-width:0; }
+  .content{ min-width:0; }
+  .panel{ display:flex; flex-direction:column; gap:28px; min-width:0; }
+
+  /* ---------- la macchina, vista aperta ---------- */
+  .unit{
+    min-width:0; border-radius:12px; padding:12px 12px 10px; color:var(--alu-ink); box-shadow:var(--shadow);
+    background:linear-gradient(160deg, var(--alu-1), var(--alu-2)); border:1px solid var(--alu-edge);
+  }
+  .silkrow{
+    display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--alu-dim);
+    margin-bottom:8px;
+  }
+  .silkrow b{ color:var(--alu-ink); font-weight:600; letter-spacing:.04em; }
+  .edge{
+    display:flex; align-items:center; justify-content:center; gap:7px; flex-wrap:wrap;
+    font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--alu-dim);
+    border:1px dashed var(--alu-edge); border-radius:6px; padding:5px 6px;
+  }
+  .edge .port{ border:1px solid var(--alu-dim); border-radius:9px; padding:1px 6px; }
+  .edge .port.usb{ border-radius:3px; }
+  .body{ display:grid; grid-template-columns:44px minmax(0,1fr) 44px; gap:7px; margin:7px 0; }
+  .side{
+    border:1px dashed var(--alu-edge); border-radius:6px; padding:6px 4px;
+    display:flex; flex-direction:column; align-items:center; gap:7px;
+  }
+  .side .cap{ font-family:"IBM Plex Mono",monospace; font-size:8.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--alu-dim); writing-mode:vertical-rl; transform:rotate(180deg); }
+  .grille{ width:22px; height:46px; border-radius:4px; background:radial-gradient(circle, var(--alu-dim) 1.1px, transparent 1.4px) 0 0/6px 6px; opacity:.55; }
+  .face{
+    border:1px solid var(--alu-edge); border-radius:8px; padding:9px;
+    display:flex; flex-direction:column; gap:9px; background:linear-gradient(165deg, rgba(255,255,255,.25), rgba(0,0,0,.03));
+  }
+  .oled{
+    background:var(--oled); color:var(--oled-ink); border-radius:4px; padding:7px 9px 8px;
+    display:flex; justify-content:space-between; align-items:flex-end; gap:8px; min-height:44px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  .oled b{ font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:500; letter-spacing:.05em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .oled span{ font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.07em; text-transform:uppercase; opacity:.8; text-align:right; }
+  .ctl{
+    font:inherit; cursor:pointer; color:var(--alu-ink); background:linear-gradient(170deg, var(--alu-1), var(--alu-2));
+    border:1px solid var(--alu-edge); border-radius:6px; padding:0; min-width:0;
+    font-family:"IBM Plex Mono",monospace; font-size:11px; line-height:1.05;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+    transition:transform .06s ease, box-shadow .12s ease;
+  }
+  .ctl i{ font-style:normal; font-size:8.5px; letter-spacing:.04em; color:var(--alu-dim); }
+  .ctl:hover{ border-color:var(--alu-ink); }
+  .ctl.on{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
+  .ctl.on i{ color:inherit; }
+  .ctl.hi{ box-shadow:0 0 0 2px var(--acc); }
+  .ctl.press{ transform:scale(.93); background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
+  .ctl:focus-visible{ outline:2px solid var(--acc); outline-offset:2px; }
+  .side .ctl{ width:34px; height:34px; border-radius:50%; }
+  .side .ctl.rocker{ height:54px; border-radius:17px; font-size:9px; }
+  .side .ctl.rocker.fw{ transform:translateY(-3px); background:var(--acc); color:var(--acc-ink); }
+  .side .ctl.rocker.rw{ transform:translateY(3px); background:var(--acc); color:var(--acc-ink); }
+  .ctl.memo{ color:var(--memo); font-weight:600; font-size:13px; }
+  .ctl.memo.on, .ctl.memo.press{ color:var(--acc-ink); }
+  .reelbox{ display:flex; justify-content:center; }
+  .reel{
+    width:min(78%, 210px); aspect-ratio:1/1; border-radius:50%; padding:0; position:relative;
+    background:
+      radial-gradient(circle at 50% 50%, var(--alu-2) 0 15%, transparent 15.5%),
+      repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.06) 0 1px, transparent 1px 5px),
+      linear-gradient(160deg, var(--alu-1), var(--alu-2));
+    box-shadow:inset 0 0 0 1px var(--alu-edge), inset 0 -6px 14px rgba(0,0,0,.12), 0 2px 0 rgba(255,255,255,.35);
+  }
+  .reel .spin{ position:absolute; inset:0; border-radius:50%; transition:transform .08s linear; }
+  .reel .dimple{ position:absolute; left:50%; top:13%; width:15%; aspect-ratio:1/1; margin-left:-7.5%; border-radius:50%; background:radial-gradient(circle at 40% 35%, rgba(0,0,0,.05), rgba(0,0,0,.2)); box-shadow:inset 0 1px 2px rgba(0,0,0,.25); }
+  .reel .lbl{ position:absolute; left:0; right:0; bottom:21%; text-align:center; font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--alu-dim); pointer-events:none; }
+  .reel.on, .reel.press{ background:radial-gradient(circle at 50% 50%, var(--acc) 0 15%, transparent 15.5%), repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.06) 0 1px, transparent 1px 5px), linear-gradient(160deg, var(--alu-1), var(--alu-2)); color:var(--alu-ink); transform:none; }
+  .reel.on .lbl{ color:var(--alu-ink); }
+  .keys{ display:grid; grid-template-columns:repeat(3,1fr) .7fr .7fr; gap:6px; align-items:center; }
+  .keys .ctl{ height:38px; font-size:14px; }
+  .keys .ctl.sm{ height:30px; font-size:14px; }
+  .keys .ctl.rec{ color:var(--rec); }
+  .keys .ctl.rec.on, .keys .ctl.rec.press{ color:var(--acc-ink); }
+  .vu{ display:flex; justify-content:flex-end; gap:3px; }
+  .vu i{ width:5px; height:5px; border-radius:50%; background:var(--alu-dim); opacity:.35; }
+  .vu i.lit{ background:#F5F6F2; opacity:1; box-shadow:0 0 4px rgba(255,255,255,.9); }
+  .vu i.red{ background:var(--rec); opacity:1; }
+  .edge .ctl{ font-size:9.5px; padding:3px 8px; border-radius:10px; flex-direction:row; gap:4px; text-transform:uppercase; letter-spacing:.05em; }
+  .unit-cap{ font-size:11px; color:var(--alu-dim); margin:8px 0 0; text-align:center; letter-spacing:.02em; }
+  .unit-cap b{ color:var(--alu-ink); font-weight:600; }
+
+  /* ---------- schede ---------- */
+  .card{ background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:16px; min-width:0; }
+  .card > h3{ font-size:14.5px; margin-bottom:6px; }
+  .card > h3 .sm{ font-family:"IBM Plex Mono",monospace; font-weight:500; font-size:11px; color:var(--muted); letter-spacing:0; margin-left:6px; }
+  .card p{ margin:6px 0 0; font-size:13.5px; }
+  .card p.dim, .dim{ color:var(--muted); }
+  .spec{ display:flex; flex-direction:column; }
+  .spec div{ display:flex; justify-content:space-between; gap:14px; padding:7px 0; border-bottom:1px dashed var(--rule-soft); font-size:13.5px; }
+  .spec div:last-child{ border-bottom:none; }
+  .spec dt{ color:var(--muted); }
+  .spec b{ font-weight:600; text-align:right; min-width:0; overflow-wrap:anywhere; }
+
+  h2.sec{ font-size:17px; display:flex; align-items:center; gap:10px; }
+  h2.sec::after{ content:""; flex:1; height:1px; background:var(--rule); }
+  .sec-note{ color:var(--muted); font-size:13px; margin:6px 0 0; max-width:66ch; }
+  section > * + *{ margin-top:14px; }
+  .grid2{ display:grid; gap:10px; grid-template-columns:1fr; }
+  @media (min-width:640px){ .grid2{ grid-template-columns:1fr 1fr; } }
+
+  /* ---------- avvio rapido e ricette ---------- */
+  .steps{ counter-reset:s; display:grid; gap:8px; grid-template-columns:1fr; }
+  @media (min-width:640px){ .steps{ grid-template-columns:1fr 1fr; } }
+  .step{
+    counter-increment:s; background:var(--card); border:1px solid var(--rule); border-radius:10px;
+    padding:12px 13px 13px 44px; position:relative; font-size:13.5px;
+  }
+  .step::before{
+    content:counter(s); position:absolute; left:13px; top:12px;
+    font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+    width:21px; height:21px; border-radius:50%; background:var(--acc); color:var(--acc-ink); display:grid; place-items:center;
+  }
+  .step > b{ display:block; font-weight:600; margin-bottom:3px; }
+  .step .d{ color:var(--muted); }
+  .steps .step:last-child:nth-child(odd){ grid-column:1 / -1; }
+  ol.recipe{ margin:8px 0 0; padding-left:20px; font-size:13.5px; }
+  ol.recipe li{ margin:3px 0; }
+  ol.recipe li::marker{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--acc); font-weight:600; }
+
+  /* ---------- combo ---------- */
+  .toolbar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .search{
+    flex:1 1 220px; min-width:0; border:1px solid var(--rule); background:var(--card); color:var(--ink);
+    border-radius:8px; padding:9px 12px; font:inherit; font-size:13.5px;
+  }
+  .search:focus-visible,.tab:focus-visible,.chipbtn:focus-visible,.theme button:focus-visible,.btn:focus-visible,.pad:focus-visible,select:focus-visible,input:focus-visible{
+    outline:2px solid var(--acc); outline-offset:2px;
+  }
+  .chipbtn{
+    border:1px solid var(--rule); background:var(--card); color:var(--muted); border-radius:8px;
+    padding:9px 12px; font:inherit; font-size:13px; cursor:pointer;
+  }
+  .chipbtn:hover{ color:var(--ink); }
+  .grp{ margin-top:18px; }
+  .grp h3{ font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:7px; }
+  .rows{ border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:var(--card); }
+  .row{
+    display:grid; grid-template-columns:minmax(150px,215px) 1fr; gap:14px; align-items:start;
+    padding:11px 13px; border-bottom:1px solid var(--rule-soft);
+  }
+  .row:last-child{ border-bottom:none; }
+  .row[data-i]:hover,.row.lit{ background:var(--acc-soft); }
+  @media (max-width:600px){ .row{ grid-template-columns:1fr; gap:6px; } }
+  .combo{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
+  .kk{
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:500;
+    background:var(--chip); color:var(--chip-ink); border-radius:4px; padding:3px 7px; white-space:nowrap;
+  }
+  .kk .h{ font-style:normal; font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; opacity:.7; margin-right:4px; }
+  .kk.num{ background:transparent; color:var(--ink); border:1px solid var(--rule); }
+  .kk.acc{ background:var(--acc); color:var(--acc-ink); }
+  .plus{ color:var(--muted); font-size:11px; }
+  .ctx{
+    display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.03em;
+    color:var(--acc); border:1px solid var(--acc); border-radius:3px; padding:0 4px; margin-right:6px; vertical-align:1px; white-space:nowrap;
+  }
+  .what{ font-size:13.5px; }
+  .what i{ display:block; font-style:normal; color:var(--muted); font-size:12.5px; margin-top:2px; }
+  .flag{
+    display:inline-block; vertical-align:1px; margin-left:6px; font-family:"IBM Plex Mono",monospace;
+    font-size:10px; letter-spacing:.04em; color:var(--muted); border:1px solid var(--rule); border-radius:3px; padding:0 4px; white-space:nowrap;
+  }
+  .empty{ padding:18px 13px; color:var(--muted); font-size:13.5px; }
+
+  /* ---------- tabelle ---------- */
+  .tablewrap{ overflow-x:auto; border:1px solid var(--rule); border-radius:10px; background:var(--card); }
+  table{ border-collapse:collapse; width:100%; min-width:560px; font-size:13px; }
+  th,td{ text-align:left; vertical-align:top; padding:9px 12px; border-bottom:1px solid var(--rule-soft); }
+  thead th{ background:var(--card); font-family:"Archivo",sans-serif; font-size:13px; border-bottom:1px solid var(--rule); }
+  td:first-child{ white-space:nowrap; }
+  tr:last-child td{ border-bottom:none; }
+  td i{ display:block; font-style:normal; color:var(--muted); font-size:12px; margin-top:2px; }
+
+  .callout{ border:1px solid var(--acc); background:var(--acc-soft); border-radius:10px; padding:13px 15px; font-size:13.5px; }
+  .callout b{ font-weight:600; }
+  .callout p{ margin:6px 0 0; }
+  .callout p:first-child{ margin-top:0; }
+
+  .note{ font-size:12.5px; color:var(--muted); max-width:72ch; }
+  ul.plain{ margin:6px 0 0; padding-left:18px; font-size:13.5px; }
+  ul.plain li{ margin:4px 0; }
+
+  /* ---------- telecomando ---------- */
+  .btn{
+    font:inherit; font-size:13px; cursor:pointer; border:1px solid var(--rule); background:var(--card); color:var(--ink);
+    border-radius:8px; padding:8px 12px; min-height:38px; touch-action:manipulation; -webkit-user-select:none; user-select:none;
+  }
+  .btn:hover{ border-color:var(--ink); }
+  .btn.pri{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); font-weight:600; }
+  .btn.on{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
+  .btn.recb.on{ background:var(--rec); border-color:var(--rec); color:#fff; }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .btn.big{ font-size:18px; min-width:56px; font-family:"IBM Plex Mono",monospace; }
+  .btnrow{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:10px; }
+  .btnrow .lab{ font-size:12px; color:var(--muted); margin-right:4px; }
+  .status{ display:flex; align-items:center; gap:8px; font-size:13px; margin-top:8px; }
+  .status .led{ width:9px; height:9px; border-radius:50%; background:var(--muted); flex:0 0 auto; }
+  .status.ok .led{ background:var(--ok); box-shadow:0 0 6px var(--ok); }
+  .status.err .led{ background:var(--rec); }
+  .ports{ display:grid; gap:8px; grid-template-columns:1fr; margin-top:10px; }
+  @media (min-width:640px){ .ports{ grid-template-columns:1fr 1fr; } }
+  label.f{ display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted); min-width:0; }
+  select, input[type="number"]{
+    font:inherit; font-size:13px; color:var(--ink); background:var(--card); border:1px solid var(--rule); border-radius:7px; padding:7px 9px; min-width:0; max-width:100%;
+  }
+  input[type="number"]{ width:78px; }
+  input[type="range"]{ width:100%; accent-color:var(--acc); }
+  .slrow{ display:grid; grid-template-columns:62px minmax(0,1fr) 64px; gap:10px; align-items:center; font-size:13px; margin-top:8px; }
+  .slrow .v{ font-family:"IBM Plex Mono",monospace; font-size:12px; text-align:right; font-variant-numeric:tabular-nums; }
+  .slrow .n{ font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); }
+  .mixrow{ display:grid; grid-template-columns:44px minmax(0,1fr) 46px 64px; gap:8px; align-items:center; margin-top:6px; font-size:13px; }
+  .mixrow .n{ font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); }
+  .mixrow .v{ font-family:"IBM Plex Mono",monospace; font-size:12px; text-align:right; font-variant-numeric:tabular-nums; }
+  .mixrow .btn{ min-height:30px; padding:4px 8px; font-size:12px; }
+  .pads{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:10px; max-width:420px; }
+  .pad{
+    aspect-ratio:1.35/1; border:1px solid var(--rule); border-radius:8px; background:var(--card); color:var(--ink); cursor:pointer;
+    font-family:"IBM Plex Mono",monospace; font-size:13px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+    touch-action:manipulation; -webkit-user-select:none; user-select:none;
+  }
+  .pad i{ font-style:normal; font-size:9.5px; color:var(--muted); }
+  .pad.set{ border-color:var(--acc); box-shadow:inset 0 -3px 0 var(--acc); }
+  .pad.hit{ background:var(--acc); color:var(--acc-ink); }
+  .pad.hit i{ color:inherit; }
+  .readout{ font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-variant-numeric:tabular-nums; }
+  .meter{ height:8px; border-radius:4px; background:var(--rule-soft); position:relative; overflow:hidden; margin-top:6px; }
+  .meter b{ position:absolute; top:0; bottom:0; left:50%; width:0; background:var(--acc); }
+  .log{
+    margin-top:10px; border:1px solid var(--rule); border-radius:8px; background:var(--paper);
+    height:230px; overflow:auto; font-family:"IBM Plex Mono",monospace; font-size:11.5px; padding:6px 8px;
+  }
+  .log div{ display:grid; grid-template-columns:18px 1fr; gap:6px; padding:1px 0; border-bottom:1px dashed var(--rule-soft); }
+  .log .dir{ color:var(--acc); }
+  .log .raw{ color:var(--muted); }
+  .chk{ display:flex; align-items:center; gap:7px; font-size:13px; cursor:pointer; }
+  .chk input{ accent-color:var(--acc); width:16px; height:16px; }
+  .inline{ display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-top:10px; }
+  .warn{ color:var(--rec); }
+
+  footer{ border-top:1px solid var(--rule); padding-top:16px; }
+  @media (max-width:560px){
+    .unit{ padding:10px; }
+    .card{ padding:13px; }
+    .body{ grid-template-columns:40px minmax(0,1fr) 40px; gap:6px; }
+    .side .ctl{ width:30px; height:30px; }
+    .side .ctl.rocker{ height:48px; }
+  }
+  @media (prefers-reduced-motion:reduce){ *{ transition:none !important; animation:none !important; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brandrow">
+      <h1 class="brand">prontuario <em>tp-7</em></h1>
+      <span class="brandnote" id="brandnote">tocca un comando dello schema per vedere solo le sue combinazioni</span>
+      <div class="theme" role="group" aria-label="Aspetto della pagina">
+        <button type="button" data-th="light" id="th-light">chiaro</button>
+        <button type="button" data-th="auto" id="th-auto">auto</button>
+        <button type="button" data-th="dark" id="th-dark">scuro</button>
+      </div>
+    </div>
+    <div class="tabs" role="tablist" id="tabs">
+      <button type="button" class="tab" role="tab" data-k="tasti"><span class="dot"></span>i tasti</button>
+      <button type="button" class="tab" role="tab" data-k="menu"><span class="dot"></span>il menu</button>
+      <button type="button" class="tab" role="tab" data-k="mac"><span class="dot"></span>col mac</button>
+      <button type="button" class="tab" role="tab" data-k="midi"><span class="dot"></span>midi</button>
+      <button type="button" class="tab" role="tab" data-k="idee"><span class="dot"></span>idee</button>
+      <button type="button" class="tab" role="tab" data-k="tele"><span class="dot"></span>telecomando</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <aside class="rail">
+    <div class="unit" id="unit">
+      <div class="silkrow"><b>tp-7</b><span>field recorder</span></div>
+      <div class="edge" aria-label="Bordo in alto"><span class="port usb">usb-c</span><span class="port">3</span><span class="port">2</span><span class="port">1</span><span>· in/out · mic</span></div>
+      <div class="body">
+        <div class="side" aria-label="Fianco sinistro">
+          <button type="button" class="ctl rocker" data-t="leva" id="k-leva">leva<i>▲▼</i></button>
+          <span class="grille" aria-hidden="true"></span>
+          <button type="button" class="ctl" data-t="mode" id="k-mode">mode</button>
+          <span class="cap">fianco sx</span>
+        </div>
+        <div class="face">
+          <div class="oled"><b id="oled1">0.00.00</b><span id="oled2">today 01</span></div>
+          <div class="reelbox">
+            <button type="button" class="ctl reel" data-t="bobina" id="k-bobina" aria-label="bobina"><span class="spin" id="reelspin"><span class="dimple"></span></span><span class="lbl">bobina</span></button>
+          </div>
+          <div class="keys">
+            <button type="button" class="ctl rec" data-t="rec" id="k-rec" aria-label="rec">●</button>
+            <button type="button" class="ctl" data-t="play" id="k-play" aria-label="play">▶</button>
+            <button type="button" class="ctl" data-t="stop" id="k-stop" aria-label="stop">■</button>
+            <button type="button" class="ctl sm" data-t="meno" id="k-meno" aria-label="meno">−</button>
+            <button type="button" class="ctl sm" data-t="piu" id="k-piu" aria-label="più">+</button>
+          </div>
+          <div class="vu" id="vu" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="side" aria-label="Fianco destro">
+          <button type="button" class="ctl memo" data-t="memo" id="k-memo" aria-label="memo">M</button>
+          <button type="button" class="ctl" data-t="su" id="k-su" aria-label="su">▲</button>
+          <button type="button" class="ctl" data-t="giu" id="k-giu" aria-label="giù">▼</button>
+          <span class="cap">fianco dx</span>
+        </div>
+      </div>
+      <div class="edge" aria-label="Bordo in basso"><span class="port">main out</span><button type="button" class="ctl" data-t="manopola" id="k-manopola">manopola<i>on · vol</i></button></div>
+      <p class="unit-cap">vista aperta, non in scala: il davanti al centro, <b>i fianchi ai lati</b></p>
+    </div>
+    <div class="card">
+      <div class="spec">
+        <div><dt>cos'è</dt><b>registratore a nastro digitale</b></div>
+        <div><dt>firmware</dt><b>1.1.11 · 23 dic 2025</b></div>
+        <div><dt>memoria</dt><b>128 GB interni</b></div>
+        <div><dt>batteria</dt><b>circa 7 ore</b></div>
+        <div><dt>registra</dt><b>WAV 24 bit, 48 o 96 kHz</b></div>
+        <div><dt>tracce</dt><b>6 stereo a 48 kHz · 3 a 96</b></div>
+        <div><dt>jack 1-2-3</dt><b>entrate o uscite, anche cuffie con microfono</b></div>
+        <div><dt>usb-c</dt><b>scheda audio 6×6 · midi · file · ricarica</b></div>
+        <div><dt>bluetooth</dt><b>solo midi, niente audio</b></div>
+        <div><dt>display</dt><b>oled 64×32</b></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="content">
+    <!-- ================= i tasti (costruita dallo script) ================= -->
+    <div class="panel" id="p-tasti"></div>
+
+    <!-- ================= il menu ================= -->
+    <div class="panel" id="p-menu" hidden>
+      <section>
+        <h2 class="sec">il menu</h2>
+        <p class="sec-note">Tieni <span class="kk">mode</span> finché compare. La <span class="kk">bobina</span> scorre le voci e cambia i valori, <span class="kk">+</span> entra e passa al valore dopo, <span class="kk">−</span> torna indietro, <span class="kk">mode</span> o <span class="kk">■ stop</span> escono. Le sigle sono quelle che vedi sul display.</p>
+        <div class="rows">
+          <div class="row"><div class="combo"><span class="kk">JACKS</span></div><div class="what">Cosa sono i tre minijack in alto<i>input (ognuno mono, mono bilanciato o stereo) · headset (cuffie con microfono: fino a tre persone, ognuna col suo volume) · output (uscite di linea, per far uscire le tracce separate). Vale per tutti e tre insieme.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">SOURCE</span></div><div class="what">Da dove registra<i>auto (decide lui guardando cosa hai collegato) · digital (da 1 a 3 tracce stereo che arrivano dall'USB, cioè dal Mac) · manual (scegli tu traccia per traccia, analogico e digitale mescolati).</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">PLAY</span></div><div class="what">Cosa fa a fine file<i>stop · resume (passa al file dopo) · repeat (ricomincia lo stesso).</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">MIDI</span></div><div class="what">Per cosa usa il MIDI<i>off (ascolta i comandi) · cue (e le note diventano cue) · sync (e manda il suo clock) · ctrl (diventa un controller e non ascolta più niente). Tutto spiegato nella scheda midi.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">BLE</span></div><div class="what">Bluetooth, solo per il MIDI<i>accept (aspetta che il Mac o il telefono si colleghino) · scan (si collega da solo al dispositivo MIDI bluetooth col segnale più forte) · off (com'è di fabbrica).</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">THRU</span></div><div class="what">Passaggio diretto col computer<i>Acceso: quello che entra negli ingressi va al Mac via USB, e l'audio del Mac esce dai jack (se sono su output). Serve per usarlo come microfono in una videochiamata.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">MEMO</span></div><div class="what">Qualità e sveglia dei memo<i>hi-q o std (occupa meno) · wake on/off: se è off, M a macchina spenta non fa niente.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">MIC</span></div><div class="what">Compressore del microfono interno<i>Acceso tiene la voce più uniforme: comodo per interviste e appunti.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">RATE</span></div><div class="what">Frequenza di campionamento<i>96 kHz: fino a 3 tracce stereo · 48 kHz: fino a 6.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">FILE</span></div><div class="what">Rinomina il file aperto<i>Lettere con la bobina, + per confermare.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">REC</span></div><div class="what">Menu di registrazione<i>metro (volume del metronomo, o spento) · tempo (bpm della prossima registrazione: dopo non si cambia) · count (conteggio prima di partire) · auto (parte e si ferma da solo quando il suono supera la soglia, che regoli con la bobina). Ci arrivi anche con ■ + ●.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">SYS</span></div><div class="what">Impostazioni di sistema<i>La lista è qui sotto.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">DISK</span></div><div class="what">Quanto spazio hai usato dei 128 GB</div></div>
+          <div class="row"><div class="combo"><span class="kk">BATT</span></div><div class="what">Batteria in percentuale<i>La vedi anche collegandolo al caricatore da spento.</i></div></div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">dentro SYS</h2>
+        <div class="rows">
+          <div class="row"><div class="combo"><span class="kk">LEDS</span></div><div class="what">Luminosità dei led<i>low · medium · high.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">DISP</span></div><div class="what">Luminosità del display<i>low · medium · high.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">SPK</span></div><div class="what">Altoparlante interno<i>on (suona sempre) · auto (suona solo se nel main out non c'è niente).</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">SFX</span></div><div class="what">Suoni dell'interfaccia<i>Bip dei comandi, e un bip a fine brano quando la riproduzione è su resume.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">MOTOR</span></div><div class="what">Il motore della bobina<i>play + rec (gira sempre) · play (gira solo in ascolto) · off (non gira e non fa scrub: utile in tasca, o quando vuoi passare inosservato).</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">NAME</span></div><div class="what">Il nome della macchina<i>Quattro lettere o cifre: si vede all'accensione ed è il nome che vede il bluetooth.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">MODES</span></div><div class="what">Memo insieme alle registrazioni o a parte<i>A parte, mode ha una terza raccolta e sul computer i memo finiscono nella cartella memo (dal firmware 1.1.9).</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">TIME</span><span class="kk">DATE</span></div><div class="what">Ora e data<i>Si regolano da sole quando lo colleghi a field kit sul Mac.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">VER</span></div><div class="what">Versione del firmware<i>L'ultima uscita è la 1.1.11.</i></div></div>
+          <div class="row"><div class="combo"><span class="kk">RESET</span></div><div class="what">Torna com'era di fabbrica<i>Confermi girando la bobina. Le registrazioni restano.</i></div></div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">le luci</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>luce</th><th>com'è</th><th>vuol dire</th></tr></thead>
+          <tbody>
+            <tr><td>rossa di registrazione</td><td>lampeggia</td><td>armato, pronto a registrare</td></tr>
+            <tr><td>rossa di registrazione</td><td>fissa</td><td>sta registrando</td></tr>
+            <tr><td>led in alto</td><td>bianco fisso</td><td>in carica, batteria piena</td></tr>
+            <tr><td>led in alto</td><td>rosso fisso</td><td>in carica, oppure batteria bassa</td></tr>
+            <tr><td>led in alto</td><td>rosso che lampeggia</td><td>batteria quasi finita</td></tr>
+            <tr><td>vu meter</td><td>bianchi</td><td>livello del suono</td></tr>
+            <tr><td>vu meter</td><td>bianchi con la punta rossa</td><td>sei al limite</td></tr>
+            <tr><td>vu meter</td><td>tutti rossi</td><td>distorce: abbassa il guadagno</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Il TP-7 va ricaricato almeno una volta ogni sei mesi, anche se non lo usi: la batteria lasciata a zero troppo a lungo può non ripartire più.</p>
+      </section>
+    </div>
+
+    <!-- ================= col mac ================= -->
+    <div class="panel" id="p-mac" hidden>
+      <section>
+        <h2 class="sec">un cavo, quattro mestieri</h2>
+        <p class="sec-note">Il TP-7 parla col Mac da un solo cavo USB-C e non ha bisogno di driver. Ogni mestiere ha le sue regole.</p>
+        <div class="grid2">
+          <div class="card"><h3>scheda audio</h3><p>6 ingressi e 6 uscite, 24 bit / 96 kHz. In <b>Impostazioni di Sistema → Suono</b> lo scegli come microfono o come uscita. Al Mac arrivano tre coppie stereo.</p></div>
+          <div class="card"><h3>midi</h3><p>Compare come <b>TP-7</b> in <b>Configurazione MIDI Audio</b> (Applicazioni → Utility). Via bluetooth si chiama <b>TP-7 Bluetooth</b>. Cosa manda e cosa capisce è nella scheda midi.</p></div>
+          <div class="card"><h3>file</h3><p>Non è una chiavetta: i file passano in <b>MTP</b>, che il Finder non legge. Serve <b>field kit</b> di teenage engineering (Mac App Store, macOS 13 o successivo).</p></div>
+          <div class="card"><h3>ricarica e firmware</h3><p>Si carica dallo stesso cavo. Il firmware si aggiorna da <b>Chrome</b> su teenage.engineering/apps/update; Safari non va bene perché non ha il MIDI.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">ricette</h2>
+        <div class="grid2">
+          <div class="card">
+            <h3>scaricare le registrazioni</h3>
+            <ol class="recipe">
+              <li>Apri <b>field kit</b> e collega il TP-7 acceso.</li>
+              <li>Trovi le cartelle <b>recordings</b>, <b>memo</b> (se li hai separati) e <b>library</b>. I nomi dei file sono data e ora.</li>
+              <li>Un multitraccia è un solo WAV con tutte le tracce dentro: field kit sa dividerlo in file stereo separati (split) e rimetterli insieme (join).</li>
+              <li>Mentre è collegato, field kit rimette a posto anche data e ora.</li>
+            </ol>
+            <p class="dim">Senza field kit: accendi tenendo <span class="kk">■ stop</span> e usa un altro programma MTP. Uno alla volta: se ne apri due si pestano i piedi.</p>
+          </div>
+          <div class="card">
+            <h3>riempire la libreria per un dj set</h3>
+            <ol class="recipe">
+              <li>Con field kit copia i brani nella cartella <b>library</b>, anche divisi in sottocartelle.</li>
+              <li>Vanno WAV e, dal firmware 1.1.9, anche MP3.</li>
+              <li>Sul TP-7 premi <span class="kk">mode</span> per passare alla libreria; <span class="kk"><i class="h">tieni</i>■</span> + <span class="kk">−</span> <span class="kk">+</span> salta da una cartella all'altra.</li>
+              <li>Con <span class="kk">▲</span> segni i cue nei punti buoni; col telecomando di questa pagina li richiami dal Mac.</li>
+            </ol>
+            <p class="dim">I cue dei WAV restano scritti nel file; quelli degli MP3 no, secondo chi ha studiato i file.</p>
+          </div>
+          <div class="card">
+            <h3>microfono per Zoom, FaceTime, Meet<span class="flag" title="ricetta provata dalla community, non descritta nella guida">da confermare</span></h3>
+            <ol class="recipe">
+              <li>Sul TP-7: menu → <b>THRU</b> acceso.</li>
+              <li>Sul Mac, nell'app della chiamata o in Impostazioni → Suono → Ingresso, scegli <b>TP-7</b>.</li>
+              <li>Il microfono arriva sui canali 1 e 2. Senza THRU al Mac arriva silenzio.</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3>registrare sul TP-7 quello che suona il Mac</h3>
+            <ol class="recipe">
+              <li>Sul TP-7: menu → <b>SOURCE</b> → <b>digital</b>.</li>
+              <li>Sul Mac: uscita audio <b>TP-7</b>.</li>
+              <li>Sul TP-7: <span class="kk">●</span> e poi <span class="kk">▶</span>. Registra da una a tre tracce stereo dall'USB.</li>
+            </ol>
+            <p class="dim">Il guadagno digitale è fisso: il volume lo regoli dal Mac.</p>
+          </div>
+          <div class="card">
+            <h3>podcast con un ospite collegato<span class="flag" title="combinazione suggerita dalla community, la guida documenta solo il SOURCE manual">da confermare</span></h3>
+            <ol class="recipe">
+              <li>Menu → <b>SOURCE</b> → <b>manual</b>.</li>
+              <li>Arma con <span class="kk">●</span>, ripremi <span class="kk">●</span> per gli ingressi: traccia 1 = microfono (interno o jack), traccia 2 = digitale.</li>
+              <li>Sul Mac manda l'audio della chiamata al TP-7 (uscita TP-7).</li>
+              <li>Registra: esce un solo file con te e l'ospite su tracce separate.</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3>registrare nel DAW (Logic, GarageBand, Ableton)</h3>
+            <ol class="recipe">
+              <li>Scegli <b>TP-7</b> come scheda audio del programma.</li>
+              <li>Per far passare gli ingressi dal vivo accendi <b>THRU</b>.</li>
+              <li>Oppure fai suonare un multitraccia già registrato: le prime tre tracce stereo escono dall'USB separate, e il DAW le registra in tempo reale.</li>
+            </ol>
+            <p class="dim">Tutte e sei le tracce stereo separate escono solo verso un TX-6.</p>
+          </div>
+          <div class="card">
+            <h3>il TP-7 come controller per il DAW</h3>
+            <ol class="recipe">
+              <li>Menu → <b>MIDI</b> → <b>ctrl</b>.</li>
+              <li>La bobina manda il CC 30 in modo <b>relativo</b>, i tasti i CC da 20 a 28, la leva il pitch bend. Tutto sul canale 1.</li>
+              <li>Ableton: MIDI Map, poi per la bobina scegli il modo «Relative (2's Comp.)». Logic: Assegnazioni controller, formato «complemento a 2» relativo.</li>
+            </ol>
+            <p class="dim warn">In ctrl i tasti non comandano più il nastro, e resta così anche scollegato: rimetti MIDI su off prima di uscire. Con ctrl, per far arrivare il microfono al Mac serve anche THRU.</p>
+          </div>
+          <div class="card">
+            <h3>aggiornare il firmware</h3>
+            <ol class="recipe">
+              <li>Apri Chrome o Edge su <b>teenage.engineering/apps/update</b> e collega il TP-7.</li>
+              <li>Segui la pagina. Oggi l'ultimo è il <b>1.1.11</b> (23 dicembre 2025).</li>
+              <li>Se sei sotto al <b>1.1.10</b> aggiorna: sistema i disturbi dell'audio USB.</li>
+            </ol>
+            <p class="dim">Strada alternativa: accendi tenendo <span class="kk">mode</span>, il TP-7 diventa un disco e ci copi il file scaricato da teenage.engineering/downloads/tp-7.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">cose da sapere</h2>
+        <ul class="plain">
+          <li>Mentre è in modalità file (MTP) la scheda audio sparisce: finito il trasferimento torna da solo. Se si incastra, spegni e riaccendi.</li>
+          <li>Collegato da spento, al Mac si vede solo come caricatore o disco di aggiornamento: per tutto il resto va acceso.</li>
+          <li>Via MTP puoi caricare, rinominare e cancellare file, ma non creare cartelle.</li>
+          <li>Il bluetooth porta solo MIDI, mai audio. Si accoppia da Configurazione MIDI Audio → Finestra → Mostra Studio MIDI → Bluetooth, e chi l'ha provato ha dovuto rifarlo a ogni sessione.</li>
+          <li>Safari non ha il MIDI: per il telecomando di questa pagina e per l'aggiornamento usa Chrome o Edge.</li>
+        </ul>
+      </section>
+    </div>
+
+    <!-- ================= midi ================= -->
+    <div class="panel" id="p-midi" hidden>
+      <section>
+        <h2 class="sec">dove passa il midi</h2>
+        <p class="sec-note">Da due strade soltanto: il cavo <b>USB-C</b> e il <b>bluetooth</b> (MIDI bluetooth LE). I tre minijack in alto sono solo audio.</p>
+        <div class="callout">
+          <p><b>Il tuo adattatore MIDI.</b> Se è un cavetto minijack ↔ DIN (come quelli teenage engineering per EP-133 e OP-Z), nel TP-7 non serve: i suoi jack non parlano MIDI.</p>
+          <p>Se è un'interfaccia USB-MIDI, collegala al Mac: il telecomando di questa pagina fa da ponte. Un synth, una tastiera o una drum machine col DIN passano dal Mac e arrivano al TP-7. Funziona anche al contrario: il TP-7 comanda il synth.</p>
+          <p class="dim">Senza computer va il bluetooth: c'è un video in cui un sequencer OXI One segna e richiama i cue del TP-7 senza fili (menu → BLE).</p>
+        </div>
+        <p class="note">Le tabelle qui sotto mettono insieme la guida ufficiale e le misure fatte con gli strumenti sul firmware 1.1.11 da chi l'ha studiato a fondo (soprattutto il progetto op1-lfo-hero). Dove una cosa viene solo da lì trovi <span class="flag">misurato</span>.</p>
+      </section>
+
+      <section>
+        <h2 class="sec">le quattro modalità</h2>
+        <p class="sec-note">Tieni <span class="kk">mode</span> → <b>MIDI</b>. Di fabbrica è off. Arrivano col firmware 1.1.3 (settembre 2024).</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>voce</th><th>ascolta i comandi?</th><th>le note fanno cue?</th><th>manda</th></tr></thead>
+          <tbody>
+            <tr><td><span class="kk">off</span></td><td>sì: cc, pitch bend, start/stop</td><td>no</td><td>niente</td></tr>
+            <tr><td><span class="kk">cue</span></td><td>sì, ma <b>non start, continue e stop</b> <span class="flag">misurato</span><i>Provato il 28/9/2026: in cue il TP-7 li ignora. Play e stop si fanno con la leva: cc 18 a 68 parte, a 64 si ferma.</i></td><td>sì</td><td>niente</td></tr>
+            <tr><td><span class="kk">sync</span></td><td>sì</td><td>no</td><td>il suo clock, mentre il nastro gira, più start, continue e stop<i>Al tempo del file per la velocità reale: se rallenti il nastro, rallenta anche il clock. Solo col cavo: via bluetooth arrivano start, continue e stop, ma il clock no.</i></td></tr>
+            <tr><td><span class="kk">ctrl</span></td><td>no, niente</td><td>no</td><td>i suoi tasti, la bobina e la leva<i>Entrando si ferma, e resta così anche scollegato. Il memo da spento registra lo stesso.</i></td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Il TP-7 non racconta mai com'è messo: un programma non può sapere se sta suonando o se il loop è acceso, si fida di quello che gli ha mandato.</p>
+      </section>
+
+      <section>
+        <h2 class="sec">trasporto · start, continue, stop</h2>
+        <p class="sec-note">Non sono nella tabella ufficiale, ma funzionano: sono i messaggi di trasporto standard, gli stessi che manda un DAW. <b>Solo con MIDI su sync</b> (e, secondo le misure, su off): in cue il TP-7 li ignora, e lì play e stop si fanno con la leva, più giù. <span class="flag">misurato</span></p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>messaggio</th><th>cosa fa</th></tr></thead>
+          <tbody>
+            <tr><td><span class="kk">FA · start</span></td><td>riavvolge all'inizio e suona <span class="flag">misurato</span></td></tr>
+            <tr><td><span class="kk">FB · continue</span></td><td>suona da dove si trova<i>Rimette anche la leva a velocità normale.</i></td></tr>
+            <tr><td><span class="kk">FC · stop</span></td><td>si ferma dov'è<i>Un secondo stop da fermo riavvolge all'inizio, come sulla macchina. Toglie anche l'armamento.</i></td></tr>
+            <tr><td><span class="kk">cc 14 = 127</span> poi <span class="kk">FB</span></td><td>registra: nasce un file nuovo, e FC chiude la ripresa <span class="flag">misurato</span><i>Solo in sync. In cue il cc 14 arma e basta: la ripresa parte solo col ▶ della macchina, e cc 14 = 0 la chiude (provato il 1/10/2026).</i></td></tr>
+            <tr><td><span class="kk">F8 · clock</span></td><td>ignorato: il TP-7 non segue il tempo di nessuno</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2 class="sec">cosa capisce · controlli</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>messaggio</th><th>canale</th><th>cosa fa</th></tr></thead>
+          <tbody>
+            <tr><td><span class="kk">note on 0–127</span></td><td>tutti</td><td>Cue: la nota si lega al punto dove la segni, poi lo richiama<i>Per segnare: MIDI su cue e cc 16 = 127 (oppure ● tenuto sulla macchina) mentre arriva la nota. Per richiamare: cc 16 = 0 e la stessa nota: il nastro salta lì, ma suona solo se sta già correndo, col play della macchina o con la leva a 68. Via MIDI i cue non si cancellano.</i></td></tr>
+            <tr><td><span class="kk">note off</span></td><td>tutti</td><td>Nella tabella ufficiale, ma nessuno ha visto un effetto</td></tr>
+            <tr><td><span class="kk">pitch bend</span></td><td>tutti</td><td>Velocità, da ×0,5 a ×2 (tabella più giù)<i>Solo mentre suona. Resta anche dopo stop e play, si moltiplica con la SPD della macchina, e il display non la mostra: ricordati di rimetterla a zero.</i></td></tr>
+            <tr><td><span class="kk">cc 7</span></td><td>1–6</td><td>Volume della traccia: il canale è la traccia<i>Si vede nel MIX della macchina. Torna al massimo quando un cue o un loop cambia traccia.</i></td></tr>
+            <tr><td><span class="kk">cc 120</span></td><td>1–6</td><td>Muto: 127 muta, 0 riaccende<i>Assoluto, non un interruttore. Per il resto del mondo il cc 120 è «panico» (all sound off): un tasto panico può mettere i muti.</i></td></tr>
+            <tr><td><span class="kk">cc 9</span></td><td>1–3</td><td>Guadagno del minijack 1-3: dB = valore × 42 / 127<i>Prima del mixer, per quello che entra dal vivo. 64 = +21 dB. I canali 4-6 non fanno niente.</i></td></tr>
+            <tr><td><span class="kk">cc 14</span></td><td>tutti</td><td>Arma la registrazione (la luce rossa lampeggia)<i>Da solo non registra: in sync serve anche FB, in cue il ▶ della macchina. A 0 disarma, e chiude una ripresa in corso.</i></td></tr>
+            <tr><td><span class="kk">cc 16</span></td><td>tutti</td><td>Modo «segna cue»: 127 le note segnano, 0 le richiamano <span class="flag">provato</span><i>Nelle misure di op1-lfo-hero non aveva fatto niente di visibile; con l'app Bobina, il 29/9 e il 1/10/2026, le note hanno segnato e richiamato i cue. Se non segna, tenere ● sulla macchina resta la strada sicura.</i></td></tr>
+            <tr><td><span class="kk">cc 17</span></td><td>tutti</td><td>Loop: 1 = inizio, 2 = fine, 0 = spento<i>Solo con la schermata LOOP aperta sulla macchina. Senza l'inizio la fine è ignorata; a loop acceso si può solo spegnere.</i></td></tr>
+            <tr><td><span class="kk">cc 18</span></td><td>tutti</td><td>La leva: 64 al centro, si somma al nastro (tabella qui sotto)</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Per i messaggi col canale «tutti» la guida non dice niente: nessuno ha provato canali diversi dall'1. Manda sull'1 e stai tranquillo.</p>
+      </section>
+
+      <section>
+        <h2 class="sec">la leva · cc 18</h2>
+        <p class="sec-note">Ogni passo dal centro aggiunge circa ×0,26 alla velocità, in avanti sopra 64 e indietro sotto. Si somma a quello che il nastro sta già facendo. <span class="flag">misurato</span></p>
+        <p class="sec-note"><b>In cue è il trasporto</b>: 68 suona in avanti, 64 si ferma, e il nastro tiene la velocità finché la leva resta lì. Un cue richiamato col nastro che corre salta e continua da lì. <span class="flag">provato</span></p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>valore</th><th>a nastro fermo</th><th>mentre suona</th></tr></thead>
+          <tbody>
+            <tr><td><span class="kk">64</span></td><td>fermo</td><td>non cambia niente: continua a suonare</td></tr>
+            <tr><td><span class="kk">68</span></td><td>avanti a ×1 circa (misurato ×1,04)</td><td>più veloce</td></tr>
+            <tr><td><span class="kk">70</span> · <span class="kk">72</span> · <span class="kk">76</span></td><td>×2 · ×3 circa</td><td>×2,4 circa con 70</td></tr>
+            <tr><td><span class="kk">61</span></td><td>indietro piano</td><td>quasi fermo, ×0,2 in avanti</td></tr>
+            <tr><td><span class="kk">60</span></td><td>indietro a ×1</td><td>quasi fermo, appena indietro<i>Con pitch bend +708 (E0 44 45) sta fermo come sotto il dito.</i></td></tr>
+            <tr><td><span class="kk">56</span></td><td>indietro veloce</td><td>indietro a ×1,1<i>Con pitch bend 9700 (E0 64 4B) è il ×1 al contrario esatto.</i></td></tr>
+            <tr><td><span class="kk">0</span> · <span class="kk">127</span></td><td colspan="2">riavvolgimento velocissimo, ×250-300, dopo due secondi di rincorsa: in dieci secondi fa quaranta minuti di nastro</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Il «fermo come sotto il dito» (60 più pitch bend +708) vale solo mentre suona: a nastro fermo la leva a 60 riavvolge a ×1 fino all'inizio del file.</p>
+      </section>
+
+      <section>
+        <h2 class="sec">velocità · pitch bend</h2>
+        <p class="sec-note">Misurata: la velocità è circa 2 elevato a (bend ÷ 8192). Un'ottava sotto e una sopra, come un nastro. Non fa niente a nastro fermo. <span class="flag">misurato</span></p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>pitch bend</th><th>velocità</th><th>byte</th></tr></thead>
+          <tbody>
+            <tr><td>−8192</td><td>×0,5</td><td class="mono">E0 00 00</td></tr>
+            <tr><td>−4096</td><td>×0,7</td><td class="mono">E0 00 20</td></tr>
+            <tr><td>0</td><td>×1</td><td class="mono">E0 00 40</td></tr>
+            <tr><td>+4096</td><td>×1,4</td><td class="mono">E0 00 60</td></tr>
+            <tr><td>+8191</td><td>×2</td><td class="mono">E0 7F 7F</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">La guida della community più diffusa dà ×0,25 come minimo: le misure dicono ×0,5.</p>
+      </section>
+
+      <section>
+        <h2 class="sec">cosa manda · modalità ctrl</h2>
+        <p class="sec-note">Tutto sul canale 1. I tasti mandano 127 quando li premi e 0 quando li lasci, senza ripetizione. A riposo non manda niente.</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>comando</th><th>messaggio</th><th>valori</th></tr></thead>
+          <tbody>
+            <tr><td><span class="kk">▲</span> <span class="kk">▼</span></td><td>cc 20 · cc 21</td><td>127 / 0</td></tr>
+            <tr><td><span class="kk">●</span> <span class="kk">▶</span> <span class="kk">■</span></td><td>cc 22 · 23 · 24</td><td>127 / 0</td></tr>
+            <tr><td><span class="kk">−</span> <span class="kk">+</span></td><td>cc 25 · cc 26</td><td>127 / 0<i>Nella guida si chiamano left e right.</i></td></tr>
+            <tr><td><span class="kk">M</span></td><td>cc 27</td><td>127 / 0<i>In ctrl il memo non registra.</i></td></tr>
+            <tr><td><span class="kk">mode</span></td><td>cc 28 <span class="flag">misurato</span></td><td>127 / 0<i>Non è nella tabella ufficiale.</i></td></tr>
+            <tr><td><span class="kk">bobina</span></td><td>cc 30, relativo</td><td>1, 2, 3 in un verso · 127, 126, 125 nell'altro<i>Più giri veloce, più alto il numero. Circa 60 messaggi al secondo. Mandato al TP-7 non fa niente.</i></td></tr>
+            <tr><td><span class="kk">leva</span></td><td>pitch bend</td><td>−8192 … +8191<i>Non è la posizione ma una rampa morbida: va al massimo in 240 ms e torna a 0 in 290 ms quando la lasci.</i></td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2 class="sec">il clock · modalità sync</h2>
+        <ul class="plain">
+          <li>Manda 24 impulsi per quarto, e solo mentre il nastro gira: da fermo tace, e tace anche quando lo muove la leva.</li>
+          <li>Il tempo è quello scritto nel file (menu di registrazione → TEMPO, prima di registrare; 110 bpm se non lo cambi), moltiplicato per la velocità reale: rallenti il nastro e rallenta il clock.</li>
+          <li>Manda anche start (FA) quando parte, continue (FB) quando riprende e stop (FC) quando si ferma. <span class="flag">misurato</span> Il clock gira anche all'indietro, quindi non dice il verso.</li>
+          <li>Solo col cavo: via bluetooth il clock non arriva (provato il 29/9/2026 con un iPhone). Col cavo è regolare, 44 impulsi al secondo con un file a 110 bpm.</li>
+          <li>Il clock che arriva lo ignora: il TP-7 fa sempre da capo, mai da seguace.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="sec">ricette in byte</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>per</th><th>manda</th></tr></thead>
+          <tbody>
+            <tr><td>play da dove sei</td><td class="mono">FB</td></tr>
+            <tr><td>da capo</td><td class="mono">FA</td></tr>
+            <tr><td>stop pulito (solo se suona)</td><td class="mono">B0 12 40 · FC · E0 00 40</td></tr>
+            <tr><td>registra una ripresa (in sync)</td><td class="mono">B0 0E 7F · FB … FC</td></tr>
+            <tr><td>registra in cue (il via dalla macchina)</td><td class="mono">B0 0E 7F · ▶ sul TP-7 … B0 0E 00</td></tr>
+            <tr><td>play in cue (con la leva)</td><td class="mono">B0 12 44</td></tr>
+            <tr><td>stop in cue (leva al centro)</td><td class="mono">B0 12 40</td></tr>
+            <tr><td>fermo come sotto il dito</td><td class="mono">B0 12 3C · E0 44 45</td></tr>
+            <tr><td>indietro a ×1 (mentre suona)</td><td class="mono">B0 12 38 · E0 64 4B</td></tr>
+            <tr><td>muta la traccia 2</td><td class="mono">B1 78 7F</td></tr>
+            <tr><td>minijack 1 a +21 dB</td><td class="mono">B0 09 40</td></tr>
+            <tr><td>loop (schermata LOOP aperta)</td><td class="mono">B0 11 01 … B0 11 02 … B0 11 00</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2 class="sec">sysex teenage engineering</h2>
+        <p class="sec-note">Busta: <span class="mono">F0 00 20 76 19 40 …  F7</span>. 00 20 76 è teenage engineering, 19 è il TP-7 (TE025). I dati viaggiano impacchettati a 7 bit.</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>manda</th><th>cosa succede</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">F0 7E 7F 06 01 F7</td><td>«chi sei?»: risponde con la famiglia 19</td></tr>
+            <tr><td class="mono">F0 00 20 76 19 40 60 01 01 F7</td><td>saluto: risponde con firmware, seriale e codice prodotto<i>Il telecomando di questa pagina lo usa per «leggi firmware».</i></td></tr>
+            <tr><td class="mono">F0 00 20 76 19 40 60 05 04 00 01 03 F7</td><td>passa ai file (MTP), come fa field kit<i>La scheda audio sparisce finché dura la sessione.</i></td></tr>
+            <tr><td>comando 02</td><td>eco (risponde con quello che mandi)</td></tr>
+            <tr><td>comando 03</td><td>aggiornamento del firmware: <b class="warn">non mandarlo mai</b></td></tr>
+            <tr><td>comandi 05–7F</td><td>il TP-7 risponde «comando sconosciuto»</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2 class="sec">le altre strade</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th></th><th>com'è</th></tr></thead>
+          <tbody>
+            <tr><td>USB</td><td>codice 2367 (teenage engineering). Audio e MIDI 0019, dalle ultime versioni 8019; file (MTP) 0019<i>Scheda audio class compliant 24 bit / 96 kHz, 6 ingressi e 6 uscite = 3 coppie stereo.</i></td></tr>
+            <tr><td>bluetooth</td><td>MIDI bluetooth standard. accept aspetta, scan si collega da solo, off di fabbrica<i>Si fa trovare solo col menu BLE aperto; un collegamento già fatto resta. Il nome è quello di SYS → NAME (4 caratteri). L'app ufficiale del TP-7 usa anche un canale bluetooth suo, non documentato, che sembra dire lo stato del nastro.</i></td></tr>
+            <tr><td>file (MTP)</td><td>cartelle recordings, library e memo; nomi data_ora.wav<i>Si può caricare, rinominare e cancellare. Una sessione alla volta, e senza trasferimenti accavallati.</i></td></tr>
+            <tr><td>dentro i WAV</td><td>il tempo nel pezzo «acid» (110 bpm se non lo cambi), i cue nel pezzo «cue» in fondo al file<i>Un programma può scrivere cue nuovi nel file e ricaricarlo: sul TP-7 compaiono. Il TP-7 li numera da 0 in ordine di posizione, e le note MIDI legate ai cue le scrive in un pezzo «LIST/adtl»: una voce «note» per cue, col nome della nota (C2 = nota 36, C#2 = 37…). Scrivendo anche quelle, i pad suonano i cue appena il file è sul TP-7, senza segnarli (provato il 1/10/2026). Negli MP3 i cue non restano nel file.</i></td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2 class="sec">provati, non fanno niente</h2>
+        <ul class="plain">
+          <li>Qualsiasi comando in modalità ctrl.</li>
+          <li>Il cc 30 mandato al TP-7: la bobina non si muove.</li>
+          <li>Il pitch bend a nastro fermo.</li>
+          <li>Il clock in arrivo.</li>
+          <li>Lo stop mentre lo porta la leva: la leva continua.</li>
+          <li>Il cc 17 senza la schermata LOOP aperta.</li>
+          <li>Start, continue e stop con MIDI su cue.</li>
+          <li>Registrare in cue senza il ▶ della macchina, anche con la leva.</li>
+          <li>Cambiare registrazione: non c'è un comando per passare al file dopo o prima, e l'avvolgimento veloce arriva in fondo e si ferma lì.</li>
+          <li>Il clock via bluetooth.</li>
+        </ul>
+        <p class="note">Mai provati da nessuno: program change, MMC, song position, altri cc, canali diversi dall'1, la velocity delle note.</p>
+      </section>
+
+      <section>
+        <h2 class="sec">il firmware</h2>
+        <p class="sec-note">L'ultima versione pubblicata da teenage engineering è la <b>1.1.11</b> (23 dicembre 2025). Da agosto 2026 alcuni programmi leggono «2.5.7» dai TP-7 collegati: con ogni probabilità è il numero di versione della parte USB, non un firmware nuovo. Per sapere il tuo: menu → SYS → VER, oppure «leggi firmware» nel telecomando.</p>
+      </section>
+    </div>
+
+    <!-- ================= idee ================= -->
+    <div class="panel" id="p-idee" hidden>
+      <section>
+        <h2 class="sec">sette modi di parlare col TP-7</h2>
+        <p class="sec-note">Un programma può arrivare al TP-7 da tutte queste parti. Messe insieme, fanno molto più di un telecomando.</p>
+        <div class="grid2">
+          <div class="card"><h3>midi col cavo</h3><p class="dim">Trasporto, velocità, cue, loop, sei volumi e muti, guadagni. O, in ctrl, i suoi tasti e la bobina verso il computer.</p></div>
+          <div class="card"><h3>midi senza fili</h3><p class="dim">Gli stessi messaggi via bluetooth, da un telefono o da un sequencer come l'OXI One.</p></div>
+          <div class="card"><h3>il suo clock</h3><p class="dim">In sync il nastro detta il tempo a tutto il resto, e se lo rallenti rallenta tutto.</p></div>
+          <div class="card"><h3>sysex</h3><p class="dim">Versione del firmware, seriale, e il passaggio ai file senza toccare la macchina.</p></div>
+          <div class="card"><h3>i file (MTP)</h3><p class="dim">Scaricare, caricare, rinominare, cancellare: la base di tutti i programmi per i memo e la trascrizione.</p></div>
+          <div class="card"><h3>dentro i WAV</h3><p class="dim">Il tempo e i cue sono scritti nel file: un programma può tagliare una registrazione in automatico e rimandarla al TP-7 con i cue già messi.</p></div>
+          <div class="card"><h3>la scheda audio</h3><p class="dim">Sei canali in e sei out: il computer può suonare sul nastro e registrare dal nastro mentre lo comanda.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">usi creativi, visti in giro</h2>
+        <ul class="plain">
+          <li><b>Scratch.</b> La bobina motorizzata come un piatto: teenage engineering stessa l'ha mostrato con il TX-6, e il DJ inglese DJ Yoda l'ha provata. Dal firmware 1.1.10 lo scratch si registra nel mixdown col TX-6.</li>
+          <li><b>DJ con due TP-7 e un TX-6.</b> Due «giradischi» tascabili, con i cue per i punti d'attacco e la spintarella per mettere a tempo.</li>
+          <li><b>Looper sound-on-sound.</b> Loop OB-4 più sovraincisione: c'è un tutorial apposta, e chi lo usa accanto a un OP-XY.</li>
+          <li><b>Cue dal sequencer.</b> Un OXI One manda note via bluetooth e il TP-7 salta fra i cue a tempo.</li>
+          <li><b>Il 4 piste in tasca.</b> Registra, sovraincidi in DUB, riversa in BOUNCE e ricomincia, come i portastudio a cassetta.</li>
+          <li><b>Multitraccia di synth.</b> Le quattro piste dell'OP-1 field su tracce separate del TP-7, o fino a dodici canali col TX-6.</li>
+          <li><b>Diario parlato.</b> Memo trascritti in automatico: l'app ufficiale, e programmi che li scrivono ogni giorno in un diario di Obsidian o in Apple Note.</li>
+          <li><b>Stampare su nastro.</b> <a href="https://github.com/micklasoft/tinebox" rel="noopener">tinebox</a>, uno strumento nel browser, arma il TP-7, lo fa partire e ci registra sopra un pezzo intero, mettendo un cue all'inizio di ogni sezione.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="sec">usi creativi possibili</h2>
+        <p class="sec-note">Idee che il MIDI del TP-7 permette. Molte sono già dentro <b>Bobina</b>, l'app per iPhone (più giù).</p>
+        <div class="grid2">
+          <div class="card"><h3>campionatore di nastro</h3><p class="dim">Una registrazione di mezz'ora diventa fino a 128 campioni: segni i cue nei punti buoni e li suoni da pad, tastiera o telefono.</p></div>
+          <div class="card"><h3>drum machine di nastro</h3><p class="dim">Un sequencer che salta fra i cue a tempo: ritmi fatti di pezzi di una registrazione qualsiasi.</p></div>
+          <div class="card"><h3>nastro stanco</h3><p class="dim">Wow e flutter: il pitch bend che ondeggia piano e trema veloce, come una cassetta vecchia.</p></div>
+          <div class="card"><h3>tape stop e avvio</h3><p class="dim">Il nastro rallenta fino a fermarsi, o riparte prendendo velocità.</p></div>
+          <div class="card"><h3>balbettio</h3><p class="dim">Lo stesso cue ripetuto a 1/8, 1/16, 1/32: il beat repeat della musica elettronica, sul nastro.</p></div>
+          <div class="card"><h3>cancello e pompa</h3><p class="dim">Muti e volumi delle sei tracce a tempo: il transformer e il sidechain, col mixer del TP-7.</p></div>
+          <div class="card"><h3>deriva</h3><p class="dim">Sei tracce della stessa registrazione con volumi che vagano da soli: un paesaggio che non si ripete, alla Basinski o alla Eno.</p></div>
+          <div class="card"><h3>collage</h3><p class="dim">Salti a caso fra i cue con una probabilità: musica concreta che si rimescola da sola.</p></div>
+          <div class="card"><h3>il nastro dà il tempo</h3><p class="dim">In sync il TP-7 detta il tempo a Ableton, a un sequencer, a Bobina. Rallenti il nastro con la leva e rallenta tutto il resto.</p></div>
+          <div class="card"><h3>taglio automatico</h3><p class="dim">Il computer scarica il WAV, trova i colpi, ci scrive dentro i cue con le loro note e lo ricarica: il TP-7 si ritrova la registrazione già affettata e suonabile dai pad. Provato con dieci banche di sedici suoni.</p></div>
+          <div class="card"><h3>la bobina che avvisa</h3><p class="dim">Il computer fa girare la bobina con la leva quando finisce qualcosa: una notifica meccanica.</p></div>
+          <div class="card"><h3>jog per tutto</h3><p class="dim">In ctrl bobina e leva diventano una rotella per il montaggio video o per il DAW. C'è perfino chi ha progettato di usarle per mettere a fuoco un microscopio elettronico.</p></div>
+          <div class="card"><h3>col corpo</h3><p class="dim">Il telefono inclinato cambia la velocità del nastro, scuoterlo fa un tape stop.</p></div>
+          <div class="card"><h3>un aiutante che ascolta</h3><p class="dim">Il memo tenuto detta testo al computer, i tasti laterali passano la parola a un assistente: esiste già per Claude Code.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">i programmi su GitHub</h2>
+        <p class="sec-note">Tutti progetti di singoli appassionati, quasi tutti del 2026. Nessuno è di teenage engineering.</p>
+        <div class="grid2">
+          <div class="card"><h3>comandarlo</h3><ul class="plain">
+            <li><a href="https://github.com/lucidyan/tp7-midi" rel="noopener">tp7-midi</a> · telecomando web, USB e bluetooth</li>
+            <li><a href="https://github.com/andrewralon/op1-lfo-hero/tree/feature/support-field-devices" rel="noopener">op1-lfo-hero</a> · LFO a tempo, e le misure più precise del MIDI del TP-7</li>
+            <li><a href="https://github.com/micklasoft/tinebox" rel="noopener">tinebox</a> · strumento web che registra i pezzi sul TP-7</li>
+            <li><a href="https://github.com/jwamin/field-remote" rel="noopener">field-remote</a> · telecomando per iPhone; incolli una tabella MIDI e l'intelligenza del telefono ci disegna i controlli</li>
+          </ul></div>
+          <div class="card"><h3>usarlo come controller</h3><ul class="plain">
+            <li><a href="https://github.com/Aias/tp-7" rel="noopener">Aias/tp-7</a> · dettatura col memo, riunioni registrate, tasti che chiamano Claude Code</li>
+            <li><a href="https://github.com/PacoZhou1/tp7-vibe-deck" rel="noopener">tp7-vibe-deck</a> · pulsantiera per il Mac con un modello 3D del TP-7, e il progetto del microscopio</li>
+          </ul></div>
+          <div class="card"><h3>file e trasferimento</h3><ul class="plain">
+            <li><a href="https://github.com/totocaster/tp7" rel="noopener">tp7</a> e <a href="https://github.com/EDmitry/tp7" rel="noopener">la sua variante</a> · file dal Terminale, senza field kit</li>
+            <li><a href="https://github.com/sparkyfen/tp-7-mtp" rel="noopener">tp-7-mtp</a> · lo stesso per Linux, con la descrizione più precisa del protocollo USB</li>
+            <li><a href="https://github.com/plue17/tp7" rel="noopener">plue17/tp7</a> e <a href="https://github.com/tayseph/tp-7-manager" rel="noopener">tp-7-manager</a> · archivi per Linux</li>
+            <li><a href="https://github.com/rhzuccarelli/Bridge" rel="noopener">Bridge</a> · un editor multitraccia hardware per il TP-7, su Raspberry Pi</li>
+          </ul></div>
+          <div class="card"><h3>memo e trascrizione</h3><ul class="plain">
+            <li><a href="https://github.com/cwill747/TP-7-VoiceSync" rel="noopener">TP-7-VoiceSync</a> · trascrive e manda a Notion, Note o Markdown</li>
+            <li><a href="https://github.com/EDmitry/memo" rel="noopener">memo</a> · un diario quotidiano pronto per gli assistenti</li>
+            <li><a href="https://github.com/krystalmaria/tp7-station" rel="noopener">tp7-station</a> · trascrive e ha un editor di cue che li riscrive sul TP-7</li>
+            <li><a href="https://github.com/joshualexanderl/TP-7-Manager" rel="noopener">TP-7-Manager</a> · trascrizione verso Notion</li>
+          </ul></div>
+          <div class="card"><h3>musica e librerie</h3><ul class="plain">
+            <li><a href="https://github.com/pixelate/wavesync" rel="noopener">wavesync</a> · prepara la libreria musicale per il TP-7 e riporta indietro i cue fatti sulla macchina</li>
+            <li><a href="https://github.com/mellson/tp7-util" rel="noopener">tp7-util</a> · divide e riunisce i WAV multitraccia</li>
+            <li>toolsbymatt su maxforlive.com · dispositivi Max for Live: tp7_stem_recorder, tp7_stem_splitter, tp7_speed_sync <span class="flag" title="la pagina non si è potuta aprire">da confermare</span></li>
+            <li><a href="https://github.com/ericlewis/TEKit" rel="noopener">TEKit</a> · primi passi nel canale bluetooth segreto dell'app ufficiale</li>
+          </ul></div>
+          <div class="card"><h3>cosa non c'è ancora</h3><p class="dim">Nessun server MCP per farlo usare a un assistente, niente per norns, Pure Data, SuperCollider, TouchOSC o Mozaic. E una mappa MIDI pubblicata in una libreria (@ulnd/teenage) è inventata: non fidarti.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">col telefono</h2>
+        <div class="callout">
+          <p><b>Bobina</b> è l'app per iPhone nata da questa ricerca: bobina da girare col dito, trasporto e registrazione (anche in cue, con la leva), velocità, nastro stanco, tape stop, velocità inclinando il telefono, sedici pad di cue, balbettio, collage, loop a tempo, sequencer di nastro, cancello, pompa, deriva, lo specchio dei tasti in ctrl e tutte le tabelle. Parla col TP-7 col cavo USB-C o col bluetooth.</p>
+          <p class="dim">È nella cartella <span class="mono">bobina</span> del sito, con le istruzioni in <span class="mono">LEGGIMI.md</span>: si installa dal Mac con Xcode.</p>
+        </div>
+        <ul class="plain">
+          <li><b>Senza installare niente:</b> il browser gratuito Bluefy su iPhone apre il telecomando <a href="https://lucidyan.github.io/tp7-midi" rel="noopener">tp7-midi</a> via bluetooth. Safari no.</li>
+          <li><b>App già pronte:</b> TouchOSC (20 $, script e sensori), MusiKraken (circa 10 $, sensori e patch visive), MIDI Wrench e midimittr (gratis, per provare e collegare).</li>
+          <li><b>Col cavo:</b> l'iPhone con USB-C vede il TP-7 come dispositivo MIDI e scheda audio. Può provare a caricarlo con la sua batteria.</li>
+          <li><b>Android:</b> Chrome ha già MIDI e bluetooth: questo prontuario, telecomando compreso, funziona lì.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="sec">a tempo con Ableton Live</h2>
+        <div class="grid2">
+          <div class="card">
+            <h3>Live comanda, il TP-7 parte e si ferma</h3>
+            <ol class="recipe">
+              <li>TP-7 col cavo, MIDI su off o cue.</li>
+              <li>Live, Impostazioni → Link, Tempo e MIDI: sull'uscita TP-7 accendi <b>Sync</b>.</li>
+              <li>Play in Live: il TP-7 riavvolge e parte insieme; stop si ferma; due stop tornano all'inizio.</li>
+            </ol>
+            <p class="dim">Il TP-7 non segue il tempo: registra il materiale allo stesso tempo di Live (menu di registrazione → TEMPO) e resteranno insieme.</p>
+          </div>
+          <div class="card">
+            <h3>il TP-7 comanda, Live lo segue</h3>
+            <ol class="recipe">
+              <li>TP-7 su MIDI → sync.</li>
+              <li>Live: sull'ingresso TP-7 accendi <b>Sync</b>, poi <b>EXT</b> nella barra in alto.</li>
+              <li>Premi play sul TP-7: Live prende il tempo del file. Se rallenti il nastro, rallenta anche Live.</li>
+            </ol>
+            <p class="dim">Il TP-7 non manda lo start: può darsi che Live vada fatto partire a mano. <span class="flag">da provare</span></p>
+          </div>
+          <div class="card">
+            <h3>cue a battuta</h3>
+            <ol class="recipe">
+              <li>TP-7 su MIDI → cue; una traccia MIDI di Live con uscita TP-7.</li>
+              <li>Tieni ● sulla macchina e manda una nota (per esempio C1) nel punto dove comincia il pezzo.</li>
+              <li>Una clip di 1, 2 o 4 battute con quella nota sull'1: a ogni giro il TP-7 torna lì sul battere.</li>
+            </ol>
+            <p class="dim">Anche se i due orologi si allontanano, la battuta dopo li rimette insieme. Col pitch bend automatizzato nella stessa clip adatti la velocità (×0,5-×2).</p>
+          </div>
+          <div class="card">
+            <h3>sentirlo in Live, e dopo</h3>
+            <ul class="plain">
+              <li>Per sentire il TP-7 dentro Live tenendo la tua scheda: Configurazione MIDI Audio → dispositivo aggregato con la tua scheda e il TP-7.</li>
+              <li>Se il salto arriva un filo tardi: Track Delay negativo sulla traccia MIDI.</li>
+              <li>A cose fatte: scarica il WAV con field kit e usa il warp. Il tempo è scritto nel file.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= telecomando ================= -->
+    <div class="panel" id="p-tele" hidden>
+      <section>
+        <h2 class="sec">telecomando midi</h2>
+        <p class="sec-note">Comanda il TP-7 dal Mac, guarda cosa manda, fai da ponte fra lui e il resto dei tuoi strumenti. Funziona in <b>Chrome</b> o <b>Edge</b>; Safari e l'iPhone non hanno il MIDI nel browser.</p>
+        <div class="card" id="c-conn">
+          <h3>collegamento</h3>
+          <ol class="recipe">
+            <li>Collega il TP-7 acceso col cavo USB-C (o via bluetooth: menu → BLE → accept, poi accoppialo in Configurazione MIDI Audio).</li>
+            <li>Sul TP-7, menu → <b>MIDI</b>: <b>sync</b> (o off) per ▶ ■ ●; <b>cue</b> per i pad, ma lì ▶ e ■ non vanno: porta la leva a 68 per partire e a 64 per fermarti; <b>ctrl</b> per usare i suoi tasti.</li>
+            <li>Premi collega e dai il permesso al browser.</li>
+          </ol>
+          <div class="btnrow">
+            <button type="button" class="btn pri" id="t-connect">collega</button>
+            <button type="button" class="btn" id="t-greet" disabled>leggi firmware</button>
+          </div>
+          <div class="status" id="t-status"><span class="led"></span><span id="t-statustext">non collegato</span></div>
+          <div class="ports">
+            <label class="f">dal TP-7 (ingresso)<select id="t-in" disabled><option value="">—</option></select></label>
+            <label class="f">verso il TP-7 (uscita)<select id="t-out" disabled><option value="">—</option></select></label>
+          </div>
+          <p class="dim" id="t-fw" hidden></p>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">comanda il TP-7</h2>
+        <div class="grid2">
+          <div class="card">
+            <h3>trasporto <span class="sm">FA · FB · FC · cc 18</span></h3>
+            <p class="dim">⏮ riavvolge e suona, ▶ riparte da dove sei, ■ si ferma (due volte: torna all'inizio), ● registra su un file nuovo. ◀◀, ▶▶ e «dito» vanno tenuti premuti; «dito» vale solo mentre suona. Dalla tastiera del Mac lo spazio fa ▶ e ■. Con MIDI su cue questi tasti non vanno: usa la leva (68 parte, 64 ferma).</p>
+            <div class="btnrow">
+              <button type="button" class="btn big" id="t-top" title="da capo (FA)">⏮</button>
+              <button type="button" class="btn big" id="t-play" title="play da dove si trova (FB)">▶</button>
+              <button type="button" class="btn big" id="t-stop" title="stop (FC)">■</button>
+              <button type="button" class="btn big recb" id="t-rec" title="arma e registra (cc 14 e FB)">●</button>
+            </div>
+            <div class="btnrow">
+              <button type="button" class="btn big" id="t-rew" title="indietro veloce, tieni premuto">◀◀</button>
+              <button type="button" class="btn big" id="t-ffw" title="avanti veloce, tieni premuto">▶▶</button>
+              <button type="button" class="btn" id="t-hold" title="cc 18 = 60 e pitch bend +708, tieni premuto">dito</button>
+            </div>
+            <div class="slrow"><span class="n">leva</span><input type="range" id="t-shuttle" min="0" max="127" value="64" aria-label="leva virtuale"><span class="v" id="t-shuttlev">64</span></div>
+            <label class="chk" style="margin-top:6px"><input type="checkbox" id="t-spring" checked> torna al centro quando la lasci</label>
+          </div>
+
+          <div class="card">
+            <h3>velocità <span class="sm">pitch bend</span></h3>
+            <p class="dim">Da metà al doppio: un'ottava sotto e una sopra. Vale solo mentre suona, resta anche dopo lo stop e sul display non si vede.</p>
+            <div class="slrow"><span class="n">velocità</span><input type="range" id="t-pb" min="-8192" max="8191" value="0" aria-label="velocità"><span class="v" id="t-pbv">×1,00</span></div>
+            <div class="btnrow">
+              <button type="button" class="btn" data-speed="0.5">×0,5</button>
+              <button type="button" class="btn" data-speed="0.75">×0,75</button>
+              <button type="button" class="btn" data-speed="1">×1</button>
+              <button type="button" class="btn" data-speed="1.5">×1,5</button>
+              <button type="button" class="btn" data-speed="2">×2</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>cue <span class="sm">note 36–51 · cc 16</span></h3>
+            <p class="dim">In <b>richiama</b> un pad salta al suo cue e suona da lì; in <b>segna</b> lo lega al punto dove passa il nastro. Serve MIDI su cue e la schermata CUE aperta (▲). Se non segna, tieni ● sulla macchina mentre tocchi il pad. Dalla tastiera del Mac: tasti 1-8.</p>
+            <div class="btnrow">
+              <button type="button" class="btn on" id="t-cuecall">richiama</button>
+              <button type="button" class="btn" id="t-cueset">segna</button>
+            </div>
+            <div class="pads" id="t-pads"></div>
+          </div>
+
+          <div class="card">
+            <h3>loop <span class="sm">cc 17</span></h3>
+            <p class="dim">Solo con la schermata LOOP aperta sulla macchina (▲, poi loop). Premi <b>inizio</b> quando il nastro passa dove comincia, <b>fine</b> dove finisce. Poi solo <b>spegni</b>.</p>
+            <div class="btnrow">
+              <button type="button" class="btn" id="t-loopin">inizio</button>
+              <button type="button" class="btn" id="t-loopout" disabled>fine</button>
+              <button type="button" class="btn" id="t-loopoff">spegni</button>
+            </div>
+            <p class="readout" id="t-loopstate">loop spento</p>
+          </div>
+
+          <div class="card">
+            <h3>mixer <span class="sm">cc 7 · cc 120 · canali 1–6</span></h3>
+            <p class="dim">Si azzera da solo quando cambi traccia con un cue o col loop.</p>
+            <div id="t-mix"></div>
+          </div>
+
+          <div class="card">
+            <h3>ingressi <span class="sm">cc 9 · cc 14</span></h3>
+            <div id="t-gain"></div>
+            <div class="btnrow">
+              <button type="button" class="btn recb" id="t-arm">arma la registrazione</button>
+            </div>
+            <p class="dim">Arma soltanto: per partire usa ▶ qui o sulla macchina, oppure direttamente ● nel trasporto.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">ascolta il TP-7 · modalità ctrl</h2>
+        <div class="card">
+          <p class="dim" style="margin-top:0">Metti il TP-7 su <b>MIDI → ctrl</b> e tocca i suoi comandi: si accendono sullo schema, la bobina gira con la tua.</p>
+          <div class="grid2" style="margin-top:10px">
+            <div><div class="dim" style="font-size:12px">ultimo comando</div><div class="readout" id="t-last">—</div></div>
+            <div><div class="dim" style="font-size:12px">bobina · passi contati</div><div class="readout" id="t-reel">0</div></div>
+          </div>
+          <div style="margin-top:10px"><div class="dim" style="font-size:12px">leva</div><div class="meter"><b id="t-rockerbar"></b></div></div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">ponte</h2>
+        <p class="sec-note">Qui il Mac passa i messaggi da una porta all'altra: per esempio dal tuo adattatore MIDI al TP-7, o dal TP-7 a un synth. Il ponte funziona finché questa pagina resta aperta.</p>
+        <div class="grid2">
+          <div class="card">
+            <h3>un altro strumento → TP-7</h3>
+            <p class="dim">Una tastiera o un pad controller che fa partire i cue. Con i pad standard, dal 36 in su, tornano uguali ai pad di questa pagina.</p>
+            <div class="inline">
+              <label class="f" style="flex:1 1 180px">da<select id="b1-in"><option value="">— scegli —</option></select></label>
+              <label class="f">cosa passa<select id="b1-what"><option value="notes">solo le note (cue)</option><option value="all">tutto tranne sysex</option></select></label>
+            </div>
+            <label class="chk" style="margin-top:10px"><input type="checkbox" id="b1-on"> ponte acceso</label>
+          </div>
+          <div class="card">
+            <h3>TP-7 → un altro strumento</h3>
+            <p class="dim">Serve il TP-7 in ctrl. Per Logic c'è anche la traduzione in MMC: play, stop e rec comandano il registratore del programma.</p>
+            <div class="inline">
+              <label class="f" style="flex:1 1 180px">verso<select id="b2-out"><option value="">— scegli —</option></select></label>
+              <label class="f">canale<input type="number" id="b2-ch" min="1" max="16" value="1"></label>
+            </div>
+            <div class="inline">
+              <label class="f">bobina<select id="b2-reel"><option value="rel">relativa, com'è (cc 30)</option><option value="abs">manopola normale</option><option value="off">non passa</option></select></label>
+              <label class="f" id="b2-ccwrap">sul cc<input type="number" id="b2-cc" min="0" max="119" value="74"></label>
+            </div>
+            <div class="inline">
+              <label class="f">leva<select id="b2-rock"><option value="pb">pitch bend</option><option value="off">non passa</option></select></label>
+              <label class="f">tasti<select id="b2-keys"><option value="cc">cc 20–28, come sono</option><option value="mmc">play · stop · rec in MMC (serve il sysex)</option><option value="off">non passano</option></select></label>
+            </div>
+            <label class="chk" style="margin-top:10px"><input type="checkbox" id="b2-on"> ponte acceso</label>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">il tempo del TP-7 · modalità sync</h2>
+        <div class="card">
+          <p class="dim" style="margin-top:0">Col TP-7 su <b>MIDI → sync</b>, premi play sulla macchina: qui compare il tempo del file. Muovi la leva o la velocità e cambia anche lui. Il clock che gli mandi, invece, il TP-7 lo ignora.</p>
+          <div class="readout" id="t-clockin" style="margin-top:10px">nessuno</div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">monitor</h2>
+        <div class="card">
+          <div class="btnrow" style="margin-top:0">
+            <button type="button" class="btn" id="t-clear">pulisci</button>
+            <label class="chk"><input type="checkbox" id="t-showclock"> mostra anche il clock</label>
+          </div>
+          <div class="log" id="t-log" aria-live="off"></div>
+          <p class="note">← arriva dal TP-7 · → parte verso il TP-7 · ⇄ passa dal ponte</p>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <p class="note">Dati presi dalla guida ufficiale teenage engineering (teenage.engineering/guides/tp-7) e dalle note dei firmware fino all'1.1.11 del dicembre 2025. Per il MIDI anche dalle misure pubblicate dalla community: soprattutto op1-lfo-hero, che l'ha misurato con gli strumenti, e poi tp7-midi, Aias/tp-7, tp7-vibe-deck, totocaster/tp7 e tp-7-mtp. Le cose che vengono solo da lì sono segnate <span class="flag">misurato</span>; quelle ancora incerte <span class="flag">da confermare</span>. Il display della macchina resta l'ultima parola.</p>
+    </footer>
+  </div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function $(id){ return document.getElementById(id); }
+
+  /* ---------------- aspetto: auto, chiaro o scuro ---------------- */
+  var THEMES = ["light","auto","dark"];
+  function readTheme(){
+    try{ var v = localStorage.getItem("tp7-theme"); return THEMES.indexOf(v) > -1 ? v : null; }
+    catch(e){ return null; }
+  }
+  function markTheme(v){
+    THEMES.forEach(function(t){
+      var b = $("th-" + t);
+      if(b) b.setAttribute("aria-pressed", t === v ? "true" : "false");
+    });
+  }
+  function applyTheme(v, remember){
+    var root = document.documentElement;
+    if(v === "auto") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", v);
+    markTheme(v);
+    if(remember){ try{ localStorage.setItem("tp7-theme", v); }catch(e){} }
+  }
+  (function(){
+    var saved = readTheme();
+    if(saved) applyTheme(saved, false);
+    else markTheme(document.documentElement.getAttribute("data-theme") || "auto");
+  })();
+  document.querySelector(".theme").addEventListener("click", function(e){
+    var b = e.target.closest("[data-th]");
+    if(b) applyTheme(b.dataset.th, true);
+  });
+
+  /* ---------------- i comandi della macchina ---------------- */
+  var KEYS = {
+    rec:{ l:"● rec" }, play:{ l:"▶ play" }, stop:{ l:"■ stop" },
+    meno:{ l:"−" }, piu:{ l:"+" }, memo:{ l:"M memo" },
+    su:{ l:"▲ su" }, giu:{ l:"▼ giù" }, mode:{ l:"mode" },
+    bobina:{ l:"bobina" }, leva:{ l:"leva" }, manopola:{ l:"manopola" }
+  };
+  var NAMES = { rec:"rec", play:"play", stop:"stop", meno:"meno", piu:"più", memo:"memo", su:"su", giu:"giù", mode:"mode", bobina:"bobina", leva:"leva", manopola:"manopola" };
+
+  /* k: i comandi in ordine; "h:" davanti vuol dire tenerlo premuto.
+     c: il contesto in cui vale, quando non è la schermata normale. */
+  var COMBOS = [
+    { g:"accendere e spegnere", k:["manopola"], t:"Accendi e alza il volume", n:"Gira in senso orario finché senti lo scatto; continuando alzi il volume generale. All'indietro oltre lo scatto si spegne." },
+    { g:"accendere e spegnere", k:["h:mode","manopola"], t:"Accendi in modalità aggiornamento", n:"Tieni mode mentre accendi: il TP-7 si presenta al computer come disco e ci copi il file del firmware. Più comodo l'aggiornamento da Chrome, vedi la scheda col mac." },
+    { g:"accendere e spegnere", k:["h:stop","manopola"], t:"Accendi in modalità trasferimento file (MTP)", n:"Tieni stop mentre accendi. Sul Mac serve un programma che parli MTP, come field kit: il Finder da solo non lo vede." },
+    { g:"accendere e spegnere", k:["h:memo"], c:"da spento", t:"Si sveglia e registra un memo", n:"Solo se in menu → MEMO la sveglia (wake) è accesa." },
+
+    { g:"memo", k:["h:memo"], t:"Registra un memo col microfono interno", n:"Registra finché tieni premuto; quando lasci, il file è salvato e compare sul display." },
+    { g:"memo", k:["h:memo","h:mode"], t:"Pausa del memo", n:"Mentre registri tieni anche mode: si ferma. Lasci mode e riprende, sullo stesso file." },
+    { g:"memo", k:["meno","piu"], c:"sui memo", t:"Sfoglia i memo" },
+    { g:"memo", k:["memo"], c:"in edit", t:"Registra sopra il memo aperto", n:"Solo se il file aperto è un memo; su una registrazione normale il display dice NO MEMO." },
+
+    { g:"registrare", k:["rec"], t:"Arma la registrazione", n:"La luce rossa lampeggia e il display dice NEW. Da qui scegli tracce e ingressi." },
+    { g:"registrare", k:["play"], c:"armato", t:"Parte la registrazione", n:"Luce rossa fissa, sul display REC e il tempo che scorre. Con AUTO acceso aspetta che il suono superi la soglia." },
+    { g:"registrare", k:["h:rec","play"], t:"Registra subito, senza armare prima" },
+    { g:"registrare", k:["h:bobina"], c:"in registrazione", t:"Pausa: tieni ferma la bobina col dito", n:"Quando la lasci riprende, sullo stesso file. Vale anche in ascolto." },
+    { g:"registrare", k:["stop"], c:"in registrazione", t:"Ferma e salva", n:"Il file compare subito, sotto la data di oggi (TODAY)." },
+    { g:"registrare", k:["su","giu"], c:"armato", t:"Guadagno degli ingressi analogici, da 0 a +42 dB", n:"Microfono interno e USB hanno il guadagno fisso, e il display lo dice (FIXED GAIN). Un microfono CM-15 collegato in USB va da −12 a +12 dB." },
+    { g:"registrare", k:["rec"], c:"armato", t:"Schermata degli ingressi", n:"Ripremi rec: con − e + scegli la traccia, con la bobina la sua sorgente (niente, microfono interno, analogico, digitale da USB), con ▲ e ▼ il guadagno." },
+    { g:"registrare", k:["h:rec","piu"], c:"armato", t:"Aggiungi una traccia alla prossima registrazione", n:"Fino a 3 tracce stereo a 96 kHz, fino a 6 a 48 kHz: si sceglie in menu → RATE." },
+    { g:"registrare", k:["h:rec","meno"], c:"armato", t:"Togli una traccia" },
+    { g:"registrare", k:["h:stop","rec"], t:"Menu di registrazione: metronomo, tempo, conteggio, auto", n:"Ripremi rec per la pagina dopo, stop per uscire. Il tempo va scelto prima di registrare: su un file già fatto non si cambia più." },
+
+    { g:"ascoltare", k:["play"], t:"Suona il file aperto" },
+    { g:"ascoltare", k:["play"], c:"mentre suona", t:"Al contrario: inverte il verso del nastro", n:"Con le utility cue o loop accese play fa un altro mestiere (vedi più giù)." },
+    { g:"ascoltare", k:["bobina"], t:"Scrub: gira la bobina per scorrere", n:"Col motore acceso la bobina gira da sola mentre suona, e ci puoi scratchare sopra come su un piatto." },
+    { g:"ascoltare", k:["h:bobina"], c:"mentre suona", t:"Pausa col dito" },
+    { g:"ascoltare", k:["leva"], t:"Avanti veloce (su) e indietro veloce (giù)", n:"La leva è sul fianco sinistro; la bobina gira nel verso del nastro." },
+    { g:"ascoltare", k:["stop"], t:"Ferma; premilo ancora per tornare all'inizio del file" },
+    { g:"ascoltare", k:["h:stop","su"], t:"Salta alla battuta dopo", n:"Conta le battute secondo il tempo del file, quello scelto nel menu di registrazione." },
+    { g:"ascoltare", k:["h:stop","giu"], t:"Torna alla battuta prima" },
+    { g:"ascoltare", k:["h:stop","memo"], t:"Contatore: tempo passato o tempo che manca", n:"Il tempo che manca non c'è in edit." },
+
+    { g:"sfogliare e cancellare", k:["mode"], t:"Cambia raccolta: registrazioni ↔ libreria", n:"Se in menu → SYS → MODES hai separato i memo (dal firmware 1.1.9) c'è una terza raccolta, quella dei memo." },
+    { g:"sfogliare e cancellare", k:["meno","piu"], t:"File prima / file dopo", n:"Tienili premuti per scorrere veloce. Le registrazioni sono in ordine di data, la libreria per cartelle e nome, dalla A alla Z." },
+    { g:"sfogliare e cancellare", k:["h:stop","meno"], t:"Salta di un giorno (registrazioni) o di una cartella (libreria)", n:"Con + al posto di − va avanti." },
+    { g:"sfogliare e cancellare", k:["h:stop","mode"], t:"Scheda del file: nome, durata, data, formato", n:"Ritocca mode per la pagina dopo; quando lasci stop si chiude." },
+    { g:"sfogliare e cancellare", k:["h:rec","meno"], t:"Cancella il file aperto", n:"DEL? YES NO: scegli con la bobina e conferma con +. Non si torna indietro." },
+
+    { g:"velocità e mix · tasto ▼", k:["giu"], t:"Accendi o spegni l'utility del tasto giù" },
+    { g:"velocità e mix · tasto ▼", k:["h:giu","bobina"], t:"Scegli fra SPD (velocità) e MIX", n:"Tieni solo ▼ per vedere quale è attiva." },
+    { g:"velocità e mix · tasto ▼", k:["bobina"], c:"spd", t:"Varispeed: velocità e intonazione insieme, come un nastro vero" },
+    { g:"velocità e mix · tasto ▼", k:["meno","piu"], c:"spd", t:"Spintarella: rallenta o accelera un attimo", n:"Premi o tieni premuto: serve a rimettere a tempo a orecchio." },
+    { g:"velocità e mix · tasto ▼", k:["mode"], c:"spd", t:"Regolazione fine o grossa" },
+    { g:"velocità e mix · tasto ▼", k:["meno","piu"], c:"mix", t:"Scegli la traccia (TR 1, TR 2…)" },
+    { g:"velocità e mix · tasto ▼", k:["bobina"], c:"mix", t:"Volume della traccia scelta" },
+    { g:"velocità e mix · tasto ▼", k:["mode"], c:"mix", t:"Muta o riaccendi la traccia", n:"Sul display compare una X accanto alla traccia." },
+
+    { g:"cue e loop · tasto ▲", k:["su"], t:"Accendi o spegni l'utility del tasto su" },
+    { g:"cue e loop · tasto ▲", k:["h:su","bobina"], t:"Scegli fra CUE e LOOP", n:"Tieni solo ▲ per vedere quale è attiva." },
+    { g:"cue e loop · tasto ▲", k:["h:rec","piu"], c:"cue", t:"Aggiungi un cue", n:"Un cue è un segnalibro nel brano, per ripartire da lì al volo." },
+    { g:"cue e loop · tasto ▲", k:["h:rec","meno"], c:"cue", t:"Togli il cue attivo", n:"Tieni rec e − più a lungo per cancellarli tutti: DELETE ALL, e confermi con bobina e +." },
+    { g:"cue e loop · tasto ▲", k:["meno","piu"], c:"cue", t:"Scegli il cue attivo" },
+    { g:"cue e loop · tasto ▲", k:["rec"], c:"cue", t:"Sposta qui il cue attivo (SET)", n:"Anche al volo, mentre suona." },
+    { g:"cue e loop · tasto ▲", k:["play"], c:"cue, mentre suona", t:"Salta al cue e suona da lì" },
+    { g:"cue e loop · tasto ▲", k:["stop"], c:"cue, da fermo", t:"Vai al cue; se ci sei già, all'inizio del file" },
+    { g:"cue e loop · tasto ▲", k:["h:rec"], c:"loop", t:"Disegna il loop", n:"Premi rec dove comincia il loop. Secondo la community il punto di fine è dove lo lasci.", soft:true },
+    { g:"cue e loop · tasto ▲", k:["play"], c:"loop", t:"Riparti dall'inizio del loop" },
+    { g:"cue e loop · tasto ▲", k:["mode"], c:"loop", t:"Cambia cosa fanno − e +", n:"Gira in tondo: divisore → sposta → punto IN → punto OUT." },
+    { g:"cue e loop · tasto ▲", k:["meno","piu"], c:"loop · divisore", t:"Dimezza o raddoppia il loop" },
+    { g:"cue e loop · tasto ▲", k:["meno","piu"], c:"loop · sposta", t:"Sposta tutto il loop di una divisione" },
+    { g:"cue e loop · tasto ▲", k:["meno","piu"], c:"loop · in / out", t:"Ritocca il punto d'inizio o di fine", n:"Passi piccolissimi: insisti." },
+    { g:"cue e loop · tasto ▲", k:["h:stop","play"], c:"loop acceso", t:"Salva il loop su disco (SAVE)", n:"Confermi con la bobina e +. Senza loop acceso lo stesso gesto carica un loop salvato (LOAD)." },
+
+    { g:"montaggio (edit)", k:["h:rec","stop"], t:"Entra o esci da EDIT", n:"Solo sulle tue registrazioni, non sulla libreria. Le modifiche sono definitive: l'originale non torna." },
+    { g:"montaggio (edit)", k:["bobina"], c:"edit", t:"Scegli da dove entrare", n:"Se lo porti prima dell'inizio, parte da zero." },
+    { g:"montaggio (edit)", k:["rec"], c:"edit", t:"Arma; poi − e + scelgono la traccia, la bobina la sorgente", n:"Fra le sorgenti c'è ERASE: registra silenzio, cioè cancella un pezzo." },
+    { g:"montaggio (edit)", k:["play"], c:"edit armato", t:"Parte" },
+    { g:"montaggio (edit)", k:["rec"], c:"edit, mentre gira", t:"Punch-in e punch-out: entri ed esci dalla registrazione", n:"Tieni ferma la bobina per mettere in pausa e prendere il tempo a mano." },
+    { g:"montaggio (edit)", k:["h:rec","giu"], c:"edit", t:"Sovraincidi (DUB) o sovrascrivi (WRITE)", n:"DUB aggiunge sopra quello che c'è, WRITE lo sostituisce." },
+    { g:"montaggio (edit)", k:["h:rec","piu"], c:"edit", t:"Aggiungi tracce vuote al file (ADD)", n:"Tieni rec e ripremi + quante volte serve; lasci rec e confermi CONVERT con bobina e +. Nasce un file nuovo, il vecchio resta." },
+    { g:"montaggio (edit)", k:["h:rec","meno"], c:"edit", t:"Riversa le tracce in meno tracce (BOUNCE)", n:"Stessa conferma di ADD; anche qui l'originale resta." },
+    { g:"montaggio (edit)", k:["h:rec","su"], c:"edit", t:"Registra fra due cue", n:"Parte dal prossimo cue e si ferma a quello dopo. Senza cue il display dice NO MARKERS." },
+    { g:"montaggio (edit)", k:["h:stop","play"], c:"da fermo", t:"Torna dove è partita l'ultima registrazione" },
+    { g:"montaggio (edit)", k:["tx-6"], c:"edit", t:"Con un TX-6 collegato modifichi tutte le tracce insieme", n:"Le tracce le scegli coi tasti del TX-6." },
+
+    { g:"mixdown con tx-6", k:["h:rec","giu"], c:"file multitraccia", t:"Arma il MIX", n:"Il TX-6 va collegato in USB, in modalità 12 in. Fuori da edit lo stesso gesto arma il mix, dentro edit sceglie DUB o WRITE." },
+    { g:"mixdown con tx-6", k:["play"], c:"mix armato", t:"Parte: il TX-6 suona le tracce, il TP-7 registra il nuovo stereo", n:"Muovi fader, EQ ed effetti del TX-6: il risultato è un file nuovo, l'originale resta. Dal firmware 1.1.10 bobina, leva e reverse funzionano anche qui." },
+
+    { g:"menu", k:["h:mode"], t:"Apre il menu delle impostazioni", n:"Tutte le voci sono nella scheda il menu." },
+    { g:"menu", k:["bobina"], c:"nei menu", t:"Scorri le voci o cambia il valore" },
+    { g:"menu", k:["piu"], c:"nei menu", t:"Entra nella voce o passa al valore dopo" },
+    { g:"menu", k:["meno"], c:"nei menu", t:"Torna indietro" },
+    { g:"menu", k:["mode"], c:"nei menu", t:"Esci (va bene anche stop)" }
+  ];
+  var GROUPS = [];
+  COMBOS.forEach(function(c){ if(GROUPS.indexOf(c.g) === -1) GROUPS.push(c.g); });
+
+  function tokenOf(x){ return String(x).replace(/^h:/, ""); }
+  function chip(x){
+    var hold = /^h:/.test(x), t = tokenOf(x), def = KEYS[t];
+    if(!def) return '<span class="kk num">' + esc(t) + '</span>';
+    return '<span class="kk">' + (hold ? '<i class="h">tieni</i>' : '') + esc(def.l) + '</span>';
+  }
+  function comboHTML(c){ return c.k.map(chip).join('<span class="plus">+</span>'); }
+
+  var state = { tab:"tasti", filter:null, q:"" };
+  var TABS = ["tasti","menu","mac","midi","idee","tele"];
+  var NOTES = {
+    tasti:"tocca un comando dello schema per vedere solo le sue combinazioni",
+    menu:"tieni mode: tutte le voci del menu, come le vedi sul display",
+    mac:"usb-c, file, scheda audio e ricette per il Mac",
+    midi:"tutte le tabelle: cosa manda, cosa capisce, come",
+    idee:"programmi, usi creativi, telefono, Ableton",
+    tele:"apri questa scheda in Chrome o Edge sul Mac"
+  };
+
+  function matches(c){
+    if(state.filter){
+      var hit = c.k.some(function(x){ return tokenOf(x) === state.filter; });
+      if(!hit) return false;
+    }
+    if(state.q){
+      var hay = (c.t + " " + (c.n || "") + " " + (c.c || "") + " " + c.g + " " +
+                 c.k.map(function(x){ var d = KEYS[tokenOf(x)]; return (d ? d.l + " " + NAMES[tokenOf(x)] : x); }).join(" ")).toLowerCase();
+      var words = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+      for(var i = 0; i < words.length; i++){ if(hay.indexOf(words[i]) === -1) return false; }
+    }
+    return true;
+  }
+
+  var elUnit = $("unit");
+  function markUnit(){
+    elUnit.querySelectorAll("[data-t]").forEach(function(b){
+      b.classList.toggle("on", state.tab === "tasti" && state.filter === b.dataset.t);
+      b.classList.remove("hi");
+    });
+    if(!midiLive){
+      $("oled1").textContent = state.filter ? NAMES[state.filter] : "0.00.00";
+      $("oled2").textContent = state.filter ? "filtro" : "today 01";
+    }
+  }
+  function highlight(c, on){
+    var toks = {};
+    c.k.forEach(function(x){ toks[tokenOf(x)] = 1; });
+    elUnit.querySelectorAll("[data-t]").forEach(function(b){
+      b.classList.toggle("hi", !!(on && toks[b.dataset.t]) && state.filter !== b.dataset.t);
+    });
+  }
+
+  function renderTasti(keepFocus){
+    var html = "";
+    html += '<section><h2 class="sec">le prime sei mosse</h2><div class="steps">' + [
+      ["Accendi", 'Gira la <span class="kk">manopola</span> sul bordo in basso finché scatta: è anche il volume.'],
+      ["Registra", '<span class="kk">●</span> arma (la luce rossa lampeggia), <span class="kk">▶</span> parte, <span class="kk">■</span> salva. Per partire subito tieni ● e premi ▶.'],
+      ["Pausa col dito", 'Tieni ferma la <span class="kk">bobina</span>: il nastro si ferma, in registrazione come in ascolto. La lasci e riparte.'],
+      ["Ascolta e scorri", '<span class="kk">▶</span> suona, la bobina fa scrub, la <span class="kk">leva</span> sul fianco sinistro va avanti e indietro veloce. ▶ mentre suona = al contrario.'],
+      ["Un'idea al volo", 'Tieni <span class="kk">M</span> sul fianco destro: registra un memo, anche a macchina spenta.'],
+      ["Le due utility", '<span class="kk">▲</span> apre cue e loop, <span class="kk">▼</span> velocità e mix. Tienili premuti e gira la bobina per scegliere.']
+    ].map(function(s){ return '<div class="step"><b>' + s[0] + '</b><span class="d">' + s[1] + '</span></div>'; }).join("") + '</div></section>';
+
+    var list = COMBOS.filter(matches);
+    html += '<section><h2 class="sec">tutte le combinazioni</h2>';
+    html += '<div class="toolbar"><input class="search" id="q" type="search" placeholder="cerca: cancella, loop, velocità, memo…" value="' + esc(state.q) + '" autocomplete="off">' +
+            (state.filter || state.q ? '<button class="chipbtn" id="clr" type="button">mostra tutto</button>' : '') + '</div>';
+    if(state.filter){
+      html += '<p class="sec-note">Stai vedendo solo le combinazioni che usano <b>' + esc(NAMES[state.filter]) + '</b>: ' + list.length + ' su ' + COMBOS.length + '.</p>';
+    }
+    if(!list.length){
+      html += '<div class="rows"><p class="empty">Niente da mostrare con questo filtro.</p></div>';
+    } else {
+      GROUPS.forEach(function(g){
+        var rows = list.filter(function(c){ return c.g === g; });
+        if(!rows.length) return;
+        html += '<div class="grp"><h3>' + esc(g) + '</h3><div class="rows">';
+        rows.forEach(function(c){
+          html += '<div class="row" data-i="' + COMBOS.indexOf(c) + '" tabindex="0">' +
+                  '<div class="combo">' + comboHTML(c) + '</div>' +
+                  '<div class="what">' + (c.c ? '<span class="ctx">' + esc(c.c) + '</span>' : '') + esc(c.t) +
+                  (c.soft ? '<span class="flag" title="riportato dalla community, non dalla guida ufficiale">da confermare</span>' : '') +
+                  (c.n ? '<i>' + esc(c.n) + '</i>' : '') + '</div></div>';
+        });
+        html += '</div></div>';
+      });
+    }
+    html += '</section>';
+
+    html += '<section><h2 class="sec">stessi tasti, mestieri diversi</h2>' +
+      '<p class="sec-note">Il TP-7 ha pochi comandi, quindi molte combinazioni cambiano significato a seconda di dove sei. Prima di premere, guarda il display.</p><div class="rows">' + [
+        [["h:rec","meno"], "cancella il file · toglie una traccia (armato) · toglie il cue (utility cue) · bounce (edit)"],
+        [["h:rec","piu"], "aggiunge una traccia (armato) · aggiunge un cue (utility cue) · aggiunge tracce al file (edit)"],
+        [["h:rec","giu"], "dub o write (edit) · arma il mixdown col TX-6"],
+        [["h:stop","play"], "salva o carica un loop (utility loop) · torna al punto dove è partita l'ultima registrazione"],
+        [["play"], "suona · al contrario, se sta già suonando · salta al cue · riparte il loop"],
+        [["mode"], "cambia raccolta · fine/grossa in SPD · muto in MIX · cambia funzione nel loop · esce dai menu"]
+      ].map(function(r){
+        return '<div class="row"><div class="combo">' + comboHTML({ k:r[0] }) + '</div><div class="what">' + esc(r[1]) + '</div></div>';
+      }).join("") + '</div></section>';
+
+    var el = $("p-tasti");
+    el.innerHTML = html;
+
+    var q = $("q");
+    q.addEventListener("input", function(){ state.q = q.value; renderTasti(true); });
+    if(keepFocus){ q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+    var clr = $("clr");
+    if(clr) clr.addEventListener("click", function(){ state.filter = null; state.q = ""; markUnit(); renderTasti(); });
+    el.querySelectorAll(".row[data-i]").forEach(function(r){
+      var c = COMBOS[+r.dataset.i];
+      var on = function(){ r.classList.add("lit"); highlight(c, true); };
+      var off = function(){ r.classList.remove("lit"); highlight(c, false); };
+      r.addEventListener("mouseenter", on); r.addEventListener("mouseleave", off);
+      r.addEventListener("focus", on); r.addEventListener("blur", off);
+    });
+  }
+
+  function showTab(k, fromHash){
+    if(TABS.indexOf(k) === -1) k = "tasti";
+    state.tab = k;
+    document.querySelectorAll("#tabs .tab").forEach(function(t){
+      t.setAttribute("aria-selected", t.dataset.k === k ? "true" : "false");
+    });
+    TABS.forEach(function(t){ $("p-" + t).hidden = (t !== k); });
+    $("brandnote").textContent = NOTES[k];
+    markUnit();
+    if(!fromHash){
+      try{ history.replaceState(null, "", k === "tasti" ? location.pathname + location.search : "#" + k); }catch(e){}
+    }
+  }
+  $("tabs").addEventListener("click", function(e){
+    var t = e.target.closest("[data-k]");
+    if(t){ showTab(t.dataset.k); window.scrollTo(0, 0); }
+  });
+  window.addEventListener("hashchange", function(){ showTab(location.hash.slice(1), true); });
+
+  elUnit.addEventListener("click", function(e){
+    var b = e.target.closest("[data-t]");
+    if(!b) return;
+    var t = b.dataset.t;
+    state.filter = (state.tab === "tasti" && state.filter === t) ? null : t;
+    if(state.tab !== "tasti") showTab("tasti");
+    markUnit();
+    renderTasti();
+  });
+
+  /* =====================================================================
+     Telecomando MIDI (Web MIDI: Chrome, Edge, Opera, Firefox desktop)
+     ===================================================================== */
+  var midi = null, sysexOk = false, midiLive = false;
+  var tpIn = null, tpOut = null;
+  var b1In = null, b2Out = null;
+
+  var CTRL = { 20:"su", 21:"giu", 22:"rec", 23:"play", 24:"stop", 25:"meno", 26:"piu", 27:"memo", 28:"mode" };
+  var TO_TP = { 7:"volume traccia", 9:"guadagno ingresso", 14:"arma rec", 16:"segna cue", 17:"loop", 18:"leva", 120:"muto traccia" };
+  var FROM_TP = { 20:"▲ su", 21:"▼ giù", 22:"● rec", 23:"▶ play", 24:"■ stop", 25:"−", 26:"+", 27:"M memo", 28:"mode", 30:"bobina" };
+  var PAD_BASE = 36;
+
+  function setStatus(txt, kind){
+    $("t-statustext").textContent = txt;
+    var s = $("t-status");
+    s.classList.toggle("ok", kind === "ok");
+    s.classList.toggle("err", kind === "err");
+  }
+
+  /* ---- monitor ---- */
+  var elLog = $("t-log"), logLines = 0;
+  function hex(bytes){ return Array.prototype.map.call(bytes, function(b){ return (b < 16 ? "0" : "") + b.toString(16); }).join(" "); }
+  function describe(d, dir){
+    var st = d[0] & 0xF0, ch = (d[0] & 0x0F) + 1;
+    if(d[0] === 0xF0) return "sysex (" + d.length + " byte)";
+    if(d[0] === 0xF8) return "clock";
+    if(d[0] === 0xFA) return "start";
+    if(d[0] === 0xFB) return "continue";
+    if(d[0] === 0xFC) return "stop";
+    if(st === 0xB0){
+      var names = dir === "in" ? FROM_TP : TO_TP, nm = names[d[1]] ? " · " + names[d[1]] : "";
+      var v = d[2];
+      if(dir === "in" && d[1] === 30) v = (d[2] < 64 ? "+" + d[2] : String(d[2] - 128));
+      return "cc " + d[1] + " = " + v + nm + " · ch " + ch;
+    }
+    if(st === 0xE0) return "pitch bend " + (((d[2] << 7) | d[1]) - 8192) + " · ch " + ch;
+    if(st === 0x90) return (d[2] ? "note on " : "note off ") + d[1] + " · ch " + ch;
+    if(st === 0x80) return "note off " + d[1] + " · ch " + ch;
+    if(st === 0xC0) return "program " + d[1] + " · ch " + ch;
+    return hex(d);
+  }
+  function log(dir, d){
+    if(d[0] === 0xF8 && !$("t-showclock").checked) return;
+    var row = document.createElement("div");
+    var arrow = dir === "in" ? "←" : dir === "out" ? "→" : "⇄";
+    row.innerHTML = '<span class="dir">' + arrow + '</span><span>' + esc(describe(d, dir === "bridge-in" ? "in" : dir)) + ' <span class="raw">' + esc(hex(d.length > 24 ? Array.prototype.slice.call(d, 0, 24) : d)) + (d.length > 24 ? " …" : "") + '</span></span>';
+    elLog.insertBefore(row, elLog.firstChild);
+    if(++logLines > 200){ elLog.removeChild(elLog.lastChild); logLines--; }
+  }
+  $("t-clear").addEventListener("click", function(){ elLog.innerHTML = ""; logLines = 0; });
+
+  /* ---- invio ---- */
+  function send(bytes, quiet){
+    if(!tpOut){ setStatus("scegli prima l'uscita verso il TP-7", "err"); return false; }
+    try{ tpOut.send(bytes); }
+    catch(e){ setStatus("invio non riuscito: " + e.message, "err"); return false; }
+    if(!quiet) log("out", bytes);
+    return true;
+  }
+  function cc(n, v, ch){ return send([0xB0 | ((ch || 1) - 1), n, Math.max(0, Math.min(127, v | 0))]); }
+  function bend(v){
+    var n = Math.max(0, Math.min(16383, (v | 0) + 8192));
+    return send([0xE0, n & 0x7F, (n >> 7) & 0x7F]);
+  }
+
+  /* ---- collegamento ---- */
+  function fillSelect(sel, ports, keep, prefer){
+    var cur = keep || sel.value;
+    sel.innerHTML = '<option value="">' + (prefer ? "—" : "— scegli —") + '</option>';
+    ports.forEach(function(p){
+      var o = document.createElement("option");
+      o.value = p.id; o.textContent = p.name + (p.manufacturer && p.name.indexOf(p.manufacturer) === -1 ? " · " + p.manufacturer : "");
+      sel.appendChild(o);
+    });
+    var ids = ports.map(function(p){ return p.id; });
+    if(cur && ids.indexOf(cur) > -1) sel.value = cur;
+    else if(prefer){
+      var hit = ports.filter(function(p){ return /tp-?7/i.test(p.name); })[0];
+      sel.value = hit ? hit.id : "";
+    } else sel.value = "";
+  }
+  function listPorts(){
+    var ins = [], outs = [];
+    midi.inputs.forEach(function(p){ ins.push(p); });
+    midi.outputs.forEach(function(p){ outs.push(p); });
+    fillSelect($("t-in"), ins, tpIn && tpIn.id, true);
+    fillSelect($("t-out"), outs, tpOut && tpOut.id, true);
+    fillSelect($("b1-in"), ins, b1In && b1In.id, false);
+    fillSelect($("b2-out"), outs, b2Out && b2Out.id, false);
+    usePorts();
+  }
+  function usePorts(){
+    var inId = $("t-in").value, outId = $("t-out").value;
+    var newIn = inId ? midi.inputs.get(inId) : null;
+    if(tpIn && tpIn !== newIn) tpIn.onmidimessage = null;
+    tpIn = newIn || null;
+    if(tpIn) tpIn.onmidimessage = onTpMessage;
+    tpOut = outId ? midi.outputs.get(outId) || null : null;
+
+    var b1Id = $("b1-in").value;
+    var newB1 = b1Id ? midi.inputs.get(b1Id) : null;
+    if(b1In && b1In !== newB1 && b1In !== tpIn) b1In.onmidimessage = null;
+    b1In = newB1 || null;
+    if(b1In && b1In !== tpIn) b1In.onmidimessage = onBridgeIn;
+    var b2Id = $("b2-out").value;
+    b2Out = b2Id ? midi.outputs.get(b2Id) || null : null;
+
+    $("t-greet").disabled = !(tpOut && tpIn && sysexOk);
+    midiLive = !!(tpIn || tpOut);
+    if(tpIn || tpOut){
+      setStatus("collegato" + (tpOut ? " a " + tpOut.name : "") + (sysexOk ? "" : " · senza sysex"), "ok");
+    } else {
+      setStatus("nessun TP-7 trovato: è acceso e collegato?", "err");
+    }
+  }
+  ["t-in","t-out","b1-in","b2-out"].forEach(function(id){ $(id).addEventListener("change", usePorts); });
+
+  $("t-connect").addEventListener("click", function(){
+    if(!navigator.requestMIDIAccess){
+      setStatus(window.isSecureContext === false ? "serve l'indirizzo https della pagina" : "questo browser non ha il MIDI: usa Chrome o Edge", "err");
+      return;
+    }
+    setStatus("aspetto il permesso del browser…");
+    navigator.requestMIDIAccess({ sysex:true }).then(function(a){ sysexOk = true; return a; }, function(){
+      sysexOk = false;
+      return navigator.requestMIDIAccess({ sysex:false });
+    }).then(function(a){
+      midi = a;
+      ["t-in","t-out"].forEach(function(id){ $(id).disabled = false; });
+      midi.onstatechange = function(){ listPorts(); };
+      $("t-connect").textContent = "aggiorna";
+      listPorts();
+    }, function(err){
+      setStatus("permesso negato: " + (err && err.message ? err.message : "il browser non dà accesso al MIDI"), "err");
+    });
+  });
+
+  /* ---- ricevere dal TP-7 ---- */
+  var reelSteps = 0, reelAngle = 0, clockTimes = [], lastClockShow = 0, clockTimer = null, greetPending = null;
+  function press(tok, on){
+    var el = $("k-" + tok);
+    if(el) el.classList.toggle("press", on);
+  }
+  function oled(a, b){ $("oled1").textContent = a; $("oled2").textContent = b; }
+  function onTpMessage(ev){
+    var d = ev.data;
+    log("in", d);
+    var st = d[0] & 0xF0;
+    if(d[0] === 0xF0){ onSysex(d); return; }
+    if(d[0] === 0xF8){ onClock(ev.timeStamp); return; }
+    if(d[0] === 0xFA || d[0] === 0xFB || d[0] === 0xFC){
+      $("t-clockin").textContent = (d[0] === 0xFC ? "stop" : d[0] === 0xFA ? "start" : "continue") + " ricevuto" + (clockTimes.length > 2 ? " · " + $("t-clockin").dataset.bpm + " bpm" : "");
+    }
+    if(st === 0xB0 && CTRL[d[1]]){
+      var on = d[2] > 0;
+      press(CTRL[d[1]], on);
+      if(on){ $("t-last").textContent = FROM_TP[d[1]] + " · cc " + d[1]; oled(FROM_TP[d[1]], "cc " + d[1]); }
+    } else if(st === 0xB0 && d[1] === 30){
+      var delta = d[2] < 64 ? d[2] : d[2] - 128;
+      if(delta){
+        reelSteps += delta; reelAngle += delta * 5;
+        $("reelspin").style.transform = "rotate(" + reelAngle + "deg)";
+        $("t-reel").textContent = (reelSteps > 0 ? "+" : "") + reelSteps;
+        $("t-last").textContent = "bobina " + (delta > 0 ? "+" : "") + delta;
+        oled("bobina", (delta > 0 ? "+" : "") + delta);
+      }
+    } else if(st === 0xE0){
+      var pb = ((d[2] << 7) | d[1]) - 8192;
+      var bar = $("t-rockerbar"), pct = Math.min(50, Math.abs(pb) / 8192 * 50);
+      bar.style.left = (pb < 0 ? 50 - pct : 50) + "%"; bar.style.width = pct + "%";
+      var lv = $("k-leva");
+      lv.classList.toggle("fw", pb > 400); lv.classList.toggle("rw", pb < -400);
+      if(pb !== 0){ $("t-last").textContent = "leva " + pb; oled("leva", String(pb)); }
+    }
+    forwardFromTp(d);
+  }
+  function onClock(t){
+    clockTimes.push(t);
+    if(clockTimes.length > 49) clockTimes.shift();
+    var now = performance.now();
+    if(clockTimes.length > 2 && now - lastClockShow > 250){
+      lastClockShow = now;
+      var span = clockTimes[clockTimes.length - 1] - clockTimes[0];
+      var bpm = 60000 / (span / (clockTimes.length - 1) * 24);
+      var el = $("t-clockin");
+      el.dataset.bpm = bpm.toFixed(1);
+      el.textContent = "arriva un clock · circa " + bpm.toFixed(1) + " bpm";
+    }
+    clearTimeout(clockTimer);
+    clockTimer = setTimeout(function(){ clockTimes = []; $("t-clockin").textContent += " · poi fermo"; }, 1500);
+  }
+
+  /* ---- sysex teenage engineering: saluto e versione del firmware ---- */
+  function unpack7(a){
+    var out = [], i = 0;
+    while(i < a.length){
+      var hi = a[i++];
+      for(var bit = 0; bit < 7 && i < a.length; bit++){ out.push((a[i++] & 0x7F) | (((hi >> bit) & 1) << 7)); }
+    }
+    return out;
+  }
+  function onSysex(d){
+    if(!greetPending) return;
+    if(d.length > 10 && d[1] === 0x00 && d[2] === 0x20 && d[3] === 0x76 && d[5] === 0x40 && !(d[6] & 0x40) && d[8] === 0x01){
+      clearTimeout(greetPending); greetPending = null;
+      var bytes = unpack7(Array.prototype.slice.call(d, 10, d.length - 1));
+      var text = "";
+      bytes.forEach(function(b){ if(b) text += String.fromCharCode(b); });
+      var info = {};
+      text.split(";").forEach(function(f){ var i = f.indexOf(":"); if(i > 0) info[f.slice(0, i)] = f.slice(i + 1); });
+      var fw = $("t-fw");
+      fw.hidden = false;
+      if(info.sw_version){
+        var old = info.sw_version.split(".").map(Number), ok = (old[0] > 1) || (old[0] === 1 && (old[1] > 1 || (old[1] === 1 && old[2] >= 11)));
+        fw.innerHTML = esc((info.product || "TP-7") + " · firmware " + info.sw_version + (info.serial ? " · seriale " + info.serial : "")) +
+          (ok ? " · è l'ultimo uscito." : ' · <span class="warn">c\'è un aggiornamento: vedi la scheda col mac.</span>');
+      } else {
+        fw.textContent = "Risposta ricevuta, ma senza numero di versione: " + text;
+      }
+    }
+  }
+  $("t-greet").addEventListener("click", function(){
+    if(!tpOut || !tpIn) return;
+    var fw = $("t-fw");
+    fw.hidden = false; fw.textContent = "chiedo al TP-7…";
+    send([0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7]);
+    send([0xF0, 0x00, 0x20, 0x76, 0x19, 0x40, 0x60, 0x01, 0x01, 0xF7]);
+    clearTimeout(greetPending);
+    greetPending = setTimeout(function(){ greetPending = null; fw.textContent = "Nessuna risposta. Controlla che l'ingresso sia il TP-7."; }, 2500);
+  });
+
+  /* ---- trasporto: la leva virtuale (cc 18) ---- */
+  var shuttle = $("t-shuttle");
+  var shuttleSent = 64;
+  function lever(v){ shuttle.value = v; shuttleSent = v; $("t-shuttlev").textContent = v; cc(18, v); }
+  function holdBtn(el, down, up){
+    var active = false;
+    function start(e){ e.preventDefault(); if(active) return; active = true; el.classList.add("on"); down(); }
+    function end(){ if(!active) return; active = false; el.classList.remove("on"); up(); }
+    el.addEventListener("pointerdown", start);
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointerleave", end);
+    el.addEventListener("pointercancel", end);
+    el.addEventListener("keydown", function(e){ if(e.key === " " || e.key === "Enter"){ start(e); } });
+    el.addEventListener("keyup", function(e){ if(e.key === " " || e.key === "Enter"){ end(); } });
+  }
+  /* start, continue e stop comandano davvero il nastro; la leva si somma a quello che fa */
+  var playing = false;
+  function play(){ lever(64); bend(+pbEl.value); if(send([0xFB])) playing = true; }
+  function stop(){ lever(64); if(send([0xFC])) playing = false; }
+  $("t-top").addEventListener("click", function(){ lever(64); bend(+pbEl.value); if(send([0xFA])) playing = true; });
+  $("t-play").addEventListener("click", play);
+  $("t-stop").addEventListener("click", function(){
+    stop();
+    var a = $("t-arm"), r = $("t-rec");
+    a.classList.remove("on"); r.classList.remove("on");
+  });
+  $("t-rec").addEventListener("click", function(){
+    if(!cc(14, 127)) return;
+    $("t-arm").classList.add("on");
+    $("t-rec").classList.add("on");
+    lever(64);
+    if(send([0xFB])) playing = true;
+  });
+  holdBtn($("t-rew"), function(){ lever(24); }, function(){ lever(64); });
+  holdBtn($("t-ffw"), function(){ lever(104); }, function(){ lever(64); });
+  /* mentre suona, 60 + pitch bend +708 lo tengono fermo come sotto il dito */
+  holdBtn($("t-hold"), function(){ lever(60); bend(708); }, function(){ lever(64); bend(+pbEl.value); });
+  shuttle.addEventListener("input", function(){
+    var v = +shuttle.value;
+    $("t-shuttlev").textContent = v;
+    if(v !== shuttleSent){ shuttleSent = v; cc(18, v); }
+  });
+  function springBack(){ if($("t-spring").checked && +shuttle.value !== 64){ shuttleSent = 64; lever(64); } }
+  shuttle.addEventListener("pointerup", springBack);
+  shuttle.addEventListener("change", springBack);
+
+  /* ---- velocità (pitch bend) ---- */
+  var pbEl = $("t-pb");
+  /* misurato: velocità ≈ 2^(bend / 8192), da ×0,5 a ×2 */
+  function pbToMul(v){ return Math.pow(2, v / 8192); }
+  function mulToPb(m){ return Math.max(-8192, Math.min(8191, Math.round(8192 * Math.log2(Math.max(0.5, Math.min(2, m)))))); }
+  function showPb(v){ $("t-pbv").textContent = "×" + pbToMul(v).toFixed(2).replace(".", ","); }
+  function setBend(v){ pbEl.value = v; showPb(v); bend(v); }
+  var pbTimer = null;
+  pbEl.addEventListener("input", function(){
+    var v = +pbEl.value;
+    if(Math.abs(v) < 180) v = 0;
+    showPb(v);
+    clearTimeout(pbTimer);
+    pbTimer = setTimeout(function(){ bend(v); }, 15);
+  });
+  document.querySelectorAll("[data-speed]").forEach(function(b){
+    b.addEventListener("click", function(){ setBend(mulToPb(parseFloat(b.dataset.speed))); });
+  });
+
+  /* ---- cue: 16 pad sulle note 36-51 ---- */
+  var cueSet = false, padsSet = {};
+  var elPads = $("t-pads");
+  for(var p = 0; p < 16; p++){
+    var pad = document.createElement("button");
+    pad.type = "button"; pad.className = "pad"; pad.dataset.n = PAD_BASE + p;
+    pad.innerHTML = (p + 1) + '<i>nota ' + (PAD_BASE + p) + '</i>';
+    elPads.appendChild(pad);
+  }
+  function hitPad(i){
+    var n = PAD_BASE + i, el = elPads.children[i];
+    if(!send([0x90, n, 100])) return;
+    send([0x80, n, 0]);
+    el.classList.add("hit");
+    setTimeout(function(){ el.classList.remove("hit"); }, 140);
+    if(cueSet){ padsSet[n] = 1; el.classList.add("set"); }
+    else resendMixer();
+  }
+  /* dopo un salto di cue il TP-7 rimette il mixer a zero: gli rimando volumi e muti */
+  function resendMixer(){
+    setTimeout(function(){
+      elMix.querySelectorAll("input[data-ch]").forEach(function(sl){
+        if(+sl.value !== 127) cc(7, +sl.value, +sl.dataset.ch);
+      });
+      elMix.querySelectorAll("[data-mute].on").forEach(function(b){ cc(120, 127, +b.dataset.mute); });
+    }, 40);
+  }
+  elPads.addEventListener("click", function(e){
+    var b = e.target.closest(".pad");
+    if(b) hitPad(+b.dataset.n - PAD_BASE);
+  });
+  function setCueMode(on){
+    if(!cc(16, on ? 127 : 0)) return;
+    cueSet = on;
+    $("t-cueset").classList.toggle("on", on);
+    $("t-cuecall").classList.toggle("on", !on);
+  }
+  $("t-cueset").addEventListener("click", function(){ setCueMode(true); });
+  $("t-cuecall").addEventListener("click", function(){ setCueMode(false); });
+
+  /* ---- loop: 1 inizio, 2 fine, 0 spento, sempre in quest'ordine ---- */
+  var loopState = "off";
+  function showLoop(){
+    $("t-loopin").disabled = loopState !== "off";
+    $("t-loopout").disabled = loopState !== "in";
+    $("t-loopin").classList.toggle("on", loopState !== "off");
+    $("t-loopout").classList.toggle("on", loopState === "on");
+    $("t-loopstate").textContent = loopState === "off" ? "loop spento" : loopState === "in" ? "inizio segnato: ora la fine" : "loop acceso";
+  }
+  $("t-loopin").addEventListener("click", function(){ if(cc(17, 1)){ loopState = "in"; showLoop(); } });
+  $("t-loopout").addEventListener("click", function(){ if(cc(17, 2)){ loopState = "on"; showLoop(); } });
+  $("t-loopoff").addEventListener("click", function(){ if(cc(17, 0)){ loopState = "off"; showLoop(); } });
+
+  /* ---- mixer e ingressi ---- */
+  var elMix = $("t-mix");
+  for(var t = 1; t <= 6; t++){
+    var row = document.createElement("div");
+    row.className = "mixrow";
+    row.innerHTML = '<span class="n">tr ' + t + '</span><input type="range" min="0" max="127" value="127" data-ch="' + t + '" aria-label="volume traccia ' + t + '"><span class="v">127</span><button type="button" class="btn" data-mute="' + t + '">muto</button>';
+    elMix.appendChild(row);
+  }
+  elMix.addEventListener("input", function(e){
+    var s = e.target.closest("input[data-ch]");
+    if(!s) return;
+    s.nextElementSibling.textContent = s.value;
+    cc(7, +s.value, +s.dataset.ch);
+  });
+  elMix.addEventListener("click", function(e){
+    var b = e.target.closest("[data-mute]");
+    if(!b) return;
+    var on = !b.classList.contains("on");
+    if(cc(120, on ? 127 : 0, +b.dataset.mute)) b.classList.toggle("on", on);
+  });
+  var elGain = $("t-gain");
+  for(var g = 1; g <= 3; g++){
+    var gr = document.createElement("div");
+    gr.className = "slrow";
+    gr.innerHTML = '<span class="n">in ' + g + '</span><input type="range" min="0" max="127" value="0" data-in="' + g + '" aria-label="guadagno ingresso ' + g + '"><span class="v">0 dB</span>';
+    elGain.appendChild(gr);
+  }
+  elGain.addEventListener("input", function(e){
+    var s = e.target.closest("input[data-in]");
+    if(!s) return;
+    var db = Math.round(+s.value / 127 * 42);
+    s.nextElementSibling.textContent = (db ? "+" + db : "0") + " dB";
+    cc(9, +s.value, +s.dataset.in);
+  });
+  $("t-arm").addEventListener("click", function(){
+    var b = $("t-arm"), on = !b.classList.contains("on");
+    if(cc(14, on ? 127 : 0)) b.classList.toggle("on", on);
+  });
+
+  /* ---- tastiera del Mac: 1-8 cue, spazio play/stop ---- */
+  document.addEventListener("keydown", function(e){
+    if(state.tab !== "tele" || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+    var tag = (e.target.tagName || "").toLowerCase();
+    if(tag === "input" || tag === "select" || tag === "textarea") return;
+    if(/^[1-8]$/.test(e.key)){ e.preventDefault(); hitPad(+e.key - 1); }
+    else if(e.key === " " && tag !== "button"){ e.preventDefault(); if(playing) stop(); else play(); }
+  });
+  /* dopo un clic col mouse il pulsante non tiene il fuoco, cosi' lo spazio resta ▶/■;
+     da tastiera (detail 0) il fuoco resta dov'e' */
+  $("p-tele").addEventListener("click", function(e){
+    var b = e.target.closest("button");
+    if(b && e.detail > 0) b.blur();
+  });
+
+  /* ---- ponte 1: un altro strumento → TP-7 ---- */
+  function onBridgeIn(ev){
+    if(!$("b1-on").checked || !tpOut) return;
+    var d = ev.data, st = d[0] & 0xF0;
+    if(d[0] === 0xF0) return;
+    if($("b1-what").value === "notes" && st !== 0x90 && st !== 0x80) return;
+    try{ tpOut.send(d); log("bridge", d); }catch(e){}
+  }
+
+  /* ---- ponte 2: TP-7 (ctrl) → un altro strumento ---- */
+  var absVal = 64;
+  function forwardFromTp(d){
+    if(!$("b2-on").checked || !b2Out || b2Out === tpOut) return;
+    var ch = Math.max(1, Math.min(16, +$("b2-ch").value || 1)) - 1;
+    var st = d[0] & 0xF0, out = null;
+    if(st === 0xB0 && d[1] === 30){
+      var mode = $("b2-reel").value;
+      if(mode === "rel") out = [0xB0 | ch, 30, d[2]];
+      else if(mode === "abs"){
+        var delta = d[2] < 64 ? d[2] : d[2] - 128;
+        absVal = Math.max(0, Math.min(127, absVal + delta));
+        out = [0xB0 | ch, Math.max(0, Math.min(119, +$("b2-cc").value || 74)), absVal];
+      }
+    } else if(st === 0xB0 && CTRL[d[1]]){
+      var keys = $("b2-keys").value;
+      if(keys === "cc") out = [0xB0 | ch, d[1], d[2]];
+      else if(keys === "mmc" && d[2] > 0 && sysexOk){
+        var mmc = { 23:0x02, 24:0x01, 22:0x06 }[d[1]];
+        if(mmc) out = [0xF0, 0x7F, 0x7F, 0x06, mmc, 0xF7];
+      }
+    } else if(st === 0xE0 && $("b2-rock").value === "pb"){
+      out = [0xE0 | ch, d[1], d[2]];
+    }
+    if(out){ try{ b2Out.send(out); log("bridge", out); }catch(e){} }
+  }
+  $("b2-reel").addEventListener("change", function(){ $("b2-ccwrap").hidden = $("b2-reel").value !== "abs"; });
+  $("b2-ccwrap").hidden = true;
+
+
+
+  /* ---------------- avvio ---------------- */
+  try{
+    renderTasti();
+    showTab(location.hash.slice(1), true);
+    showLoop();
+    if(!navigator.requestMIDIAccess){
+      setStatus("questo browser non ha il MIDI: apri la pagina in Chrome o Edge sul Mac", "err");
+      $("t-connect").disabled = true;
+    }
+  }catch(err){
+    $("p-tasti").innerHTML = '<section><h2 class="sec">qualcosa non ha funzionato</h2>' +
+      '<p class="sec-note">La pagina non è riuscita a costruire l\'elenco: ' + esc(String(err && err.message || err)) + '</p></section>';
+  }
+})();
+</script>
+</body>
+</html>
