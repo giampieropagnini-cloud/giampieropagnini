@@ -495,6 +495,14 @@ final class Engine: ObservableObject {
 
     func forgetPads() { padsSet.removeAll(); lastPad = nil }
 
+    /// ⏮ ⏭ canzone: in un «album» (un file con un segno all'inizio di ogni canzone, legato ai pad 1-16)
+    /// passano alla canzone prima o dopo. Sempre in «richiama»: in «segna» sposterebbero i segni.
+    func skipSong(_ step: Int) {
+        if markMode { markMode = false }
+        let current = lastPad ?? (step > 0 ? -1 : 0)
+        hitPad((current + step + 16) % 16)
+    }
+
     // MARK: balbettio e collage (partono col tempo di Bobina)
 
     private var startedForStutter = false
