@@ -62,7 +62,7 @@ struct PadView: View {
                 }
             }
 
-            Card(title: "collage", note: "Ogni tanto il nastro salta a un pad segnato a caso: un taglia e cuci che non si ripete mai. Parte da solo col tempo della scheda Ritmo.") {
+            Card(title: "collage", note: "Ogni tanto il nastro salta a un pad a caso: un taglia e cuci che non si ripete mai. Pesca fra i pad che hai segnato in Bobina; se non ne hai segnati (banche e album hanno i segni già nel file), fra tutti e 16. Parte da solo col tempo della scheda Ritmo; serve il TP-7 su MIDI → cue.") {
                 Toggle("acceso", isOn: Binding(get: { engine.collageOn }, set: { engine.setCollage($0) }))
                 Picker("ogni", selection: $engine.collageEvery) {
                     Text("1/16").tag(1)

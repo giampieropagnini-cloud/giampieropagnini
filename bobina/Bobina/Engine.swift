@@ -500,6 +500,10 @@ final class Engine: ObservableObject {
 
     func forgetPads() { padsSet.removeAll(); lastPad = nil }
 
+    /// Fra quali pad pescano il collage e «scuoti → cue a caso»: quelli segnati in Bobina, oppure, se non
+    /// ne hai segnati (banche e album hanno i segni già scritti nel file), tutti e 16.
+    private var randomPadPool: [Int] { padsSet.isEmpty ? Array(0..<16) : Array(padsSet) }
+
     /// Il dito sul pad: salta al segno e suona.
     func padDown(_ index: Int) {
         heldPads.insert(index)
@@ -796,8 +800,8 @@ final class Engine: ObservableObject {
             }
         }
 
-        if collageOn && i % max(1, collageEvery) == 0 && !padsSet.isEmpty && Double.random(in: 0..<1) < collageChance {
-            if let pad = padsSet.randomElement() {
+        if collageOn && i % max(1, collageEvery) == 0 && Double.random(in: 0..<1) < collageChance {
+            if let pad = randomPadPool.randomElement() {
                 hitPad(pad, at: t, fromUser: false)
             }
         }
@@ -846,7 +850,7 @@ final class Engine: ObservableObject {
     private func shake() {
         switch shakeAction {
         case .tapeStop: tapeStop(seconds: 0.8)
-        case .randomCue: if let p = padsSet.randomElement() { hitPad(p, fromUser: false) }
+        case .randomCue: if let p = randomPadPool.randomElement() { hitPad(p, fromUser: false) }
         case .nothing: break
         }
     }
