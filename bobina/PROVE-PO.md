@@ -15,6 +15,7 @@ Se una prova fallisce, prima di cambiare il codice si ricontrolla come è stata 
 | 5 | una combinazione | Tasti → in un tocco → pattern 2; il display dice il pattern | ✅ 30/9/2026: «tutte le combinazioni» |
 | 6 | sul tonic un tasto suona il suo suono o quello scelto | PO-32, fermo: Tasti → 1, poi 5 | da fare |
 | 7 | un effetto | PO che suona (play). Tasti → un effetto per un momento → 1 | da fare |
+| 7b | cancella il pattern | Tasti → «cancella il pattern» (tasto in alto + pattern, tempi di un dito) | ✅ 2/10/2026: «funziona perfettamente» (prima, coi tempi da 40 ms, non cancellava) |
 | 8 | l'eco | Collega → monitor: tornano indietro le frecce ← ? | da fare |
 
 ## A tempo
