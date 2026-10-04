@@ -187,6 +187,12 @@ final class OPZEngine: ObservableObject {
 
     init() {
         load()
+        // fino al 4/10/2026 c'era un progetto solo: diventa il progetto 1
+        if OPZEngine.loadProject(creaProject) == nil, let data = try? JSONEncoder().encode(snapshot()) {
+            UserDefaults.standard.set(data, forKey: OPZEngine.projectKey(creaProject))
+        }
+        if let c = OPZEngine.loadProject(creaProject) { apply(c) }
+        refreshProjectsUsed()
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, stamp in self?.received(bytes, stamp) }
         sequencer.onBeat = { [weak self] bar, quarter, t in
@@ -609,6 +615,83 @@ final class OPZEngine: ObservableObject {
         send(OPZ.cc(c.cc, min(127, v), channel: 7))
     }
 
+    // MARK: progetti di Crea
+
+    /// Il progetto di Crea aperto (1-16): ognuno ha i suoi 16 pattern, la catena, le lunghezze, gli effetti nei passi e l'arpeggio.
+    @Published private(set) var creaProject = max(1, min(16, UserDefaults.standard.integer(forKey: "bobina.opz.crea.progetto")))
+    /// I progetti che hanno almeno una nota.
+    @Published private(set) var projectsUsed: Set<Int> = []
+    /// Il progetto copiato, da incollare.
+    @Published private(set) var copiedProject: CreaProject?
+
+    private static func projectKey(_ n: Int) -> String { "bobina.opz.crea.\(n)" }
+
+    private func snapshot() -> CreaProject {
+        CreaProject(patterns: patterns, lengths: lengths, gates: gates, fxSteps: fxSteps, chain: chain, chainLoop: chainLoop,
+                    trackOn: trackOn, arpOn: arpOn, arpStyle: arpStyle, arpRate: arpRate, arpOctaves: arpOctaves,
+                    fxEvery: fxEvery, fxLength: fxLength)
+    }
+
+    private func apply(_ c: CreaProject) {
+        loading = true
+        patterns = c.patterns
+        lengths = c.lengths
+        gates = c.gates
+        fxSteps = c.fxSteps
+        chain = c.chain
+        chainLoop = c.chainLoop
+        trackOn = c.trackOn
+        arpOn = c.arpOn
+        arpStyle = c.arpStyle
+        arpRate = c.arpRate
+        arpOctaves = c.arpOctaves
+        fxEvery = c.fxEvery
+        fxLength = c.fxLength
+        loading = false
+    }
+
+    private static func loadProject(_ n: Int) -> CreaProject? {
+        guard let d = UserDefaults.standard.data(forKey: projectKey(n)) else { return nil }
+        return try? JSONDecoder().decode(CreaProject.self, from: d)
+    }
+
+    private func refreshProjectsUsed() {
+        projectsUsed = Set((1...16).filter { n in
+            guard let c = OPZEngine.loadProject(n) else { return false }
+            return c.patterns.contains { $0.contains { $0.contains { !$0.isEmpty } } }
+        })
+    }
+
+    /// Apre un altro progetto. Quello di prima resta salvato com'è. Se il ritmo gira, continua col progetto nuovo.
+    func openProject(_ n: Int) {
+        let n = max(1, min(16, n))
+        guard n != creaProject else { return }
+        save()
+        apply(OPZEngine.loadProject(n) ?? CreaProject())
+        creaProject = n
+        UserDefaults.standard.set(n, forKey: "bobina.opz.crea.progetto")
+        createPattern = 1
+        chainOn = false
+        releaseLiveAll()
+        save()
+        refreshProjectsUsed()
+        sequencer.update(makePlan())
+        logText("progetto \(n) aperto")
+    }
+
+    func copyProject() {
+        copiedProject = snapshot()
+        logText("progetto \(creaProject) copiato")
+    }
+
+    func pasteProject() {
+        guard let c = copiedProject else { return }
+        apply(c)
+        save()
+        refreshProjectsUsed()
+        logText("incollato nel progetto \(creaProject)")
+    }
+
     /// Ricomincia da zero: tutti i pattern, le lunghezze, le durate, gli effetti nei passi e la catena di Crea.
     /// Non tocca l'OP-Z, le impostazioni di collegamento né le altre macchine.
     func resetCrea() {
@@ -829,6 +912,14 @@ final class OPZEngine: ObservableObject {
                       onTheBar: onTheBar, song: song, songBars: songBars, audioOnly: audioOnly, scenes: scenes,
                       punchHigh: punchHigh, steps: nil, trackOn: trackOn, patterns: patterns, fxSteps: fxSteps, fxAll: fxAll, fxEvery: fxEvery, fxLength: fxLength, lengths: nil, trackLengths: lengths, gates: gates, arpOn: arpOn, arpStyle: arpStyle, arpRate: arpRate, arpOctaves: arpOctaves, chain: chain, chainLoop: chainLoop)
         if let data = try? JSONEncoder().encode(s) { UserDefaults.standard.set(data, forKey: "bobina.opz") }
+        // il progetto di Crea aperto si salva anche nel suo posto
+        if let data = try? JSONEncoder().encode(snapshot()) {
+            UserDefaults.standard.set(data, forKey: OPZEngine.projectKey(creaProject))
+        }
+        let used = patterns.contains { $0.contains { $0.contains { !$0.isEmpty } } }
+        if used != projectsUsed.contains(creaProject) {
+            if used { projectsUsed.insert(creaProject) } else { projectsUsed.remove(creaProject) }
+        }
     }
 
     private func load() {
@@ -875,4 +966,21 @@ final class OPZEngine: ObservableObject {
         if let l = s.fxLength { fxLength = l }
         loading = false
     }
+}
+
+/// Un progetto di Crea: tutto quello che serve per rifare la musica, salvato nel telefono.
+struct CreaProject: Codable {
+    var patterns: [[[[Int]]]] = Array(repeating: OPZEngine.emptyPattern, count: 16)
+    var lengths: [[Int]] = Array(repeating: Array(repeating: 16, count: 8), count: 16)
+    var gates: [[Int]] = Array(repeating: [1, 1, 1, 1, 1, 1, 0, 0], count: 16)
+    var fxSteps: [[CreaFx?]] = Array(repeating: Array(repeating: nil, count: 32), count: 16)
+    var chain: [OPZChainStep] = []
+    var chainLoop = true
+    var trackOn: [Bool] = Array(repeating: true, count: 8)
+    var arpOn = false
+    var arpStyle = OPZArpStyle.up
+    var arpRate = 2
+    var arpOctaves = 1
+    var fxEvery = 1
+    var fxLength = 4
 }

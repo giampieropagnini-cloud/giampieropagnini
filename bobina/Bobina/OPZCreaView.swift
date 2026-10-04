@@ -18,6 +18,8 @@ struct OPZCreaView: View {
         OPZPage(title: "Crea") {
             OPZTransport()
 
+            OPZProjectCard()
+
             Card(title: "Bobina suona l'OP-Z", note: "Scrivi i passi qui: Bobina li suona sull'OP-Z a tempo, insieme a TX-6 e Pocket Operator. Meglio un pattern vuoto sull'OP-Z, se no suonano anche i suoi passi.") {
                 Toggle("Crea suona", isOn: $opz.createOn)
                 OPZResetRow()
@@ -417,6 +419,38 @@ struct OPZCreaMixerCard: View {
     }
 }
 
+/// I 16 progetti di Crea, come i progetti di un synth: ognuno con i suoi 16 pattern.
+struct OPZProjectCard: View {
+    @EnvironmentObject var opz: OPZEngine
+
+    var body: some View {
+        Card(title: "progetto \(opz.creaProject)", note: "16 progetti, ognuno con i suoi 16 pattern, la catena e l'arpeggio. Si salvano da soli. Il puntino dice che non è vuoto.") {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 8), spacing: 6) {
+                ForEach(1...16, id: \.self) { n in
+                    let open = opz.creaProject == n
+                    Button { opz.openProject(n) } label: {
+                        Text(opz.projectsUsed.contains(n) ? "\(n)•" : "\(n)")
+                            .font(.system(.subheadline, design: .monospaced).weight(open ? .bold : .regular))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(open ? Palette.accent : Color(white: 0.18)))
+                            .foregroundStyle(open ? Color.black : Color.white)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("progetto \(n)")
+                    .accessibilityAddTraits(open ? .isSelected : [])
+                }
+            }
+            HStack(spacing: 6) {
+                GridChip(text: "copia il progetto \(opz.creaProject)") { opz.copyProject() }
+                GridChip(text: "incolla nel \(opz.creaProject)") { opz.pasteProject() }
+                    .disabled(opz.copiedProject == nil)
+            }
+        }
+    }
+}
+
 /// «ricomincia da zero» chiede conferma con un secondo tasto: cancella tutto Crea.
 struct OPZResetRow: View {
     @EnvironmentObject var opz: OPZEngine
@@ -444,7 +478,7 @@ struct OPZResetRow: View {
                     .foregroundStyle(Palette.rec)
             }
             .buttonStyle(.plain)
-            .accessibilityHint("cancella tutti i pattern, gli effetti e la catena di Crea")
+            .accessibilityHint("cancella tutti i pattern, gli effetti e la catena del progetto aperto")
         }
     }
 }
