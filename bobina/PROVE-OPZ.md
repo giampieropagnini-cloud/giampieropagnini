@@ -16,7 +16,7 @@ Le fonti dei dubbi sono in OPZ-RICERCA.md §14.
 | 9 | clock di Bobina col bluetooth | Ritmo → Bobina dà il clock (tasto 4 acceso sull'OP-Z): sta a tempo? scatti? | |
 | 10 | insieme a TX-6 / PO | stessa battuta? anticipo da regolare? | |
 | 11 | swing | CC 57: 64 = niente swing? | |
-| 12 | punch-in | Effetti: quale ottava (53-64 o 65-76) fa partire gli effetti? | ❌ 4/10 con 53-64. Misurato: SHIFT + tasto manda note 9 e 11 sul canale 13 → fa = 5. Corretto, da riprovare |
+| 12 | punch-in | Effetti: quale ottava (53-64 o 65-76) fa partire gli effetti? | ✅ 4/10: SHIFT + tasto manda note 9 e 11 sul canale 13 → fa = 5. Con 5-16 e 17-28 vanno («vanno forti») |
 | 13 | − + del suono | CC relativi 32-49 | |
 | 14 | poliritmi | CC 60 | |
 | 15 | canzone a pattern | ogni 4 battute, il cambio cade sul battere? | |
