@@ -36,3 +36,4 @@ Da provare ancora: «scrivi una battuta sull'OP-Z» col record lock, clock di Bo
 - Durata delle note per traccia (tenuta per arp e chord), «ricomincia da zero», «svuota» sotto i passi: vanno.
 - Arpeggio: quello dell'OP-Z non va a tempo con Bobina e col CC 9 = 8 restava acceso lentissimo; tenuto solo quello di Bobina (CC 9 = 0 spegne quello dell'OP-Z). Va a tempo.
 - Tasti nota tocca/tieni, note tenute accavallate, arpeggio sulle note tenute: «suona tutto perfetto».
+- Mixer di Crea (suona/muta, solo, volume): va.
