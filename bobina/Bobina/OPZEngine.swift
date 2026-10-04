@@ -11,6 +11,8 @@ final class OPZLive: ObservableObject {
     @Published var songIndex: Int?
     /// Il passo di Crea che suona (0-15), -1 = Crea tace.
     @Published var step = -1
+    /// Il pattern di Crea che sta suonando (1-16).
+    @Published var createPlaying = 1
 }
 
 /// Il monitor a parte, come per i PO: le righe arrivano mentre il ritmo gira.
@@ -110,7 +112,19 @@ final class OPZEngine: ObservableObject {
 
     /// Bobina suona le tracce 1-8 a passi, col suo clock.
     @Published var createOn = false
-    @Published var steps: [[[Int]]] = Array(repeating: Array(repeating: [], count: 16), count: 8) { didSet { save() } }
+    /// I 16 pattern di Crea, ognuno 8 tracce × 16 passi.
+    @Published var patterns: [[[[Int]]]] = Array(repeating: OPZEngine.emptyPattern, count: 16) { didSet { save() } }
+    static let emptyPattern: [[[Int]]] = Array(repeating: Array(repeating: [], count: 16), count: 8)
+    /// Il pattern di Crea che si scrive e che suonerà dalla battuta dopo (1-16).
+    @Published var createPattern = 1
+    /// Il pattern copiato, da incollare.
+    @Published private(set) var copied: [[[Int]]]?
+
+    /// I passi del pattern che si sta scrivendo.
+    var steps: [[[Int]]] {
+        get { patterns[createPattern - 1] }
+        set { patterns[createPattern - 1] = newValue }
+    }
     /// Le tracce di Crea accese (quelle spente tacciono, i passi restano).
     @Published var trackOn: [Bool] = Array(repeating: true, count: 8) { didSet { save() } }
     /// La traccia che si sta scrivendo (1-8).
@@ -156,6 +170,13 @@ final class OPZEngine: ObservableObject {
             let delay = self.msUntil(t) / 1000
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 if self.live.step != i { self.live.step = i }
+            }
+        }
+        sequencer.onCreatePattern = { [weak self] i, t in
+            guard let self = self else { return }
+            let delay = self.msUntil(t) / 1000
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                if self.live.createPlaying != i + 1 { self.live.createPlaying = i + 1 }
             }
         }
         sequencer.onOnceDone = { [weak self] in
@@ -402,6 +423,19 @@ final class OPZEngine: ObservableObject {
         io.send(OPZ.noteOff(note, channel: createTrack), at: ms(250))
     }
 
+    func copyPattern() {
+        copied = steps
+        logText("pattern \(createPattern) copiato")
+    }
+
+    func pastePattern() {
+        guard let c = copied else { return }
+        steps = c
+        logText("incollato nel pattern \(createPattern)")
+    }
+
+    func hasNotes(pattern n: Int) -> Bool { patterns[n - 1].contains { $0.contains { !$0.isEmpty } } }
+
     func clearTrack() { steps[createTrack - 1] = Array(repeating: [], count: 16) }
     func clearAll() { steps = Array(repeating: Array(repeating: [], count: 16), count: 8) }
 
@@ -469,7 +503,8 @@ final class OPZEngine: ObservableObject {
         p.song = song
         p.songBars = songBars
         p.createOn = createOn
-        p.steps = steps
+        p.patterns = patterns
+        p.createPattern = createPattern - 1
         p.trackOn = trackOn
         return p
     }
@@ -546,13 +581,14 @@ final class OPZEngine: ObservableObject {
         var punchHigh: Bool
         var steps: [[[Int]]]?
         var trackOn: [Bool]?
+        var patterns: [[[[Int]]]]?
     }
 
     private func save() {
         guard !loading else { return }
         let s = Saved(sync: sync, clockAlways: clockAlways, leadMs: leadMs, swing: swing, project: project,
                       onTheBar: onTheBar, song: song, songBars: songBars, audioOnly: audioOnly, scenes: scenes,
-                      punchHigh: punchHigh, steps: steps, trackOn: trackOn)
+                      punchHigh: punchHigh, steps: nil, trackOn: trackOn, patterns: patterns)
         if let data = try? JSONEncoder().encode(s) { UserDefaults.standard.set(data, forKey: "bobina.opz") }
     }
 
@@ -572,7 +608,11 @@ final class OPZEngine: ObservableObject {
         audioOnly = s.audioOnly
         scenes = s.scenes
         punchHigh = s.punchHigh
-        if let st = s.steps, st.count == 8, st.allSatisfy({ $0.count == 16 }) { steps = st }
+        if let ps = s.patterns, ps.count == 16, ps.allSatisfy({ $0.count == 8 && $0.allSatisfy { $0.count == 16 } }) {
+            patterns = ps
+        } else if let st = s.steps, st.count == 8, st.allSatisfy({ $0.count == 16 }) {
+            patterns[0] = st   // i passi di prima della 4/10 diventano il pattern 1
+        }
         if let on = s.trackOn, on.count == 8 { trackOn = on }
         loading = false
     }

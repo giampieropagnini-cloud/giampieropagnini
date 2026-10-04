@@ -27,6 +27,15 @@ struct OPZCreaView: View {
                 }
             }
 
+            Card(title: "pattern di Bobina", note: "16 pattern tutti di Bobina. Tocca un numero: lo scrivi qui sotto e suona dall'inizio della battuta dopo. Il bordo bianco è quello che sta suonando, il puntino dice che non è vuoto.") {
+                OPZCreaPatterns(live: opz.live)
+                HStack(spacing: 6) {
+                    GridChip(text: "copia il \(opz.createPattern)") { opz.copyPattern() }
+                    GridChip(text: "incolla nel \(opz.createPattern)") { opz.pastePattern() }
+                        .disabled(opz.copied == nil)
+                }
+            }
+
             Card(title: "traccia", note: "Sotto: accesa o spenta in Crea (i passi restano).") {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
                     ForEach(OPZ.tracks.prefix(8)) { t in
@@ -75,6 +84,34 @@ struct OPZCreaView: View {
             Card(title: "scrivi sull'OP-Z", note: "Per mettere questi passi dentro il pattern dell'OP-Z: Ele accende il record lock (tiene REC e preme PLAY). Poi tocca qui: Bobina suona i passi per una battuta sola, dall'inizio della battuta dopo. Da provare: è la prima volta.") {
                 GridChip(text: opz.writing ? "sto scrivendo…" : "scrivi una battuta sull'OP-Z", on: opz.writing) { opz.writeOnce() }
                     .disabled(opz.writing)
+            }
+        }
+    }
+}
+
+/// I 16 pattern di Crea: pieno = quello che scrivi, bordo bianco = quello che suona.
+struct OPZCreaPatterns: View {
+    @EnvironmentObject var opz: OPZEngine
+    @ObservedObject var live: OPZLive
+
+    var body: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 8), spacing: 6) {
+            ForEach(1...16, id: \.self) { n in
+                let editing = opz.createPattern == n
+                let playing = opz.running && opz.createOn && live.createPlaying == n
+                Button { opz.createPattern = n } label: {
+                    Text(opz.hasNotes(pattern: n) ? "\(n)•" : "\(n)")
+                        .font(.system(.subheadline, design: .monospaced).weight(editing ? .bold : .regular))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(editing ? OPZ.tint : Color(white: 0.18)))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(playing ? Color.white : Color.clear, lineWidth: 3))
+                        .foregroundStyle(editing ? Color.black : Color.white)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("pattern di Bobina \(n)")
+                .accessibilityAddTraits(editing ? .isSelected : [])
             }
         }
     }

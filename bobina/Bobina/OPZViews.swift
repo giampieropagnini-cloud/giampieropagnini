@@ -198,7 +198,7 @@ struct OPZSongCard: View {
     @State private var pick = 1
 
     var body: some View {
-        Card(title: "canzone a pattern", note: "Una fila di pattern: Bobina passa al seguente ogni \(opz.songBars) battute, a tempo, e ricomincia dall'inizio. Scegli un pattern e «aggiungi».") {
+        Card(title: "canzone a pattern", note: "Una fila di pattern: Bobina passa al seguente ogni \(opz.songBars) battute, a tempo, e ricomincia dall'inizio. Con «Crea suona» acceso usa i pattern di Bobina, se no quelli dell'OP-Z.") {
             Toggle("canzone accesa", isOn: $opz.songOn)
             HStack(spacing: 6) {
                 Text("ogni")

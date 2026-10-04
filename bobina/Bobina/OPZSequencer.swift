@@ -29,7 +29,10 @@ final class OPZSequencer {
         var songBars = 4
         /// Crea: Bobina suona le tracce 1-8 a passi. Per ogni traccia, 16 passi, ognuno con le sue note.
         var createOn = false
-        var steps: [[[Int]]] = Array(repeating: Array(repeating: [], count: 16), count: 8)
+        /// I 16 pattern di Crea: per ognuno 8 tracce × 16 passi, ognuno con le sue note.
+        var patterns: [[[[Int]]]] = Array(repeating: Array(repeating: Array(repeating: [], count: 16), count: 8), count: 16)
+        /// Il pattern di Crea da suonare (0-15): cambia all'inizio della battuta. Con la canzone accesa decide la canzone.
+        var createPattern = 0
         var trackOn: [Bool] = Array(repeating: true, count: 8)
     }
 
@@ -39,6 +42,8 @@ final class OPZSequencer {
     var onSongPattern: ((Int, Int, MIDITimeStamp) -> Void)?
     /// Un sedicesimo di Crea è partito (0-15), con l'istante; -1 = Crea tace. Per le caselle.
     var onStep: ((Int, MIDITimeStamp) -> Void)?
+    /// Il pattern di Crea che suona da questa battuta (0-15), con l'istante.
+    var onCreatePattern: ((Int, MIDITimeStamp) -> Void)?
     /// Il giro «scrivi sull'OP-Z» è finito.
     var onOnceDone: (() -> Void)?
     /// Un messaggio raro è partito (per il monitor). Niente clock.
@@ -66,10 +71,14 @@ final class OPZSequencer {
     /// L'ultimo tempo detto all'OP-Z col CC 56: seguendo il TX-6 la griglia si sposta a ogni battito, il bpm intero no.
     private var lastTempo: Int?
     private var nextSixteenth = 0
+    /// Il primo sedicesimo dopo la partenza: lì si dice sempre alla pagina quale pattern di Crea suona.
+    private var nextSixteenthStart = 0
     /// Le note da lasciare, per sedicesimo: vanno nel pacchetto di quel passo.
     private var offsAt: [Int: [UInt8]] = [:]
     /// La battuta del giro solo (Crea → scrivi sull'OP-Z).
     private var onceBar: Int?
+    /// Il pattern di Crea che suona adesso.
+    private var curCreate = 0
     private let lookahead = 150.0
     /// Quanto prima della battuta parte il cambio pattern.
     private let patternEarlyMs = 15.0
@@ -130,6 +139,7 @@ final class OPZSequencer {
             nextBeat = Int(first.rounded())
             nextClockTick = Int((first * 24).rounded())
             nextSixteenth = Int((first * 4).rounded())
+            nextSixteenthStart = nextSixteenth
             offsAt.removeAll()
             onceBar = nil
             if p.sync == .clock && timer != nil && lastClockAt != 0 {
@@ -143,8 +153,10 @@ final class OPZSequencer {
             let t0 = at(line.time(ofBeat: first), p)
             var head: [UInt8] = []
             // la canzone comincia dal suo primo pattern, prima dello start
+            curCreate = p.createPattern
             if p.songOn, let pat = p.song.first {
-                head += OPZ.pattern(pat, project: p.project)
+                // con Crea acceso la canzone cambia i pattern di Bobina, non quelli dell'OP-Z
+                if p.createOn { curCreate = pat - 1 } else { head += OPZ.pattern(pat, project: p.project) }
                 songIndex = 0
                 onSongPattern?(0, pat, t0)
             }
@@ -288,7 +300,7 @@ final class OPZSequencer {
                 let idx = (bar / max(1, p.songBars)) % p.song.count
                 if idx != songIndex {
                     let pat = p.song[idx]
-                    bytes += OPZ.pattern(pat, project: p.project)
+                    if !p.createOn { bytes += OPZ.pattern(pat, project: p.project) }
                     songIndex = idx
                     onSongPattern?(idx, pat, t)
                 }
@@ -318,13 +330,19 @@ final class OPZSequencer {
             onceRequested = false
             lock.unlock()
             if wanted { onceBar = bar }
+            let next = p.createOn && p.songOn && !p.song.isEmpty ? p.song[songIndex ?? 0] - 1 : p.createPattern
+            if next != curCreate || n == nextSixteenthStart {
+                curCreate = max(0, min(15, next))
+                onCreatePattern?(curCreate, t)
+            }
         }
         let playing = p.createOn || onceBar == bar
         var bytes = offsAt.removeValue(forKey: n) ?? []
         if playing {
             var offs: [UInt8] = []
-            for track in 0..<min(8, p.steps.count) where p.trackOn[track] {
-                for note in p.steps[track][i] {
+            let steps = p.patterns[max(0, min(p.patterns.count - 1, curCreate))]
+            for track in 0..<min(8, steps.count) where p.trackOn[track] {
+                for note in steps[track][i] {
                     bytes += OPZ.noteOn(note, velocity: 100, channel: track + 1)
                     offs += OPZ.noteOff(note, channel: track + 1)
                 }
