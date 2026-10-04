@@ -528,6 +528,38 @@ final class OPZEngine: ObservableObject {
     func chainRemoveLast() { if !chain.isEmpty { chain.removeLast() } }
     func chainClear() { chain = []; chainOn = false }
 
+    // MARK: mixer di Crea
+
+    /// Volume di una traccia: 4 passi del CC relativo (CC 47) in un pacchetto solo.
+    func volumeNudge(_ track: Int, up: Bool) {
+        send((0..<4).flatMap { _ in OPZ.cc(16 + 31, up ? 1 : 127, channel: track) })
+    }
+
+    /// Solo questa traccia suona in Crea; ritoccata, suonano tutte.
+    func soloCrea(_ track: Int) {
+        let only = trackOn.enumerated().allSatisfy { $0.element == ($0.offset == track - 1) }
+        trackOn = only ? Array(repeating: true, count: 8) : (0..<8).map { $0 == track - 1 }
+    }
+
+    // MARK: arpeggio (traccia 7, CC 9-12)
+
+    /// Le scelte dell'arpeggio fatte da Bobina (l'OP-Z non le dice): velocità, pattern, stile, estensione.
+    @Published private(set) var arp: [Int?] = [nil, nil, nil, nil]
+    static let arpChoices: [(cc: Int, name: String, labels: [String])] = [
+        (9, "velocità", ["spento", "2", "3", "4", "5", "6", "7", "8"]),
+        (10, "pattern", ["manual", "up", "down", "up/down", "down/up", "random"]),
+        (11, "stile", ["1", "2", "3", "4", "5", "6"]),
+        (12, "estensione", ["1", "2", "3", "4"]),
+    ]
+
+    /// Manda il centro della fetta scelta: le soglie vere non sono scritte da nessuna parte (da misurare).
+    func setArp(_ row: Int, _ k: Int) {
+        let c = OPZEngine.arpChoices[row]
+        let v = Int((Double(k) + 0.5) * 128 / Double(c.labels.count))
+        arp[row] = k
+        send(OPZ.cc(c.cc, min(127, v), channel: 7))
+    }
+
     /// Ricomincia da zero: tutti i pattern, le lunghezze, le durate, gli effetti nei passi e la catena di Crea.
     /// Non tocca l'OP-Z, le impostazioni di collegamento né le altre macchine.
     func resetCrea() {

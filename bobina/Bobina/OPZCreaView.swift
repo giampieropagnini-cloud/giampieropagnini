@@ -78,6 +78,23 @@ struct OPZCreaView: View {
                 }
             }
 
+            if opz.createTrack == 7 {
+                Card(title: "arpeggio", note: "Come gira l'arpeggio dell'OP-Z. Le soglie non sono scritte nella guida: se un tasto fa la stessa cosa del vicino, dimmelo.") {
+                    ForEach(OPZEngine.arpChoices.indices, id: \.self) { r in
+                        let c = OPZEngine.arpChoices[r]
+                        Text(c.name)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(Palette.dim)
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: min(4, c.labels.count)), spacing: 5) {
+                            ForEach(c.labels.indices, id: \.self) { k in
+                                GridChip(text: c.labels[k], on: opz.arp[r] == k) { opz.setArp(r, k) }
+                                    .accessibilityLabel("arpeggio \(c.name) \(c.labels[k])")
+                            }
+                        }
+                    }
+                }
+            }
+
             Card(title: "passi · \(OPZ.track(opz.createTrack).name)", note: "Tocca un passo per mettere o togliere «\(label(opz.pick))». Il numero piccolo dice quante note ci sono.") {
                 HStack(spacing: 8) {
                     Text("passi di \(OPZ.track(opz.createTrack).short)")
@@ -111,6 +128,8 @@ struct OPZCreaView: View {
                              has: { opz.hasStep($0) }, color: OPZ.color(opz.createTrack),
                              tap: { opz.toggleStep($0) })
             }
+
+            OPZCreaMixerCard()
 
             Card(title: "effetti di Bobina", note: "Lavorano sulle note di Crea, a tempo. Sopra: l'effetto per una battuta. Sotto: resta finché non tocchi «lascia».") {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 8) {
@@ -310,6 +329,55 @@ struct OPZChainRow: View {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("catena: " + chain.map { "\($0.pattern + 1) per \($0.times)" }.joined(separator: ", "))
+        }
+    }
+}
+
+/// Il mixer di Crea: le tracce che suonano e il loro volume. I muti dell'OP-Z (Live) toccano solo il suo
+/// sequencer: qui una traccia spenta è Bobina che smette di mandarle le note.
+struct OPZCreaMixerCard: View {
+    @EnvironmentObject var opz: OPZEngine
+
+    var body: some View {
+        Card(title: "mixer di Crea", note: "Suona / muta e solo li fa Bobina. − e + muovono il volume della traccia sull'OP-Z.") {
+            ForEach(OPZ.tracks.prefix(8)) { t in
+                let on = opz.trackOn[t.number - 1]
+                HStack(spacing: 6) {
+                    Text(t.short)
+                        .font(.system(.subheadline, design: .monospaced).weight(.semibold))
+                        .foregroundStyle(OPZ.color(t.number))
+                        .frame(width: 58, alignment: .leading)
+                    Button { opz.trackOn[t.number - 1].toggle() } label: {
+                        Text(on ? "suona" : "muta")
+                            .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                            .frame(maxWidth: .infinity, minHeight: 40)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(on ? OPZ.color(t.number) : Color(white: 0.12)))
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(OPZ.color(t.number), lineWidth: on ? 0 : 2))
+                            .foregroundStyle(on ? Color.black : OPZ.color(t.number))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(on ? "muta \(t.name)" : "fai suonare \(t.name)")
+                    GridChip(text: "solo") { opz.soloCrea(t.number) }
+                        .frame(width: 54)
+                        .accessibilityLabel("solo \(t.name)")
+                    Button { opz.volumeNudge(t.number, up: false) } label: {
+                        Text("−").font(.system(.title3, design: .monospaced))
+                            .frame(width: 44, height: 40)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18)))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("volume \(t.name) meno")
+                    Button { opz.volumeNudge(t.number, up: true) } label: {
+                        Text("+").font(.system(.title3, design: .monospaced))
+                            .frame(width: 44, height: 40)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18)))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("volume \(t.name) più")
+                }
+                .foregroundStyle(Color.white)
+            }
+            GridChip(text: "tutte suonano") { opz.trackOn = Array(repeating: true, count: 8) }
         }
     }
 }
