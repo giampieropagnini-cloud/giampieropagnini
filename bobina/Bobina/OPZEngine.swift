@@ -9,6 +9,8 @@ final class OPZLive: ObservableObject {
     @Published var quarter = 0
     /// La voce della canzone che suona adesso.
     @Published var songIndex: Int?
+    /// Il passo di Crea che suona (0-15), -1 = Crea tace.
+    @Published var step = -1
 }
 
 /// Il monitor a parte, come per i PO: le righe arrivano mentre il ritmo gira.
@@ -104,6 +106,20 @@ final class OPZEngine: ObservableObject {
     /// Gli effetti tenuti adesso (0-11).
     @Published private(set) var punchHeld: Set<Int> = []
 
+    // MARK: crea
+
+    /// Bobina suona le tracce 1-8 a passi, col suo clock.
+    @Published var createOn = false
+    @Published var steps: [[[Int]]] = Array(repeating: Array(repeating: [], count: 16), count: 8) { didSet { save() } }
+    /// Le tracce di Crea accese (quelle spente tacciono, i passi restano).
+    @Published var trackOn: [Bool] = Array(repeating: true, count: 8) { didSet { save() } }
+    /// La traccia che si sta scrivendo (1-8).
+    @Published var createTrack = 1
+    /// Il suono (batteria) o la nota (synth) che si mette nei passi: 53-76, la tastiera dell'OP-Z.
+    @Published var pick = 53
+    /// Sta suonando il giro solo per farlo registrare all'OP-Z.
+    @Published private(set) var writing = false
+
     // MARK: interni
 
     private var timer: DispatchSourceTimer?
@@ -133,6 +149,19 @@ final class OPZEngine: ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 self.live.songIndex = idx
                 if self.pattern != pat { self.pattern = pat }
+            }
+        }
+        sequencer.onStep = { [weak self] i, t in
+            guard let self = self else { return }
+            let delay = self.msUntil(t) / 1000
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                if self.live.step != i { self.live.step = i }
+            }
+        }
+        sequencer.onOnceDone = { [weak self] in
+            DispatchQueue.main.async {
+                self?.writing = false
+                self?.logText("giro per l'OP-Z finito")
             }
         }
         sequencer.onSent = { [weak self] bytes in
@@ -348,6 +377,52 @@ final class OPZEngine: ObservableObject {
         sendOnBar(bytes)
     }
 
+    // MARK: crea
+
+    func hasStep(_ i: Int) -> Bool { steps[createTrack - 1][i].contains(pick) }
+    func anyStep(_ i: Int) -> Bool { !steps[createTrack - 1][i].isEmpty }
+
+    /// Mette o toglie il suono scelto in un passo. Sul basso una nota per passo; sugli altri anche più insieme.
+    func toggleStep(_ i: Int) {
+        var cell = steps[createTrack - 1][i]
+        if cell.contains(pick) {
+            cell.removeAll { $0 == pick }
+        } else if createTrack == 5 {
+            cell = [pick]
+        } else if cell.count < (createTrack == 8 ? 4 : 3) {
+            cell.append(pick)
+        }
+        steps[createTrack - 1][i] = cell
+    }
+
+    /// Suona il suono scelto subito, per sentirlo prima di metterlo.
+    func audition(_ note: Int) {
+        pick = note
+        send(OPZ.noteOn(note, channel: createTrack))
+        io.send(OPZ.noteOff(note, channel: createTrack), at: ms(250))
+    }
+
+    func clearTrack() { steps[createTrack - 1] = Array(repeating: [], count: 16) }
+    func clearAll() { steps = Array(repeating: Array(repeating: [], count: 16), count: 8) }
+
+    /// Un ritmo pronto da cui partire: cassa in quattro, rullante sul 2 e sul 4, perc in levare.
+    func starter() {
+        var s = steps
+        s[0] = (0..<16).map { $0 % 4 == 0 ? [53] : [] }
+        s[1] = (0..<16).map { $0 == 4 || $0 == 12 ? [53] : [] }
+        s[2] = (0..<16).map { $0 % 4 == 2 ? [53] : [] }
+        steps = s
+    }
+
+    /// Un giro solo dei passi, dalla battuta dopo: con il record lock acceso sull'OP-Z (Ele: REC + PLAY)
+    /// l'OP-Z dovrebbe scriverli nel suo pattern. Se l'OP-Z è fermo, prima lo fa partire.
+    func writeOnce() {
+        writing = true
+        sequencer.playOnce()
+        if !running { toggleRun() }
+        logText("giro per l'OP-Z dalla battuta dopo")
+    }
+
     // MARK: effetti punch-in (traccia 13)
 
     private func punchNote(_ i: Int) -> Int { OPZ.punchF + i + (punchHigh ? 12 : 0) }
@@ -393,6 +468,9 @@ final class OPZEngine: ObservableObject {
         p.songOn = songOn
         p.song = song
         p.songBars = songBars
+        p.createOn = createOn
+        p.steps = steps
+        p.trackOn = trackOn
         return p
     }
 
@@ -466,13 +544,15 @@ final class OPZEngine: ObservableObject {
         var audioOnly: Bool
         var scenes: [[Bool]?]
         var punchHigh: Bool
+        var steps: [[[Int]]]?
+        var trackOn: [Bool]?
     }
 
     private func save() {
         guard !loading else { return }
         let s = Saved(sync: sync, clockAlways: clockAlways, leadMs: leadMs, swing: swing, project: project,
                       onTheBar: onTheBar, song: song, songBars: songBars, audioOnly: audioOnly, scenes: scenes,
-                      punchHigh: punchHigh)
+                      punchHigh: punchHigh, steps: steps, trackOn: trackOn)
         if let data = try? JSONEncoder().encode(s) { UserDefaults.standard.set(data, forKey: "bobina.opz") }
     }
 
@@ -492,6 +572,8 @@ final class OPZEngine: ObservableObject {
         audioOnly = s.audioOnly
         scenes = s.scenes
         punchHigh = s.punchHigh
+        if let st = s.steps, st.count == 8, st.allSatisfy({ $0.count == 16 }) { steps = st }
+        if let on = s.trackOn, on.count == 8 { trackOn = on }
         loading = false
     }
 }

@@ -27,12 +27,20 @@ final class OPZSequencer {
         var songOn = false
         var song: [Int] = [1, 2]
         var songBars = 4
+        /// Crea: Bobina suona le tracce 1-8 a passi. Per ogni traccia, 16 passi, ognuno con le sue note.
+        var createOn = false
+        var steps: [[[Int]]] = Array(repeating: Array(repeating: [], count: 16), count: 8)
+        var trackOn: [Bool] = Array(repeating: true, count: 8)
     }
 
     /// Un battito è partito: battuta (da 0) e quarto (0-3), con l'istante. Per la pagina.
     var onBeat: ((Int, Int, MIDITimeStamp) -> Void)?
     /// La canzone ha chiesto un pattern (1-16): voce della canzone e pattern, con l'istante.
     var onSongPattern: ((Int, Int, MIDITimeStamp) -> Void)?
+    /// Un sedicesimo di Crea è partito (0-15), con l'istante; -1 = Crea tace. Per le caselle.
+    var onStep: ((Int, MIDITimeStamp) -> Void)?
+    /// Il giro «scrivi sull'OP-Z» è finito.
+    var onOnceDone: (() -> Void)?
     /// Un messaggio raro è partito (per il monitor). Niente clock.
     var onSent: (([UInt8]) -> Void)?
 
@@ -42,6 +50,8 @@ final class OPZSequencer {
     private var shared = Plan()
     /// Quello che aspetta l'inizio della battuta dopo, già in byte.
     private var waiting: [UInt8] = []
+    /// Chiesto un giro solo dei passi di Crea, dalla battuta dopo (sotto lock).
+    private var onceRequested = false
 
     // da qui in giù: solo sul filo del sequencer
     private var timer: DispatchSourceTimer?
@@ -55,6 +65,11 @@ final class OPZSequencer {
     private var songIndex: Int?
     /// L'ultimo tempo detto all'OP-Z col CC 56: seguendo il TX-6 la griglia si sposta a ogni battito, il bpm intero no.
     private var lastTempo: Int?
+    private var nextSixteenth = 0
+    /// Le note da lasciare, per sedicesimo: vanno nel pacchetto di quel passo.
+    private var offsAt: [Int: [UInt8]] = [:]
+    /// La battuta del giro solo (Crea → scrivi sull'OP-Z).
+    private var onceBar: Int?
     private let lookahead = 150.0
     /// Quanto prima della battuta parte il cambio pattern.
     private let patternEarlyMs = 15.0
@@ -97,6 +112,13 @@ final class OPZSequencer {
     /// Copia di `running` da leggere sotto lock fuori dal filo del sequencer.
     private var runningCopy = false
 
+    /// Un giro solo dei passi di Crea, dalla prossima battuta: per farli registrare all'OP-Z in record lock.
+    func playOnce() {
+        lock.lock()
+        onceRequested = true
+        lock.unlock()
+    }
+
     /// Parte all'istante `start`, o all'inizio della battuta dopo se qualcuno suona già.
     func start(at start: MIDITimeStamp) {
         queue.async { [self] in
@@ -107,6 +129,9 @@ final class OPZSequencer {
             firstBeat = first
             nextBeat = Int(first.rounded())
             nextClockTick = Int((first * 24).rounded())
+            nextSixteenth = Int((first * 4).rounded())
+            offsAt.removeAll()
+            onceBar = nil
             if p.sync == .clock && timer != nil && lastClockAt != 0 {
                 // il clock va già: si riprende dal primo impulso non ancora partito
                 nextClockTick = max(nextClockTick, Int((line.beat(at: io.now()) * 24).rounded(.up)))
@@ -146,7 +171,14 @@ final class OPZSequencer {
             lock.unlock()
             BobinaClock.shared.leave(.opz)
             if !(p.clockAlways && p.sync == .clock) { stopTimer() }
-            send(OPZ.stop, at: 0)
+            let offs = offsAt.values.flatMap { $0 }
+            offsAt.removeAll()
+            if onceBar != nil { onceBar = nil; onOnceDone?() }
+            lock.lock()
+            onceRequested = false
+            lock.unlock()
+            send(offs + OPZ.stop, at: 0)
+            onStep?(-1, io.now())
         }
     }
 
@@ -188,6 +220,7 @@ final class OPZSequencer {
             let t = line.time(ofBeat: Double(nextBeat))
             if running && (t + io.ticks(ms: 30) < now || t > now + io.ticks(ms: line.beatMs + lookahead)) {
                 nextBeat = Int(line.beat(at: now).rounded(.up))
+                nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
             }
             nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
             // da solo l'OP-Z non sente il clock: il tempo nuovo glielo si dice
@@ -204,6 +237,10 @@ final class OPZSequencer {
             while line.time(ofBeat: Double(nextBeat)) < horizon {
                 beat(nextBeat, p, now)
                 nextBeat += 1
+            }
+            while line.time(ofBeat: Double(nextSixteenth) / 4) < horizon {
+                sixteenth(nextSixteenth, p, now)
+                nextSixteenth += 1
             }
         }
 
@@ -262,6 +299,40 @@ final class OPZSequencer {
             }
         }
         onBeat?(bar, quarter, t)
+    }
+
+    // MARK: un sedicesimo di Crea
+
+    /// Le note di tutte le tracce di questo passo in un pacchetto solo, con le note del passo prima che finiscono.
+    private func sixteenth(_ n: Int, _ p: Plan, _ now: MIDITimeStamp) {
+        let t = max(now, at(line.time(ofBeat: Double(n) / 4), p))
+        let i = ((n % 16) + 16) % 16
+        let bar = n >= 0 ? n / 16 : (n - 15) / 16
+        if i == 0 {
+            if let b = onceBar, bar > b {
+                onceBar = nil
+                onOnceDone?()
+            }
+            lock.lock()
+            let wanted = onceRequested
+            onceRequested = false
+            lock.unlock()
+            if wanted { onceBar = bar }
+        }
+        let playing = p.createOn || onceBar == bar
+        var bytes = offsAt.removeValue(forKey: n) ?? []
+        if playing {
+            var offs: [UInt8] = []
+            for track in 0..<min(8, p.steps.count) where p.trackOn[track] {
+                for note in p.steps[track][i] {
+                    bytes += OPZ.noteOn(note, velocity: 100, channel: track + 1)
+                    offs += OPZ.noteOff(note, channel: track + 1)
+                }
+            }
+            if !offs.isEmpty { offsAt[n + 1, default: []] += offs }
+        }
+        if !bytes.isEmpty { io.send(bytes, at: t) }
+        onStep?(playing ? i : -1, t)
     }
 
     private func send(_ bytes: [UInt8], at t: MIDITimeStamp) {

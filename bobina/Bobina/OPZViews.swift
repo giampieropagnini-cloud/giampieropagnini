@@ -3,7 +3,7 @@ import CoreMIDI
 
 // MARK: - le cinque schermate dell'OP-Z
 
-/// Suona, Muti, Effetti, Ritmo, Collega. Riapre l'ultima scheda usata.
+/// Suona, Crea, Live (muti ed effetti), Ritmo, Collega. Riapre l'ultima scheda usata.
 struct OPZTabs: View {
     @AppStorage("bobina.opz.scheda") private var tab = 0
 
@@ -11,10 +11,10 @@ struct OPZTabs: View {
         TabView(selection: $tab) {
             OPZSuonaView()
                 .tabItem { Label("Suona", systemImage: "play.square.stack") }.tag(0)
-            OPZMutiView()
-                .tabItem { Label("Muti", systemImage: "speaker.slash") }.tag(1)
-            OPZEffettiView()
-                .tabItem { Label("Effetti", systemImage: "sparkles") }.tag(2)
+            OPZCreaView()
+                .tabItem { Label("Crea", systemImage: "square.grid.4x3.fill") }.tag(1)
+            OPZLiveView()
+                .tabItem { Label("Live", systemImage: "sparkles") }.tag(2)
             OPZRitmoView()
                 .tabItem { Label("Ritmo", systemImage: "metronome") }.tag(3)
             OPZCollegaView()
@@ -246,13 +246,22 @@ struct OPZSongRow: View {
 
 // MARK: - Muti
 
-struct OPZMutiView: View {
+/// Muti ed effetti nella stessa scheda: le cose da suonare dal vivo.
+struct OPZLiveView: View {
+    var body: some View {
+        OPZPage(title: "Live") {
+            OPZTransport()
+            OPZMuteCards()
+            OPZEffectCards()
+        }
+    }
+}
+
+struct OPZMuteCards: View {
     @EnvironmentObject var opz: OPZEngine
 
     var body: some View {
-        OPZPage(title: "Muti") {
-            OPZTransport()
-
+        Group {
             Card(title: "tracce", note: "Tocca una traccia per farla tacere, ritoccala per farla suonare. Bobina ricorda quello che ha mandato: se muti dall'OP-Z, qui non si vede.") {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
                     ForEach(OPZ.tracks) { t in
@@ -315,11 +324,11 @@ struct OPZMutiView: View {
 
 // MARK: - Effetti
 
-struct OPZEffettiView: View {
+struct OPZEffectCards: View {
     @EnvironmentObject var opz: OPZEngine
 
     var body: some View {
-        OPZPage(title: "Effetti") {
+        Group {
             Card(title: "effetti punch-in", note: "Quelli della traccia perform. Sopra: l'effetto per mezzo secondo. Sotto: resta finché non tocchi «lascia».") {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 8) {
                     ForEach(OPZ.punchIn.indices, id: \.self) { i in
