@@ -34,7 +34,18 @@ struct OPZCreaView: View {
                     GridChip(text: "incolla nel \(opz.createPattern)") { opz.pastePattern() }
                         .disabled(opz.copied == nil)
                 }
+                HStack(spacing: 5) {
+                    Text("passi")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                    ForEach(OPZEngine.lengthChoices, id: \.self) { l in
+                        GridChip(text: "\(l)", on: opz.length == l) { opz.length = l }
+                            .accessibilityLabel("\(l) passi")
+                    }
+                }
             }
+
+            OPZChainCard()
 
             Card(title: "traccia", note: "Sotto: accesa o spenta in Crea (i passi restano).") {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
@@ -76,7 +87,7 @@ struct OPZCreaView: View {
             }
 
             Card(title: "passi · \(OPZ.track(opz.createTrack).name)", note: "Tocca un passo per mettere o togliere «\(label(opz.pick))». Il numero piccolo dice quante note ci sono.") {
-                OPZStepCells(live: opz.live, count: { opz.steps[opz.createTrack - 1][$0].count },
+                OPZStepCells(live: opz.live, length: opz.length, count: { opz.steps[opz.createTrack - 1][$0].count },
                              has: { opz.hasStep($0) }, color: OPZ.color(opz.createTrack),
                              tap: { opz.toggleStep($0) })
             }
@@ -120,7 +131,7 @@ struct OPZCreaView: View {
                             .accessibilityLabel(l == 1 ? "dura un passo" : "dura \(l) passi")
                     }
                 }
-                OPZFxStepCells(live: opz.live, cells: opz.fxSteps[opz.createPattern - 1], tap: { opz.toggleFxStep($0) })
+                OPZFxStepCells(live: opz.live, cells: Array(opz.fxSteps[opz.createPattern - 1].prefix(opz.length)), tap: { opz.toggleFxStep($0) })
                 HStack(spacing: 6) {
                     Text("ogni")
                         .font(.system(.caption, design: .monospaced))
@@ -188,8 +199,8 @@ struct OPZFxStepCells: View {
     let tap: (Int) -> Void
 
     var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 4), spacing: 5) {
-            ForEach(0..<16, id: \.self) { i in
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: cells.count > 16 ? 8 : 4), spacing: 5) {
+            ForEach(0..<cells.count, id: \.self) { i in
                 let f = cells[i]
                 Button { tap(i) } label: {
                     VStack(spacing: 0) {
@@ -209,6 +220,76 @@ struct OPZFxStepCells: View {
                 .accessibilityLabel("effetto passo \(i + 1)")
                 .accessibilityValue(f?.name ?? "vuoto")
             }
+        }
+    }
+}
+
+/// La catena: i pattern di Bobina uno dopo l'altro, ognuno tot volte, partono da soli.
+struct OPZChainCard: View {
+    @EnvironmentObject var opz: OPZEngine
+    @State private var pick = 1
+
+    var body: some View {
+        Card(title: "catena di pattern", note: "Metti i pattern in fila: con «catena accesa» Bobina li suona uno dopo l'altro, ognuno quante volte hai scelto, e ognuno per tutti i suoi passi.") {
+            Toggle("catena accesa", isOn: $opz.chainOn)
+            OPZChainRow(live: opz.live, chain: opz.chain, on: opz.chainOn && opz.running)
+            Text("pattern da aggiungere")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 8), spacing: 6) {
+                ForEach(1...16, id: \.self) { n in
+                    GridChip(text: opz.hasNotes(pattern: n) ? "\(n)•" : "\(n)", on: pick == n) { pick = n }
+                        .accessibilityLabel("aggiungi pattern \(n)")
+                }
+            }
+            HStack(spacing: 5) {
+                Text("volte")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                ForEach([1, 2, 4, 8], id: \.self) { v in
+                    GridChip(text: "×\(v)", on: opz.chainTimes == v) { opz.chainTimes = v }
+                        .accessibilityLabel("\(v) volte")
+                }
+            }
+            HStack(spacing: 6) {
+                GridChip(text: "aggiungi \(pick) ×\(opz.chainTimes)") { opz.chainAdd(pick) }
+                GridChip(text: "togli l'ultimo") { opz.chainRemoveLast() }
+                GridChip(text: "svuota") { opz.chainClear() }
+            }
+            HStack(spacing: 6) {
+                GridChip(text: "alla fine: da capo", on: opz.chainLoop) { opz.chainLoop = true }
+                GridChip(text: "alla fine: fermati", on: !opz.chainLoop) { opz.chainLoop = false }
+            }
+        }
+    }
+}
+
+/// La fila della catena, con la voce che suona accesa. Guarda `live`.
+struct OPZChainRow: View {
+    @ObservedObject var live: OPZLive
+    let chain: [OPZChainStep]
+    let on: Bool
+
+    var body: some View {
+        if chain.isEmpty {
+            Text("catena vuota")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+        } else {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 6), spacing: 4) {
+                ForEach(chain.indices, id: \.self) { i in
+                    let lit = on && live.chainIndex == i
+                    Text("\(chain[i].pattern + 1) ×\(chain[i].times)")
+                        .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, minHeight: 34)
+                        .background(RoundedRectangle(cornerRadius: 7).fill(lit ? Palette.accent : Color(white: 0.16)))
+                        .foregroundStyle(lit ? Color.black : Color.white)
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("catena: " + chain.map { "\($0.pattern + 1) per \($0.times)" }.joined(separator: ", "))
         }
     }
 }
@@ -244,14 +325,15 @@ struct OPZCreaPatterns: View {
 /// Sedici caselle. Guarda solo `live`: quando avanza il passo si ridisegnano queste, non la pagina.
 struct OPZStepCells: View {
     @ObservedObject var live: OPZLive
+    var length = 16
     let count: (Int) -> Int
     let has: (Int) -> Bool
     let color: Color
     let tap: (Int) -> Void
 
     var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 4), spacing: 5) {
-            ForEach(0..<16, id: \.self) { i in
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: length > 16 ? 8 : 4), spacing: 5) {
+            ForEach(0..<length, id: \.self) { i in
                 let n = count(i)
                 let mine = has(i)
                 Button { tap(i) } label: {

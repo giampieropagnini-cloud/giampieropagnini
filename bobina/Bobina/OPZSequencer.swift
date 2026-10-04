@@ -29,8 +29,15 @@ final class OPZSequencer {
         var songBars = 4
         /// Crea: Bobina suona le tracce 1-8 a passi. Per ogni traccia, 16 passi, ognuno con le sue note.
         var createOn = false
-        /// I 16 pattern di Crea: per ognuno 8 tracce × 16 passi, ognuno con le sue note.
-        var patterns: [[[[Int]]]] = Array(repeating: Array(repeating: Array(repeating: [], count: 16), count: 8), count: 16)
+        /// I 16 pattern di Crea: per ognuno 8 tracce × 32 passi (se ne usano `lengths`), ognuno con le sue note.
+        var patterns: [[[[Int]]]] = Array(repeating: Array(repeating: Array(repeating: [], count: 32), count: 8), count: 16)
+        /// Quanti passi ha ogni pattern di Crea: 4, 8, 12, 16, 24 o 32.
+        var lengths: [Int] = Array(repeating: 16, count: 16)
+        /// La catena di Crea: pattern (0-15) e quante volte, uno dopo l'altro.
+        var chainOn = false
+        var chain: [OPZChainStep] = []
+        /// Alla fine della catena ricomincia (se no Crea si ferma lì).
+        var chainLoop = true
         /// Il pattern di Crea da suonare (0-15): cambia all'inizio della battuta. Con la canzone accesa decide la canzone.
         var createPattern = 0
         var trackOn: [Bool] = Array(repeating: true, count: 8)
@@ -38,8 +45,8 @@ final class OPZSequencer {
         var fxLive: Set<CreaFx> = []
         /// Su quale traccia (1-8) lavorano gli effetti; nil = su tutte.
         var fxTrack: Int?
-        /// Gli effetti scritti nei passi, per pattern: 16 passi, un effetto o niente.
-        var fxSteps: [[CreaFx?]] = Array(repeating: Array(repeating: nil, count: 16), count: 16)
+        /// Gli effetti scritti nei passi, per pattern: 32 passi, un effetto o niente.
+        var fxSteps: [[CreaFx?]] = Array(repeating: Array(repeating: nil, count: 32), count: 16)
         /// Gli effetti dei passi suonano solo nell'ultima di ogni tot battute (1 = sempre).
         var fxEvery = 1
     }
@@ -50,8 +57,8 @@ final class OPZSequencer {
     var onSongPattern: ((Int, Int, MIDITimeStamp) -> Void)?
     /// Un sedicesimo di Crea è partito (0-15), con l'istante; -1 = Crea tace. Per le caselle.
     var onStep: ((Int, MIDITimeStamp) -> Void)?
-    /// Il pattern di Crea che suona da questa battuta (0-15), con l'istante.
-    var onCreatePattern: ((Int, MIDITimeStamp) -> Void)?
+    /// Il pattern di Crea che comincia adesso (0-15) e la voce della catena (o nil), con l'istante.
+    var onCreatePattern: ((Int, Int?, MIDITimeStamp) -> Void)?
     /// Il giro «scrivi sull'OP-Z» è finito.
     var onOnceDone: (() -> Void)?
     /// Un messaggio raro è partito (per il monitor). Niente clock.
@@ -83,15 +90,24 @@ final class OPZSequencer {
     private var nextSixteenthStart = 0
     /// Le note da lasciare, per sedicesimo: vanno nel pacchetto di quel passo.
     private var offsAt: [Int: [UInt8]] = [:]
-    /// La battuta del giro solo (Crea → scrivi sull'OP-Z).
-    private var onceBar: Int?
     /// Il pattern di Crea che suona adesso.
     private var curCreate = 0
+    /// A che passo del pattern di Crea si è (0 = comincia), quante volte è già girato, quanti giri in tutto.
+    private var crPos = 0
+    private var crRep = 0
+    private var crPasses = 0
+    /// La voce della catena che suona, e se la catena è finita (senza ricominciare).
+    private var chainIdx: Int?
+    private var chainDone = false
+    /// Il giro solo per scrivere sull'OP-Z: acceso per un giro del pattern.
+    private var onceActive = false
     /// Le note che partono più tardi (l'eco), per sedicesimo.
     private var onsAt: [Int: [UInt8]] = [:]
     /// Gli effetti accesi al passo prima, e da quando.
     private var fxPrev: Set<CreaFx> = []
     private var fxSince: [CreaFx: Int] = [:]
+    /// Il passo del pattern in cui l'effetto è cominciato (per il loop).
+    private var fxAnchor: [CreaFx: Int] = [:]
     /// Quanti passi relativi in giù (filtro e volume) restano da riportare su, per traccia: così l'OP-Z torna com'era.
     private var sweepNet: [Int: Int] = [:]
     private var duckNet: [Int: Int] = [:]
@@ -159,7 +175,6 @@ final class OPZSequencer {
             nextSixteenth = Int((first * 4).rounded())
             nextSixteenthStart = nextSixteenth
             offsAt.removeAll()
-            onceBar = nil
             if p.sync == .clock && timer != nil && lastClockAt != 0 {
                 // il clock va già: si riprende dal primo impulso non ancora partito
                 nextClockTick = max(nextClockTick, Int((line.beat(at: io.now()) * 24).rounded(.up)))
@@ -172,9 +187,14 @@ final class OPZSequencer {
             var head: [UInt8] = []
             // la canzone comincia dal suo primo pattern, prima dello start
             curCreate = p.createPattern
+            crPos = 0
+            crRep = 0
+            crPasses = 0
+            chainIdx = nil
+            chainDone = false
+            onceActive = false
             if p.songOn, let pat = p.song.first {
-                // con Crea acceso la canzone cambia i pattern di Bobina, non quelli dell'OP-Z
-                if p.createOn { curCreate = pat - 1 } else { head += OPZ.pattern(pat, project: p.project) }
+                head += OPZ.pattern(pat, project: p.project)
                 songIndex = 0
                 onSongPattern?(0, pat, t0)
             }
@@ -206,7 +226,7 @@ final class OPZSequencer {
             onsAt.removeAll()
             fxPrev = []
             fxSince = [:]
-            if onceBar != nil { onceBar = nil; onOnceDone?() }
+            if onceActive { onceActive = false; onOnceDone?() }
             lock.lock()
             onceRequested = false
             lock.unlock()
@@ -321,7 +341,7 @@ final class OPZSequencer {
                 let idx = (bar / max(1, p.songBars)) % p.song.count
                 if idx != songIndex {
                     let pat = p.song[idx]
-                    if !p.createOn { bytes += OPZ.pattern(pat, project: p.project) }
+                    bytes += OPZ.pattern(pat, project: p.project)
                     songIndex = idx
                     onSongPattern?(idx, pat, t)
                 }
@@ -339,33 +359,53 @@ final class OPZSequencer {
     /// Le note di tutte le tracce di questo passo in un pacchetto solo, con le note del passo prima che finiscono.
     private func sixteenth(_ n: Int, _ p: Plan, _ now: MIDITimeStamp) {
         let t = max(now, at(line.time(ofBeat: Double(n) / 4), p))
-        let i = ((n % 16) + 16) % 16
-        let bar = n >= 0 ? n / 16 : (n - 15) / 16
-        if i == 0 {
-            if let b = onceBar, bar > b {
-                onceBar = nil
+        // un giro del pattern di Crea è finito: si decide il prossimo (la catena, o quello scelto)
+        if crPos == 0 {
+            if onceActive && n != nextSixteenthStart {
+                onceActive = false
                 onOnceDone?()
             }
             lock.lock()
             let wanted = onceRequested
             onceRequested = false
             lock.unlock()
-            if wanted { onceBar = bar }
-            let next = p.createOn && p.songOn && !p.song.isEmpty ? p.song[songIndex ?? 0] - 1 : p.createPattern
-            if next != curCreate || n == nextSixteenthStart {
-                curCreate = max(0, min(15, next))
-                onCreatePattern?(curCreate, t)
+            if wanted { onceActive = true }
+            var next = p.createPattern
+            if p.chainOn && !p.chain.isEmpty {
+                if chainIdx == nil || chainIdx! >= p.chain.count {
+                    chainIdx = 0
+                    crRep = 0
+                } else if crRep >= max(1, p.chain[chainIdx!].times) {
+                    if chainIdx! + 1 < p.chain.count { chainIdx! += 1 } else if p.chainLoop { chainIdx = 0 } else { chainDone = true }
+                    crRep = 0
+                }
+                next = p.chain[chainIdx!].pattern
+            } else {
+                chainIdx = nil
+                chainDone = false
             }
+            if next != curCreate { crRep = 0 }
+            curCreate = max(0, min(15, next))
+            onCreatePattern?(curCreate, p.chainOn ? chainIdx : nil, t)
         }
-        let playing = p.createOn || onceBar == bar
+        let len = p.lengths.indices.contains(curCreate) ? max(1, min(32, p.lengths[curCreate])) : 16
+        let i = min(crPos, len - 1)
+        crPos += 1
+        if crPos >= len {
+            crPos = 0
+            crRep += 1
+            crPasses += 1
+        }
+        let playing = (p.createOn && !(p.chainOn && chainDone)) || onceActive
         var bytes = offsAt.removeValue(forKey: n) ?? []
         bytes += onsAt.removeValue(forKey: n) ?? []
 
         // gli effetti: quelli tenuti dal vivo più quello scritto in questo passo
         var active = playing ? p.fxLive : []
-        let fxBar = p.fxEvery <= 1 || (bar - nextSixteenthStart / 16) % p.fxEvery == p.fxEvery - 1
+        let pass = i == len - 1 ? crPasses - 1 : crPasses
+        let fxBar = p.fxEvery <= 1 || pass % p.fxEvery == p.fxEvery - 1
         if playing && fxBar, p.fxSteps.indices.contains(curCreate), let f = p.fxSteps[curCreate][i] { active.insert(f) }
-        for f in active.subtracting(fxPrev) { fxSince[f] = n }
+        for f in active.subtracting(fxPrev) { fxSince[f] = n; fxAnchor[f] = i }
         if !fxPrev.subtracting(active).isEmpty {
             // finito un filter sweep o un duck: il filtro e il volume tornano dov'erano
             if fxPrev.contains(.sweep) && !active.contains(.sweep) { bytes += fxRestore(sweep: true) }
@@ -379,9 +419,10 @@ final class OPZSequencer {
             let steps = p.patterns[max(0, min(p.patterns.count - 1, curCreate))]
             // da quale passo si leggono le note: il loop ripete, il random rimescola
             var src = i
-            if active.contains(.loop2), let a = fxSince[.loop2] { src = ((a - 8 + (n - a) % 8) % 16 + 16) % 16 }
-            else if active.contains(.loop1), let a = fxSince[.loop1] { src = ((a - 4 + (n - a) % 4) % 16 + 16) % 16 }
-            if active.contains(.random) { src = Int.random(in: 0..<16) }
+            // il loop ripete i passi suonati appena prima, contando da questo passo all'indietro
+            if active.contains(.loop2), let a = fxSince[.loop2], let at0 = fxAnchor[.loop2] { src = ((at0 - 8 + (n - a) % 8) % len + len) % len }
+            else if active.contains(.loop1), let a = fxSince[.loop1], let at0 = fxAnchor[.loop1] { src = ((at0 - 4 + (n - a) % 4) % len + len) % len }
+            if active.contains(.random) { src = Int.random(in: 0..<len) }
             var repeats = 1
             if active.contains(.rampUp), let a = fxSince[.rampUp] { repeats = min(4, 1 + (n - a) / 4) }
             if active.contains(.rampDown), let a = fxSince[.rampDown] { repeats = max(1, 4 - (n - a) / 4) }
@@ -417,7 +458,7 @@ final class OPZSequencer {
 
             // filter sweep: giù per mezza battuta, su per l'altra metà
             if active.contains(.sweep), let a = fxSince[.sweep] {
-                let phase = ((n - a) % 16 + 16) % 16
+                let phase = ((n - a) % 16 + 16) % 16   // mezza battuta giù, mezza su: non dipende dalla lunghezza del pattern
                 if p.fxTrack == nil {
                     let depth = phase < 8 ? phase : 16 - phase
                     bytes += OPZ.cc(3, 64 - depth * 7, channel: 12)
@@ -469,4 +510,10 @@ final class OPZSequencer {
         io.send(bytes, at: t)
         onSent?(bytes)
     }
+}
+
+/// Una voce della catena di Crea: quale pattern (0-15) e quante volte di fila.
+struct OPZChainStep: Codable, Hashable {
+    var pattern: Int
+    var times: Int
 }
