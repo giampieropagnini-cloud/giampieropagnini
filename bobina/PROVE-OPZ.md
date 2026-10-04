@@ -26,3 +26,9 @@ Le fonti dei dubbi sono in OPZ-RICERCA.md §14.
 - Collegato col bluetooth: «funziona quasi tutto» (Giampiero), tranne gli effetti.
 - Tastiera: i primi tre tasti della fila di sotto mandano 53, 55, 57 sul canale della traccia attiva (kick).
 - SHIFT + tasto (punch-in) manda note bassissime sul canale 13 (visti 9 e 11). Gli effetti ora partono da 5.
+- Crea (Bobina suona le tracce 1-8 a passi): note, batteria e sequenza vanno. Se non suona niente: Live → «tutto suona» (l'OP-Z ricorda i muti, Bobina dopo una reinstallazione no).
+- Pattern di Bobina (16, copia/incolla): vanno.
+- Effetti di Bobina dal vivo e nei passi: vanno. Duck rinforzato (20 passi relativi giù); durata degli effetti nei passi 1-16: va.
+- Pattern da 4 a 32 passi e catena di pattern: va.
+
+Da provare ancora: «scrivi una battuta sull'OP-Z» col record lock, clock di Bobina insieme a TX-6 e PO, CC 102/103 canali, swing.
