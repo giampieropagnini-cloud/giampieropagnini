@@ -216,6 +216,9 @@ final class OPZSequencer {
                 songIndex = 0
                 onSongPattern?(0, pat, t0)
             }
+            // l'arpeggio di Bobina vuole l'arpeggio dell'OP-Z spento (velocità tutta a sinistra = 0):
+            // il 4/10/2026 col valore 8 l'OP-Z arpeggiava ancora, lentissimo, sopra quello di Bobina
+            if p.arpOn { head += OPZ.cc(9, 0, channel: 7) }
             if p.sync == .own {
                 let v = tempoValue(line.bpm)
                 head += OPZ.tempo(Double(v))

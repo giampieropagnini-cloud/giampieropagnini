@@ -546,7 +546,7 @@ final class OPZEngine: ObservableObject {
     /// L'arpeggio di Bobina: a tempo con la sua griglia. Acceso, spegne l'arpeggio dell'OP-Z (velocità a sinistra).
     @Published var arpOn = false {
         didSet {
-            if arpOn && !oldValue && !loading { setArp(0, 0) }
+            if arpOn && !oldValue && !loading { send(OPZ.cc(9, 0, channel: 7)) }
             save()
         }
     }

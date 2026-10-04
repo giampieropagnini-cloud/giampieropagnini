@@ -79,8 +79,8 @@ struct OPZCreaView: View {
             }
 
             if opz.createTrack == 7 {
-                Card(title: "arpeggio di Bobina", note: "Sempre a tempo con la battuta di Bobina. Metti 2-4 note in un passo dell'arp: Bobina le suona una alla volta con la figura scelta, finché arriva un altro passo pieno.") {
-                    Toggle("arpeggio di Bobina", isOn: $opz.arpOn)
+                Card(title: "arpeggio", note: "Sempre a tempo con la battuta di Bobina. Metti 2-4 note in un passo dell'arp: Bobina le suona una alla volta con la figura scelta, finché arriva un altro passo pieno. L'arpeggio dell'OP-Z resta spento, se no si sovrappone.") {
+                    Toggle("arpeggio acceso", isOn: $opz.arpOn)
                     Text("figura")
                         .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(Palette.dim)
@@ -106,20 +106,6 @@ struct OPZCreaView: View {
                         ForEach(1...3, id: \.self) { o in
                             GridChip(text: "\(o)", on: opz.arpOctaves == o) { opz.arpOctaves = o }
                                 .accessibilityLabel("\(o) ottave")
-                        }
-                    }
-                }
-                Card(title: "arpeggio dell'OP-Z", note: "Quello della macchina: va col tempo dell'OP-Z, non con la battuta di Bobina. Le soglie non sono scritte nella guida.") {
-                    ForEach(OPZEngine.arpChoices.indices, id: \.self) { r in
-                        let c = OPZEngine.arpChoices[r]
-                        Text(c.name)
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(Palette.dim)
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: min(4, c.labels.count)), spacing: 5) {
-                            ForEach(c.labels.indices, id: \.self) { k in
-                                GridChip(text: c.labels[k], on: opz.arp[r] == k) { opz.setArp(r, k) }
-                                    .accessibilityLabel("arpeggio \(c.name) \(c.labels[k])")
-                            }
                         }
                     }
                 }
