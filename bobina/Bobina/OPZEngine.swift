@@ -461,6 +461,44 @@ final class OPZEngine: ObservableObject {
         steps[createTrack - 1][i] = cell
     }
 
+    /// Le note tenute dal vivo, per traccia (1-8): restano giù finché non le lasci.
+    @Published private(set) var liveHeld: [Int: Set<Int>] = [:]
+
+    func isHeld(_ note: Int) -> Bool { liveHeld[createTrack]?.contains(note) ?? false }
+
+    /// Metà di sotto del tasto nota: tieni / lascia. Sull'arp con l'arpeggio acceso le note tenute
+    /// diventano l'accordo che Bobina arpeggia, a tempo (se il ritmo è fermo, parte).
+    func toggleLiveHold(_ note: Int) {
+        let tr = createTrack
+        var set = liveHeld[tr] ?? []
+        let arpLive = tr == 7 && arpOn
+        if set.contains(note) {
+            set.remove(note)
+            if !arpLive { send(OPZ.noteOff(note, channel: tr)) }
+        } else {
+            set.insert(note)
+            pick = note
+            if arpLive {
+                if !running { toggleRun() }
+            } else {
+                send(OPZ.noteOn(note, channel: tr))
+            }
+        }
+        liveHeld[tr] = set.isEmpty ? nil : set
+        sequencer.update(makePlan())
+    }
+
+    /// Lascia tutte le note tenute dal vivo.
+    func releaseLiveAll() {
+        var bytes: [UInt8] = []
+        for (tr, notes) in liveHeld where !(tr == 7 && arpOn) {
+            for n in notes { bytes += OPZ.noteOff(n, channel: tr) }
+        }
+        liveHeld = [:]
+        if !bytes.isEmpty { send(bytes) }
+        sequencer.update(makePlan())
+    }
+
     /// Suona il suono scelto subito, per sentirlo prima di metterlo.
     func audition(_ note: Int) {
         pick = note
@@ -688,6 +726,7 @@ final class OPZEngine: ObservableObject {
         p.arpStyle = arpStyle
         p.arpRate = arpRate
         p.arpOctaves = arpOctaves
+        p.liveArp = arpOn ? Array(liveHeld[7] ?? []) : []
         p.chainOn = chainOn
         p.chain = chain
         p.chainLoop = chainLoop

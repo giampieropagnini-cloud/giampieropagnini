@@ -70,12 +70,29 @@ struct OPZCreaView: View {
             }
 
             Card(title: opz.createTrack <= 4 ? "suono" : "nota", note: opz.createTrack <= 4 ? "I 24 suoni del kit di questa traccia. Toccane uno: lo senti e diventa quello che metti nei passi." : "Due ottave, come la tastiera dell'OP-Z. Toccane una: la senti e diventa quella che metti nei passi.") {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 6), spacing: 5) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 6), spacing: 8) {
                     ForEach(OPZ.keyboardF...(OPZ.keyboardF + 23), id: \.self) { n in
-                        GridChip(text: label(n), on: opz.pick == n) { opz.audition(n) }
-                            .accessibilityLabel(opz.createTrack <= 4 ? "suono \(n - OPZ.keyboardF + 1)" : "nota \(label(n))")
+                        let held = opz.isHeld(n)
+                        let spoken = opz.createTrack <= 4 ? "suono \(n - OPZ.keyboardF + 1)" : "nota \(label(n))"
+                        VStack(spacing: 3) {
+                            GridChip(text: label(n), on: opz.pick == n) { opz.audition(n) }
+                                .accessibilityLabel(spoken)
+                            Button { opz.toggleLiveHold(n) } label: {
+                                Text(held ? "lascia" : "tieni")
+                                    .font(.system(.caption2, design: .monospaced).weight(held ? .bold : .regular))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                                    .frame(maxWidth: .infinity, minHeight: 34)
+                                    .background(RoundedRectangle(cornerRadius: 8).fill(held ? Color.white : Color(white: 0.12)))
+                                    .foregroundStyle(held ? Color.black : Color.white.opacity(0.8))
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(held ? "lascia \(spoken)" : "tieni \(spoken)")
+                            .accessibilityAddTraits(held ? .isSelected : [])
+                        }
                     }
                 }
+                GridChip(text: "lascia tutte le note") { opz.releaseLiveAll() }
             }
 
             if opz.createTrack == 7 {

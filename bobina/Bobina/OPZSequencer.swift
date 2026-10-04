@@ -46,6 +46,8 @@ final class OPZSequencer {
         /// Ogni quanti trentaduesimi parte una nota: 1 = 1/32, 2 = 1/16, 4 = 1/8, 8 = 1/4.
         var arpRate = 2
         var arpOctaves = 1
+        /// Le note tenute dal vivo sull'arp (tasto «tieni»): finché ci sono, l'arpeggio gira su queste.
+        var liveArp: [Int] = []
         /// Il pattern di Crea da suonare (0-15): cambia all'inizio della battuta. Con la canzone accesa decide la canzone.
         var createPattern = 0
         var trackOn: [Bool] = Array(repeating: true, count: 8)
@@ -105,6 +107,7 @@ final class OPZSequencer {
     private var arpChord: [Int] = []
     private var arpCount = 0
     private var arpTick = 0
+    private var liveWasOn = false
     /// Il pattern di Crea che suona adesso.
     private var curCreate = 0
     /// A che passo del pattern di Crea si è (0 = comincia), quante volte è già girato, quanti giri in tutto.
@@ -531,6 +534,10 @@ final class OPZSequencer {
                 }
             }
         }
+        // l'arpeggio dal vivo gira anche quando Crea tace
+        if !(playing && p.trackOn[6]) && p.arpOn && (!p.liveArp.isEmpty || liveWasOn) {
+            arpStep([], p, t, line.beatMs / 4, &bytes)
+        }
         if !bytes.isEmpty { io.send(bytes, at: t) }
         onStep?(playing ? total : -1, t)
     }
@@ -540,7 +547,15 @@ final class OPZSequencer {
     /// Un sedicesimo dell'arpeggio: un passo pieno della traccia arp cambia l'accordo e fa ripartire la figura;
     /// poi le note escono una alla volta alla velocità scelta, sulla griglia di Bobina.
     private func arpStep(_ cell: [Int], _ p: Plan, _ t: MIDITimeStamp, _ stepMs: Double, _ bytes: inout [UInt8]) {
-        if !cell.isEmpty {
+        let live = p.liveArp.sorted()
+        if !live.isEmpty {
+            // le note tenute dal vivo vincono sui passi
+            if live != arpChord { arpChord = live; arpCount = 0; arpTick = 0 }
+        } else if liveWasOn {
+            arpChord = []
+        }
+        liveWasOn = !live.isEmpty
+        if live.isEmpty && !cell.isEmpty {
             arpChord = cell.sorted()
             arpCount = 0
             arpTick = 0
