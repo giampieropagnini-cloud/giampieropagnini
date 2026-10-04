@@ -34,15 +34,6 @@ struct OPZCreaView: View {
                     GridChip(text: "incolla nel \(opz.createPattern)") { opz.pastePattern() }
                         .disabled(opz.copied == nil)
                 }
-                HStack(spacing: 5) {
-                    Text("passi")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(Palette.dim)
-                    ForEach(OPZEngine.lengthChoices, id: \.self) { l in
-                        GridChip(text: "\(l)", on: opz.length == l) { opz.length = l }
-                            .accessibilityLabel("\(l) passi")
-                    }
-                }
             }
 
             OPZChainCard()
@@ -87,6 +78,15 @@ struct OPZCreaView: View {
             }
 
             Card(title: "passi · \(OPZ.track(opz.createTrack).name)", note: "Tocca un passo per mettere o togliere «\(label(opz.pick))». Il numero piccolo dice quante note ci sono.") {
+                Text("lunghezza del pattern \(opz.createPattern)")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                HStack(spacing: 5) {
+                    ForEach(OPZEngine.lengthChoices, id: \.self) { l in
+                        GridChip(text: "\(l)", on: opz.length == l) { opz.length = l }
+                            .accessibilityLabel("\(l) passi")
+                    }
+                }
                 OPZStepCells(live: opz.live, length: opz.length, count: { opz.steps[opz.createTrack - 1][$0].count },
                              has: { opz.hasStep($0) }, color: OPZ.color(opz.createTrack),
                              tap: { opz.toggleStep($0) })
