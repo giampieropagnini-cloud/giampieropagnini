@@ -31,8 +31,8 @@ final class OPZSequencer {
         var createOn = false
         /// I 16 pattern di Crea: per ognuno 8 tracce × 32 passi (se ne usano `lengths`), ognuno con le sue note.
         var patterns: [[[[Int]]]] = Array(repeating: Array(repeating: Array(repeating: [], count: 32), count: 8), count: 16)
-        /// Quanti passi ha ogni pattern di Crea: 4, 8, 12, 16, 24 o 32.
-        var lengths: [Int] = Array(repeating: 16, count: 16)
+        /// Quanti passi ha ogni traccia di ogni pattern di Crea (1-32): tracce di lunghezza diversa = poliritmi.
+        var lengths: [[Int]] = Array(repeating: Array(repeating: 16, count: 8), count: 16)
         /// La catena di Crea: pattern (0-15) e quante volte, uno dopo l'altro.
         var chainOn = false
         var chain: [OPZChainStep] = []
@@ -55,7 +55,8 @@ final class OPZSequencer {
     var onBeat: ((Int, Int, MIDITimeStamp) -> Void)?
     /// La canzone ha chiesto un pattern (1-16): voce della canzone e pattern, con l'istante.
     var onSongPattern: ((Int, Int, MIDITimeStamp) -> Void)?
-    /// Un sedicesimo di Crea è partito (0-15), con l'istante; -1 = Crea tace. Per le caselle.
+    /// Un sedicesimo di Crea è partito: quanti da quando è cominciato il pattern, con l'istante; -1 = Crea tace.
+    /// Ogni griglia lo riporta dentro la lunghezza della sua traccia.
     var onStep: ((Int, MIDITimeStamp) -> Void)?
     /// Il pattern di Crea che comincia adesso (0-15) e la voce della catena (o nil), con l'istante.
     var onCreatePattern: ((Int, Int?, MIDITimeStamp) -> Void)?
@@ -96,6 +97,8 @@ final class OPZSequencer {
     private var crPos = 0
     private var crRep = 0
     private var crPasses = 0
+    /// I sedicesimi suonati da quando è cominciato questo pattern: ogni traccia ci gira sopra con la sua lunghezza.
+    private var crTotal = 0
     /// La voce della catena che suona, e se la catena è finita (senza ricominciare).
     private var chainIdx: Int?
     private var chainDone = false
@@ -190,6 +193,7 @@ final class OPZSequencer {
             crPos = 0
             crRep = 0
             crPasses = 0
+            crTotal = 0
             chainIdx = nil
             chainDone = false
             onceActive = false
@@ -384,12 +388,16 @@ final class OPZSequencer {
                 chainIdx = nil
                 chainDone = false
             }
-            if next != curCreate { crRep = 0 }
+            if next != curCreate { crRep = 0; crTotal = 0 }
             curCreate = max(0, min(15, next))
             onCreatePattern?(curCreate, p.chainOn ? chainIdx : nil, t)
         }
-        let len = p.lengths.indices.contains(curCreate) ? max(1, min(32, p.lengths[curCreate])) : 16
+        let lens = p.lengths.indices.contains(curCreate) ? p.lengths[curCreate].map { max(1, min(32, $0)) } : Array(repeating: 16, count: 8)
+        // un giro del pattern = la traccia più lunga; le altre ricominciano per conto loro
+        let len = lens.max() ?? 16
         let i = min(crPos, len - 1)
+        let total = crTotal
+        crTotal += 1
         crPos += 1
         if crPos >= len {
             crPos = 0
@@ -405,7 +413,7 @@ final class OPZSequencer {
         let pass = i == len - 1 ? crPasses - 1 : crPasses
         let fxBar = p.fxEvery <= 1 || pass % p.fxEvery == p.fxEvery - 1
         if playing && fxBar, p.fxSteps.indices.contains(curCreate), let f = p.fxSteps[curCreate][i] { active.insert(f) }
-        for f in active.subtracting(fxPrev) { fxSince[f] = n; fxAnchor[f] = i }
+        for f in active.subtracting(fxPrev) { fxSince[f] = n; fxAnchor[f] = total }
         if !fxPrev.subtracting(active).isEmpty {
             // finito un filter sweep o un duck: il filtro e il volume tornano dov'erano
             if fxPrev.contains(.sweep) && !active.contains(.sweep) { bytes += fxRestore(sweep: true) }
@@ -418,11 +426,12 @@ final class OPZSequencer {
         if playing {
             let steps = p.patterns[max(0, min(p.patterns.count - 1, curCreate))]
             // da quale passo si leggono le note: il loop ripete, il random rimescola
-            var src = i
+            // da quale sedicesimo si leggono le note (poi ogni traccia lo riporta dentro la sua lunghezza)
+            var src = total
             // il loop ripete i passi suonati appena prima, contando da questo passo all'indietro
-            if active.contains(.loop2), let a = fxSince[.loop2], let at0 = fxAnchor[.loop2] { src = ((at0 - 8 + (n - a) % 8) % len + len) % len }
-            else if active.contains(.loop1), let a = fxSince[.loop1], let at0 = fxAnchor[.loop1] { src = ((at0 - 4 + (n - a) % 4) % len + len) % len }
-            if active.contains(.random) { src = Int.random(in: 0..<len) }
+            if active.contains(.loop2), let a = fxSince[.loop2], let at0 = fxAnchor[.loop2] { src = at0 - 8 + (n - a) % 8 }
+            else if active.contains(.loop1), let a = fxSince[.loop1], let at0 = fxAnchor[.loop1] { src = at0 - 4 + (n - a) % 4 }
+            let shuffle = active.contains(.random)
             var repeats = 1
             if active.contains(.rampUp), let a = fxSince[.rampUp] { repeats = min(4, 1 + (n - a) / 4) }
             if active.contains(.rampDown), let a = fxSince[.rampDown] { repeats = max(1, 4 - (n - a) / 4) }
@@ -433,7 +442,9 @@ final class OPZSequencer {
             var subs: [[UInt8]] = Array(repeating: [], count: 4)
             for track in 0..<min(8, steps.count) where p.trackOn[track] {
                 let mine = scope.contains(track)
-                for raw in steps[track][mine ? src : i] {
+                let tl = lens[track]
+                let idx = mine && shuffle ? Int.random(in: 0..<tl) : (((mine ? src : total) % tl) + tl) % tl
+                for raw in steps[track][idx] {
                     let note = mine && active.contains(.pitch) && track >= 4 ? min(127, raw + 12) : raw
                     let ch = track + 1
                     bytes += OPZ.noteOn(note, velocity: 100, channel: ch)
@@ -483,7 +494,7 @@ final class OPZSequencer {
             }
         }
         if !bytes.isEmpty { io.send(bytes, at: t) }
-        onStep?(playing ? i : -1, t)
+        onStep?(playing ? total : -1, t)
     }
 
     /// `count` passi relativi (CC 32-49) in su o in giù, in un pezzo solo.

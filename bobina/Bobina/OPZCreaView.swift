@@ -43,7 +43,7 @@ struct OPZCreaView: View {
                     ForEach(OPZ.tracks.prefix(8)) { t in
                         VStack(spacing: 3) {
                             Button { opz.createTrack = t.number } label: {
-                                Text(opz.steps[t.number - 1].contains { !$0.isEmpty } ? "\(t.short)•" : t.short)
+                                Text((opz.steps[t.number - 1].contains { !$0.isEmpty } ? "\(t.short)•" : t.short) + " \(opz.lengths[opz.createPattern - 1][t.number - 1])")
                                     .font(.system(.footnote, design: .monospaced).weight(opz.createTrack == t.number ? .bold : .regular))
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.7)
@@ -78,15 +78,25 @@ struct OPZCreaView: View {
             }
 
             Card(title: "passi · \(OPZ.track(opz.createTrack).name)", note: "Tocca un passo per mettere o togliere «\(label(opz.pick))». Il numero piccolo dice quante note ci sono.") {
-                Text("lunghezza del pattern \(opz.createPattern)")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.dim)
+                HStack(spacing: 8) {
+                    Text("passi di \(OPZ.track(opz.createTrack).short)")
+                        .font(.system(.subheadline, design: .monospaced))
+                    Spacer()
+                    SmallKey(text: "−") { opz.length -= 1 }
+                        .accessibilityLabel("un passo in meno")
+                    Text("\(opz.length)")
+                        .font(.system(.title3, design: .monospaced).weight(.bold))
+                        .frame(minWidth: 40)
+                    SmallKey(text: "+") { opz.length += 1 }
+                        .accessibilityLabel("un passo in più")
+                }
                 HStack(spacing: 5) {
-                    ForEach(OPZEngine.lengthChoices, id: \.self) { l in
+                    ForEach([3, 4, 5, 7, 8, 12, 16, 32], id: \.self) { l in
                         GridChip(text: "\(l)", on: opz.length == l) { opz.length = l }
                             .accessibilityLabel("\(l) passi")
                     }
                 }
+                GridChip(text: "\(opz.length) passi a tutte le tracce") { opz.setAllLengths(opz.length) }
                 OPZStepCells(live: opz.live, length: opz.length, count: { opz.steps[opz.createTrack - 1][$0].count },
                              has: { opz.hasStep($0) }, color: OPZ.color(opz.createTrack),
                              tap: { opz.toggleStep($0) })
@@ -131,7 +141,7 @@ struct OPZCreaView: View {
                             .accessibilityLabel(l == 1 ? "dura un passo" : "dura \(l) passi")
                     }
                 }
-                OPZFxStepCells(live: opz.live, cells: Array(opz.fxSteps[opz.createPattern - 1].prefix(opz.length)), tap: { opz.toggleFxStep($0) })
+                OPZFxStepCells(live: opz.live, cells: Array(opz.fxSteps[opz.createPattern - 1].prefix(opz.patternLength)), tap: { opz.toggleFxStep($0) })
                 HStack(spacing: 6) {
                     Text("ogni")
                         .font(.system(.caption, design: .monospaced))
@@ -213,7 +223,7 @@ struct OPZFxStepCells: View {
                     }
                     .frame(maxWidth: .infinity, minHeight: 46)
                     .background(RoundedRectangle(cornerRadius: 8).fill(f?.color ?? Color(white: i % 4 == 0 ? 0.22 : 0.16)))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(live.step == i ? Color.white : Color.clear, lineWidth: 3))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(live.step >= 0 && live.step % cells.count == i ? Color.white : Color.clear, lineWidth: 3))
                     .foregroundStyle(f == nil ? Color.white : Color.black)
                 }
                 .buttonStyle(.plain)
@@ -345,7 +355,7 @@ struct OPZStepCells: View {
                     }
                     .frame(maxWidth: .infinity, minHeight: 48)
                     .background(RoundedRectangle(cornerRadius: 8).fill(mine ? color : n > 0 ? color.opacity(0.3) : Color(white: i % 4 == 0 ? 0.22 : 0.16)))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(live.step == i ? Color.white : Color.clear, lineWidth: 3))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(live.step >= 0 && live.step % length == i ? Color.white : Color.clear, lineWidth: 3))
                     .foregroundStyle(mine ? Color.black : Color.white)
                 }
                 .buttonStyle(.plain)

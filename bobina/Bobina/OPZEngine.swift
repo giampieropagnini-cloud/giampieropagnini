@@ -117,8 +117,8 @@ final class OPZEngine: ObservableObject {
     /// I 16 pattern di Crea, ognuno 8 tracce × 16 passi.
     @Published var patterns: [[[[Int]]]] = Array(repeating: OPZEngine.emptyPattern, count: 16) { didSet { save() } }
     static let emptyPattern: [[[Int]]] = Array(repeating: Array(repeating: [], count: 32), count: 8)
-    /// Quanti passi ha ogni pattern di Crea.
-    @Published var lengths: [Int] = Array(repeating: 16, count: 16) { didSet { save() } }
+    /// Quanti passi ha ogni traccia di ogni pattern di Crea: lunghezze diverse = poliritmi.
+    @Published var lengths: [[Int]] = Array(repeating: Array(repeating: 16, count: 8), count: 16) { didSet { save() } }
     static let lengthChoices = [4, 8, 12, 16, 24, 32]
     /// La catena di Crea: i pattern uno dopo l'altro, ognuno tot volte, e poi da capo (o fermi).
     @Published var chainOn = false { didSet { if chainOn { createOn = true } } }
@@ -127,17 +127,23 @@ final class OPZEngine: ObservableObject {
     /// Quante volte ripetere il pattern che si aggiunge alla catena.
     @Published var chainTimes = 2
 
-    /// I passi del pattern che si scrive.
+    /// I passi della traccia che si scrive.
     var length: Int {
-        get { lengths[createPattern - 1] }
-        set { lengths[createPattern - 1] = max(1, min(32, newValue)) }
+        get { lengths[createPattern - 1][createTrack - 1] }
+        set { lengths[createPattern - 1][createTrack - 1] = max(1, min(32, newValue)) }
     }
+
+    /// Un giro del pattern: la traccia più lunga.
+    var patternLength: Int { lengths[createPattern - 1].max() ?? 16 }
+
+    /// La stessa lunghezza a tutte le tracce del pattern.
+    func setAllLengths(_ l: Int) { lengths[createPattern - 1] = Array(repeating: max(1, min(32, l)), count: 8) }
     /// Il pattern di Crea che si scrive e che suonerà dalla battuta dopo (1-16).
     @Published var createPattern = 1
     /// Il pattern copiato, da incollare.
     @Published private(set) var copied: [[[Int]]]?
     private var copiedFx: [CreaFx?]?
-    private var copiedLength: Int?
+    private var copiedLength: [Int]?
 
     /// I passi del pattern che si sta scrivendo.
     var steps: [[[Int]]] {
@@ -489,12 +495,13 @@ final class OPZEngine: ObservableObject {
         if row[i] == fxPick {
             let f = fxPick
             var j = i
-            let n = length
+            let n = patternLength
             while row[j] == f { row[j] = nil; j = (j + 1) % n; if j == i { break } }
             j = (i + n - 1) % n
             while row[j] == f { row[j] = nil; j = (j + n - 1) % n; if j == i { break } }
         } else {
-            for k in 0..<max(1, min(length, fxLength)) { row[(i + k) % length] = fxPick }
+            let n = patternLength
+            for k in 0..<max(1, min(n, fxLength)) { row[(i + k) % n] = fxPick }
         }
         fxSteps[createPattern - 1] = row
     }
@@ -514,7 +521,7 @@ final class OPZEngine: ObservableObject {
     func copyPattern() {
         copied = steps
         copiedFx = fxSteps[createPattern - 1]
-        copiedLength = length
+        copiedLength = lengths[createPattern - 1]
         logText("pattern \(createPattern) copiato")
     }
 
@@ -522,7 +529,7 @@ final class OPZEngine: ObservableObject {
         guard let c = copied else { return }
         steps = c
         if let f = copiedFx { fxSteps[createPattern - 1] = f }
-        if let l = copiedLength { length = l }
+        if let l = copiedLength { lengths[createPattern - 1] = l }
         logText("incollato nel pattern \(createPattern)")
     }
 
@@ -687,6 +694,7 @@ final class OPZEngine: ObservableObject {
         var fxEvery: Int?
         var fxLength: Int?
         var lengths: [Int]?
+        var trackLengths: [[Int]]?
         var chain: [OPZChainStep]?
         var chainLoop: Bool?
     }
@@ -695,7 +703,7 @@ final class OPZEngine: ObservableObject {
         guard !loading else { return }
         let s = Saved(sync: sync, clockAlways: clockAlways, leadMs: leadMs, swing: swing, project: project,
                       onTheBar: onTheBar, song: song, songBars: songBars, audioOnly: audioOnly, scenes: scenes,
-                      punchHigh: punchHigh, steps: nil, trackOn: trackOn, patterns: patterns, fxSteps: fxSteps, fxAll: fxAll, fxEvery: fxEvery, fxLength: fxLength, lengths: lengths, chain: chain, chainLoop: chainLoop)
+                      punchHigh: punchHigh, steps: nil, trackOn: trackOn, patterns: patterns, fxSteps: fxSteps, fxAll: fxAll, fxEvery: fxEvery, fxLength: fxLength, lengths: nil, trackLengths: lengths, chain: chain, chainLoop: chainLoop)
         if let data = try? JSONEncoder().encode(s) { UserDefaults.standard.set(data, forKey: "bobina.opz") }
     }
 
@@ -726,7 +734,11 @@ final class OPZEngine: ObservableObject {
         if let f = s.fxSteps, f.count == 16 {
             fxSteps = f.map { $0.count >= 32 ? Array($0.prefix(32)) : $0 + Array(repeating: nil, count: 32 - $0.count) }
         }
-        if let l = s.lengths, l.count == 16 { lengths = l }
+        if let l = s.trackLengths, l.count == 16, l.allSatisfy({ $0.count == 8 }) {
+            lengths = l
+        } else if let l = s.lengths, l.count == 16 {
+            lengths = l.map { Array(repeating: $0, count: 8) }   // prima del 4/10 sera: una lunghezza per pattern
+        }
         if let c = s.chain { chain = c }
         if let c = s.chainLoop { chainLoop = c }
         if let a = s.fxAll { fxAll = a }
