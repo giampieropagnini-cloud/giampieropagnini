@@ -40,6 +40,12 @@ final class OPZSequencer {
         var chain: [OPZChainStep] = []
         /// Alla fine della catena ricomincia (se no Crea si ferma lì).
         var chainLoop = true
+        /// L'arpeggio di Bobina sulla traccia arp: sempre a tempo con la griglia di Bobina.
+        var arpOn = false
+        var arpStyle = OPZArpStyle.up
+        /// Ogni quanti trentaduesimi parte una nota: 1 = 1/32, 2 = 1/16, 4 = 1/8, 8 = 1/4.
+        var arpRate = 2
+        var arpOctaves = 1
         /// Il pattern di Crea da suonare (0-15): cambia all'inizio della battuta. Con la canzone accesa decide la canzone.
         var createPattern = 0
         var trackOn: [Bool] = Array(repeating: true, count: 8)
@@ -95,6 +101,10 @@ final class OPZSequencer {
     private var offsAt: [Int: [UInt8]] = [:]
     /// Le note tenute adesso (canale × 128 + nota) e il sedicesimo in cui vanno lasciate.
     private var heldUntil: [Int: Int] = [:]
+    /// L'arpeggio di Bobina: le note dell'ultimo passo pieno della traccia arp, e quante ne ha già suonate.
+    private var arpChord: [Int] = []
+    private var arpCount = 0
+    private var arpTick = 0
     /// Il pattern di Crea che suona adesso.
     private var curCreate = 0
     /// A che passo del pattern di Crea si è (0 = comincia), quante volte è già girato, quanti giri in tutto.
@@ -234,6 +244,7 @@ final class OPZSequencer {
             heldUntil.removeAll()
             onsAt.removeAll()
             fxPrev = []
+            arpChord = []
             fxSince = [:]
             if onceActive { onceActive = false; onOnceDone?() }
             lock.lock()
@@ -453,6 +464,10 @@ final class OPZSequencer {
                 let mine = scope.contains(track)
                 let tl = lens[track]
                 let idx = mine && shuffle ? Int.random(in: 0..<tl) : (((mine ? src : total) % tl) + tl) % tl
+                if track == 6 && p.arpOn {
+                    arpStep(steps[track][idx], p, t, stepMs, &bytes)
+                    continue
+                }
                 // quanti passi resta giù: fisso, o fino al prossimo passo pieno di questa traccia
                 var gate = gates.indices.contains(track) ? gates[track] : 1
                 if gate <= 0 {
@@ -517,6 +532,40 @@ final class OPZSequencer {
         onStep?(playing ? total : -1, t)
     }
 
+    // MARK: l'arpeggio di Bobina
+
+    /// Un sedicesimo dell'arpeggio: un passo pieno della traccia arp cambia l'accordo e fa ripartire la figura;
+    /// poi le note escono una alla volta alla velocità scelta, sulla griglia di Bobina.
+    private func arpStep(_ cell: [Int], _ p: Plan, _ t: MIDITimeStamp, _ stepMs: Double, _ bytes: inout [UInt8]) {
+        if !cell.isEmpty {
+            arpChord = cell.sorted()
+            arpCount = 0
+            arpTick = 0
+        }
+        guard !arpChord.isEmpty else { return }
+        let seq = p.arpStyle.sequence(arpChord, octaves: p.arpOctaves)
+        guard !seq.isEmpty else { return }
+        // in trentaduesimi: due per sedicesimo
+        for half in 0..<2 {
+            defer { arpTick += 1 }
+            guard arpTick % max(1, p.arpRate) == 0 else { continue }
+            let notes: [Int]
+            if p.arpStyle == .chord {
+                notes = seq
+            } else if p.arpStyle == .random {
+                notes = [seq[Int.random(in: 0..<seq.count)]]
+            } else {
+                notes = [seq[arpCount % seq.count]]
+            }
+            arpCount += 1
+            let on = notes.flatMap { OPZ.noteOn(min(127, $0), velocity: 100, channel: 7) }
+            let off = notes.flatMap { OPZ.noteOff(min(127, $0), channel: 7) }
+            let lenMs = stepMs / 2 * Double(max(1, p.arpRate)) * 0.8
+            if half == 0 { bytes += on } else { io.send(on, at: t + io.ticks(ms: stepMs / 2)) }
+            io.send(off, at: t + io.ticks(ms: (half == 0 ? 0 : stepMs / 2) + lenMs))
+        }
+    }
+
     /// `count` passi relativi (CC 32-49) in su o in giù, in un pezzo solo.
     private func relative(cc: Int, track: Int, count: Int, down: Bool) -> [UInt8] {
         (0..<max(0, count)).flatMap { _ in OPZ.cc(cc + 31, down ? 127 : 1, channel: track) }
@@ -547,4 +596,60 @@ final class OPZSequencer {
 struct OPZChainStep: Codable, Hashable {
     var pattern: Int
     var times: Int
+}
+
+/// Le figure dell'arpeggio di Bobina.
+enum OPZArpStyle: Int, CaseIterable, Identifiable, Codable {
+    case up, down, upDown, downUp, random, converge, diverge, pinky, thumb, chord, upOctave, skip
+
+    var id: Int { rawValue }
+
+    var name: String {
+        switch self {
+        case .up: return "su"
+        case .down: return "giù"
+        case .upDown: return "su e giù"
+        case .downUp: return "giù e su"
+        case .random: return "a caso"
+        case .converge: return "verso il centro"
+        case .diverge: return "dal centro"
+        case .pinky: return "mignolo"
+        case .thumb: return "pollice"
+        case .chord: return "accordo"
+        case .upOctave: return "su + ottava"
+        case .skip: return "a salti"
+        }
+    }
+
+    /// La fila di note da suonare in giro, dalle note dell'accordo (in ordine) e dalle ottave.
+    func sequence(_ chord: [Int], octaves: Int) -> [Int] {
+        var base: [Int] = []
+        for o in 0..<max(1, min(3, octaves)) { base += chord.map { $0 + 12 * o } }
+        guard base.count > 1 else { return base }
+        switch self {
+        case .up, .random, .chord: return base
+        case .down: return base.reversed()
+        case .upDown: return base + base.reversed().dropFirst().dropLast()
+        case .downUp: return base.reversed() + base.dropFirst().dropLast()
+        case .converge:
+            var r: [Int] = [], lo = 0, hi = base.count - 1
+            while lo <= hi { r.append(base[lo]); if lo != hi { r.append(base[hi]) }; lo += 1; hi -= 1 }
+            return r
+        case .diverge:
+            var r: [Int] = [], lo = (base.count - 1) / 2, hi = lo + 1
+            while lo >= 0 || hi < base.count { if lo >= 0 { r.append(base[lo]) }; if hi < base.count { r.append(base[hi]) }; lo -= 1; hi += 1 }
+            return r
+        case .pinky:
+            let top = base.last!
+            return base.dropLast().flatMap { [$0, top] }
+        case .thumb:
+            let low = base.first!
+            return base.dropFirst().flatMap { [low, $0] }
+        case .upOctave: return base.flatMap { [$0, $0 + 12] }
+        case .skip:
+            let even = stride(from: 0, to: base.count, by: 2).map { base[$0] }
+            let odd = stride(from: 1, to: base.count, by: 2).map { base[$0] }
+            return even + odd
+        }
+    }
 }

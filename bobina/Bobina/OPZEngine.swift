@@ -543,6 +543,17 @@ final class OPZEngine: ObservableObject {
 
     // MARK: arpeggio (traccia 7, CC 9-12)
 
+    /// L'arpeggio di Bobina: a tempo con la sua griglia. Acceso, spegne l'arpeggio dell'OP-Z (velocità a sinistra).
+    @Published var arpOn = false {
+        didSet {
+            if arpOn && !oldValue && !loading { setArp(0, 0) }
+            save()
+        }
+    }
+    @Published var arpStyle = OPZArpStyle.up { didSet { save() } }
+    @Published var arpRate = 2 { didSet { save() } }
+    @Published var arpOctaves = 1 { didSet { save() } }
+
     /// Le scelte dell'arpeggio fatte da Bobina (l'OP-Z non le dice): velocità, pattern, stile, estensione.
     @Published private(set) var arp: [Int?] = [nil, nil, nil, nil]
     static let arpChoices: [(cc: Int, name: String, labels: [String])] = [
@@ -673,6 +684,10 @@ final class OPZEngine: ObservableObject {
         p.fxSteps = fxSteps
         p.lengths = lengths
         p.gates = gates
+        p.arpOn = arpOn
+        p.arpStyle = arpStyle
+        p.arpRate = arpRate
+        p.arpOctaves = arpOctaves
         p.chainOn = chainOn
         p.chain = chain
         p.chainLoop = chainLoop
@@ -761,6 +776,10 @@ final class OPZEngine: ObservableObject {
         var lengths: [Int]?
         var trackLengths: [[Int]]?
         var gates: [[Int]]?
+        var arpOn: Bool?
+        var arpStyle: OPZArpStyle?
+        var arpRate: Int?
+        var arpOctaves: Int?
         var chain: [OPZChainStep]?
         var chainLoop: Bool?
     }
@@ -769,7 +788,7 @@ final class OPZEngine: ObservableObject {
         guard !loading else { return }
         let s = Saved(sync: sync, clockAlways: clockAlways, leadMs: leadMs, swing: swing, project: project,
                       onTheBar: onTheBar, song: song, songBars: songBars, audioOnly: audioOnly, scenes: scenes,
-                      punchHigh: punchHigh, steps: nil, trackOn: trackOn, patterns: patterns, fxSteps: fxSteps, fxAll: fxAll, fxEvery: fxEvery, fxLength: fxLength, lengths: nil, trackLengths: lengths, gates: gates, chain: chain, chainLoop: chainLoop)
+                      punchHigh: punchHigh, steps: nil, trackOn: trackOn, patterns: patterns, fxSteps: fxSteps, fxAll: fxAll, fxEvery: fxEvery, fxLength: fxLength, lengths: nil, trackLengths: lengths, gates: gates, arpOn: arpOn, arpStyle: arpStyle, arpRate: arpRate, arpOctaves: arpOctaves, chain: chain, chainLoop: chainLoop)
         if let data = try? JSONEncoder().encode(s) { UserDefaults.standard.set(data, forKey: "bobina.opz") }
     }
 
@@ -807,6 +826,10 @@ final class OPZEngine: ObservableObject {
         }
         if let g = s.gates, g.count == 16, g.allSatisfy({ $0.count == 8 }) { gates = g }
         if let c = s.chain { chain = c }
+        if let a = s.arpOn { arpOn = a }
+        if let a = s.arpStyle { arpStyle = a }
+        if let a = s.arpRate { arpRate = a }
+        if let a = s.arpOctaves { arpOctaves = a }
         if let c = s.chainLoop { chainLoop = c }
         if let a = s.fxAll { fxAll = a }
         if let e = s.fxEvery { fxEvery = e }

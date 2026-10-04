@@ -79,7 +79,37 @@ struct OPZCreaView: View {
             }
 
             if opz.createTrack == 7 {
-                Card(title: "arpeggio", note: "Come gira l'arpeggio dell'OP-Z. Le soglie non sono scritte nella guida: se un tasto fa la stessa cosa del vicino, dimmelo.") {
+                Card(title: "arpeggio di Bobina", note: "Sempre a tempo con la battuta di Bobina. Metti 2-4 note in un passo dell'arp: Bobina le suona una alla volta con la figura scelta, finché arriva un altro passo pieno.") {
+                    Toggle("arpeggio di Bobina", isOn: $opz.arpOn)
+                    Text("figura")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 3), spacing: 5) {
+                        ForEach(OPZArpStyle.allCases) { st in
+                            GridChip(text: st.name, on: opz.arpStyle == st) { opz.arpStyle = st }
+                                .accessibilityLabel("figura \(st.name)")
+                        }
+                    }
+                    Text("velocità")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                    HStack(spacing: 5) {
+                        ForEach([(1, "1/32"), (2, "1/16"), (4, "1/8"), (8, "1/4")], id: \.0) { r in
+                            GridChip(text: r.1, on: opz.arpRate == r.0) { opz.arpRate = r.0 }
+                                .accessibilityLabel("velocità \(r.1)")
+                        }
+                    }
+                    Text("ottave")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                    HStack(spacing: 5) {
+                        ForEach(1...3, id: \.self) { o in
+                            GridChip(text: "\(o)", on: opz.arpOctaves == o) { opz.arpOctaves = o }
+                                .accessibilityLabel("\(o) ottave")
+                        }
+                    }
+                }
+                Card(title: "arpeggio dell'OP-Z", note: "Quello della macchina: va col tempo dell'OP-Z, non con la battuta di Bobina. Le soglie non sono scritte nella guida.") {
                     ForEach(OPZEngine.arpChoices.indices, id: \.self) { r in
                         let c = OPZEngine.arpChoices[r]
                         Text(c.name)
@@ -127,6 +157,8 @@ struct OPZCreaView: View {
                 OPZStepCells(live: opz.live, length: opz.length, count: { opz.steps[opz.createTrack - 1][$0].count },
                              has: { opz.hasStep($0) }, color: OPZ.color(opz.createTrack),
                              tap: { opz.toggleStep($0) })
+                GridChip(text: "svuota \(OPZ.track(opz.createTrack).short)") { opz.clearTrack() }
+                    .accessibilityLabel("svuota tutti i passi di \(OPZ.track(opz.createTrack).name)")
             }
 
             OPZCreaMixerCard()
