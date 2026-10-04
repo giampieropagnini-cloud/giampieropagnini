@@ -33,6 +33,8 @@ final class OPZSequencer {
         var patterns: [[[[Int]]]] = Array(repeating: Array(repeating: Array(repeating: [], count: 32), count: 8), count: 16)
         /// Quanti passi ha ogni traccia di ogni pattern di Crea (1-32): tracce di lunghezza diversa = poliritmi.
         var lengths: [[Int]] = Array(repeating: Array(repeating: 16, count: 8), count: 16)
+        /// Quanto dura una nota di ogni traccia, in passi; 0 = tenuta fino alla nota dopo (per arp e accordi).
+        var gates: [[Int]] = Array(repeating: Array(repeating: 1, count: 8), count: 16)
         /// La catena di Crea: pattern (0-15) e quante volte, uno dopo l'altro.
         var chainOn = false
         var chain: [OPZChainStep] = []
@@ -91,6 +93,8 @@ final class OPZSequencer {
     private var nextSixteenthStart = 0
     /// Le note da lasciare, per sedicesimo: vanno nel pacchetto di quel passo.
     private var offsAt: [Int: [UInt8]] = [:]
+    /// Le note tenute adesso (canale × 128 + nota) e il sedicesimo in cui vanno lasciate.
+    private var heldUntil: [Int: Int] = [:]
     /// Il pattern di Crea che suona adesso.
     private var curCreate = 0
     /// A che passo del pattern di Crea si è (0 = comincia), quante volte è già girato, quanti giri in tutto.
@@ -225,8 +229,9 @@ final class OPZSequencer {
             lock.unlock()
             BobinaClock.shared.leave(.opz)
             if !(p.clockAlways && p.sync == .clock) { stopTimer() }
-            let offs = offsAt.values.flatMap { $0 } + fxRestore(all: true)
+            let offs = offsAt.values.flatMap { $0 } + heldUntil.keys.flatMap { OPZ.noteOff($0 % 128, channel: $0 / 128) } + fxRestore(all: true)
             offsAt.removeAll()
+            heldUntil.removeAll()
             onsAt.removeAll()
             fxPrev = []
             fxSince = [:]
@@ -406,6 +411,11 @@ final class OPZSequencer {
         }
         let playing = (p.createOn && !(p.chainOn && chainDone)) || onceActive
         var bytes = offsAt.removeValue(forKey: n) ?? []
+        // le note arrivate alla fine della loro durata
+        for (key, until) in heldUntil where until <= n {
+            bytes += OPZ.noteOff(key % 128, channel: key / 128)
+            heldUntil[key] = nil
+        }
         bytes += onsAt.removeValue(forKey: n) ?? []
 
         // gli effetti: quelli tenuti dal vivo più quello scritto in questo passo
@@ -436,32 +446,42 @@ final class OPZSequencer {
             if active.contains(.rampUp), let a = fxSince[.rampUp] { repeats = min(4, 1 + (n - a) / 4) }
             if active.contains(.rampDown), let a = fxSince[.rampDown] { repeats = max(1, 4 - (n - a) / 4) }
 
-            var offs: [UInt8] = []
             var shortOffs: [UInt8] = []
-            var longOffs: [UInt8] = []
+            let gates = p.gates.indices.contains(curCreate) ? p.gates[curCreate] : Array(repeating: 1, count: 8)
             var subs: [[UInt8]] = Array(repeating: [], count: 4)
             for track in 0..<min(8, steps.count) where p.trackOn[track] {
                 let mine = scope.contains(track)
                 let tl = lens[track]
                 let idx = mine && shuffle ? Int.random(in: 0..<tl) : (((mine ? src : total) % tl) + tl) % tl
+                // quanti passi resta giù: fisso, o fino al prossimo passo pieno di questa traccia
+                var gate = gates.indices.contains(track) ? gates[track] : 1
+                if gate <= 0 {
+                    gate = tl
+                    for d in 1...tl where !steps[track][(idx + d) % tl].isEmpty { gate = d; break }
+                }
+                if mine && active.contains(.long) { gate = max(gate, 3) }
                 for raw in steps[track][idx] {
                     let note = mine && active.contains(.pitch) && track >= 4 ? min(127, raw + 12) : raw
                     let ch = track + 1
+                    let key = ch * 128 + note
+                    // la stessa nota ancora tenuta: prima la si lascia, se no l'OP-Z non la ribatte
+                    if heldUntil[key] != nil { bytes += OPZ.noteOff(note, channel: ch) }
                     bytes += OPZ.noteOn(note, velocity: 100, channel: ch)
                     if mine && repeats > 1 {
                         for j in 1..<repeats { subs[j] += OPZ.noteOff(note, channel: ch) + OPZ.noteOn(note, velocity: 90, channel: ch) }
                     }
-                    if mine && active.contains(.short) { shortOffs += OPZ.noteOff(note, channel: ch) }
-                    else if mine && active.contains(.long) { longOffs += OPZ.noteOff(note, channel: ch) }
-                    else { offs += OPZ.noteOff(note, channel: ch) }
+                    if mine && active.contains(.short) {
+                        shortOffs += OPZ.noteOff(note, channel: ch)
+                        heldUntil[key] = nil
+                    } else {
+                        heldUntil[key] = n + gate
+                    }
                     if mine && active.contains(.echo) {
                         onsAt[n + 3, default: []] += OPZ.noteOn(note, velocity: 45, channel: ch)
                         offsAt[n + 4, default: []] += OPZ.noteOff(note, channel: ch)
                     }
                 }
             }
-            if !offs.isEmpty { offsAt[n + 1, default: []] += offs }
-            if !longOffs.isEmpty { offsAt[n + 3, default: []] += longOffs }
             if !shortOffs.isEmpty { io.send(shortOffs, at: t + io.ticks(ms: min(30, stepMs / 3))) }
             for j in 1..<repeats where !subs[j].isEmpty {
                 io.send(subs[j], at: t + io.ticks(ms: stepMs * Double(j) / Double(repeats)))

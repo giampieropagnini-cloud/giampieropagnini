@@ -20,6 +20,7 @@ struct OPZCreaView: View {
 
             Card(title: "Bobina suona l'OP-Z", note: "Scrivi i passi qui: Bobina li suona sull'OP-Z a tempo, insieme a TX-6 e Pocket Operator. Meglio un pattern vuoto sull'OP-Z, se no suonano anche i suoi passi.") {
                 Toggle("Crea suona", isOn: $opz.createOn)
+                OPZResetRow()
                 HStack(spacing: 6) {
                     GridChip(text: "ritmo di partenza") { opz.starter() }
                     GridChip(text: "svuota la traccia") { opz.clearTrack() }
@@ -97,6 +98,15 @@ struct OPZCreaView: View {
                     }
                 }
                 GridChip(text: "\(opz.length) passi a tutte le tracce") { opz.setAllLengths(opz.length) }
+                Text("durata delle note di \(OPZ.track(opz.createTrack).short)")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                HStack(spacing: 5) {
+                    ForEach([(1, "1"), (2, "2"), (4, "4"), (8, "8"), (0, "tenuta")], id: \.0) { g in
+                        GridChip(text: g.1, on: opz.gate == g.0) { opz.gate = g.0 }
+                            .accessibilityLabel(g.0 == 0 ? "nota tenuta fino alla prossima" : "nota lunga \(g.1) passi")
+                    }
+                }
                 OPZStepCells(live: opz.live, length: opz.length, count: { opz.steps[opz.createTrack - 1][$0].count },
                              has: { opz.hasStep($0) }, color: OPZ.color(opz.createTrack),
                              tap: { opz.toggleStep($0) })
@@ -300,6 +310,38 @@ struct OPZChainRow: View {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("catena: " + chain.map { "\($0.pattern + 1) per \($0.times)" }.joined(separator: ", "))
+        }
+    }
+}
+
+/// «ricomincia da zero» chiede conferma con un secondo tasto: cancella tutto Crea.
+struct OPZResetRow: View {
+    @EnvironmentObject var opz: OPZEngine
+    @State private var asking = false
+
+    var body: some View {
+        if asking {
+            HStack(spacing: 6) {
+                Button { opz.resetCrea(); asking = false } label: {
+                    Text("sì, cancella tutto")
+                        .font(.system(.subheadline, design: .monospaced).weight(.bold))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(RoundedRectangle(cornerRadius: 9).fill(Palette.rec))
+                        .foregroundStyle(Color.white)
+                }
+                .buttonStyle(.plain)
+                GridChip(text: "no, lascia stare") { asking = false }
+            }
+        } else {
+            Button { asking = true } label: {
+                Text("ricomincia da zero")
+                    .font(.system(.subheadline, design: .monospaced))
+                    .frame(maxWidth: .infinity, minHeight: 40)
+                    .background(RoundedRectangle(cornerRadius: 9).stroke(Palette.rec, lineWidth: 2))
+                    .foregroundStyle(Palette.rec)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("cancella tutti i pattern, gli effetti e la catena di Crea")
         }
     }
 }
