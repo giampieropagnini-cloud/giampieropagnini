@@ -460,9 +460,23 @@ final class OPZEngine: ObservableObject {
     }
 
     /// Mette o toglie l'effetto scelto in un passo del pattern che scrivi.
+    /// Quanti passi dura un effetto messo nei passi: un effetto in un passo solo spesso non fa in tempo a sentirsi.
+    @Published var fxLength = 4 { didSet { save() } }
+
+    /// Tocca un passo: l'effetto scelto parte lì e dura `fxLength` passi (gira oltre il 16 e ricomincia dall'1).
+    /// Se il passo ha già quell'effetto, si toglie tutto il tratto di fila.
     func toggleFxStep(_ i: Int) {
-        let cur = fxSteps[createPattern - 1][i]
-        fxSteps[createPattern - 1][i] = cur == fxPick ? nil : fxPick
+        var row = fxSteps[createPattern - 1]
+        if row[i] == fxPick {
+            let f = fxPick
+            var j = i
+            while row[j] == f { row[j] = nil; j = (j + 1) % 16; if j == i { break } }
+            j = (i + 15) % 16
+            while row[j] == f { row[j] = nil; j = (j + 15) % 16; if j == i { break } }
+        } else {
+            for k in 0..<max(1, min(16, fxLength)) { row[(i + k) % 16] = fxPick }
+        }
+        fxSteps[createPattern - 1] = row
     }
 
     func clearFxSteps() { fxSteps[createPattern - 1] = Array(repeating: nil, count: 16) }
@@ -635,13 +649,14 @@ final class OPZEngine: ObservableObject {
         var fxSteps: [[CreaFx?]]?
         var fxAll: Bool?
         var fxEvery: Int?
+        var fxLength: Int?
     }
 
     private func save() {
         guard !loading else { return }
         let s = Saved(sync: sync, clockAlways: clockAlways, leadMs: leadMs, swing: swing, project: project,
                       onTheBar: onTheBar, song: song, songBars: songBars, audioOnly: audioOnly, scenes: scenes,
-                      punchHigh: punchHigh, steps: nil, trackOn: trackOn, patterns: patterns, fxSteps: fxSteps, fxAll: fxAll, fxEvery: fxEvery)
+                      punchHigh: punchHigh, steps: nil, trackOn: trackOn, patterns: patterns, fxSteps: fxSteps, fxAll: fxAll, fxEvery: fxEvery, fxLength: fxLength)
         if let data = try? JSONEncoder().encode(s) { UserDefaults.standard.set(data, forKey: "bobina.opz") }
     }
 
@@ -670,6 +685,7 @@ final class OPZEngine: ObservableObject {
         if let f = s.fxSteps, f.count == 16, f.allSatisfy({ $0.count == 16 }) { fxSteps = f }
         if let a = s.fxAll { fxAll = a }
         if let e = s.fxEvery { fxEvery = e }
+        if let l = s.fxLength { fxLength = l }
         loading = false
     }
 }

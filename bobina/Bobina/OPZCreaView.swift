@@ -94,7 +94,7 @@ struct OPZCreaView: View {
                 }
             }
 
-            Card(title: "effetti nei passi · pattern \(opz.createPattern)", note: "Scegli un effetto, poi i passi dove lo vuoi: suona da solo in quei passi. Su più passi di fila resta acceso.") {
+            Card(title: "effetti nei passi · pattern \(opz.createPattern)", note: "Scegli un effetto e quanto dura, poi tocca il passo dove comincia. Ritocca un passo dell'effetto per toglierlo tutto.") {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 3), spacing: 5) {
                     ForEach(CreaFx.allCases) { f in
                         Button { opz.fxPick = f } label: {
@@ -109,6 +109,15 @@ struct OPZCreaView: View {
                         .buttonStyle(.plain)
                         .accessibilityLabel("scegli \(f.name)")
                         .accessibilityAddTraits(opz.fxPick == f ? .isSelected : [])
+                    }
+                }
+                HStack(spacing: 6) {
+                    Text("dura")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                    ForEach([1, 2, 4, 8, 16], id: \.self) { l in
+                        GridChip(text: "\(l)", on: opz.fxLength == l) { opz.fxLength = l }
+                            .accessibilityLabel(l == 1 ? "dura un passo" : "dura \(l) passi")
                     }
                 }
                 OPZFxStepCells(live: opz.live, cells: opz.fxSteps[opz.createPattern - 1], tap: { opz.toggleFxStep($0) })

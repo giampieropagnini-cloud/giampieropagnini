@@ -425,8 +425,8 @@ final class OPZSequencer {
                 } else {
                     for track in scope {
                         let down = phase < 8
-                        bytes += relative(cc: 3, track: track + 1, count: 8, down: down)
-                        sweepNet[track, default: 0] += down ? 8 : -8
+                        bytes += relative(cc: 3, track: track + 1, count: 12, down: down)
+                        sweepNet[track, default: 0] += down ? 12 : -12
                     }
                 }
             }
@@ -434,7 +434,8 @@ final class OPZSequencer {
             if active.contains(.duck) {
                 let q = ((n % 4) + 4) % 4
                 for track in scope where p.trackOn[track] {
-                    let amount = q == 0 ? 8 : (q == 3 ? 2 : 3)
+                    // 4/10/2026: con 8 giù si sentiva poco («pompa un po' di più»)
+                    let amount = q == 0 ? 20 : (q == 3 ? 6 : 7)
                     bytes += relative(cc: 16, track: track + 1, count: amount, down: q == 0)
                     duckNet[track, default: 0] += q == 0 ? amount : -amount
                 }
