@@ -6,13 +6,13 @@ import SwiftUI
 struct MachineSwitch: View {
     @AppStorage("bobina.macchina") private var machine = "tp7"
 
-    private let machines = [("tp7", "TP-7"), ("tx6", "TX-6"), ("po", "Pocket Operator"), ("opz", "OP-Z")]
+    private let machines = [("tp7", "TP-7"), ("tx6", "TX-6"), ("po", "Pocket Operator"), ("opz", "OP-Z"), ("m8", "M8")]
 
     var body: some View {
         // un menu con tre tasti, ognuno col suo nome: col Controllo Vocale «passa a…» e poi il nome
         Menu {
             ForEach(machines.filter { $0.0 != machine }, id: \.0) { m in
-                Button(m.0 == "opz" ? "passa all'OP-Z" : "passa al \(m.1)") { machine = m.0 }
+                Button(m.0 == "opz" ? "passa all'OP-Z" : m.0 == "m8" ? "passa all'M8" : "passa al \(m.1)") { machine = m.0 }
             }
         } label: {
             Text("passa a…")
