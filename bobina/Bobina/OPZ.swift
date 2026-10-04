@@ -102,8 +102,11 @@ enum OPZ {
     static let punchIn: [String] = ["duck", "filter sweep", "loop 1", "stereo", "loop 2", "pitch",
                                     "follow / echo", "ramp up", "short", "ramp down", "long", "random"]
 
-    /// Il fa della tastiera di serie dell'OP-Z: 53 (da misurare, vedi OPZ-RICERCA §4).
+    /// Il fa della tastiera di serie dell'OP-Z: 53 (misurato il 4/10/2026: i primi tre tasti della fila di sotto = 53 55 57).
     static let keyboardF = 53
+    /// Gli effetti punch-in (SHIFT + tastiera) escono come note molto basse sul canale 13: misurate 9 e 11 il 4/10/2026,
+    /// quindi il fa è 5. Ottava bassa = la traccia attiva, quella sopra (17-28) = il gruppo.
+    static let punchF = 5
 
     // MARK: messaggi
 

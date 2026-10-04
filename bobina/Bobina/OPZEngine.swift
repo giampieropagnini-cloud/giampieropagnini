@@ -350,7 +350,7 @@ final class OPZEngine: ObservableObject {
 
     // MARK: effetti punch-in (traccia 13)
 
-    private func punchNote(_ i: Int) -> Int { OPZ.keyboardF + i + (punchHigh ? 12 : 0) }
+    private func punchNote(_ i: Int) -> Int { OPZ.punchF + i + (punchHigh ? 12 : 0) }
 
     /// Metà di sopra del tasto: l'effetto per un momento.
     func punchTap(_ i: Int, length: Double = 500) {
@@ -371,12 +371,12 @@ final class OPZEngine: ObservableObject {
     func punchRelease(_ i: Int) {
         guard punchHeld.contains(i) else { return }
         punchHeld.remove(i)
-        send(OPZ.noteOff(OPZ.keyboardF + i, channel: 13) + OPZ.noteOff(OPZ.keyboardF + i + 12, channel: 13))
+        send(OPZ.noteOff(OPZ.punchF + i, channel: 13) + OPZ.noteOff(OPZ.punchF + i + 12, channel: 13))
     }
 
     func punchReleaseAll() {
         guard !punchHeld.isEmpty else { return }
-        let bytes = punchHeld.flatMap { OPZ.noteOff(OPZ.keyboardF + $0, channel: 13) + OPZ.noteOff(OPZ.keyboardF + $0 + 12, channel: 13) }
+        let bytes = punchHeld.flatMap { OPZ.noteOff(OPZ.punchF + $0, channel: 13) + OPZ.noteOff(OPZ.punchF + $0 + 12, channel: 13) }
         punchHeld.removeAll()
         send(bytes)
     }
