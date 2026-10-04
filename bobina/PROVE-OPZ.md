@@ -33,3 +33,6 @@ Le fonti dei dubbi sono in OPZ-RICERCA.md §14.
 - Passi per traccia (1-32, poliritmi kick 4, snare 7, perc 5): va.
 
 Da provare ancora: «scrivi una battuta sull'OP-Z» col record lock, clock di Bobina insieme a TX-6 e PO, CC 102/103 canali, swing.
+- Durata delle note per traccia (tenuta per arp e chord), «ricomincia da zero», «svuota» sotto i passi: vanno.
+- Arpeggio: quello dell'OP-Z non va a tempo con Bobina e col CC 9 = 8 restava acceso lentissimo; tenuto solo quello di Bobina (CC 9 = 0 spegne quello dell'OP-Z). Va a tempo.
+- Tasti nota tocca/tieni, note tenute accavallate, arpeggio sulle note tenute: «suona tutto perfetto».
