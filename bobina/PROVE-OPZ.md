@@ -30,5 +30,6 @@ Le fonti dei dubbi sono in OPZ-RICERCA.md §14.
 - Pattern di Bobina (16, copia/incolla): vanno.
 - Effetti di Bobina dal vivo e nei passi: vanno. Duck rinforzato (20 passi relativi giù); durata degli effetti nei passi 1-16: va.
 - Pattern da 4 a 32 passi e catena di pattern: va.
+- Passi per traccia (1-32, poliritmi kick 4, snare 7, perc 5): va.
 
 Da provare ancora: «scrivi una battuta sull'OP-Z» col record lock, clock di Bobina insieme a TX-6 e PO, CC 102/103 canali, swing.
