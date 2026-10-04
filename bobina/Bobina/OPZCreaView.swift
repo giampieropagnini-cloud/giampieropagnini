@@ -81,9 +81,124 @@ struct OPZCreaView: View {
                              tap: { opz.toggleStep($0) })
             }
 
+            Card(title: "effetti di Bobina", note: "Lavorano sulle note di Crea, a tempo. Sopra: l'effetto per una battuta. Sotto: resta finché non tocchi «lascia».") {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 8) {
+                    ForEach(CreaFx.allCases) { f in
+                        OPZCreaFxKey(fx: f, held: opz.fxHeld.contains(f))
+                    }
+                }
+                HStack(spacing: 6) {
+                    GridChip(text: "su tutte", on: opz.fxAll) { opz.fxAll = true }
+                    GridChip(text: "solo \(OPZ.track(opz.createTrack).short)", on: !opz.fxAll) { opz.fxAll = false }
+                    GridChip(text: "lascia tutti") { opz.creaFxReleaseAll() }
+                }
+            }
+
+            Card(title: "effetti nei passi · pattern \(opz.createPattern)", note: "Scegli un effetto, poi i passi dove lo vuoi: suona da solo in quei passi. Su più passi di fila resta acceso.") {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 3), spacing: 5) {
+                    ForEach(CreaFx.allCases) { f in
+                        Button { opz.fxPick = f } label: {
+                            Text(f.name)
+                                .font(.system(.footnote, design: .monospaced).weight(opz.fxPick == f ? .bold : .regular))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                                .frame(maxWidth: .infinity, minHeight: 40)
+                                .background(RoundedRectangle(cornerRadius: 8).fill(opz.fxPick == f ? f.color : f.dark))
+                                .foregroundStyle(opz.fxPick == f ? Color.black : Color.white)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("scegli \(f.name)")
+                        .accessibilityAddTraits(opz.fxPick == f ? .isSelected : [])
+                    }
+                }
+                OPZFxStepCells(live: opz.live, cells: opz.fxSteps[opz.createPattern - 1], tap: { opz.toggleFxStep($0) })
+                HStack(spacing: 6) {
+                    Text("ogni")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                    ForEach([1, 2, 4, 8], id: \.self) { e in
+                        GridChip(text: e == 1 ? "battuta" : "\(e)", on: opz.fxEvery == e) { opz.fxEvery = e }
+                            .accessibilityLabel(e == 1 ? "ogni battuta" : "ogni \(e) battute")
+                    }
+                }
+                GridChip(text: "togli gli effetti dai passi") { opz.clearFxSteps() }
+            }
+
             Card(title: "scrivi sull'OP-Z", note: "Per mettere questi passi dentro il pattern dell'OP-Z: Ele accende il record lock (tiene REC e preme PLAY). Poi tocca qui: Bobina suona i passi per una battuta sola, dall'inizio della battuta dopo. Da provare: è la prima volta.") {
                 GridChip(text: opz.writing ? "sto scrivendo…" : "scrivi una battuta sull'OP-Z", on: opz.writing) { opz.writeOnce() }
                     .disabled(opz.writing)
+            }
+        }
+    }
+}
+
+/// Un effetto di Bobina diviso in due: sopra una battuta, sotto tieni / lascia.
+struct OPZCreaFxKey: View {
+    @EnvironmentObject var opz: OPZEngine
+    let fx: CreaFx
+    let held: Bool
+
+    var body: some View {
+        VStack(spacing: 3) {
+            Button { opz.creaFxTap(fx) } label: {
+                VStack(spacing: 1) {
+                    Text(fx.name)
+                        .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                    Text(fx.hint)
+                        .font(.system(size: 9, design: .monospaced))
+                        .opacity(0.75)
+                }
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity, minHeight: 48)
+                .background(RoundedRectangle(cornerRadius: 8).fill(fx.color))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(held ? Color.white : Palette.cardEdge, lineWidth: held ? 3 : 1))
+                .foregroundStyle(Color.black)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(fx.name)
+
+            Button { opz.creaFxToggle(fx) } label: {
+                Text(held ? "lascia" : "tieni")
+                    .font(.system(.caption2, design: .monospaced).weight(held ? .bold : .regular))
+                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(held ? Color.white : fx.dark))
+                    .foregroundStyle(held ? Color.black : Color.white.opacity(0.85))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(held ? "lascia \(fx.name)" : "tieni \(fx.name)")
+            .accessibilityAddTraits(held ? .isSelected : [])
+        }
+    }
+}
+
+/// I 16 passi degli effetti: in ognuno il nome corto dell'effetto, o niente. Guarda `live` per il passo che suona.
+struct OPZFxStepCells: View {
+    @ObservedObject var live: OPZLive
+    let cells: [CreaFx?]
+    let tap: (Int) -> Void
+
+    var body: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 4), spacing: 5) {
+            ForEach(0..<16, id: \.self) { i in
+                let f = cells[i]
+                Button { tap(i) } label: {
+                    VStack(spacing: 0) {
+                        Text("\(i + 1)")
+                            .font(.system(.caption, design: .monospaced))
+                        Text(f?.name ?? "·")
+                            .font(.system(size: 10, design: .monospaced).weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 46)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(f?.color ?? Color(white: i % 4 == 0 ? 0.22 : 0.16)))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(live.step == i ? Color.white : Color.clear, lineWidth: 3))
+                    .foregroundStyle(f == nil ? Color.white : Color.black)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("effetto passo \(i + 1)")
+                .accessibilityValue(f?.name ?? "vuoto")
             }
         }
     }

@@ -209,3 +209,47 @@ enum OPZSync: String, CaseIterable, Identifiable, Codable {
 
     var id: String { rawValue }
 }
+
+/// Gli effetti di Bobina per Crea: lavorano sulle note che manda Bobina, non sul sequencer dell'OP-Z
+/// (gli effetti punch-in dell'OP-Z toccano solo i suoi passi).
+enum CreaFx: Int, CaseIterable, Identifiable, Codable {
+    case loop1, loop2, rampUp, rampDown, pitch, random, short, long, echo, sweep, duck
+
+    var id: Int { rawValue }
+
+    var name: String {
+        switch self {
+        case .loop1: return "loop 1"
+        case .loop2: return "loop 2"
+        case .rampUp: return "ramp up"
+        case .rampDown: return "ramp down"
+        case .pitch: return "pitch"
+        case .random: return "random"
+        case .short: return "short"
+        case .long: return "long"
+        case .echo: return "echo"
+        case .sweep: return "filter sweep"
+        case .duck: return "duck"
+        }
+    }
+
+    /// Una riga per chi non se lo ricorda.
+    var hint: String {
+        switch self {
+        case .loop1: return "ripete l'ultimo quarto"
+        case .loop2: return "ripete gli ultimi due quarti"
+        case .rampUp: return "rullata che accelera"
+        case .rampDown: return "rullata che rallenta"
+        case .pitch: return "synth un'ottava su"
+        case .random: return "passi rimescolati"
+        case .short: return "note cortissime"
+        case .long: return "note tenute"
+        case .echo: return "ogni nota ripetuta più piano"
+        case .sweep: return "il filtro scende e risale"
+        case .duck: return "il volume pompa a ogni battito"
+        }
+    }
+
+    var color: Color { Color(hue: Double(rawValue) / 11, saturation: 0.55, brightness: 0.95) }
+    var dark: Color { Color(hue: Double(rawValue) / 11, saturation: 0.6, brightness: 0.45) }
+}

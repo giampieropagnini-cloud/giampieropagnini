@@ -119,6 +119,7 @@ final class OPZEngine: ObservableObject {
     @Published var createPattern = 1
     /// Il pattern copiato, da incollare.
     @Published private(set) var copied: [[[Int]]]?
+    private var copiedFx: [CreaFx?]?
 
     /// I passi del pattern che si sta scrivendo.
     var steps: [[[Int]]] {
@@ -131,6 +132,15 @@ final class OPZEngine: ObservableObject {
     @Published var createTrack = 1
     /// Il suono (batteria) o la nota (synth) che si mette nei passi: 53-76, la tastiera dell'OP-Z.
     @Published var pick = 53
+    /// Gli effetti di Bobina tenuti adesso (tasto «tieni», o «tocca» per una battuta).
+    @Published private(set) var fxHeld: Set<CreaFx> = [] { didSet { sequencer.update(makePlan()) } }
+    private var fxTapped: [CreaFx: Int] = [:]
+    /// Gli effetti di Bobina lavorano su tutte le tracce, o solo su quella che scrivi.
+    @Published var fxAll = true { didSet { save() } }
+    /// Gli effetti scritti nei passi, per ognuno dei 16 pattern.
+    @Published var fxSteps: [[CreaFx?]] = Array(repeating: Array(repeating: nil, count: 16), count: 16) { didSet { save() } }
+    @Published var fxPick = CreaFx.rampUp
+    @Published var fxEvery = 1 { didSet { save() } }
     /// Sta suonando il giro solo per farlo registrare all'OP-Z.
     @Published private(set) var writing = false
 
@@ -423,14 +433,50 @@ final class OPZEngine: ObservableObject {
         io.send(OPZ.noteOff(note, channel: createTrack), at: ms(250))
     }
 
+    // MARK: effetti di Bobina
+
+    /// Metà di sopra: l'effetto per una battuta.
+    func creaFxTap(_ f: CreaFx) {
+        if fxHeld.contains(f) && fxTapped[f] == nil { fxHeld.remove(f); return }
+        fxHeld.insert(f)
+        let token = (fxTapped[f] ?? 0) + 1
+        fxTapped[f] = token
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4 * 60 / max(40, bpm)) { [weak self] in
+            guard let self = self, self.fxTapped[f] == token else { return }
+            self.fxTapped[f] = nil
+            self.fxHeld.remove(f)
+        }
+    }
+
+    /// Metà di sotto: resta finché non lo ritocchi.
+    func creaFxToggle(_ f: CreaFx) {
+        fxTapped[f] = nil
+        if fxHeld.contains(f) { fxHeld.remove(f) } else { fxHeld.insert(f) }
+    }
+
+    func creaFxReleaseAll() {
+        fxTapped = [:]
+        fxHeld = []
+    }
+
+    /// Mette o toglie l'effetto scelto in un passo del pattern che scrivi.
+    func toggleFxStep(_ i: Int) {
+        let cur = fxSteps[createPattern - 1][i]
+        fxSteps[createPattern - 1][i] = cur == fxPick ? nil : fxPick
+    }
+
+    func clearFxSteps() { fxSteps[createPattern - 1] = Array(repeating: nil, count: 16) }
+
     func copyPattern() {
         copied = steps
+        copiedFx = fxSteps[createPattern - 1]
         logText("pattern \(createPattern) copiato")
     }
 
     func pastePattern() {
         guard let c = copied else { return }
         steps = c
+        if let f = copiedFx { fxSteps[createPattern - 1] = f }
         logText("incollato nel pattern \(createPattern)")
     }
 
@@ -505,6 +551,10 @@ final class OPZEngine: ObservableObject {
         p.createOn = createOn
         p.patterns = patterns
         p.createPattern = createPattern - 1
+        p.fxLive = fxHeld
+        p.fxTrack = fxAll ? nil : createTrack
+        p.fxSteps = fxSteps
+        p.fxEvery = fxEvery
         p.trackOn = trackOn
         return p
     }
@@ -582,13 +632,16 @@ final class OPZEngine: ObservableObject {
         var steps: [[[Int]]]?
         var trackOn: [Bool]?
         var patterns: [[[[Int]]]]?
+        var fxSteps: [[CreaFx?]]?
+        var fxAll: Bool?
+        var fxEvery: Int?
     }
 
     private func save() {
         guard !loading else { return }
         let s = Saved(sync: sync, clockAlways: clockAlways, leadMs: leadMs, swing: swing, project: project,
                       onTheBar: onTheBar, song: song, songBars: songBars, audioOnly: audioOnly, scenes: scenes,
-                      punchHigh: punchHigh, steps: nil, trackOn: trackOn, patterns: patterns)
+                      punchHigh: punchHigh, steps: nil, trackOn: trackOn, patterns: patterns, fxSteps: fxSteps, fxAll: fxAll, fxEvery: fxEvery)
         if let data = try? JSONEncoder().encode(s) { UserDefaults.standard.set(data, forKey: "bobina.opz") }
     }
 
@@ -614,6 +667,9 @@ final class OPZEngine: ObservableObject {
             patterns[0] = st   // i passi di prima della 4/10 diventano il pattern 1
         }
         if let on = s.trackOn, on.count == 8 { trackOn = on }
+        if let f = s.fxSteps, f.count == 16, f.allSatisfy({ $0.count == 16 }) { fxSteps = f }
+        if let a = s.fxAll { fxAll = a }
+        if let e = s.fxEvery { fxEvery = e }
         loading = false
     }
 }

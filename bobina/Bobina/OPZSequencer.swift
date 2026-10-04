@@ -34,6 +34,14 @@ final class OPZSequencer {
         /// Il pattern di Crea da suonare (0-15): cambia all'inizio della battuta. Con la canzone accesa decide la canzone.
         var createPattern = 0
         var trackOn: [Bool] = Array(repeating: true, count: 8)
+        /// Gli effetti di Bobina tenuti adesso dal vivo.
+        var fxLive: Set<CreaFx> = []
+        /// Su quale traccia (1-8) lavorano gli effetti; nil = su tutte.
+        var fxTrack: Int?
+        /// Gli effetti scritti nei passi, per pattern: 16 passi, un effetto o niente.
+        var fxSteps: [[CreaFx?]] = Array(repeating: Array(repeating: nil, count: 16), count: 16)
+        /// Gli effetti dei passi suonano solo nell'ultima di ogni tot battute (1 = sempre).
+        var fxEvery = 1
     }
 
     /// Un battito è partito: battuta (da 0) e quarto (0-3), con l'istante. Per la pagina.
@@ -79,6 +87,16 @@ final class OPZSequencer {
     private var onceBar: Int?
     /// Il pattern di Crea che suona adesso.
     private var curCreate = 0
+    /// Le note che partono più tardi (l'eco), per sedicesimo.
+    private var onsAt: [Int: [UInt8]] = [:]
+    /// Gli effetti accesi al passo prima, e da quando.
+    private var fxPrev: Set<CreaFx> = []
+    private var fxSince: [CreaFx: Int] = [:]
+    /// Quanti passi relativi in giù (filtro e volume) restano da riportare su, per traccia: così l'OP-Z torna com'era.
+    private var sweepNet: [Int: Int] = [:]
+    private var duckNet: [Int: Int] = [:]
+    /// Il filter sweep su tutte usa il filtro del master (neutro a 64): va rimesso a 64.
+    private var masterSwept = false
     private let lookahead = 150.0
     /// Quanto prima della battuta parte il cambio pattern.
     private let patternEarlyMs = 15.0
@@ -183,8 +201,11 @@ final class OPZSequencer {
             lock.unlock()
             BobinaClock.shared.leave(.opz)
             if !(p.clockAlways && p.sync == .clock) { stopTimer() }
-            let offs = offsAt.values.flatMap { $0 }
+            let offs = offsAt.values.flatMap { $0 } + fxRestore(all: true)
             offsAt.removeAll()
+            onsAt.removeAll()
+            fxPrev = []
+            fxSince = [:]
             if onceBar != nil { onceBar = nil; onOnceDone?() }
             lock.lock()
             onceRequested = false
@@ -338,19 +359,109 @@ final class OPZSequencer {
         }
         let playing = p.createOn || onceBar == bar
         var bytes = offsAt.removeValue(forKey: n) ?? []
+        bytes += onsAt.removeValue(forKey: n) ?? []
+
+        // gli effetti: quelli tenuti dal vivo più quello scritto in questo passo
+        var active = playing ? p.fxLive : []
+        let fxBar = p.fxEvery <= 1 || (bar - nextSixteenthStart / 16) % p.fxEvery == p.fxEvery - 1
+        if playing && fxBar, p.fxSteps.indices.contains(curCreate), let f = p.fxSteps[curCreate][i] { active.insert(f) }
+        for f in active.subtracting(fxPrev) { fxSince[f] = n }
+        if !fxPrev.subtracting(active).isEmpty {
+            // finito un filter sweep o un duck: il filtro e il volume tornano dov'erano
+            if fxPrev.contains(.sweep) && !active.contains(.sweep) { bytes += fxRestore(sweep: true) }
+            if fxPrev.contains(.duck) && !active.contains(.duck) { bytes += fxRestore(duck: true) }
+        }
+        fxPrev = active
+        let scope: Set<Int> = p.fxTrack.map { [$0 - 1] } ?? Set(0..<8)
+        let stepMs = line.beatMs / 4
+
         if playing {
-            var offs: [UInt8] = []
             let steps = p.patterns[max(0, min(p.patterns.count - 1, curCreate))]
+            // da quale passo si leggono le note: il loop ripete, il random rimescola
+            var src = i
+            if active.contains(.loop2), let a = fxSince[.loop2] { src = ((a - 8 + (n - a) % 8) % 16 + 16) % 16 }
+            else if active.contains(.loop1), let a = fxSince[.loop1] { src = ((a - 4 + (n - a) % 4) % 16 + 16) % 16 }
+            if active.contains(.random) { src = Int.random(in: 0..<16) }
+            var repeats = 1
+            if active.contains(.rampUp), let a = fxSince[.rampUp] { repeats = min(4, 1 + (n - a) / 4) }
+            if active.contains(.rampDown), let a = fxSince[.rampDown] { repeats = max(1, 4 - (n - a) / 4) }
+
+            var offs: [UInt8] = []
+            var shortOffs: [UInt8] = []
+            var longOffs: [UInt8] = []
+            var subs: [[UInt8]] = Array(repeating: [], count: 4)
             for track in 0..<min(8, steps.count) where p.trackOn[track] {
-                for note in steps[track][i] {
-                    bytes += OPZ.noteOn(note, velocity: 100, channel: track + 1)
-                    offs += OPZ.noteOff(note, channel: track + 1)
+                let mine = scope.contains(track)
+                for raw in steps[track][mine ? src : i] {
+                    let note = mine && active.contains(.pitch) && track >= 4 ? min(127, raw + 12) : raw
+                    let ch = track + 1
+                    bytes += OPZ.noteOn(note, velocity: 100, channel: ch)
+                    if mine && repeats > 1 {
+                        for j in 1..<repeats { subs[j] += OPZ.noteOff(note, channel: ch) + OPZ.noteOn(note, velocity: 90, channel: ch) }
+                    }
+                    if mine && active.contains(.short) { shortOffs += OPZ.noteOff(note, channel: ch) }
+                    else if mine && active.contains(.long) { longOffs += OPZ.noteOff(note, channel: ch) }
+                    else { offs += OPZ.noteOff(note, channel: ch) }
+                    if mine && active.contains(.echo) {
+                        onsAt[n + 3, default: []] += OPZ.noteOn(note, velocity: 45, channel: ch)
+                        offsAt[n + 4, default: []] += OPZ.noteOff(note, channel: ch)
+                    }
                 }
             }
             if !offs.isEmpty { offsAt[n + 1, default: []] += offs }
+            if !longOffs.isEmpty { offsAt[n + 3, default: []] += longOffs }
+            if !shortOffs.isEmpty { io.send(shortOffs, at: t + io.ticks(ms: min(30, stepMs / 3))) }
+            for j in 1..<repeats where !subs[j].isEmpty {
+                io.send(subs[j], at: t + io.ticks(ms: stepMs * Double(j) / Double(repeats)))
+            }
+
+            // filter sweep: giù per mezza battuta, su per l'altra metà
+            if active.contains(.sweep), let a = fxSince[.sweep] {
+                let phase = ((n - a) % 16 + 16) % 16
+                if p.fxTrack == nil {
+                    let depth = phase < 8 ? phase : 16 - phase
+                    bytes += OPZ.cc(3, 64 - depth * 7, channel: 12)
+                    masterSwept = true
+                } else {
+                    for track in scope {
+                        let down = phase < 8
+                        bytes += relative(cc: 3, track: track + 1, count: 8, down: down)
+                        sweepNet[track, default: 0] += down ? 8 : -8
+                    }
+                }
+            }
+            // duck: a ogni battere il volume giù, poi risale nei tre sedicesimi dopo
+            if active.contains(.duck) {
+                let q = ((n % 4) + 4) % 4
+                for track in scope where p.trackOn[track] {
+                    let amount = q == 0 ? 8 : (q == 3 ? 2 : 3)
+                    bytes += relative(cc: 16, track: track + 1, count: amount, down: q == 0)
+                    duckNet[track, default: 0] += q == 0 ? amount : -amount
+                }
+            }
         }
         if !bytes.isEmpty { io.send(bytes, at: t) }
         onStep?(playing ? i : -1, t)
+    }
+
+    /// `count` passi relativi (CC 32-49) in su o in giù, in un pezzo solo.
+    private func relative(cc: Int, track: Int, count: Int, down: Bool) -> [UInt8] {
+        (0..<max(0, count)).flatMap { _ in OPZ.cc(cc + 31, down ? 127 : 1, channel: track) }
+    }
+
+    /// Riporta filtro e volume dove erano prima del filter sweep e del duck.
+    private func fxRestore(sweep: Bool = false, duck: Bool = false, all: Bool = false) -> [UInt8] {
+        var bytes: [UInt8] = []
+        if sweep || all {
+            for (track, net) in sweepNet where net != 0 { bytes += relative(cc: 3, track: track + 1, count: abs(net), down: net < 0) }
+            sweepNet = [:]
+            if masterSwept { bytes += OPZ.cc(3, 64, channel: 12); masterSwept = false }
+        }
+        if duck || all {
+            for (track, net) in duckNet where net != 0 { bytes += relative(cc: 16, track: track + 1, count: abs(net), down: net < 0) }
+            duckNet = [:]
+        }
+        return bytes
     }
 
     private func send(_ bytes: [UInt8], at t: MIDITimeStamp) {
