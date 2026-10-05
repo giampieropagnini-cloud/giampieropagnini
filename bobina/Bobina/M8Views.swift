@@ -133,6 +133,20 @@ struct M8TastiView: View {
                 .buttonStyle(.plain)
             }
 
+            Button { m8.liveMode() } label: {
+                VStack(spacing: 2) {
+                    Text("live mode")
+                        .font(.system(.title3, design: .monospaced).weight(.bold))
+                    Text("shift + sinistra · dal Song")
+                        .font(.system(.caption2, design: .monospaced))
+                }
+                .frame(maxWidth: .infinity, minHeight: 56)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color(red: 0.25, green: 0.80, blue: 0.70)))
+                .foregroundStyle(Color.black)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("live mode")
+
             M8TracksCard()
 
             Card(title: "manopola", note: "Manda il CC \(m8.knobCC) sul canale \(m8.channel). Sull'M8 assegnalo a quello che vuoi (es. cue vol) in Project > MIDI Mapping.") {

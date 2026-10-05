@@ -225,6 +225,20 @@ final class M8Engine: ObservableObject {
         send(bytes)
     }
 
+    /// Live mode: dal Song, shift + sinistra (manuale p. 10). Un tocco entra, un altro esce.
+    func liveMode() { combo([.shift, .left]) }
+
+    /// Tieni i primi, tocca l'ultimo, lascia. I tasti già tenuti dalla faccia restano giù.
+    func combo(_ keys: [M8.Key]) {
+        guard let last = keys.last else { return }
+        let first = keys.dropLast().filter { !held.contains($0) }
+        let now = io.now()
+        send(first.flatMap { M8.noteOn($0, channel: channel) })
+        io.send(M8.noteOn(last, channel: channel), at: now + io.ticks(ms: 40))
+        io.send(M8.noteOff(last, channel: channel), at: now + io.ticks(ms: 110))
+        io.send(first.reversed().flatMap { M8.noteOff($0, channel: channel) }, at: now + io.ticks(ms: 160))
+    }
+
     func toggleMute(_ t: Int) {
         let on = !muted.contains(t)
         if on { muted.insert(t) } else { muted.remove(t) }
