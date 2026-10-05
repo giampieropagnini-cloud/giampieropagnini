@@ -10,6 +10,8 @@ struct M8Tabs: View {
         TabView(selection: $tab) {
             M8TastiView()
                 .tabItem { Label("Tasti", systemImage: "dpad.fill") }.tag(0)
+            M8SuonaView()
+                .tabItem { Label("Suona", systemImage: "pianokeys") }.tag(2)
             M8CollegaView()
                 .tabItem { Label("Collega", systemImage: "cable.connector") }.tag(1)
         }
@@ -392,6 +394,156 @@ struct M8CollegaView: View {
                 BluetoothMIDIPicker()
             }
             .onDisappear { m8.refreshPorts() }
+        }
+    }
+}
+
+// MARK: - Suona
+
+struct M8SuonaView: View {
+    @EnvironmentObject var m8: M8Engine
+
+    var body: some View {
+        M8Page(title: "Suona") {
+            M8PadsCard(player: m8.player)
+            M8StepsCard(player: m8.player)
+            M8TempoCard()
+            M8TiltCard(player: m8.player)
+        }
+    }
+}
+
+/// 16 pad, ognuno diviso in due: sopra suona, sotto tiene la nota.
+struct M8PadsCard: View {
+    @ObservedObject var player: M8Player
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 4)
+    static let padColor = Color(red: 0.62, green: 0.45, blue: 0.98)
+
+    var body: some View {
+        Card(title: "pad", note: "Suonano la traccia che ascolta il canale \(player.channel) (sull'M8: Project > MIDI > Settings, TRACK INPUT). L'ultimo pad toccato è la nota che si scrive nei passi.") {
+            HStack(spacing: 8) {
+                Text("canale").font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
+                SmallKey(text: "−") { player.channel = max(1, player.channel - 1) }
+                Text("\(player.channel)").font(.system(.title3, design: .monospaced)).frame(minWidth: 32)
+                SmallKey(text: "+") { player.channel = min(16, player.channel + 1) }
+                Spacer()
+                Button("ottava giù") { player.octave(-1) }.font(.footnote)
+                Button("ottava su") { player.octave(1) }.font(.footnote)
+            }
+            LazyVGrid(columns: columns, spacing: 8) {
+                ForEach(0..<16, id: \.self) { i in
+                    let n = player.base + (3 - i / 4) * 4 + i % 4
+                    pad(n)
+                }
+            }
+            if !player.held.isEmpty {
+                Button("lascia tutte le note") { player.releaseAll() }.font(.footnote)
+            }
+        }
+    }
+
+    private func pad(_ n: Int) -> some View {
+        let name = M8Player.name(n)
+        let held = player.held.contains(n)
+        let picked = player.pick == n
+        return VStack(spacing: 3) {
+            Button { player.touch(n) } label: {
+                Text(name)
+                    .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(M8PadsCard.padColor))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(held || picked ? Color.white : Palette.cardEdge, lineWidth: held ? 3 : picked ? 2 : 1))
+                    .foregroundStyle(Color.black)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("nota \(name)")
+            Button { player.toggleHold(n) } label: {
+                Text(held ? "lascia" : "tieni")
+                    .font(.system(.caption2, design: .monospaced).weight(held ? .bold : .regular))
+                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(held ? Color.white : M8PadsCard.padColor.opacity(0.45)))
+                    .foregroundStyle(held ? Color.black : Color.white.opacity(0.9))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(held ? "lascia \(name)" : "tieni \(name)")
+        }
+    }
+}
+
+/// 16 passi a tempo con Bobina. Toccare un passo vuoto ci scrive la nota scelta, uno pieno lo svuota.
+struct M8StepsCard: View {
+    @ObservedObject var player: M8Player
+
+    var body: some View {
+        Card(title: "passi", note: "Nota da scrivere: \(M8Player.name(player.pick)) (tocca un pad per cambiarla). Vanno a tempo con TX-6, PO e OP-Z.") {
+            Button { player.toggleSteps() } label: {
+                Text(player.stepsOn ? "ferma i passi" : "fai partire i passi")
+                    .font(.system(.body, design: .monospaced).weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(player.stepsOn ? Palette.rec : Color(red: 0.40, green: 0.82, blue: 0.40)))
+                    .foregroundStyle(Color.black)
+            }
+            .buttonStyle(.plain)
+            M8StepGrid(player: player, live: player.live)
+            Button("svuota i passi") { player.clearSteps() }.font(.footnote)
+        }
+    }
+}
+
+/// I quadratini dei passi: guardano `live`, così a ogni sedicesimo si ridisegnano solo loro.
+struct M8StepGrid: View {
+    @ObservedObject var player: M8Player
+    @ObservedObject var live: M8Live
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 5), count: 4)
+
+    var body: some View {
+        LazyVGrid(columns: columns, spacing: 6) {
+            ForEach(0..<16, id: \.self) { i in
+                let note = player.steps[i]
+                let now = live.step == i
+                Button { player.toggleStep(i) } label: {
+                    VStack(spacing: 1) {
+                        Text("\(i + 1)").font(.system(.caption2, design: .monospaced))
+                        Text(note.map(M8Player.name) ?? "—").font(.system(.footnote, design: .monospaced).weight(.semibold))
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 46)
+                    .background(RoundedRectangle(cornerRadius: 7).fill(now ? Palette.accent : note != nil ? M8.color : Color(white: 0.18)))
+                    .foregroundStyle(now || note != nil ? Color.black : Color.white)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("passo \(i + 1)")
+            }
+        }
+    }
+}
+
+/// L'inclinazione del telefono su un CC: a sinistra 0, dritto 64, a destra 127.
+struct M8TiltCard: View {
+    @ObservedObject var player: M8Player
+
+    var body: some View {
+        Card(title: "inclinazione", note: "Inclina il telefono: manda il CC \(player.tiltCC). Sull'M8 assegnalo in Project > MIDI Mapping (tieni OPTION sul parametro e inclina).") {
+            Toggle("inclinazione accesa", isOn: $player.tiltOn)
+            HStack(spacing: 8) {
+                Text("CC").font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
+                SmallKey(text: "−") { player.tiltCC = max(0, player.tiltCC - 1) }
+                Text("\(player.tiltCC)").font(.system(.title3, design: .monospaced)).frame(minWidth: 40)
+                SmallKey(text: "+") { player.tiltCC = min(127, player.tiltCC + 1) }
+            }
+            if player.tiltOn { M8TiltBar(live: player.live) }
+        }
+    }
+}
+
+struct M8TiltBar: View {
+    @ObservedObject var live: M8Live
+
+    var body: some View {
+        HStack {
+            ProgressView(value: Double(live.tilt), total: 127).tint(M8.color)
+            Text("\(live.tilt)").font(.system(.caption, design: .monospaced)).frame(width: 36, alignment: .trailing)
         }
     }
 }

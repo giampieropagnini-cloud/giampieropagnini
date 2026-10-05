@@ -116,6 +116,8 @@ final class M8Engine: ObservableObject {
     /// Il microfono dell'iPhone tenuto acceso col cavo dell'M8 attaccato.
     let mic = M8Mic()
     private(set) lazy var sequencer = M8Sequencer(io: io)
+    /// Bobina che suona l'M8 (scheda Suona).
+    let player = M8Player()
 
     /// L'M8 va a tempo con Bobina (start, clock, stop).
     @Published private(set) var running = false
@@ -162,6 +164,7 @@ final class M8Engine: ObservableObject {
             self.bpm = Int(v.rounded())
         }
         refreshPorts()
+        player.attach(self)
     }
 
     // MARK: porte
@@ -253,8 +256,8 @@ final class M8Engine: ObservableObject {
     // MARK: tempo
 
     func toggleRun() {
-        if running { sequencer.stop() } else { sequencer.start() }
         running.toggle()
+        sequencer.setTransport(running)
     }
 
     func setBPM(_ v: Int) {
