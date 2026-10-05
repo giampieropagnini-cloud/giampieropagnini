@@ -68,6 +68,26 @@ enum M8 {
         [0xB0 | UInt8((channel - 1) & 0x0F), UInt8(number & 0x7F), UInt8(max(0, min(127, value)))]
     }
 
+    // MARK: SysEx dello schermo remoto (firmware 6)
+
+    static let header: [UInt8] = [0xF0, 0x00, 0x02, 0x61, 0x00]
+
+    static func sysex(_ body: [UInt8]) -> [UInt8] { header + body + [0xF7] }
+
+    /// I dati arrivano a 7 bit: ogni 8° byte porta i bit alti dei 7 che seguono.
+    static func unpack(_ packed: [UInt8]) -> [UInt8] {
+        var out: [UInt8] = []
+        var i = 0
+        while i < packed.count {
+            let msbs = packed[i]
+            for j in 0..<7 where i + 1 + j < packed.count {
+                out.append(packed[i + 1 + j] | (((msbs >> j) & 1) << 7))
+            }
+            i += 8
+        }
+        return out
+    }
+
     /// Il colore dell'M8 in Bobina: il viola delle frecce.
     static let color = Color(red: 0.62, green: 0.45, blue: 0.98)
 }
@@ -102,6 +122,11 @@ final class M8Engine: ObservableObject {
     /// La manopola: un CC che sull'M8 si assegna in Project > MIDI Mapping.
     @Published var knobCC: Int { didSet { UserDefaults.standard.set(knobCC, forKey: "bobina.m8.cc") } }
     @Published private(set) var knob = 64
+    /// Il firmware letto dall'M8 (es. «6.1.2»). nil = non ancora letto; «prima del 6» = non ha risposto.
+    @Published private(set) var firmware: String?
+    @Published private(set) var model: String?
+    private var probing = false
+
     /// I tasti tenuti giù.
     @Published private(set) var held: Set<M8.Key> = []
 
@@ -110,6 +135,7 @@ final class M8Engine: ObservableObject {
         channel = d.object(forKey: "bobina.m8.canale") as? Int ?? 10
         knobCC = d.object(forKey: "bobina.m8.cc") as? Int ?? 1
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
+        io.onReceive = { [weak self] bytes, _ in self?.received(bytes) }
         refreshPorts()
     }
 
@@ -134,7 +160,11 @@ final class M8Engine: ObservableObject {
         if dest != io.destination {
             // se si cambia porta con un tasto tenuto, l'M8 vecchio non resta con shift giù
             releaseAll()
-            io.use(destination: dest, source: 0)
+            // l'ascolto è la sorgente dello stesso M8: serve per leggere il firmware
+            io.use(destination: dest, source: dest == 0 ? 0 : (POEngine.source(of: dest) ?? 0))
+            if dest != 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in self?.readFirmware() }
+            }
             objectWillChange.send()
         }
     }
@@ -186,5 +216,37 @@ final class M8Engine: ObservableObject {
         guard v != knob else { return }
         knob = v
         send(M8.cc(knobCC, v, channel: channel))
+    }
+
+    // MARK: firmware
+
+    /// Accende per un attimo lo schermo remoto (SysEx, dal firmware 6): l'M8 risponde con modello e
+    /// firmware, poi si spegne subito per non riempire il cavo. Vedi M8-RICERCA.md, punto 8.
+    func readFirmware() {
+        guard connected, io.source != 0 else { firmware = nil; return }
+        probing = true
+        firmware = nil
+        send(M8.sysex([0x00, 0x44]))   // 'D' stacca
+        io.send(M8.sysex([0x00, 0x45]), at: io.now() + io.ticks(ms: 80))   // 'E' accende
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            guard let self = self, self.probing else { return }
+            self.probing = false
+            self.send(M8.sysex([0x00, 0x44]))
+            self.firmware = "nessuna risposta: prima del 6"
+        }
+    }
+
+    private func received(_ bytes: [UInt8]) {
+        guard probing else { return }
+        trace("M8 ← " + bytes.prefix(24).map { String(format: "%02x", $0) }.joined(separator: " ") + (bytes.count > 24 ? " … (\(bytes.count))" : ""))
+        guard bytes.count > 7, Array(bytes.prefix(5)) == M8.header else { return }
+        let data = M8.unpack(Array(bytes[5..<(bytes.count - 1)]))
+        // 0xFF modello, maggiore, minore, correzione, font
+        guard let i = data.firstIndex(of: 0xFF), i + 4 < data.count, data[i + 1] <= 3 else { return }
+        probing = false
+        send(M8.sysex([0x00, 0x44]))
+        model = ["Headless", "Beta M8", "M8 Model:01", "M8 Model:02"][Int(data[i + 1])]
+        firmware = "\(data[i + 2]).\(data[i + 3]).\(data[i + 4])"
+        trace("M8 firmware \(firmware ?? "") · \(model ?? "")")
     }
 }

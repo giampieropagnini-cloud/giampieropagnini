@@ -254,6 +254,12 @@ struct M8CollegaView: View {
                 }
             }
 
+            Card(title: "firmware", note: "Bobina lo chiede all'M8 col cavo. Dal 6 in su si può avere anche lo schermo dell'M8 qui.") {
+                Text(m8.firmware.map { "firmware \($0)" + (m8.model.map { " · \($0)" } ?? "") } ?? "non ancora letto")
+                    .font(.system(.title3, design: .monospaced))
+                Chip(text: "leggi il firmware") { m8.readFirmware() }
+            }
+
             Card(title: "col bluetooth", note: "L'M8 non ha il bluetooth: serve un adattatore MIDI bluetooth sulla sua presa MIDI IN.") {
                 Chip(text: "cerca i dispositivi bluetooth") { showBluetooth = true }
             }
