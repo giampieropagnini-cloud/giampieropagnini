@@ -115,6 +115,13 @@ final class M8Engine: ObservableObject {
     let io = MIDIIO()
     /// Il microfono dell'iPhone tenuto acceso col cavo dell'M8 attaccato.
     let mic = M8Mic()
+    private(set) lazy var sequencer = M8Sequencer(io: io)
+
+    /// L'M8 va a tempo con Bobina (start, clock, stop).
+    @Published private(set) var running = false
+    /// Il bpm di Bobina, intero: si ridisegna solo quando cambia il numero.
+    @Published private(set) var bpm = Int(BobinaClock.shared.bpm.rounded())
+    private var bpmObserver: NSObjectProtocol?
 
     @Published var destinations: [MIDIPort] = []
     @Published var destinationID: MIDIUniqueID? {
@@ -150,6 +157,10 @@ final class M8Engine: ObservableObject {
         knobCC = d.object(forKey: "bobina.m8.cc") as? Int ?? 1
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, _ in self?.received(bytes) }
+        bpmObserver = NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
+            guard let self = self, let v = n.object as? Double, Int(v.rounded()) != self.bpm else { return }
+            self.bpm = Int(v.rounded())
+        }
         refreshPorts()
     }
 
@@ -237,6 +248,19 @@ final class M8Engine: ObservableObject {
         io.send(M8.noteOn(last, channel: channel), at: now + io.ticks(ms: 40))
         io.send(M8.noteOff(last, channel: channel), at: now + io.ticks(ms: 110))
         io.send(first.reversed().flatMap { M8.noteOff($0, channel: channel) }, at: now + io.ticks(ms: 160))
+    }
+
+    // MARK: tempo
+
+    func toggleRun() {
+        if running { sequencer.stop() } else { sequencer.start() }
+        running.toggle()
+    }
+
+    func setBPM(_ v: Int) {
+        let v = max(20, min(300, v))
+        BobinaClock.shared.setBPM(Double(v))
+        bpm = Int(BobinaClock.shared.bpm.rounded())
     }
 
     func toggleMute(_ t: Int) {

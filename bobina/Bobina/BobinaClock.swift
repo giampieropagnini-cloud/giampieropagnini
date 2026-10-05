@@ -16,7 +16,7 @@ final class BobinaClock {
     static let shared = BobinaClock()
 
     /// Chi suona sulla griglia. Ogni PO (ogni adattatore) è uno a sé: po, po2, po3, po4.
-    enum Member: String { case tx6, po, po2, po3, po4, tp7, opz }
+    enum Member: String { case tx6, po, po2, po3, po4, tp7, opz, m8 }
 
     static func po(_ slot: Int) -> Member { [.po, .po2, .po3, .po4][max(0, min(3, slot))] }
 

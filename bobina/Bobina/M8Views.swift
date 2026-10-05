@@ -147,11 +147,44 @@ struct M8TastiView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("live mode")
 
+            M8TempoCard()
+
             M8TracksCard()
 
             Card(title: "manopola", note: "Manda il CC \(m8.knobCC) sul canale \(m8.channel). Sull'M8 assegnalo a quello che vuoi (es. cue vol) in Project > MIDI Mapping.") {
                 StepSlider(name: "cue vol", value: m8.knob) { m8.setKnob($0) }
             }
+        }
+    }
+}
+
+/// L'M8 a tempo con Bobina: lo stesso bpm e la stessa battuta di TX-6, PO e OP-Z.
+struct M8TempoCard: View {
+    @EnvironmentObject var m8: M8Engine
+
+    var body: some View {
+        Card(title: "a tempo con Bobina", note: "Sull'M8: Project > MIDI > Settings > SYNC IN = CLOCK+TRANSP. Se suona già un'altra macchina, l'M8 entra alla battuta dopo.") {
+            Button { m8.toggleRun() } label: {
+                Text(m8.running ? "ferma l'M8" : "fai partire l'M8 a tempo")
+                    .font(.system(.body, design: .monospaced).weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(m8.running ? Palette.rec : Color(red: 0.40, green: 0.82, blue: 0.40)))
+                    .foregroundStyle(Color.black)
+            }
+            .buttonStyle(.plain)
+            HStack(spacing: 8) {
+                Text("bpm")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                SmallKey(text: "−5") { m8.setBPM(m8.bpm - 5) }
+                SmallKey(text: "−1") { m8.setBPM(m8.bpm - 1) }
+                Text("\(m8.bpm)")
+                    .font(.system(.title2, design: .monospaced).weight(.bold))
+                    .frame(minWidth: 56)
+                SmallKey(text: "+1") { m8.setBPM(m8.bpm + 1) }
+                SmallKey(text: "+5") { m8.setBPM(m8.bpm + 5) }
+            }
+            .frame(maxWidth: .infinity)
         }
     }
 }
