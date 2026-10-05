@@ -395,6 +395,8 @@ struct TX6SuonaView: View {
         TX6Page(title: "Suona") {
             TX6PatternCard()
 
+            TX6SamplerCard()
+
             Card(title: "i sei strumenti", note: "Ogni traccia del TX-6 è uno strumento. Scegli la traccia, poi il suono, e regola le barre: sono le stesse cose che sulla macchina fai con le manopoline. «prova» lo fa suonare. Serve il synth acceso (menu → SYNTH → play). L'ordine dei suoni sui 128 valori è ancora da misurare: il display del TX-6 dice quale ha preso.") {
                 OneTrackPicker(selected: beatTrack) { beatTrack = $0 }
                 SoundGrid(track: beatTrack)
@@ -477,6 +479,53 @@ struct TX6SuonaView: View {
 }
 
 /// Stili pronti e pattern salvati: se il ritmo gira, il cambio arriva all'inizio della battuta.
+/// Campionatore e looper del TX-6. Registrare si fa sulla macchina (il MIDI non ha comandi per farlo);
+/// da qui si mettono le tracce sul suono SAMPLE e si suonano i campioni a tempo, intonati.
+struct TX6SamplerCard: View {
+    @EnvironmentObject var tx: TX6Engine
+    @State private var track = 1
+    @State private var showSteps = false
+
+    private let sampleIndex = 8
+
+    var body: some View {
+        Card(title: "campioni e loop", note: "Il TX-6 ha sei campioni da 5,5 secondi (uno per traccia) e un loop da 22 secondi. Registrarli si fa sulla macchina: il MIDI del TX-6 non ha un comando per farlo. Da qui metti una traccia sul suo campione e lo suoni: coi pad, con la batteria a passi, o intonato con la tastiera e la melodia. Serve il synth acceso (menu → SYNTH → play).") {
+            OneTrackPicker(selected: track) { track = $0 }
+            HStack(spacing: 8) {
+                Chip(text: "traccia \(track) suona il suo campione", on: TX6.soundIndex(tx.value(track, .sound)) == sampleIndex) {
+                    tx.set(track, .sound, TX6.soundValue(sampleIndex))
+                }
+                Chip(text: "prova") { tx.hitPad(track) }
+            }
+            Chip(text: "tutte e sei sui campioni") {
+                for t in 1...6 { tx.set(t, .sound, TX6.soundValue(sampleIndex)) }
+            }
+            Text("Intonato: tastiera e melodia a passi suonano il campione della traccia scelta a note diverse. Lunghezza e frequenza si regolano in «i sei strumenti».")
+                .font(.footnote)
+                .foregroundStyle(Palette.dim)
+            Chip(text: showSteps ? "nascondi come si registra" : "come si registra sul TX-6") { showSteps.toggle() }
+            if showSteps {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("campione")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.accent)
+                    Text("1. shift + select → SAMPLE.\n2. FX II: modo registrazione.\n3. Gira select: da quale traccia prendi il suono.\n4. Tieni il tasto traccia dove lo vuoi: registra finché tieni, al massimo 5,5 s.\n5. FX I: modo suono, i tasti traccia lo suonano.")
+                    Text("loop")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.accent)
+                    Text("1. shift + select → LOOP.\n2. Gira select: da quale traccia registra.\n3. Tieni FX II: registra finché tieni, al massimo 22 s.\n4. FX I: suona o fa ripartire il loop. FX II: lo ferma.")
+                    Text("non perderli")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.accent)
+                    Text("Allo spegnimento campioni e loop si cancellano. Con una chiavetta nella porta USB-C: shift + FX II salva, shift + FX I carica.")
+                }
+                .font(.footnote)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
 struct TX6PatternCard: View {
     @EnvironmentObject var tx: TX6Engine
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
