@@ -133,8 +133,57 @@ struct M8TastiView: View {
                 .buttonStyle(.plain)
             }
 
+            M8TracksCard()
+
             Card(title: "manopola", note: "Manda il CC \(m8.knobCC) sul canale \(m8.channel). Sull'M8 assegnalo a quello che vuoi (es. cue vol) in Project > MIDI Mapping.") {
                 StepSlider(name: "cue vol", value: m8.knob) { m8.setKnob($0) }
+            }
+        }
+    }
+}
+
+/// Mute e solo delle otto tracce: due file di tasti numerati, ognuno col suo nome.
+struct M8TracksCard: View {
+    @EnvironmentObject var m8: M8Engine
+
+    static let muteColor = Color(red: 0.95, green: 0.36, blue: 0.33)
+    static let soloColor = Color(red: 0.38, green: 0.70, blue: 0.98)
+
+    var body: some View {
+        Card(title: "tracce", note: "Acceso = bianco col bordo. Quello che cambi a mano sull'M8 qui non si vede.") {
+            row("muta", on: m8.muted, color: M8TracksCard.muteColor) { m8.toggleMute($0) }
+            row("solo", on: m8.soloed, color: M8TracksCard.soloColor) { m8.toggleSolo($0) }
+            Button { m8.clearTracks() } label: {
+                Text("togli tutti i muta e solo")
+                    .font(.system(.footnote, design: .monospaced))
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18)))
+                    .foregroundStyle(Color.white)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func row(_ name: String, on: Set<Int>, color: Color, tap: @escaping (Int) -> Void) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(name)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(color)
+            HStack(spacing: 4) {
+                ForEach(1...8, id: \.self) { t in
+                    let lit = on.contains(t)
+                    Button { tap(t) } label: {
+                        Text("\(t)")
+                            .font(.system(.body, design: .monospaced).weight(.semibold))
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(lit ? Color.white : color.opacity(0.85)))
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(lit ? color : Palette.cardEdge, lineWidth: lit ? 3 : 1))
+                            .foregroundStyle(Color.black)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(name) \(t)")
+                    .accessibilityAddTraits(lit ? .isSelected : [])
+                }
             }
         }
     }

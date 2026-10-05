@@ -64,6 +64,16 @@ enum M8 {
         [0x80 | UInt8((channel - 1) & 0x0F), UInt8(k.rawValue), 0]
     }
 
+    /// Mute e solo delle tracce 1-8: note 12-19 e 20-27 sullo stesso canale. Come un tasto «toggle»
+    /// di un controller: Note On accende, Note Off spegne.
+    static func mute(_ track: Int, _ on: Bool, channel: Int) -> [UInt8] { trackNote(11 + track, on, channel) }
+    static func solo(_ track: Int, _ on: Bool, channel: Int) -> [UInt8] { trackNote(19 + track, on, channel) }
+
+    private static func trackNote(_ note: Int, _ on: Bool, _ channel: Int) -> [UInt8] {
+        let ch = UInt8((channel - 1) & 0x0F)
+        return on ? [0x90 | ch, UInt8(note), 127] : [0x80 | ch, UInt8(note), 0]
+    }
+
     static func cc(_ number: Int, _ value: Int, channel: Int) -> [UInt8] {
         [0xB0 | UInt8((channel - 1) & 0x0F), UInt8(number & 0x7F), UInt8(max(0, min(127, value)))]
     }
@@ -126,6 +136,10 @@ final class M8Engine: ObservableObject {
     @Published private(set) var firmware: String?
     @Published private(set) var model: String?
     private var probing = false
+
+    /// Le tracce (1-8) col mute o col solo accesi da Bobina. Quello che cambi sull'M8 a mano qui non si vede.
+    @Published private(set) var muted: Set<Int> = []
+    @Published private(set) var soloed: Set<Int> = []
 
     /// I tasti tenuti giù.
     @Published private(set) var held: Set<M8.Key> = []
@@ -208,6 +222,26 @@ final class M8Engine: ObservableObject {
         guard !held.isEmpty else { return }
         let bytes = held.sorted { $0.rawValue < $1.rawValue }.flatMap { M8.noteOff($0, channel: channel) }
         held.removeAll()
+        send(bytes)
+    }
+
+    func toggleMute(_ t: Int) {
+        let on = !muted.contains(t)
+        if on { muted.insert(t) } else { muted.remove(t) }
+        send(M8.mute(t, on, channel: channel))
+    }
+
+    func toggleSolo(_ t: Int) {
+        let on = !soloed.contains(t)
+        if on { soloed.insert(t) } else { soloed.remove(t) }
+        send(M8.solo(t, on, channel: channel))
+    }
+
+    /// Spegne tutti i mute e i solo, in un pacchetto solo.
+    func clearTracks() {
+        let bytes = (1...8).flatMap { M8.mute($0, false, channel: channel) + M8.solo($0, false, channel: channel) }
+        muted.removeAll()
+        soloed.removeAll()
         send(bytes)
     }
 
