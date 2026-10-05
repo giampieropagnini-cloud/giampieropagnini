@@ -75,6 +75,40 @@ struct M8StatusStrip: View {
             Spacer()
         }
         .padding(.top, 6)
+        M8MicLine(mic: m8.mic)
+    }
+}
+
+/// Una riga sotto la striscia: quale microfono sente l'iPhone. Rossa se è quello dell'M8.
+struct M8MicLine: View {
+    @ObservedObject var mic: M8Mic
+
+    var body: some View {
+        if mic.usbPresent {
+            Text(mic.inputName == "iPhone" ? "microfono: iPhone · il Controllo Vocale ti sente" : "microfono: \(mic.inputName) · il Controllo Vocale non ti sente")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(mic.inputName == "iPhone" ? Palette.dim : Palette.rec)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+struct M8MicCard: View {
+    @ObservedObject var mic: M8Mic
+
+    var body: some View {
+        Card(title: "microfono", note: "L'M8 col cavo è anche una scheda audio, e l'iPhone prenderebbe il suo ingresso come microfono. Acceso: Bobina tiene il microfono dell'iPhone. L'M8 e i suoi ingressi non cambiano.") {
+            Toggle("tieni il microfono dell'iPhone", isOn: $mic.enabled)
+            Text("adesso: \(mic.inputName)")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+            if let p = mic.problem {
+                Text(p)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.rec)
+            }
+            Chip(text: "rimetti il microfono dell'iPhone") { mic.apply() }
+        }
     }
 }
 
@@ -202,6 +236,8 @@ struct M8CollegaView: View {
             Card(title: "col cavo", note: "Dalla USB-C dell'M8 all'iPhone: l'M8 è MIDI USB di serie e compare da solo. Col TX-6 o il TP-7 sullo stesso USB-C serve un hub.") {
                 EmptyView()
             }
+
+            M8MicCard(mic: m8.mic)
 
             Card(title: "a chi parla", note: "Tocca la porta dell'M8. Bobina sceglie da sola quella che si chiama «M8».") {
                 if m8.destinations.isEmpty {

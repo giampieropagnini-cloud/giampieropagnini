@@ -199,6 +199,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Bobina;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bobina usa il bluetooth per parlare col TP-7 via MIDI senza fili.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Bobina tiene acceso il microfono dell'iPhone quando colleghi l'M8, cosi' il Controllo Vocale continua a sentirti.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Bobina usa i sensori di movimento per cambiare la velocita' del nastro inclinando il telefono.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -233,6 +234,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Bobina;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bobina usa il bluetooth per parlare col TP-7 via MIDI senza fili.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Bobina tiene acceso il microfono dell'iPhone quando colleghi l'M8, cosi' il Controllo Vocale continua a sentirti.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Bobina usa i sensori di movimento per cambiare la velocita' del nastro inclinando il telefono.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

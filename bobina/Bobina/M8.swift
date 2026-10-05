@@ -83,6 +83,8 @@ extension MIDIPort {
 /// Niente cambia molte volte al secondo, quindi basta un oggetto solo.
 final class M8Engine: ObservableObject {
     let io = MIDIIO()
+    /// Il microfono dell'iPhone tenuto acceso col cavo dell'M8 attaccato.
+    let mic = M8Mic()
 
     @Published var destinations: [MIDIPort] = []
     @Published var destinationID: MIDIUniqueID? {
