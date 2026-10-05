@@ -85,9 +85,9 @@ struct M8MicLine: View {
 
     var body: some View {
         if mic.usbPresent {
-            Text(mic.inputName == "iPhone" ? "microfono: iPhone · il Controllo Vocale ti sente" : "microfono: \(mic.inputName) · il Controllo Vocale non ti sente")
+            Text(mic.onM8 ? "microfono: \(mic.inputName) · il Controllo Vocale non ti sente" : "microfono: \(mic.inputName) · il Controllo Vocale ti sente")
                 .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(mic.inputName == "iPhone" ? Palette.dim : Palette.rec)
+                .foregroundStyle(mic.onM8 ? Palette.rec : Palette.dim)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -97,8 +97,8 @@ struct M8MicCard: View {
     @ObservedObject var mic: M8Mic
 
     var body: some View {
-        Card(title: "microfono", note: "L'M8 col cavo è anche una scheda audio, e l'iPhone prenderebbe il suo ingresso come microfono. Acceso: Bobina tiene il microfono dell'iPhone. L'M8 e i suoi ingressi non cambiano.") {
-            Toggle("tieni il microfono dell'iPhone", isOn: $mic.enabled)
+        Card(title: "microfono", note: "L'M8 col cavo è anche una scheda audio, e l'iPhone prenderebbe il suo ingresso come microfono. Acceso: Bobina usa un microfono USB se c'è (es. il CM-15 sull'hub), se no quello dell'iPhone. L'M8 e i suoi ingressi non cambiano.") {
+            Toggle("non usare l'M8 come microfono", isOn: $mic.enabled)
             Text("adesso: \(mic.inputName)")
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(Palette.dim)
@@ -107,7 +107,7 @@ struct M8MicCard: View {
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(Palette.rec)
             }
-            Chip(text: "rimetti il microfono dell'iPhone") { mic.apply() }
+            Chip(text: "rimetti il microfono giusto") { mic.apply() }
         }
     }
 }
