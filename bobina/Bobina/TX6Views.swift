@@ -406,6 +406,8 @@ struct TX6SuonaView: View {
                 Chip(text: "prova la traccia \(beatTrack)") { tx.hitPad(beatTrack) }
             }
 
+            TX6PresetCard(track: beatTrack, pickTrack: { beatTrack = $0 })
+
             Card(title: "tastiera", note: "Serve MIDI → NOTE on e il synth su play. Suona la traccia scelta a quella nota; con un accordo le sei tracce diventano sei voci.") {
                 OneTrackPicker(selected: tx.keyTrack) { tx.keyTrack = $0 }
                 HStack(spacing: 8) {
@@ -484,6 +486,53 @@ struct TX6SuonaView: View {
 }
 
 /// Stili pronti e pattern salvati: se il ritmo gira, il cambio arriva all'inizio della battuta.
+/// I preset delle tracce: pronti per gruppo, e quelli salvati da Giampiero.
+struct TX6PresetCard: View {
+    @EnvironmentObject var tx: TX6Engine
+    let track: Int
+    let pickTrack: (Int) -> Void
+    @State private var group = "cassa"
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 2)
+
+    var body: some View {
+        Card(title: "preset", note: "Tocca un preset: va sulla traccia scelta, suono e manopole insieme, e la senti subito. I preset pronti sono un punto di partenza: ritoccali con le barre qui sopra, poi salvali come tuoi.") {
+            OneTrackPicker(selected: track) { pickTrack($0) }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(TX6Preset.groups + ["miei"], id: \.self) { g in
+                        Chip(text: g, on: group == g) { group = g }
+                    }
+                }
+            }
+            let list = group == "miei" ? tx.myPresets : TX6Preset.builtIn.filter { $0.group == group }
+            if list.isEmpty {
+                Text("Ancora nessun preset tuo: regola una traccia e tocca «salva il suono della traccia».")
+                    .font(.footnote)
+                    .foregroundStyle(Palette.dim)
+            }
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(list) { p in
+                    GridChip(text: p.name) {
+                        tx.apply(p, to: track)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { tx.hitPad(track) }
+                    }
+                }
+            }
+            if group == "miei" {
+                ForEach(tx.myPresets) { p in
+                    HStack {
+                        Text(p.name).font(.system(.footnote, design: .monospaced))
+                        Spacer()
+                        ConfirmChip(text: "cancella \(p.name)") { tx.deletePreset(p) }
+                    }
+                }
+            }
+            Chip(text: "salva il suono della traccia \(track) come mio preset") { tx.savePreset(from: track); group = "miei" }
+        }
+    }
+}
+
 /// Campionatore e looper del TX-6. Registrare si fa sulla macchina (il MIDI non ha comandi per farlo);
 /// da qui si mettono le tracce sul suono SAMPLE e si suonano i campioni a tempo, intonati.
 struct TX6SamplerCard: View {
