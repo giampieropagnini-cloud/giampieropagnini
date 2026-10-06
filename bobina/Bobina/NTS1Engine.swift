@@ -169,6 +169,8 @@ final class NTS1Engine: ObservableObject {
         firmware = nil
         global = nil
         if dest != 0 {
+            // note rimaste accese da prima (Bobina chiusa o reinstallata con un pad tenuto): silenzio
+            send(NTS1.cc(123, 0, channel: channel))
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.readAll() }
         }
         objectWillChange.send()
@@ -227,7 +229,8 @@ final class NTS1Engine: ObservableObject {
     }
 
     private func received(_ bytes: [UInt8]) {
-        guard let status = bytes.first else { return }
+        // l'NTS-1 manda il suo clock di continuo (circa 50 al secondo): qui non serve, si scarta subito
+        guard let status = bytes.first, status < 0xF8 else { return }
         switch status & 0xF0 {
         case 0xB0 where bytes.count == 3:
             let cc = Int(bytes[1]), v = Int(bytes[2])
@@ -239,7 +242,7 @@ final class NTS1Engine: ObservableObject {
         case 0x90 where bytes.count == 3 && bytes[2] > 0:
             // una nota suonata sulla tastiera dell'NTS-1 diventa la nota da scrivere nei passi
             player.pickFromNTS1(Int(bytes[1]))
-        case 0xF0:
+        case 0xF0 where status == 0xF0:
             receivedSysex(bytes)
         default:
             break
