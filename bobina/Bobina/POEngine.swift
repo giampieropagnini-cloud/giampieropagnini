@@ -279,7 +279,11 @@ final class POEngine: ObservableObject {
         let n = connectedName.lowercased()
         viaBluetooth = n.contains("ble") || n.contains("bluetooth")
         if dest != io.destination || src != io.source {
+            let fresh = dest != 0 && dest != io.destination
             io.use(destination: dest, source: src)
+            // appena collegato: tutti i 23 tasti su, perché un tasto rimasto giù (Bobina chiusa o reinstallata
+            // con un tasto tenuto) non resti premuto sul PO — lezione del TX-6, 6/10/2026
+            if fresh { allUp() }
             objectWillChange.send()
         }
     }
@@ -324,6 +328,12 @@ final class POEngine: ObservableObject {
         send(PO.noteOn(k, channel: channel))
         io.send(PO.noteOff(k, channel: channel), at: ms(60))
         if let n = k.number { flash([n], at: io.now()) }
+    }
+
+    /// «Silenzio»: Note Off a tutti i 23 tasti, in un pacchetto solo, anche a quelli che Bobina non sa di tenere.
+    func allUp() {
+        held.removeAll()
+        send(PO.Key.allCases.flatMap { PO.noteOff($0, channel: channel) })
     }
 
     /// Lascia tutti i tasti agganciati.
