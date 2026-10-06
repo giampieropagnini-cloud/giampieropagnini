@@ -41,7 +41,7 @@ RunLoop.main.run(until: Date().addingTimeInterval(3.5))
 seq.stop(sendStop: false)
 RunLoop.main.run(until: Date().addingTimeInterval(0.2))
 lock.lock(); let all = got; lock.unlock()
-for (t, b) in all where b.contains(0x96) || b.contains(0xB1) {
+for (t, b) in all where b.contains { (0x90...0x95).contains($0) } || b.contains(0xB1) {
     print(String(format: "%8.1f ms", io.ms(ticks: t &- start)), b.map { String(format: "%02x", $0) }.joined(separator: " "))
 }
 print(switchedAt ?? "nessun cambio")

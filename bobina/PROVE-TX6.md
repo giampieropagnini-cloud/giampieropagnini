@@ -18,7 +18,7 @@ Le prime quattro si fanno col cavo al **Mac** e l'ascoltatore (`strumenti/ascolt
 |---|---|---|---|
 | 5 | Bobina vede il TX-6 | cavo all'iPhone; in alto «collegato a TX-6» | da fare |
 | 6 | volume della traccia 1 | MIDI → CTRL IN; Mixer, tr 1 − e + | ✅ 29/9/2026, via bluetooth: volumi delle tracce 1 e 2 (cc 7, canali 1-2) e main (cc 7, canale 7) |
-| 7 | il muto fa muto o solo | Mixer, M sulla traccia 2; poi menu SOLO su solo e riprova | da fare |
+| 7 | il muto fa muto o solo | Mixer, M sulla traccia 2; poi menu SOLO su solo e riprova | ❌ 6/10/2026: col synth acceso e i suoni di Bobina il cc 120 non zittisce la traccia (causa da capire: forse il synth su play usa i tasti traccia per suonare e ignora muto e solo). Ora M manda anche il volume a zero: da riprovare |
 | 8 | le scene a b c | salva scene diverse sul TX-6, poi Mixer → scene del TX-6 | da fare |
 | 9 | la tastiera | NOTE on, SYNTH → play; Suona, traccia 1 | da fare |
 | 10 | i sei pad: quale ottava | Suona, sei pad; cambia ottava finché suonano | ✅ 6/10/2026: le note do-la sul canale 7 suonano la traccia sempre alla stessa altezza (casse come tom, anche a do2); la tastiera sul canale della traccia a do1-do2 dà casse giuste. Ora pad e batteria a passi suonano sul canale della traccia, di fabbrica a do2 |

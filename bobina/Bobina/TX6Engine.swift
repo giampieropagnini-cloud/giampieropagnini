@@ -468,9 +468,14 @@ final class TX6Engine: ObservableObject {
         lastSent[track - 1][p.rawValue] = v
     }
 
+    /// Il muto: il cc 120 del TX-6 e, in più, il volume a zero (lo tiene `output`). Misurato il 6/10/2026:
+    /// col synth acceso il cc 120 da solo non zittiva la traccia; il volume a zero la zittisce sempre.
+    /// Togliendo il muto il volume torna quello di prima.
     func toggleMute(_ track: Int) {
         mutes[track - 1].toggle()
-        send(TX6.cc(TX6.ccMute, mutes[track - 1] ? 127 : 0, channel: track))
+        let vol = output(track, .volume, io.now())
+        lastSent[track - 1][TX6.Param.volume.rawValue] = vol
+        send(TX6.cc(TX6.ccMute, mutes[track - 1] ? 127 : 0, channel: track) + TX6.cc(TX6.Param.volume.cc, vol, channel: track))
     }
 
     /// EQ piatto e filtro spento sulla traccia.
@@ -840,12 +845,14 @@ final class TX6Engine: ObservableObject {
         p.gate = gate
         p.gateTracks = gateTracks.sorted()
         p.mutes = mutes
+        p.volumes = (1...6).map { output($0, .volume, io.now()) }
         p.pumpOn = pumpOn
         p.pumpDepth = pumpDepth
         p.pumpRelease = pumpRelease
         p.patternID = currentPatternID
-        p.pumpTops = pumpTracks.sorted().map { tr in
-            (track: tr, top: Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))
+        // il cancello vince sulla pompa: le tracce del cancello non pompano
+        p.pumpTops = pumpTracks.sorted().filter { !(gateOn && gateTracks.contains($0)) }.map { tr in
+            (track: tr, top: mutes[tr - 1] ? 0 : Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))
         }
         return p
     }
@@ -908,6 +915,8 @@ final class TX6Engine: ObservableObject {
         for t in 1...6 {
             for p in TX6.Param.allCases where p.continuous {
                 if p == .volume && pumpOn && pulsing && pumpTracks.contains(t) { continue }
+                // col cancello acceso il volume delle sue tracce lo tiene il sequencer (zero nei passi chiusi)
+                if p == .volume && gateOn && pulsing && gateTracks.contains(t) { continue }
                 if beatsOn && lockOn && pulsing && t == lockTrack && p == lockParam { continue }
                 let out = output(t, p, now)
                 let current = lastSent[t - 1][p.rawValue] ?? values[t - 1][p.rawValue]
@@ -922,6 +931,7 @@ final class TX6Engine: ObservableObject {
 
     /// Il valore che deve avere adesso un parametro: il tuo, più onde, deriva e inclinazione.
     private func output(_ t: Int, _ p: TX6.Param, _ now: MIDITimeStamp) -> Int {
+        if p == .volume && mutes[t - 1] { return 0 }
         var v = Double(values[t - 1][p.rawValue])
         guard p.continuous else { return Int(v) }
         if p == .volume && driftOn && driftTracks.contains(t) { v *= driftLevels[t - 1] }

@@ -47,9 +47,9 @@ func stats(_ name: String, _ ts: [UInt64], expect: Double) {
     guard let lo = ms.min(), let hi = ms.max() else { print(name, "niente"); return }
     print(String(format: "%@: %d, intervallo atteso %.2f ms, min %.2f, max %.2f", name, ts.count, expect, lo, hi))
 }
-stats("passi (note on)", all.filter { $0.1.contains(0x96) }.map { $0.0 }, expect: 125)
+stats("passi (note on)", all.filter { $0.1.contains { (0x90...0x95).contains($0) } }.map { $0.0 }, expect: 125)
 stats("clock", all.filter { $0.1.contains(0xF8) }.map { $0.0 }, expect: 500.0 / 24)
-let steps = all.filter { $0.1.contains(0x96) }
+let steps = all.filter { $0.1.contains { (0x90...0x95).contains($0) } }
 print("note per passo (tre tracce insieme = un pacchetto):", Set(steps.map { $0.1.count / 3 }).sorted())
 print("start:", all.contains { $0.1.contains(0xFA) }, "stop:", all.contains { $0.1.contains(0xFC) })
 let t0 = all.first?.0 ?? 0

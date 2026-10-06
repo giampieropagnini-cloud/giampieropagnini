@@ -228,7 +228,7 @@ struct TX6MixerView: View {
     var body: some View {
         let layer = TX6.Param(rawValue: layerRaw) ?? .volume
         TX6Page(title: "Mixer") {
-            Card(title: "le sei tracce", note: "Scegli cosa regolare su tutte e sei le tracce: volume, guadagno, compressore, EQ, pan, filtro, mandate. M è il muto, «tr» apre tutta la traccia. Il TX-6 va messo su MIDI → CTRL IN; non dice com'è messo: qui vedi quello che gli ha mandato Bobina.") {
+            Card(title: "le sei tracce", note: "Scegli cosa regolare su tutte e sei le tracce: volume, guadagno, compressore, EQ, pan, filtro, mandate. M è il muto (Bobina manda il muto del TX-6 e porta anche il volume a zero; togliendolo torna com'era), «tr» apre tutta la traccia. Il TX-6 va messo su MIDI → CTRL IN; non dice com'è messo: qui vedi quello che gli ha mandato Bobina.") {
                 LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(Self.layers) { p in
                         GridChip(text: Self.label(p), on: layer == p) { layerRaw = p.rawValue }
