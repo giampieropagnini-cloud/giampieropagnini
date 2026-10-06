@@ -110,8 +110,12 @@ final class NTS1Player: ObservableObject {
     @Published var arpChord: NTS1ArpChord { didSet { save(); push() } }
     /// Quante ottave sale: 1, 2 o 3.
     @Published var arpOctaves: Int { didSet { save(); push() } }
-    /// Colpi per quarto: 2, 4 o 8.
-    @Published var arpDiv: Int { didSet { save(); push() } }
+    /// Colpi per quarto: da 1/8 (una nota ogni due battute) a 8 (trentaduesimi).
+    @Published var arpDiv: Double { didSet { save(); push() } }
+
+    /// Le velocità dell'arpeggio, dalla più lenta: colpi per quarto e nome sul tasto.
+    static let arpSpeeds: [(Double, String)] = [(0.125, "2 battute"), (0.25, "1 battuta"), (0.5, "metà"), (1, "quarti"),
+                                                (2, "ottavi"), (4, "sedicesimi"), (8, "trentaduesimi")]
 
     @Published var tiltOn = false { didSet { tiltOn ? startMotion() : stopMotion() } }
     @Published var tiltKnob: NTS1.Knob { didSet { save() } }
@@ -138,7 +142,7 @@ final class NTS1Player: ObservableObject {
         arpMode = NTS1ArpMode(rawValue: d.integer(forKey: "bobina.nts1.arp.modo")) ?? .up
         arpChord = NTS1ArpChord(rawValue: d.integer(forKey: "bobina.nts1.arp.accordo")) ?? .notes
         arpOctaves = d.object(forKey: "bobina.nts1.arp.ottave") as? Int ?? 1
-        arpDiv = d.object(forKey: "bobina.nts1.arp.colpi") as? Int ?? 4
+        arpDiv = (d.object(forKey: "bobina.nts1.arp.colpi") as? NSNumber)?.doubleValue ?? 4
     }
 
     func attach(_ e: NTS1Engine) {
@@ -353,8 +357,8 @@ final class NTS1Sequencer {
         var waveTop = 100
         /// L'arpeggio di Bobina: le note già messe in ordine (su, giù…), una per colpo.
         var arpNotes: [Int] = []
-        /// Colpi per quarto: 2 = ottavi, 4 = sedicesimi, 8 = trentaduesimi.
-        var arpDiv = 4
+        /// Colpi per quarto: 0,125 = uno ogni due battute … 4 = sedicesimi, 8 = trentaduesimi.
+        var arpDiv = 4.0
         var arpRandom = false
         var arpGate = 0.6
     }
@@ -378,7 +382,9 @@ final class NTS1Sequencer {
     private var lastWave = -1
     private var arpOn = false
     private var nextArp = 0
-    private var arpDivNow = 4
+    private var arpDivNow = 4.0
+    /// Il quarto da cui conta l'arpeggio: i colpi cadono a arpOrigin + k / arpDivNow.
+    private var arpOrigin = 0.0
     private var arpIndex = 0
     private var lastClockAt: MIDITimeStamp = 0
 
@@ -466,7 +472,9 @@ final class NTS1Sequencer {
                 }
                 arpOn = true
                 arpDivNow = plan().arpDiv
-                nextArp = Int((line.beat(at: io.now() + io.ticks(ms: 30)) * Double(arpDivNow)).rounded(.up))
+                // parte sul prossimo quarto, anche alle velocità lente: niente attese di due battute
+                arpOrigin = line.beat(at: io.now() + io.ticks(ms: 30)).rounded(.up)
+                nextArp = 0
                 arpIndex = 0
             } else {
                 arpOn = false
@@ -513,7 +521,7 @@ final class NTS1Sequencer {
             nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
             nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
             nextWave = Int((line.beat(at: now) * 8).rounded(.up))
-            nextArp = Int((line.beat(at: now) * Double(arpDivNow)).rounded(.up))
+            nextArp = Int(((line.beat(at: now) - arpOrigin) * arpDivNow).rounded(.up))
         }
         let horizon = now + io.ticks(ms: lookahead)
         let p = plan()
@@ -544,17 +552,18 @@ final class NTS1Sequencer {
         if arpOn {
             if p.arpDiv != arpDivNow {
                 // cambio di velocità: si riprende dal prossimo colpo della nuova griglia
-                let b = Double(nextArp) / Double(arpDivNow)
+                let b = Double(nextArp) / arpDivNow
                 arpDivNow = p.arpDiv
-                nextArp = Int((b * Double(arpDivNow)).rounded(.up))
+                arpOrigin += b.rounded(.up)
+                nextArp = 0
             }
-            while line.time(ofBeat: Double(nextArp) / Double(arpDivNow)) < horizon {
-                let t = line.time(ofBeat: Double(nextArp) / Double(arpDivNow))
+            while line.time(ofBeat: arpOrigin + Double(nextArp) / arpDivNow) < horizon {
+                let t = line.time(ofBeat: arpOrigin + Double(nextArp) / arpDivNow)
                 if t >= now, !p.arpNotes.isEmpty {
                     let note = p.arpRandom ? p.arpNotes.randomElement()! : p.arpNotes[arpIndex % p.arpNotes.count]
                     let n = UInt8(max(0, min(127, note)))
                     io.send([0x90 | ch, n, UInt8(max(1, min(127, p.velocity)))], at: t)
-                    io.send([0x80 | ch, n, 64], at: t + io.ticks(ms: line.beatMs / Double(arpDivNow) * p.arpGate))
+                    io.send([0x80 | ch, n, 64], at: t + io.ticks(ms: line.beatMs / arpDivNow * p.arpGate))
                     arpIndex += 1
                 }
                 nextArp += 1

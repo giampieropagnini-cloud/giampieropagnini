@@ -288,13 +288,17 @@ struct NTS1BobinaArpCard: View {
                         .accessibilityLabel("accordo \(c.label)")
                 }
             }
-            label("ottave e velocità")
+            label("ottave")
             LazyVGrid(columns: columns, spacing: 6) {
                 ForEach(1...3, id: \.self) { o in
                     GridChip(text: o == 1 ? "1 ottava" : "\(o) ottave", on: player.arpOctaves == o) { player.arpOctaves = o }
                 }
-                ForEach([(2, "ottavi"), (4, "sedicesimi"), (8, "trentaduesimi")], id: \.0) { d in
+            }
+            label("velocità: una nota ogni…")
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(NTS1Player.arpSpeeds, id: \.0) { d in
                     GridChip(text: d.1, on: player.arpDiv == d.0) { player.arpDiv = d.0 }
+                        .accessibilityLabel("velocità \(d.1)")
                 }
             }
         }
