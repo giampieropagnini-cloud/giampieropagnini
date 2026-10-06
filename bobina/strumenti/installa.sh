@@ -10,8 +10,13 @@
 #
 #   zsh bobina/strumenti/installa.sh
 #
-# Se un'unione ha conflitti si ferma: risolvili, fai il commit e rilancialo.
+# Se un'unione ha conflitti si ferma: risolvili, fai il commit e rilancialo. Se la compilazione fallisce si ferma
+# e non installa niente.
+# Se pubblichi su main dal tuo branch (come il TP-7), non lanciarlo lì: unirebbe le altre sezioni nel tuo branch.
+# Usa un worktree a parte, per esempio `git worktree add --detach ../bobina-build-tmp claude/tx6-midi`.
 set -e
+# senza pipefail un «xcodebuild … | grep» fallito non ferma lo script, e si installerebbe la Bobina vecchia
+setopt pipefail
 cd "$(dirname "$0")/../.."
 
 IPHONE=00008160-000679C22E400036
