@@ -232,6 +232,8 @@ final class TX6Engine: ObservableObject {
 
     @Published private(set) var values: [[Int]] = Array(repeating: TX6.Param.allCases.map { $0.initial }, count: 6)
     @Published private(set) var mutes = Array(repeating: false, count: 6)
+    /// Le tracce in solo: se ce n'è almeno una, le altre tacciono (volume a zero, fatto da Bobina).
+    @Published private(set) var solos: Set<Int> = []
     /// main, aux, cue
     @Published private(set) var master = [100, 100, 100]
     @Published private(set) var localOff = false
@@ -487,6 +489,25 @@ final class TX6Engine: ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(k / 3) * 0.03) { [weak self] in self?.io.send(msg) }
         }
         logText("traccia 1 rimessa com'era")
+    }
+
+    /// Una traccia tace se è muta, o se qualcun'altra è in solo.
+    func silenced(_ t: Int) -> Bool { mutes[t - 1] || (!solos.isEmpty && !solos.contains(t)) }
+
+    /// Il solo, fatto da Bobina: le tracce che non sono in solo vanno a volume zero; togliendolo tornano com'erano.
+    /// (Il solo del TX-6 dipende dal menu SOLO della macchina: così invece funziona sempre.)
+    func toggleSolo(_ track: Int) {
+        if solos.contains(track) { solos.remove(track) } else { solos.insert(track) }
+        var bytes: [UInt8] = []
+        for t in 1...6 {
+            let vol = output(t, .volume, io.now())
+            if vol != lastSent[t - 1][TX6.Param.volume.rawValue] {
+                bytes += TX6.cc(TX6.Param.volume.cc, vol, channel: t)
+                lastSent[t - 1][TX6.Param.volume.rawValue] = vol
+            }
+        }
+        if !bytes.isEmpty { send(bytes, quiet: true) }
+        logText(solos.isEmpty ? "solo tolto" : "solo: traccia " + solos.sorted().map { "\($0)" }.joined(separator: " "))
     }
 
     /// Il muto: il cc 120 del TX-6 e, in più, il volume a zero (lo tiene `output`). Misurato il 6/10/2026:
@@ -873,7 +894,7 @@ final class TX6Engine: ObservableObject {
         p.patternID = currentPatternID
         // il cancello vince sulla pompa: le tracce del cancello non pompano
         p.pumpTops = pumpTracks.sorted().filter { !(gateOn && gateTracks.contains($0)) }.map { tr in
-            (track: tr, top: mutes[tr - 1] ? 0 : Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))
+            (track: tr, top: silenced(tr) ? 0 : Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))
         }
         return p
     }
@@ -952,7 +973,7 @@ final class TX6Engine: ObservableObject {
 
     /// Il valore che deve avere adesso un parametro: il tuo, più onde, deriva e inclinazione.
     private func output(_ t: Int, _ p: TX6.Param, _ now: MIDITimeStamp) -> Int {
-        if p == .volume && mutes[t - 1] { return 0 }
+        if p == .volume && silenced(t) { return 0 }
         var v = Double(values[t - 1][p.rawValue])
         guard p.continuous else { return Int(v) }
         if p == .volume && driftOn && driftTracks.contains(t) { v *= driftLevels[t - 1] }

@@ -226,9 +226,7 @@ struct TX6MixerView: View {
     var body: some View {
         let layer = TX6.Param(rawValue: layerRaw) ?? .volume
         TX6Page(title: "Mixer") {
-            TX6ProbeCard()
-
-            Card(title: "le sei tracce", note: "Scegli cosa regolare su tutte e sei le tracce: volume, guadagno, compressore, EQ, pan, filtro, mandate. M è il muto (Bobina manda il muto del TX-6 e porta anche il volume a zero; togliendolo torna com'era), «tr» apre tutta la traccia. Il TX-6 va messo su MIDI → CTRL IN; non dice com'è messo: qui vedi quello che gli ha mandato Bobina.") {
+            Card(title: "le sei tracce", note: "Scegli cosa regolare su tutte e sei le tracce: volume, guadagno, compressore, EQ, pan, filtro, mandate. M è il muto, S il solo (le altre tracce tacciono); togliendoli il volume torna com'era. «tr» apre tutta la traccia. Il TX-6 va messo su MIDI → CTRL IN; non dice com'è messo: qui vedi quello che gli ha mandato Bobina.") {
                 LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(Self.layers) { p in
                         GridChip(text: Self.label(p), on: layer == p) { layerRaw = p.rawValue }
@@ -276,7 +274,7 @@ struct TX6ProbeCard: View {
         if hidden {
             Chip(text: "mostra la prova dei comandi") { hidden = false }
         } else {
-            Card(title: "prova dei comandi", note: "Ogni tasto manda un solo comando alla traccia 1, col valore 32 (il muto 127). Toccali uno alla volta e guarda il display del TX-6: salta sulla pagina di quello che ha capito. Dimmi cosa compare per ogni numero. Alla fine «rimetti a posto la traccia 1».") {
+            Card(title: "prova dei comandi", note: "Per controllare che il TX-6 capisca i numeri giusti (6/10/2026: tutti confermati tranne il filtro). Ogni tasto manda un solo comando alla traccia 1, col valore 32 (il muto 127). Toccali uno alla volta e guarda il display del TX-6: salta sulla pagina di quello che ha capito. Dimmi cosa compare per ogni numero. Alla fine «rimetti a posto la traccia 1».") {
                 LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(Array(Self.probes.enumerated()), id: \.offset) { i, p in
                         GridChip(text: "\(i + 1) · \(p.name) · cc \(p.cc)") { tx.probe(p.cc, p.value) }
@@ -305,7 +303,9 @@ struct TX6ChannelRow: View {
             } label: {
                 Text("tr \(track) ›")
                     .font(.system(.subheadline, design: .monospaced))
-                    .padding(.horizontal, 8)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .padding(.horizontal, 6)
                     .padding(.vertical, 7)
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18)))
             }
@@ -317,9 +317,29 @@ struct TX6ChannelRow: View {
                 .font(.system(.caption, design: .monospaced))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-                .frame(width: 48, alignment: .trailing)
-            Chip(text: "M", on: tx.mutes[track - 1], color: Palette.rec) { tx.toggleMute(track) }
+                .frame(width: 42, alignment: .trailing)
+            ToggleKey(text: "M", on: tx.mutes[track - 1], color: Palette.rec) { tx.toggleMute(track) }
+            ToggleKey(text: "S", on: tx.solos.contains(track), color: Color.yellow) { tx.toggleSolo(track) }
         }
+    }
+}
+
+/// Un tasto piccolo che resta acceso (muto, solo): stretto come − e +, per lasciare spazio allo slider.
+struct ToggleKey: View {
+    let text: String
+    let on: Bool
+    var color: Color = Palette.accent
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(text)
+                .font(.system(.subheadline, design: .monospaced))
+                .frame(width: 34, height: 30)
+                .background(RoundedRectangle(cornerRadius: 7).fill(on ? color : Color(white: 0.18)))
+                .foregroundStyle(on ? Color.black : Color.white)
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -1063,6 +1083,8 @@ struct TX6CollegaView: View {
             }
 
             TX6MirrorCard(side: tx.side)
+
+            TX6ProbeCard()
 
             Card(title: "il TX-6 comanda il TP-7", note: "TX-6 su CTRL OUT col cavo, TP-7 collegato alla sezione TP-7 (per esempio col bluetooth). I fader diventano i volumi del TP-7, i tasti traccia i suoi muti, FX I è play e stop, FX II un tape stop, la manopola select la velocità (premuta torna a ×1).") {
                 Toggle("acceso", isOn: $tx.bridgeOn)
