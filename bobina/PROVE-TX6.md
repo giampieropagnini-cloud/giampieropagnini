@@ -21,7 +21,7 @@ Le prime quattro si fanno col cavo al **Mac** e l'ascoltatore (`strumenti/ascolt
 | 7 | il muto fa muto o solo | Mixer, M sulla traccia 2; poi menu SOLO su solo e riprova | da fare |
 | 8 | le scene a b c | salva scene diverse sul TX-6, poi Mixer → scene del TX-6 | da fare |
 | 9 | la tastiera | NOTE on, SYNTH → play; Suona, traccia 1 | da fare |
-| 10 | i sei pad: quale ottava | Suona, sei pad; cambia ottava finché suonano | ✅ 6/10/2026: le note sul canale 7 cambiano anche l'altezza. Con do4 le casse suonano alte come tom; do3 e do2 giuste. Di fabbrica ora do2 |
+| 10 | i sei pad: quale ottava | Suona, sei pad; cambia ottava finché suonano | ✅ 6/10/2026: le note do-la sul canale 7 suonano la traccia sempre alla stessa altezza (casse come tom, anche a do2); la tastiera sul canale della traccia a do1-do2 dà casse giuste. Ora pad e batteria a passi suonano sul canale della traccia, di fabbrica a do2 |
 | 11 | suoni, effetti, pattern: l'ordine sui 128 valori | traccia → synth; Effetti → i nomi; guardare il display | da fare |
 | 12 | start/stop e tempo ± | Ritmo → il trasporto del TX-6 | da fare |
 | 13 | Bobina dà il tempo | CLOCK → SRC USB (col bluetooth: BLE); Ritmo → «Bobina dà il tempo al TX-6», ▶ | ✅ 29/9/2026, via bluetooth con SRC BLE: Bobina manda start e clock, il TX-6 prende il tempo e parte |

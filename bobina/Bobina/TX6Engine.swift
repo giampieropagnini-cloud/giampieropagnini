@@ -531,12 +531,14 @@ final class TX6Engine: ObservableObject {
         for n in list { send(TX6.noteOff(n.note, channel: n.track), quiet: true) }
     }
 
-    /// Un pad: do re mi fa sol la sul canale 7, le tracce 1-6 alla loro frequenza.
+    /// Un pad: la nota `padBase` sul canale della traccia. Misurato il 6/10/2026: le note do-la sul canale 7
+    /// suonano le tracce sempre alla stessa altezza (le casse sembravano tom), il canale della traccia invece
+    /// segue la nota, come la tastiera.
     func hitPad(_ track: Int, at time: MIDITimeStamp = 0, fromUser: Bool = true) {
-        let n = padBase + TX6.padSteps[track - 1]
-        send(TX6.noteOn(n, channel: TX6.masterChannel), at: time, quiet: !fromUser)
+        let n = padBase
+        send(TX6.noteOn(n, channel: track), at: time, quiet: !fromUser)
         let off = (time == 0 ? io.now() : time) + io.ticks(ms: 40)
-        send(TX6.noteOff(n, channel: TX6.masterChannel), at: off, quiet: true)
+        send(TX6.noteOff(n, channel: track), at: off, quiet: true)
         if fromUser { haptic.impactOccurred() }
         flash([track], at: time)
     }

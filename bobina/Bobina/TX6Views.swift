@@ -430,7 +430,7 @@ struct TX6SuonaView: View {
                 }
             }
 
-            Card(title: "sei pad", note: "Do re mi fa sol la sul canale 7: ogni pad fa suonare una traccia alla sua frequenza, come una drum machine. Serve il synth su play. L'ottava cambia l'altezza: do2 (di fabbrica) dà casse giuste, do4 le fa sembrare tom.") {
+            Card(title: "sei pad", note: "Ogni pad fa suonare la sua traccia alla nota dell'ottava scelta, come la tastiera. Serve NOTE on e il synth su play. Do2 (di fabbrica) dà casse giuste; per una cassa più profonda scendi a do1.") {
                 TX6PadGrid(live: tx.live)
                 HStack(spacing: 6) {
                     Text("ottava")
@@ -770,7 +770,7 @@ struct TX6PadGrid: View {
                     VStack(spacing: 2) {
                         Text("traccia \(t)").font(.system(.subheadline, design: .monospaced))
                         Text(TX6.sounds[TX6.soundIndex(tx.value(t, .sound))]).font(.system(.caption, design: .monospaced))
-                        Text(["do", "re", "mi", "fa", "sol", "la"][t - 1]).font(.system(.caption2, design: .monospaced))
+                        Text("do\(tx.padBase / 12 - 1)").font(.system(.caption2, design: .monospaced))
                     }
                 }
                 .frame(height: 70)
