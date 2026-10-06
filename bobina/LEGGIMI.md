@@ -30,6 +30,15 @@ Il tasto «passa a…» in alto a destra di ogni pagina passa da una sezione all
 
 Quello che si sa dell'adattatore è in `PO-RICERCA.md`, le prove con le macchine vere in `PROVE-PO.md`.
 
+### Sezione NTS-1 (Korg NTS-1 digital kit mkII)
+
+- **Suono**: tutte le manopole dell'NTS-1 con un nome: oscillatore, filtro, inviluppo, mod, delay, reverb, volume, e i tasti dei tipi (saw, lp2, chorus, hall…). Quando giri una manopola sull'NTS-1, il valore si muove anche in Bobina.
+- **Suona**: sedici pad (sopra suona, sotto «tieni»: con l'ARP acceso le note tenute si arpeggiano), l'arpeggio (forma, accordo, lunghezza), i **passi** a tempo con le altre macchine (la nota si sceglie anche dalla tastiera dell'NTS-1), l'NTS-1 **a tempo con Bobina** (start e clock: arpeggio, sequencer e delay bpm), l'**onda a tempo** su una manopola (onda, cancello, pompa) e l'**inclinazione**.
+- **Banche**: «salva il suono di adesso» chiede all'NTS-1 il suono intero (anche gli 8 passi del suo sequencer) e lo tiene in Bobina; «carica» glielo rimanda.
+- **Collega**: la porta, il firmware e il canale letti dall'NTS-1, e «sistema le impostazioni» se non ascolta le manopole o non segue il tempo.
+
+Quello che si sa dell'NTS-1 è in `NTS1-RICERCA.md`.
+
 > Compilata con Xcode 26.6 e 27.0 e provata col TP-7 vero, col cavo e col bluetooth, fra il 28/9 e il 1/10/2026: quello che funziona e quello che no è in `PROVE.md`.
 
 ---
@@ -88,6 +97,14 @@ Tieni **shift** e premi **select** per il menu, poi:
 - **A tempo col TX-6, col cavo**: aux del TX-6 → ingresso del PO. Sul TX-6: aux, shift + gira select → sync 8. Sul PO: tasto in alto + bpm fino a **SY2**. In Bobina: *Ritmo → cavo sync dal TX-6*.
 - Via MIDI **le manopole A e B non si muovono**, e il PO non dice mai com'è messo.
 
+## Preparare l'NTS-1
+
+- **Col cavo**: USB-C dell'NTS-1 → iPhone. L'iPhone lo accende anche (provato il 6/10/2026). Bobina lo sceglie da sola.
+- Bobina al collegamento legge firmware, canale e impostazioni. Servono due impostazioni globali dell'NTS-1: **MIDI short message = on** (se no ignora le manopole di Bobina) e **Clock = Auto** (se no non segue il tempo). Se mancano, *Collega → sistema le impostazioni* le accende da Bobina.
+- **Niente bluetooth**: l'NTS-1 non ce l'ha.
+- L'arpeggio si accende solo dal tasto ARP dell'NTS-1: via MIDI non c'è un comando.
+- Un suono caricato da Bobina va nel suono in modifica: per tenerlo sull'NTS-1, salvalo lì in un programma.
+
 ## Cose da sapere (TP-7)
 
 - **Le cose di velocità funzionano solo mentre il TP-7 suona davvero** (▶ in sync, o il play della macchina). Riguarda velocità, nastro stanco, tape stop e inclinazione; il nastro mosso dalla leva (trasporto in cue) non le sente. La velocità resta anche dopo uno stop: il display non la mostra.
@@ -132,3 +149,7 @@ Se l'iPhone ha una versione di iOS più nuova di Xcode, l'installazione si ferma
 | `Bobina/POEngine.swift` · `POSequencer.swift` | il motore dei PO e il loro ritmo, su un filo suo |
 | `Bobina/POViews.swift` | le quattro schermate dei PO |
 | `PO-RICERCA.md` · `PROVE-PO.md` | cosa si sa dell'adattatore, e le prove con le macchine vere |
+| `Bobina/NTS1.swift` | i byte dell'NTS-1: CC, SysEx Korg, il suono salvato |
+| `Bobina/NTS1Engine.swift` · `NTS1Play.swift` | il motore dell'NTS-1, i pad, i passi e l'onda a tempo |
+| `Bobina/NTS1Views.swift` | le quattro schermate dell'NTS-1 |
+| `NTS1-RICERCA.md` | cosa si sa dell'NTS-1 |

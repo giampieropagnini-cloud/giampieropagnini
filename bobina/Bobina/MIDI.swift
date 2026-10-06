@@ -165,16 +165,18 @@ final class MIDIIO {
     }
 
     /// Un pacchetto può contenere più messaggi uno dopo l'altro: li separa.
+    /// Un SysEx lungo (il suono dell'NTS-1, 584 byte) arriva spezzato in più pacchetti: qui si ricompone.
+    /// I messaggi di tempo che cadono in mezzo sono già passati da `onRealtime` e qui si saltano.
     private func split(_ bytes: [UInt8], _ stamp: MIDITimeStamp) {
         var i = 0
+        if sysexPart != nil {
+            i = continueSysex(bytes, stamp)
+        }
         while i < bytes.count {
             let status = bytes[i]
             if status == 0xF0 {
-                var j = i + 1
-                while j < bytes.count && bytes[j] != 0xF7 { j += 1 }
-                let end = min(j + 1, bytes.count)
-                onReceive?(Array(bytes[i..<end]), stamp)
-                i = end
+                sysexPart = [0xF0]
+                i = i + 1 + continueSysex(Array(bytes[(i + 1)...]), stamp)
                 continue
             }
             let length = MIDIIO.length(of: status)
@@ -183,6 +185,31 @@ final class MIDIIO {
             onReceive?(Array(bytes[i..<end]), stamp)
             i = end
         }
+    }
+
+    private var sysexPart: [UInt8]?
+
+    /// Aggiunge al SysEx aperto i dati di `bytes` fino all'F7. Restituisce quanti byte ha consumato.
+    private func continueSysex(_ bytes: [UInt8], _ stamp: MIDITimeStamp) -> Int {
+        guard var part = sysexPart else { return 0 }
+        var i = 0
+        while i < bytes.count {
+            let b = bytes[i]
+            if b < 0x80 {
+                part.append(b)
+            } else if b == 0xF7 {
+                sysexPart = nil
+                onReceive?(part + [0xF7], stamp)
+                return i + 1
+            } else if b < 0xF8 {
+                // un altro messaggio ha interrotto il SysEx: quello si butta, il nuovo si legge
+                sysexPart = nil
+                return i
+            }
+            i += 1
+        }
+        sysexPart = part
+        return i
     }
 
     static func length(of status: UInt8) -> Int {
