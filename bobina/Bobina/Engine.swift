@@ -222,8 +222,16 @@ final class Engine: ObservableObject {
         let dest = destinations.first(where: { $0.id == destinationID })?.ref ?? 0
         let src = sources.first(where: { $0.id == sourceID })?.ref ?? 0
         if dest != io.destination || src != io.source {
+            let newDestination = dest != 0 && dest != io.destination
             io.use(destination: dest, source: src)
             objectWillChange.send()
+            if newDestination {
+                // se Bobina si era chiusa col nastro mosso dalla leva, il TP-7 continua a correre:
+                // appena si ricollega la leva torna al centro (come il «silenzio» delle note del TX-6)
+                io.send(TP7.cc(TP7.ccLever, TP7.leverCenter))
+                lever = TP7.leverCenter
+                cueTape = .stopped
+            }
         }
     }
 
