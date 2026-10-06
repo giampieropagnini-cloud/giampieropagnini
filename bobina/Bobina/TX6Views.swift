@@ -430,7 +430,7 @@ struct TX6SuonaView: View {
                 }
             }
 
-            Card(title: "sei pad", note: "Do re mi fa sol la sul canale 7: ogni pad fa suonare una traccia alla sua frequenza, come una drum machine. Serve il synth su play. L'ottava giusta è ancora da misurare: se non suona, cambiala.") {
+            Card(title: "sei pad", note: "Do re mi fa sol la sul canale 7: ogni pad fa suonare una traccia alla sua frequenza, come una drum machine. Serve il synth su play. L'ottava cambia l'altezza: do2 (di fabbrica) dà casse giuste, do4 le fa sembrare tom.") {
                 TX6PadGrid(live: tx.live)
                 HStack(spacing: 6) {
                     Text("ottava")

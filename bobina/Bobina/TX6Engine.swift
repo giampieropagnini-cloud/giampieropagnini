@@ -250,7 +250,11 @@ final class TX6Engine: ObservableObject {
     @Published var octave = 4
     @Published var chord = TX6Chord.single
     /// L'ottava delle note do-la sul canale 7 (da misurare: la guida non la dice).
-    @Published var padBase = 60
+    /// Misurato il 6/10/2026: con do4 (60) le casse suonavano alte come tom, una o due ottave sotto sono giuste.
+    /// Di fabbrica do2 (36); la scelta resta salvata.
+    @Published var padBase = UserDefaults.standard.object(forKey: "bobina.tx6.ottavaPad") as? Int ?? 36 {
+        didSet { UserDefaults.standard.set(padBase, forKey: "bobina.tx6.ottavaPad") }
+    }
     @Published private(set) var heldKeys: Set<Int> = []
 
     // MARK: tempo
