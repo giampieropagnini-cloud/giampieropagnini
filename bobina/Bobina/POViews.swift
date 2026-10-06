@@ -216,6 +216,7 @@ struct POTastiView: View {
                 POFace(flashes: po.flashes)
                 HStack {
                     Chip(text: "lascia tutto", on: !po.held.isEmpty) { po.releaseAll() }
+                    Chip(text: "silenzio") { po.allUp() }
                     Spacer()
                     Text(po.held.isEmpty ? "niente tenuto" : "tenuti: " + po.held.sorted { $0.note < $1.note }.map { $0.label(po.model) }.joined(separator: " "))
                         .font(.system(.caption, design: .monospaced))
