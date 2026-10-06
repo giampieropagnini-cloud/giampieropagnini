@@ -288,13 +288,17 @@ struct NTS1BobinaArpCard: View {
                         .accessibilityLabel("accordo \(c.label)")
                 }
             }
-            label("ottave e velocità")
+            label("ottave")
             LazyVGrid(columns: columns, spacing: 6) {
                 ForEach(1...3, id: \.self) { o in
                     GridChip(text: o == 1 ? "1 ottava" : "\(o) ottave", on: player.arpOctaves == o) { player.arpOctaves = o }
                 }
-                ForEach([(2, "ottavi"), (4, "sedicesimi"), (8, "trentaduesimi")], id: \.0) { d in
+            }
+            label("velocità: una nota ogni…")
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(NTS1Player.arpSpeeds, id: \.0) { d in
                     GridChip(text: d.1, on: player.arpDiv == d.0) { player.arpDiv = d.0 }
+                        .accessibilityLabel("velocità \(d.1)")
                 }
             }
         }
@@ -363,9 +367,16 @@ struct NTS1TempoCard: View {
     @EnvironmentObject var nts1: NTS1Engine
 
     var body: some View {
-        Card(title: "a tempo con Bobina", note: "Start e clock all'NTS-1: arpeggio, sequencer e delay «bpm» vanno al tempo di Bobina. Se suona già un'altra macchina, entra alla battuta dopo.") {
-            NTS1BigButton(text: nts1.running ? "ferma l'NTS-1" : "fai partire l'NTS-1 a tempo", on: nts1.running,
-                          color: Color(red: 0.40, green: 0.82, blue: 0.40)) { nts1.toggleRun() }
+        Card(title: "a tempo con Bobina", note: "«solo il tempo»: delay «bpm» e arpeggio della macchina vanno al tempo di Bobina, la sequenza dell'NTS-1 resta ferma. «anche la sua sequenza»: parte pure quella. Se suona già un'altra macchina, entra alla battuta dopo.") {
+            if nts1.running {
+                NTS1BigButton(text: nts1.withSequence ? "ferma l'NTS-1" : "smetti di dare il tempo", on: true) { nts1.stopRun() }
+                Text(nts1.withSequence ? "tempo e sequenza dell'NTS-1" : "solo il tempo: la sequenza dell'NTS-1 è ferma")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(NTS1.color)
+            } else {
+                NTS1BigButton(text: "dai solo il tempo all'NTS-1", color: Color(red: 0.40, green: 0.82, blue: 0.40)) { nts1.startClock() }
+                NTS1BigButton(text: "fai partire anche la sua sequenza", color: Color(red: 0.40, green: 0.82, blue: 0.40).opacity(0.7)) { nts1.startWithSequence() }
+            }
             HStack(spacing: 8) {
                 Text("bpm")
                     .font(.system(.caption, design: .monospaced))

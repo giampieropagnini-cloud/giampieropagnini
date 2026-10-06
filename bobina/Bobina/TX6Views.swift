@@ -207,10 +207,8 @@ struct TX6MixerView: View {
     @EnvironmentObject var tx: TX6Engine
     /// Cosa regolano le sei righe: volume, guadagno, EQ, compressore… La scelta resta salvata.
     @AppStorage("bobina.tx6.mixer.strato") private var layerRaw = TX6.Param.volume.rawValue
-    @State private var strip = 1
 
     static let layers: [TX6.Param] = [.volume, .gain, .comp, .eqHigh, .eqMid, .eqLow, .pan, .filter, .fx1Send, .auxSend, .aux2Send]
-    static let stripParams: [TX6.Param] = [.gain, .eqHigh, .eqMid, .eqLow, .comp, .pan, .filter, .fx1Send, .auxSend, .volume]
 
     static func label(_ p: TX6.Param) -> String {
         switch p {
@@ -228,7 +226,7 @@ struct TX6MixerView: View {
     var body: some View {
         let layer = TX6.Param(rawValue: layerRaw) ?? .volume
         TX6Page(title: "Mixer") {
-            Card(title: "le sei tracce", note: "Scegli cosa regolare su tutte e sei le tracce: volume, guadagno, compressore, EQ, pan, filtro, mandate. M è il muto, «tr» apre tutta la traccia. Il TX-6 va messo su MIDI → CTRL IN; non dice com'è messo: qui vedi quello che gli ha mandato Bobina.") {
+            Card(title: "le sei tracce", note: "Scegli cosa regolare su tutte e sei le tracce: volume, guadagno, compressore, EQ, pan, filtro, mandate. M è il muto, S il solo (le altre tracce tacciono); togliendoli il volume torna com'era. «tr» apre tutta la traccia. Il TX-6 va messo su MIDI → CTRL IN; non dice com'è messo: qui vedi quello che gli ha mandato Bobina.") {
                 LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(Self.layers) { p in
                         GridChip(text: Self.label(p), on: layer == p) { layerRaw = p.rawValue }
@@ -236,17 +234,6 @@ struct TX6MixerView: View {
                 }
                 ForEach(1...6, id: \.self) { t in
                     TX6ChannelRow(track: t, param: layer)
-                }
-            }
-
-            Card(title: "un canale", note: "Tutte le funzioni di un canale insieme, come sulla macchina: guadagno, EQ a tre bande (±18 dB), compressore, pan, filtro, mandate e volume.") {
-                OneTrackPicker(selected: strip) { strip = $0 }
-                ForEach(Self.stripParams) { p in
-                    StepSlider(name: Self.label(p), value: tx.value(strip, p), shown: p.shown(tx.value(strip, p))) { tx.set(strip, p, $0) }
-                }
-                HStack(spacing: 8) {
-                    Chip(text: tx.mutes[strip - 1] ? "muta" : "muto", on: tx.mutes[strip - 1], color: Palette.rec) { tx.toggleMute(strip) }
-                    Chip(text: "EQ piatto e filtro spento") { tx.flatten(strip) }
                 }
             }
 
@@ -270,6 +257,38 @@ struct TX6MixerView: View {
     }
 }
 
+/// Prova dei comandi: ogni tasto manda un solo numero (cc) alla traccia 1, e il display del TX-6 salta
+/// sulla pagina di quello che ha capito. Serve a controllare la tabella ufficiale sulla macchina vera.
+struct TX6ProbeCard: View {
+    @EnvironmentObject var tx: TX6Engine
+    @AppStorage("bobina.tx6.prova.nascosta") private var hidden = false
+
+    static let probes: [(name: String, cc: UInt8, value: Int)] = [
+        ("volume", 7, 32), ("pan", 8, 32), ("guadagno", 9, 32), ("filtro", 74, 32),
+        ("EQ alti", 85, 32), ("EQ medi", 86, 32), ("EQ bassi", 87, 32), ("compressore", 93, 32),
+        ("FX I", 91, 32), ("aux", 92, 32), ("aux II", 94, 32), ("muto", 120, 127), ("togli muto", 120, 0)
+    ]
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 2)
+
+    var body: some View {
+        if hidden {
+            Chip(text: "mostra la prova dei comandi") { hidden = false }
+        } else {
+            Card(title: "prova dei comandi", note: "Per controllare che il TX-6 capisca i numeri giusti (6/10/2026: tutti confermati tranne il filtro). Ogni tasto manda un solo comando alla traccia 1, col valore 32 (il muto 127). Toccali uno alla volta e guarda il display del TX-6: salta sulla pagina di quello che ha capito. Dimmi cosa compare per ogni numero. Alla fine «rimetti a posto la traccia 1».") {
+                LazyVGrid(columns: columns, spacing: 6) {
+                    ForEach(Array(Self.probes.enumerated()), id: \.offset) { i, p in
+                        GridChip(text: "\(i + 1) · \(p.name) · cc \(p.cc)") { tx.probe(p.cc, p.value) }
+                    }
+                }
+                HStack(spacing: 8) {
+                    Chip(text: "rimetti a posto la traccia 1") { tx.restoreTrack1() }
+                    Chip(text: "nascondi") { hidden = true }
+                }
+            }
+        }
+    }
+}
+
 /// Una riga del mixer: la traccia, il parametro scelto con − e +, il valore e il muto.
 struct TX6ChannelRow: View {
     @EnvironmentObject var tx: TX6Engine
@@ -284,7 +303,9 @@ struct TX6ChannelRow: View {
             } label: {
                 Text("tr \(track) ›")
                     .font(.system(.subheadline, design: .monospaced))
-                    .padding(.horizontal, 8)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .padding(.horizontal, 6)
                     .padding(.vertical, 7)
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18)))
             }
@@ -296,9 +317,29 @@ struct TX6ChannelRow: View {
                 .font(.system(.caption, design: .monospaced))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-                .frame(width: 48, alignment: .trailing)
-            Chip(text: "M", on: tx.mutes[track - 1], color: Palette.rec) { tx.toggleMute(track) }
+                .frame(width: 42, alignment: .trailing)
+            ToggleKey(text: "M", on: tx.mutes[track - 1], color: Palette.rec) { tx.toggleMute(track) }
+            ToggleKey(text: "S", on: tx.solos.contains(track), color: Color.yellow) { tx.toggleSolo(track) }
         }
+    }
+}
+
+/// Un tasto piccolo che resta acceso (muto, solo): stretto come − e +, per lasciare spazio allo slider.
+struct ToggleKey: View {
+    let text: String
+    let on: Bool
+    var color: Color = Palette.accent
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(text)
+                .font(.system(.subheadline, design: .monospaced))
+                .frame(width: 34, height: 30)
+                .background(RoundedRectangle(cornerRadius: 7).fill(on ? color : Color(white: 0.18)))
+                .foregroundStyle(on ? Color.black : Color.white)
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -1042,6 +1083,8 @@ struct TX6CollegaView: View {
             }
 
             TX6MirrorCard(side: tx.side)
+
+            TX6ProbeCard()
 
             Card(title: "il TX-6 comanda il TP-7", note: "TX-6 su CTRL OUT col cavo, TP-7 collegato alla sezione TP-7 (per esempio col bluetooth). I fader diventano i volumi del TP-7, i tasti traccia i suoi muti, FX I è play e stop, FX II un tape stop, la manopola select la velocità (premuta torna a ×1).") {
                 Toggle("acceso", isOn: $tx.bridgeOn)
