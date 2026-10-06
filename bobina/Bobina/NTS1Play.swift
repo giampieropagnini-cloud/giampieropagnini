@@ -40,6 +40,47 @@ enum NTS1Shape: Int, CaseIterable, Identifiable {
     }
 }
 
+/// Come sale l'arpeggio di Bobina.
+enum NTS1ArpMode: Int, CaseIterable, Identifiable {
+    case up, down, upDown, downUp, random
+    var id: Int { rawValue }
+    var label: String {
+        switch self {
+        case .up: return "su"
+        case .down: return "giù"
+        case .upDown: return "su-giù"
+        case .downUp: return "giù-su"
+        case .random: return "a caso"
+        }
+    }
+}
+
+/// Le note che l'arpeggio aggiunge a ogni nota tenuta.
+enum NTS1ArpChord: Int, CaseIterable, Identifiable {
+    case notes, major, minor, sus, seventh, fifth
+    var id: Int { rawValue }
+    var label: String {
+        switch self {
+        case .notes: return "solo le note"
+        case .major: return "maggiore"
+        case .minor: return "minore"
+        case .sus: return "sospeso"
+        case .seventh: return "settima"
+        case .fifth: return "quinta"
+        }
+    }
+    var intervals: [Int] {
+        switch self {
+        case .notes: return [0]
+        case .major: return [0, 4, 7]
+        case .minor: return [0, 3, 7]
+        case .sus: return [0, 5, 7]
+        case .seventh: return [0, 4, 7, 10]
+        case .fifth: return [0, 7]
+        }
+    }
+}
+
 /// Bobina che suona l'NTS-1: pad, 16 passi a tempo, un'onda a tempo su una manopola, l'inclinazione.
 final class NTS1Player: ObservableObject {
     weak var engine: NTS1Engine?
@@ -63,6 +104,15 @@ final class NTS1Player: ObservableObject {
     /// Quanto si muove, 0-127, sotto il valore della manopola.
     @Published var waveDepth: Int { didSet { save(); push() } }
 
+    /// L'arpeggio di Bobina: suona le note tenute a tempo, senza il tasto ARP dell'NTS-1.
+    @Published private(set) var arpOn = false
+    @Published var arpMode: NTS1ArpMode { didSet { save(); push() } }
+    @Published var arpChord: NTS1ArpChord { didSet { save(); push() } }
+    /// Quante ottave sale: 1, 2 o 3.
+    @Published var arpOctaves: Int { didSet { save(); push() } }
+    /// Colpi per quarto: 2, 4 o 8.
+    @Published var arpDiv: Int { didSet { save(); push() } }
+
     @Published var tiltOn = false { didSet { tiltOn ? startMotion() : stopMotion() } }
     @Published var tiltKnob: NTS1.Knob { didSet { save() } }
 
@@ -85,6 +135,10 @@ final class NTS1Player: ObservableObject {
         waveBeats = d.object(forKey: "bobina.nts1.onda.quarti") as? Double ?? 4
         waveDepth = d.object(forKey: "bobina.nts1.onda.quanto") as? Int ?? 64
         tiltKnob = NTS1.Knob(rawValue: d.string(forKey: "bobina.nts1.inclina.manopola") ?? "") ?? .cutoff
+        arpMode = NTS1ArpMode(rawValue: d.integer(forKey: "bobina.nts1.arp.modo")) ?? .up
+        arpChord = NTS1ArpChord(rawValue: d.integer(forKey: "bobina.nts1.arp.accordo")) ?? .notes
+        arpOctaves = d.object(forKey: "bobina.nts1.arp.ottave") as? Int ?? 1
+        arpDiv = d.object(forKey: "bobina.nts1.arp.colpi") as? Int ?? 4
     }
 
     func attach(_ e: NTS1Engine) {
@@ -104,6 +158,10 @@ final class NTS1Player: ObservableObject {
         d.set(waveBeats, forKey: "bobina.nts1.onda.quarti")
         d.set(waveDepth, forKey: "bobina.nts1.onda.quanto")
         d.set(tiltKnob.rawValue, forKey: "bobina.nts1.inclina.manopola")
+        d.set(arpMode.rawValue, forKey: "bobina.nts1.arp.modo")
+        d.set(arpChord.rawValue, forKey: "bobina.nts1.arp.accordo")
+        d.set(arpOctaves, forKey: "bobina.nts1.arp.ottave")
+        d.set(arpDiv, forKey: "bobina.nts1.arp.colpi")
     }
 
     /// Manda al sequencer quello che deve suonare.
@@ -117,6 +175,9 @@ final class NTS1Player: ObservableObject {
         p.waveBeats = waveBeats
         p.waveDepth = waveDepth
         p.waveTop = e.sound.value(waveKnob)
+        p.arpNotes = arpOn ? arpSequence() : []
+        p.arpDiv = arpDiv
+        p.arpRandom = arpMode == .random
         e.sequencer.update(p)
     }
 
@@ -134,6 +195,7 @@ final class NTS1Player: ObservableObject {
     /// La metà di sopra: suona la nota per un quarto di secondo. Se era tenuta, la lascia.
     func touch(_ n: Int) {
         pick = n
+        if arpOn { toggleHold(n); return }
         if held.contains(n) { release(n); return }
         guard let io = engine?.io else { return }
         send([0x90 | ch, UInt8(n), 100])
@@ -143,6 +205,12 @@ final class NTS1Player: ObservableObject {
     /// La metà di sotto: tiene la nota finché non la ritocchi. Con più note tenute suona l'arpeggio.
     func toggleHold(_ n: Int) {
         pick = n
+        if arpOn {
+            // con l'arpeggio di Bobina le note tenute non suonano da sole: le suona l'arpeggio
+            if held.contains(n) { held.remove(n) } else { held.insert(n) }
+            push()
+            return
+        }
         if held.contains(n) { release(n) } else {
             held.insert(n)
             send([0x90 | ch, UInt8(n), 100])
@@ -156,6 +224,7 @@ final class NTS1Player: ObservableObject {
 
     func releaseAll() {
         guard !held.isEmpty else { return }
+        if arpOn { held.removeAll(); push(); return }
         let c = ch
         let bytes: [UInt8] = held.sorted().flatMap { [0x80 | c, UInt8($0), 64] }
         held.removeAll()
@@ -192,6 +261,38 @@ final class NTS1Player: ObservableObject {
         stepsOn.toggle()
         engine?.sequencer.setSteps(stepsOn)
         if !stepsOn { live.step = nil }
+    }
+
+    // MARK: arpeggio di Bobina
+
+    func toggleArp() {
+        if !arpOn {
+            // le note tenute smettono di suonare da sole e passano all'arpeggio
+            let c = ch
+            let off: [UInt8] = held.sorted().flatMap { [0x80 | c, UInt8($0), 64] }
+            if !off.isEmpty { send(off) }
+        }
+        arpOn.toggle()
+        if !arpOn { held.removeAll() }
+        push()
+        engine?.sequencer.setArp(arpOn)
+    }
+
+    /// Le note nell'ordine in cui le suona l'arpeggio.
+    func arpSequence() -> [Int] {
+        let base = held.sorted()
+        guard !base.isEmpty else { return [] }
+        var notes = base.flatMap { n in arpChord.intervals.map { n + $0 } }
+        notes = Array(Set(notes)).sorted()
+        var all: [Int] = []
+        for o in 0..<max(1, arpOctaves) { all += notes.map { $0 + 12 * o } }
+        all = all.filter { $0 <= 127 }
+        switch arpMode {
+        case .up, .random: return all
+        case .down: return all.reversed()
+        case .upDown: return all.count > 2 ? all + all.dropFirst().dropLast().reversed() : all
+        case .downUp: return all.count > 2 ? all.reversed() + all.dropFirst().dropLast() : all.reversed()
+        }
     }
 
     // MARK: onda
@@ -250,6 +351,12 @@ final class NTS1Sequencer {
         var waveDepth = 64
         /// Il valore della manopola: l'onda scende da qui.
         var waveTop = 100
+        /// L'arpeggio di Bobina: le note già messe in ordine (su, giù…), una per colpo.
+        var arpNotes: [Int] = []
+        /// Colpi per quarto: 2 = ottavi, 4 = sedicesimi, 8 = trentaduesimi.
+        var arpDiv = 4
+        var arpRandom = false
+        var arpGate = 0.6
     }
 
     private let io: MIDIIO
@@ -269,6 +376,10 @@ final class NTS1Sequencer {
     private var firstSixteenth = 0
     private var nextWave = 0
     private var lastWave = -1
+    private var arpOn = false
+    private var nextArp = 0
+    private var arpDivNow = 4
+    private var arpIndex = 0
     private var lastClockAt: MIDITimeStamp = 0
 
     var onStep: ((Int, MIDITimeStamp) -> Void)?
@@ -289,7 +400,7 @@ final class NTS1Sequencer {
         return shared
     }
 
-    private var playing: Bool { transport || stepsOn || waveOn }
+    private var playing: Bool { transport || stepsOn || waveOn || arpOn }
 
     func setTransport(_ on: Bool) {
         queue.async { [self] in
@@ -343,6 +454,27 @@ final class NTS1Sequencer {
         }
     }
 
+    /// L'arpeggio di Bobina: comincia dal prossimo colpo della griglia, senza aspettare la battuta.
+    func setArp(_ on: Bool) {
+        queue.async { [self] in
+            guard on != arpOn else { return }
+            if on {
+                if !playing {
+                    let (l, _) = BobinaClock.shared.join(.nts1, at: io.now() + io.ticks(ms: 30))
+                    line = l
+                    startTimer()
+                }
+                arpOn = true
+                arpDivNow = plan().arpDiv
+                nextArp = Int((line.beat(at: io.now() + io.ticks(ms: 30)) * Double(arpDivNow)).rounded(.up))
+                arpIndex = 0
+            } else {
+                arpOn = false
+                leaveIfIdle()
+            }
+        }
+    }
+
     private func joinIfNeeded() -> Double {
         if playing {
             return line.bar(atOrAfter: io.now() + io.ticks(ms: 30))
@@ -381,6 +513,7 @@ final class NTS1Sequencer {
             nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
             nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
             nextWave = Int((line.beat(at: now) * 8).rounded(.up))
+            nextArp = Int((line.beat(at: now) * Double(arpDivNow)).rounded(.up))
         }
         let horizon = now + io.ticks(ms: lookahead)
         let p = plan()
@@ -406,6 +539,25 @@ final class NTS1Sequencer {
                 }
                 onStep?(i, t)
                 nextSixteenth += 1
+            }
+        }
+        if arpOn {
+            if p.arpDiv != arpDivNow {
+                // cambio di velocità: si riprende dal prossimo colpo della nuova griglia
+                let b = Double(nextArp) / Double(arpDivNow)
+                arpDivNow = p.arpDiv
+                nextArp = Int((b * Double(arpDivNow)).rounded(.up))
+            }
+            while line.time(ofBeat: Double(nextArp) / Double(arpDivNow)) < horizon {
+                let t = line.time(ofBeat: Double(nextArp) / Double(arpDivNow))
+                if t >= now, !p.arpNotes.isEmpty {
+                    let note = p.arpRandom ? p.arpNotes.randomElement()! : p.arpNotes[arpIndex % p.arpNotes.count]
+                    let n = UInt8(max(0, min(127, note)))
+                    io.send([0x90 | ch, n, UInt8(max(1, min(127, p.velocity)))], at: t)
+                    io.send([0x80 | ch, n, 64], at: t + io.ticks(ms: line.beatMs / Double(arpDivNow) * p.arpGate))
+                    arpIndex += 1
+                }
+                nextArp += 1
             }
         }
         if waveOn {

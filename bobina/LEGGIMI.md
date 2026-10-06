@@ -102,7 +102,7 @@ Tieni **shift** e premi **select** per il menu, poi:
 - **Col cavo**: USB-C dell'NTS-1 → iPhone. L'iPhone lo accende anche (provato il 6/10/2026). Bobina lo sceglie da sola.
 - Bobina al collegamento legge firmware, canale e impostazioni. Servono due impostazioni globali dell'NTS-1: **MIDI short message = on** (se no ignora le manopole di Bobina) e **Clock = Auto** (se no non segue il tempo). Se mancano, *Collega → sistema le impostazioni* le accende da Bobina.
 - **Niente bluetooth**: l'NTS-1 non ce l'ha.
-- L'arpeggio si accende solo dal tasto ARP dell'NTS-1: via MIDI non c'è un comando.
+- L'arpeggio dell'NTS-1 si accende solo dal suo tasto ARP (via MIDI non c'è un comando). Per questo c'è l'**arpeggio di Bobina** (Suona): suona lui le note tenute, a tempo, senza toccare la macchina.
 - Un suono caricato da Bobina va nel suono in modifica: per tenerlo sull'NTS-1, salvalo lì in un programma.
 
 ## Cose da sapere (TP-7)

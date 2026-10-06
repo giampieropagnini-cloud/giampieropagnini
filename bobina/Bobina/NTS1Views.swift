@@ -197,11 +197,12 @@ struct NTS1SuonaView: View {
     var body: some View {
         NTS1Page(title: "Suona") {
             NTS1PadsCard(player: nts1.player)
-            NTS1ArpCard(sound: nts1.sound)
+            NTS1BobinaArpCard(player: nts1.player)
             NTS1StepsCard(player: nts1.player)
             NTS1TempoCard()
             NTS1WaveCard(player: nts1.player)
             NTS1TiltCard(player: nts1.player)
+            NTS1ArpCard(sound: nts1.sound)
         }
     }
 }
@@ -213,7 +214,7 @@ struct NTS1PadsCard: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 4)
 
     var body: some View {
-        Card(title: "pad", note: "Sopra suona, sotto «tieni». Con l'arpeggio acceso sull'NTS-1 (tasto ARP), le note tenute si arpeggiano.") {
+        Card(title: "pad", note: player.arpOn ? "Arpeggio di Bobina acceso: ogni pad entra o esce dall'arpeggio." : "Sopra suona, sotto «tieni».") {
             HStack(spacing: 8) {
                 Button("ottava giù") { player.octave(-1) }.font(.footnote)
                 Button("ottava su") { player.octave(1) }.font(.footnote)
@@ -259,12 +260,57 @@ struct NTS1PadsCard: View {
     }
 }
 
+/// L'arpeggio suonato da Bobina: non serve il tasto ARP dell'NTS-1.
+struct NTS1BobinaArpCard: View {
+    @ObservedObject var player: NTS1Player
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
+
+    var body: some View {
+        Card(title: "arpeggio di Bobina", note: "Acceso: ogni pad che tocchi entra nell'arpeggio, ritoccato esce. Suona a tempo con le altre macchine, senza il tasto ARP.") {
+            NTS1BigButton(text: player.arpOn ? "spegni l'arpeggio" : "accendi l'arpeggio", on: player.arpOn) { player.toggleArp() }
+            if player.arpOn {
+                Text(player.held.isEmpty ? "tocca uno o più pad" : "note: " + player.held.sorted().map(NTS1Player.name).joined(separator: " · "))
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(NTS1.color)
+            }
+            label("come sale")
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(NTS1ArpMode.allCases) { m in
+                    GridChip(text: m.label, on: player.arpMode == m) { player.arpMode = m }
+                        .accessibilityLabel("arpeggio \(m.label)")
+                }
+            }
+            label("accordo")
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(NTS1ArpChord.allCases) { c in
+                    GridChip(text: c.label, on: player.arpChord == c) { player.arpChord = c }
+                        .accessibilityLabel("accordo \(c.label)")
+                }
+            }
+            label("ottave e velocità")
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(1...3, id: \.self) { o in
+                    GridChip(text: o == 1 ? "1 ottava" : "\(o) ottave", on: player.arpOctaves == o) { player.arpOctaves = o }
+                }
+                ForEach([(2, "ottavi"), (4, "sedicesimi"), (8, "trentaduesimi")], id: \.0) { d in
+                    GridChip(text: d.1, on: player.arpDiv == d.0) { player.arpDiv = d.0 }
+                }
+            }
+        }
+    }
+
+    private func label(_ t: String) -> some View {
+        Text(t).font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
+    }
+}
+
 struct NTS1ArpCard: View {
     @EnvironmentObject var nts1: NTS1Engine
     @ObservedObject var sound: NTS1Sound
 
     var body: some View {
-        Card(title: "arpeggio", note: "L'arpeggio si accende col tasto ARP sull'NTS-1. Va al tempo di Bobina con «fai partire l'NTS-1 a tempo».") {
+        Card(title: "arpeggio dell'NTS-1", note: "Questo è quello della macchina: si accende solo col tasto ARP sull'NTS-1.") {
             NTS1ChoiceGrid(choice: .arpPattern, selected: sound.choices[.arpPattern]) { nts1.set(.arpPattern, $0) }
             NTS1ChoiceGrid(choice: .arpIntervals, selected: sound.choices[.arpIntervals]) { nts1.set(.arpIntervals, $0) }
             let v = sound.value(.arpLength)
