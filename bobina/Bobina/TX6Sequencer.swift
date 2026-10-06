@@ -325,9 +325,10 @@ final class TX6Sequencer {
                 }
             }
             for tr in 1...6 where p.beats[tr - 1][i] {
-                let note = p.padBase + TX6.padSteps[tr - 1]
-                now += TX6.noteOn(note, channel: TX6.masterChannel)
-                offsAt[n + 1, default: []] += TX6.noteOff(note, channel: TX6.masterChannel)
+                // sul canale della traccia, come la tastiera: lì la nota cambia davvero l'altezza
+                let note = p.padBase
+                now += TX6.noteOn(note, channel: tr)
+                offsAt[n + 1, default: []] += TX6.noteOff(note, channel: tr)
                 hit.insert(tr)
             }
         }

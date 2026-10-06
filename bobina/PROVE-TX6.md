@@ -21,7 +21,7 @@ Le prime quattro si fanno col cavo al **Mac** e l'ascoltatore (`strumenti/ascolt
 | 7 | il muto fa muto o solo | Mixer, M sulla traccia 2; poi menu SOLO su solo e riprova | da fare |
 | 8 | le scene a b c | salva scene diverse sul TX-6, poi Mixer → scene del TX-6 | da fare |
 | 9 | la tastiera | NOTE on, SYNTH → play; Suona, traccia 1 | da fare |
-| 10 | i sei pad: quale ottava | Suona, sei pad; cambia ottava finché suonano | da fare |
+| 10 | i sei pad: quale ottava | Suona, sei pad; cambia ottava finché suonano | ✅ 6/10/2026: le note do-la sul canale 7 suonano la traccia sempre alla stessa altezza (casse come tom, anche a do2); la tastiera sul canale della traccia a do1-do2 dà casse giuste. Ora pad e batteria a passi suonano sul canale della traccia, di fabbrica a do2 |
 | 11 | suoni, effetti, pattern: l'ordine sui 128 valori | traccia → synth; Effetti → i nomi; guardare il display | da fare |
 | 12 | start/stop e tempo ± | Ritmo → il trasporto del TX-6 | da fare |
 | 13 | Bobina dà il tempo | CLOCK → SRC USB (col bluetooth: BLE); Ritmo → «Bobina dà il tempo al TX-6», ▶ | ✅ 29/9/2026, via bluetooth con SRC BLE: Bobina manda start e clock, il TX-6 prende il tempo e parte |
@@ -40,4 +40,6 @@ Le prime quattro si fanno col cavo al **Mac** e l'ascoltatore (`strumenti/ascolt
 - Giampiero ricorda di aver già sincronizzato il TX-6 via bluetooth (il TP-7 invece il clock via bluetooth non lo manda: vedi PROVE.md). Da riprovare con la prova 17.
 - 29/9/2026, TX-6 e TP-7 insieme via bluetooth: va a scatti. Nel registro oltre 3.300 messaggi di clock in arrivo (circa 50 al secondo) mentre Bobina mandava note e clock al TX-6: un solo bluetooth per due macchine si intasa. Fatto da Bobina: note spente nel pacchetto del passo dopo, clock dentro il pacchetto del passo, pompa a 4 punti, onde ogni 60 ms col bluetooth, avviso se il TX-6 manda un clock che non serve. Misura sul Mac con tre tracce e clock: da 64 a 48 pacchetti al secondo (tutti clock); senza clock 8. Da provare: TX-6 col cavo e TP-7 col bluetooth, oppure «tempo di Bobina» e CLOCK → OUT off sul TX-6.
 - 1/10/2026, iPhone 18 Pro (iOS 27), versione ottimizzata (Release): Giampiero dice «molto più veloce, molto più fluido». La sonda conferma: il filo dello schermo non si blocca mai oltre 50 ms, anche con TP-7, TX-6 e due PO collegati insieme via bluetooth.
+- 6/10/2026: mixer con guadagno, EQ, compressore e il resto di ogni canale («le sei tracce» a strati, «un canale»): provato da Giampiero, «tutto perfetto».
+- 6/10/2026: la cassa che suonava anche alta come un tom e le onde che non si spegnevano erano note rimaste accese sul TX-6 (Bobina chiusa o reinstallata a nota giù). Dopo lo spegnimento automatico al collegamento e il tasto «silenzio»: «adesso funziona».
 - 1/10/2026, iOS 27: «cerca il TX-6» faceva chiudere l'app (statusBarHeightForOrientation dà NaN dentro il pannello di Apple). Riparato con IOS27.swift.

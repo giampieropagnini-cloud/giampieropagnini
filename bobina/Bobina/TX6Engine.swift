@@ -97,6 +97,65 @@ struct TX6Pattern: Codable, Identifiable, Equatable {
     }
 }
 
+/// Un preset per una traccia: il suono e le sue manopole (frequenza, lunghezza, detune, filtro, compressore).
+/// I valori sono numeri MIDI 0-127: come il TX-6 li traduce in note e millisecondi è ancora da misurare,
+/// quindi i preset pronti sono un punto di partenza da ritoccare a orecchio.
+struct TX6Preset: Codable, Identifiable, Equatable {
+    var id = UUID()
+    var name: String
+    var group: String
+    var sound: Int
+    var freq: Int
+    var length: Int
+    var detune: Int
+    var filter: Int
+    var comp: Int
+
+    static let params: [TX6.Param] = [.freq, .length, .detune, .filter, .comp]
+
+    static let groups = ["cassa", "rullante", "battimani", "charleston", "percussioni", "basso", "melodia", "tappeti"]
+
+    private static func p(_ g: String, _ n: String, _ sound: Int, freq: Int, len: Int, det: Int = 64, flt: Int = 64, comp: Int = 0) -> TX6Preset {
+        TX6Preset(name: n, group: g, sound: sound, freq: freq, length: len, detune: det, filter: flt, comp: comp)
+    }
+
+    /// Suoni: 0 SIN · 1 TRI · 2 SQR · 3 SAW · 4 KICK · 5 SNARE · 6 CLAP · 7 HIHAT.
+    static let builtIn: [TX6Preset] = [
+        p("cassa", "cassa house", 4, freq: 40, len: 60, comp: 50),
+        p("cassa", "cassa corta", 4, freq: 48, len: 30, comp: 70),
+        p("cassa", "808 lunga", 4, freq: 28, len: 110, comp: 30),
+        p("cassa", "cassa techno", 4, freq: 36, len: 75, flt: 52, comp: 90),
+        p("cassa", "cassa sorda", 4, freq: 32, len: 45, flt: 40),
+        p("rullante", "rullante secco", 5, freq: 64, len: 35, comp: 40),
+        p("rullante", "rullante pieno", 5, freq: 54, len: 70, comp: 60),
+        p("rullante", "rimshot", 5, freq: 96, len: 15),
+        p("rullante", "rullante scuro", 5, freq: 44, len: 55, flt: 48),
+        p("battimani", "battimani", 6, freq: 64, len: 50),
+        p("battimani", "battimani lunghi", 6, freq: 58, len: 95),
+        p("battimani", "schiocco", 6, freq: 90, len: 20, flt: 76),
+        p("charleston", "chiuso", 7, freq: 80, len: 15),
+        p("charleston", "aperto", 7, freq: 76, len: 80),
+        p("charleston", "shaker", 7, freq: 100, len: 30, flt: 84),
+        p("charleston", "piatto", 7, freq: 60, len: 120),
+        p("percussioni", "tom basso", 0, freq: 36, len: 50),
+        p("percussioni", "tom alto", 0, freq: 52, len: 40),
+        p("percussioni", "cowbell", 2, freq: 78, len: 25, det: 72),
+        p("percussioni", "blip", 1, freq: 96, len: 10),
+        p("percussioni", "conga", 1, freq: 58, len: 35, det: 60),
+        p("basso", "sub", 0, freq: 24, len: 80),
+        p("basso", "basso quadro", 2, freq: 30, len: 60, flt: 50),
+        p("basso", "acid", 3, freq: 32, len: 40, det: 70, flt: 40, comp: 40),
+        p("basso", "basso pieno", 3, freq: 28, len: 90, det: 76, flt: 46),
+        p("melodia", "flauto", 1, freq: 72, len: 70),
+        p("melodia", "lead quadro", 2, freq: 76, len: 60, det: 70),
+        p("melodia", "lead sega", 3, freq: 80, len: 55, det: 74, flt: 72),
+        p("melodia", "pluck", 3, freq: 72, len: 20, flt: 58),
+        p("tappeti", "drone dolce", 0, freq: 48, len: 127, det: 70),
+        p("tappeti", "tappeto largo", 3, freq: 60, len: 127, det: 88, flt: 44),
+        p("tappeti", "organo", 2, freq: 60, len: 127, det: 66),
+    ]
+}
+
 enum TX6Chord: String, CaseIterable, Identifiable {
     case single = "una nota", major = "maggiore", minor = "minore", sus = "sospeso", seventh = "settima"
     var id: String { rawValue }
@@ -191,7 +250,11 @@ final class TX6Engine: ObservableObject {
     @Published var octave = 4
     @Published var chord = TX6Chord.single
     /// L'ottava delle note do-la sul canale 7 (da misurare: la guida non la dice).
-    @Published var padBase = 60
+    /// Misurato il 6/10/2026: con do4 (60) le casse suonavano alte come tom, una o due ottave sotto sono giuste.
+    /// Di fabbrica do2 (36); la scelta resta salvata.
+    @Published var padBase = UserDefaults.standard.object(forKey: "bobina.tx6.ottavaPad") as? Int ?? 36 {
+        didSet { UserDefaults.standard.set(padBase, forKey: "bobina.tx6.ottavaPad") }
+    }
     @Published private(set) var heldKeys: Set<Int> = []
 
     // MARK: tempo
@@ -254,6 +317,9 @@ final class TX6Engine: ObservableObject {
 
     /// I pattern salvati, quello che suona e quello che entra alla prossima battuta.
     @Published var patterns: [TX6Pattern] = [] { didSet { save() } }
+
+    /// I preset delle tracce salvati da Giampiero.
+    @Published var myPresets: [TX6Preset] = [] { didSet { save() } }
     @Published private(set) var currentPatternID: UUID?
     @Published private(set) var currentPatternName: String?
     @Published private(set) var pendingPatternName: String?
@@ -333,9 +399,37 @@ final class TX6Engine: ObservableObject {
         let src = sources.first(where: { $0.id == sourceID })?.ref ?? 0
         viaBluetooth = connectedName.lowercased().contains("bluetooth")
         if dest != io.destination || src != io.source {
+            let fresh = dest != 0 && dest != io.destination
             io.use(destination: dest, source: src)
             objectWillChange.send()
+            // appena collegato: spegne le note rimaste accese da prima (un'app chiusa a metà nota non manda lo spegnimento)
+            if fresh { DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in self?.allNotesOff() } }
         }
+    }
+
+    /// Silenzio: lo spegnimento di ogni nota (do-1 … sol9) sulle tracce 1-6.
+    /// Una nota rimasta accesa sul TX-6 si sente così: una cassa che suona anche alta come un tom, un'onda che
+    /// non si spegne più. Succede se Bobina si chiude (o si reinstalla) mentre una nota è giù: lo spegnimento
+    /// non parte mai. Qui si mandano tutti, a gruppi di otto ogni 10 ms, per non intasare il bluetooth.
+    func allNotesOff() {
+        guard io.destination != 0 else { return }
+        var chunks: [[UInt8]] = []
+        for ch in 1...6 {
+            var chunk: [UInt8] = []
+            for n in 0...127 {
+                chunk += TX6.noteOff(n, channel: ch)
+                if chunk.count >= 24 { chunks.append(chunk); chunk = [] }
+            }
+            if !chunk.isEmpty { chunks.append(chunk) }
+        }
+        for (i, c) in chunks.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.01) { [weak self] in self?.io.send(c) }
+        }
+        held.removeAll()
+        heldKeys.removeAll()
+        sequencer.melodyOffNow()
+        logText("silenzio: tutte le note spente")
+        trace("TX-6: silenzio, \(chunks.count) pacchetti di spegnimento")
     }
 
     // MARK: invio
@@ -465,12 +559,14 @@ final class TX6Engine: ObservableObject {
         for n in list { send(TX6.noteOff(n.note, channel: n.track), quiet: true) }
     }
 
-    /// Un pad: do re mi fa sol la sul canale 7, le tracce 1-6 alla loro frequenza.
+    /// Un pad: la nota `padBase` sul canale della traccia. Misurato il 6/10/2026: le note do-la sul canale 7
+    /// suonano le tracce sempre alla stessa altezza (le casse sembravano tom), il canale della traccia invece
+    /// segue la nota, come la tastiera.
     func hitPad(_ track: Int, at time: MIDITimeStamp = 0, fromUser: Bool = true) {
-        let n = padBase + TX6.padSteps[track - 1]
-        send(TX6.noteOn(n, channel: TX6.masterChannel), at: time, quiet: !fromUser)
+        let n = padBase
+        send(TX6.noteOn(n, channel: track), at: time, quiet: !fromUser)
         let off = (time == 0 ? io.now() : time) + io.ticks(ms: 40)
-        send(TX6.noteOff(n, channel: TX6.masterChannel), at: off, quiet: true)
+        send(TX6.noteOff(n, channel: track), at: off, quiet: true)
         if fromUser { haptic.impactOccurred() }
         flash([track], at: time)
     }
@@ -534,6 +630,45 @@ final class TX6Engine: ObservableObject {
         currentPatternID = pat.id
         currentPatternName = pat.name
     }
+
+    /// Svuota la sequenza per ricominciare: batteria, melodie e passi con manopola. Suoni e tempo restano.
+    func clearSequence() {
+        beats = Array(repeating: Array(repeating: false, count: 16), count: 6)
+        melodies = Array(repeating: Array(repeating: nil, count: 16), count: 6)
+        locks = Array(repeating: nil, count: 16)
+        sequencer.melodyOffNow()
+        currentPatternID = nil
+        currentPatternName = nil
+        logText("sequenza svuotata")
+    }
+
+    /// Mette un preset sulla traccia: suono e manopole, in un pacchetto solo.
+    func apply(_ preset: TX6Preset, to track: Int) {
+        let pairs: [(TX6.Param, Int)] = [(.sound, TX6.soundValue(preset.sound)), (.freq, preset.freq), (.length, preset.length),
+                                         (.detune, preset.detune), (.filter, preset.filter), (.comp, preset.comp)]
+        var bytes: [UInt8] = []
+        for (p, v) in pairs {
+            values[track - 1][p.rawValue] = v
+            let out = output(track, p, io.now())
+            bytes += TX6.cc(p.cc, out, channel: track)
+            lastSent[track - 1][p.rawValue] = out
+        }
+        send(bytes, quiet: true)
+        logText("traccia \(track): preset «\(preset.name)»")
+    }
+
+    /// Salva come preset il suono della traccia così com'è adesso.
+    func savePreset(from track: Int) {
+        var n = myPresets.count + 1
+        while myPresets.contains(where: { $0.name == "mio \(n)" }) { n += 1 }
+        let v = values[track - 1]
+        myPresets.append(TX6Preset(name: "mio \(n)", group: "miei", sound: TX6.soundIndex(v[TX6.Param.sound.rawValue]),
+                                   freq: v[TX6.Param.freq.rawValue], length: v[TX6.Param.length.rawValue],
+                                   detune: v[TX6.Param.detune.rawValue], filter: v[TX6.Param.filter.rawValue],
+                                   comp: v[TX6.Param.comp.rawValue]))
+    }
+
+    func deletePreset(_ p: TX6Preset) { myPresets.removeAll { $0.id == p.id } }
 
     func deletePattern(_ pat: TX6Pattern) { patterns.removeAll { $0.id == pat.id } }
 
@@ -969,6 +1104,7 @@ final class TX6Engine: ObservableObject {
         var melodyOctaves: [Int]?
         var melodyLength: Int?
         var patterns: [TX6Pattern]?
+        var myPresets: [TX6Preset]?
     }
 
     private var loading = false
@@ -977,7 +1113,8 @@ final class TX6Engine: ObservableObject {
         guard !loading else { return }
         let s = Saved(beats: beats, gate: gate, gateTracks: gateTracks.sorted(), pumpTracks: pumpTracks.sorted(),
                       locks: locks, lockTrack: lockTrack, lockParam: lockParam, waves: waves, scenes: scenes,
-                      melodies: melodies, melodyOctaves: melodyOctaves, melodyLength: melodyLength, patterns: patterns)
+                      melodies: melodies, melodyOctaves: melodyOctaves, melodyLength: melodyLength, patterns: patterns,
+                      myPresets: myPresets)
         if let data = try? JSONEncoder().encode(s) {
             UserDefaults.standard.set(data, forKey: "bobina.tx6")
         }
@@ -1000,6 +1137,7 @@ final class TX6Engine: ObservableObject {
         if let m = s.melodies, m.count == 6, m.allSatisfy({ $0.count == 16 }) { melodies = m }
         if let o = s.melodyOctaves, o.count == 6 { melodyOctaves = o }
         if let l = s.melodyLength { melodyLength = l }
+        if let mp = s.myPresets { myPresets = mp }
         if let ps = s.patterns {
             patterns = ps.filter { $0.beats.count == 6 && $0.melodies.count == 6 && $0.sounds.count == 6 && $0.gate.count == 16 && $0.locks.count == 16 }
         }

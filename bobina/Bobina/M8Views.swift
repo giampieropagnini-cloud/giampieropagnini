@@ -437,8 +437,12 @@ struct M8PadsCard: View {
                     pad(n)
                 }
             }
-            if !player.held.isEmpty {
-                Button("lascia tutte le note") { player.releaseAll() }.font(.footnote)
+            HStack {
+                if !player.held.isEmpty {
+                    Button("lascia tutte le note") { player.releaseAll() }.font(.footnote)
+                }
+                Spacer()
+                Chip(text: "silenzio") { player.engine?.allNotesOff() }
             }
         }
     }
