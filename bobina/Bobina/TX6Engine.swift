@@ -399,9 +399,37 @@ final class TX6Engine: ObservableObject {
         let src = sources.first(where: { $0.id == sourceID })?.ref ?? 0
         viaBluetooth = connectedName.lowercased().contains("bluetooth")
         if dest != io.destination || src != io.source {
+            let fresh = dest != 0 && dest != io.destination
             io.use(destination: dest, source: src)
             objectWillChange.send()
+            // appena collegato: spegne le note rimaste accese da prima (un'app chiusa a metà nota non manda lo spegnimento)
+            if fresh { DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in self?.allNotesOff() } }
         }
+    }
+
+    /// Silenzio: lo spegnimento di ogni nota (do-1 … sol9) sulle tracce 1-6.
+    /// Una nota rimasta accesa sul TX-6 si sente così: una cassa che suona anche alta come un tom, un'onda che
+    /// non si spegne più. Succede se Bobina si chiude (o si reinstalla) mentre una nota è giù: lo spegnimento
+    /// non parte mai. Qui si mandano tutti, a gruppi di otto ogni 10 ms, per non intasare il bluetooth.
+    func allNotesOff() {
+        guard io.destination != 0 else { return }
+        var chunks: [[UInt8]] = []
+        for ch in 1...6 {
+            var chunk: [UInt8] = []
+            for n in 0...127 {
+                chunk += TX6.noteOff(n, channel: ch)
+                if chunk.count >= 24 { chunks.append(chunk); chunk = [] }
+            }
+            if !chunk.isEmpty { chunks.append(chunk) }
+        }
+        for (i, c) in chunks.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.01) { [weak self] in self?.io.send(c) }
+        }
+        held.removeAll()
+        heldKeys.removeAll()
+        sequencer.melodyOffNow()
+        logText("silenzio: tutte le note spente")
+        trace("TX-6: silenzio, \(chunks.count) pacchetti di spegnimento")
     }
 
     // MARK: invio
