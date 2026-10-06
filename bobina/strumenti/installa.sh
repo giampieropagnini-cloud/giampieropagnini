@@ -4,7 +4,7 @@
 # Ogni sezione di Bobina (TP-7, TX-6, PO, OP-Z, M8, NTS-1, …) vive su un suo branch claude/…; installare da un
 # branch solo toglie dal telefono le sezioni degli altri (è successo il 6/10/2026 con l'NTS-1).
 # Questo script, dal tuo worktree:
-#   1. unisce nel branch attuale TUTTI i branch locali claude/* che non contiene ancora (anche quelli nuovi);
+#   1. unisce nel branch attuale tutti i branch locali claude/* con lavoro su bobina/ che qui manca (anche quelli nuovi);
 #   2. compila in Release, con le righe di controllo accese (in Debug SwiftUI è troppo lento e Giampiero sente scatti);
 #   3. installa sull'iPhone 18 Pro di Giampiero.
 #
@@ -23,8 +23,9 @@ if [[ -n "$(git status --porcelain -- bobina)" ]]; then
   exit 1
 fi
 
+# solo i branch che hanno lavoro su bobina/ che qui manca: un branch del sito o di altro non si tocca
 for b in $(git branch --list 'claude/*' --format='%(refname:short)'); do
-  if ! git merge-base --is-ancestor "$b" HEAD; then
+  if [[ -n "$(git log --oneline HEAD.."$b" -- bobina | head -1)" ]]; then
     echo "unisco $b"
     git merge --no-edit -m "Unisce $b prima di installare
 
