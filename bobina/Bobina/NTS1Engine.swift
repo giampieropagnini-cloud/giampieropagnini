@@ -123,6 +123,8 @@ final class NTS1Engine: ObservableObject {
 
     /// L'NTS-1 va a tempo con Bobina (start, clock, stop): arpeggio, sequencer e delay bpm.
     @Published private(set) var running = false
+    /// Partito con la sua sequenza (start) o solo col tempo.
+    @Published private(set) var withSequence = false
     @Published private(set) var bpm = Int(BobinaClock.shared.bpm.rounded())
     private var bpmObserver: NSObjectProtocol?
 
@@ -352,9 +354,26 @@ final class NTS1Engine: ObservableObject {
 
     // MARK: tempo
 
-    func toggleRun() {
-        running.toggle()
-        sequencer.setTransport(running)
+    /// Solo il tempo: clock senza start, la sequenza dell'NTS-1 resta ferma.
+    func startClock() {
+        guard !running else { return }
+        running = true
+        withSequence = false
+        sequencer.setTransport(true, start: false)
+    }
+
+    /// Il tempo e la partenza: la sequenza dell'NTS-1 suona.
+    func startWithSequence() {
+        guard !running else { return }
+        running = true
+        withSequence = true
+        sequencer.setTransport(true, start: true)
+    }
+
+    func stopRun() {
+        guard running else { return }
+        running = false
+        sequencer.setTransport(false)
     }
 
     func setBPM(_ v: Int) {

@@ -408,22 +408,27 @@ final class NTS1Sequencer {
 
     private var playing: Bool { transport || stepsOn || waveOn || arpOn }
 
-    func setTransport(_ on: Bool) {
+    /// Il clock all'NTS-1. Con `start` gli manda anche start e stop, e la sua sequenza parte;
+    /// senza, gli dà solo il tempo (delay «bpm» e arpeggio della macchina) e la sequenza resta ferma.
+    func setTransport(_ on: Bool, start: Bool = true) {
         queue.async { [self] in
             guard on != transport else { return }
             if on {
                 let first = joinIfNeeded()
                 transport = true
+                sentStart = start
                 nextClockTick = Int((first * 24).rounded())
                 lastClockAt = 0
-                io.send([0xFA], at: line.time(ofBeat: first))
+                if start { io.send([0xFA], at: line.time(ofBeat: first)) }
             } else {
                 transport = false
-                io.send([0xFC])
+                if sentStart { io.send([0xFC]) }
                 leaveIfIdle()
             }
         }
     }
+
+    private var sentStart = false
 
     func setSteps(_ on: Bool) {
         queue.async { [self] in
