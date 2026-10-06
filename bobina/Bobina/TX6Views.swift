@@ -207,10 +207,8 @@ struct TX6MixerView: View {
     @EnvironmentObject var tx: TX6Engine
     /// Cosa regolano le sei righe: volume, guadagno, EQ, compressore… La scelta resta salvata.
     @AppStorage("bobina.tx6.mixer.strato") private var layerRaw = TX6.Param.volume.rawValue
-    @State private var strip = 1
 
     static let layers: [TX6.Param] = [.volume, .gain, .comp, .eqHigh, .eqMid, .eqLow, .pan, .filter, .fx1Send, .auxSend, .aux2Send]
-    static let stripParams: [TX6.Param] = [.gain, .eqHigh, .eqMid, .eqLow, .comp, .pan, .filter, .fx1Send, .auxSend, .volume]
 
     static func label(_ p: TX6.Param) -> String {
         switch p {
@@ -238,17 +236,6 @@ struct TX6MixerView: View {
                 }
                 ForEach(1...6, id: \.self) { t in
                     TX6ChannelRow(track: t, param: layer)
-                }
-            }
-
-            Card(title: "un canale", note: "Tutte le funzioni di un canale insieme, come sulla macchina: guadagno, EQ a tre bande (±18 dB), compressore, pan, filtro, mandate e volume.") {
-                OneTrackPicker(selected: strip) { strip = $0 }
-                ForEach(Self.stripParams) { p in
-                    StepSlider(name: Self.label(p), value: tx.value(strip, p), shown: p.shown(tx.value(strip, p))) { tx.set(strip, p, $0) }
-                }
-                HStack(spacing: 8) {
-                    Chip(text: tx.mutes[strip - 1] ? "muta" : "muto", on: tx.mutes[strip - 1], color: Palette.rec) { tx.toggleMute(strip) }
-                    Chip(text: "EQ piatto e filtro spento") { tx.flatten(strip) }
                 }
             }
 
