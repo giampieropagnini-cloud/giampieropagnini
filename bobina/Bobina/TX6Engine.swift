@@ -535,6 +535,17 @@ final class TX6Engine: ObservableObject {
         currentPatternName = pat.name
     }
 
+    /// Svuota la sequenza per ricominciare: batteria, melodie e passi con manopola. Suoni e tempo restano.
+    func clearSequence() {
+        beats = Array(repeating: Array(repeating: false, count: 16), count: 6)
+        melodies = Array(repeating: Array(repeating: nil, count: 16), count: 6)
+        locks = Array(repeating: nil, count: 16)
+        sequencer.melodyOffNow()
+        currentPatternID = nil
+        currentPatternName = nil
+        logText("sequenza svuotata")
+    }
+
     func deletePattern(_ pat: TX6Pattern) { patterns.removeAll { $0.id == pat.id } }
 
     private func capture(name: String) -> TX6Pattern {

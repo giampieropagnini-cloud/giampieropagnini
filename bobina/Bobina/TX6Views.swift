@@ -453,6 +453,10 @@ struct TX6SuonaView: View {
                 Text("tracce con passi: " + ((1...6).filter { tx.beats[$0 - 1].contains(true) }.map { "\($0)" }.joined(separator: " ")).ifEmpty("nessuna"))
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(Palette.dim)
+                HStack(spacing: 8) {
+                    Chip(text: "svuota la traccia \(beatTrack)") { tx.beats[beatTrack - 1] = Array(repeating: false, count: 16) }
+                    ConfirmChip(text: "svuota tutta la batteria") { tx.beats = Array(repeating: Array(repeating: false, count: 16), count: 6) }
+                }
             }
 
             TX6MelodyCard()
@@ -473,6 +477,7 @@ struct TX6SuonaView: View {
                             label: { tx.locks[$0].map { "\($0)" } ?? "·" },
                             filled: { tx.locks[$0] != nil },
                             tap: { tx.locks[$0] = tx.locks[$0] == lockBrush ? nil : lockBrush })
+                Chip(text: "svuota i passi con manopola") { tx.locks = Array(repeating: nil, count: 16) }
             }
         }
     }
@@ -573,6 +578,10 @@ struct TX6PatternCard: View {
                 }
             }
             Chip(text: "salva come pattern nuovo") { tx.saveNewPattern() }
+            ConfirmChip(text: "cancella il pattern: ricomincia da zero") { tx.clearSequence() }
+            Text("Svuota batteria, melodie e passi con manopola, anche mentre suona. I suoni delle tracce, il tempo e i pattern salvati restano.")
+                .font(.footnote)
+                .foregroundStyle(Palette.dim)
         }
     }
 }
@@ -627,9 +636,30 @@ struct TX6MelodyCard: View {
             }
             HStack(spacing: 8) {
                 Chip(text: "svuota la traccia \(track)") { tx.melodies[track - 1] = Array(repeating: nil, count: 16) }
+                ConfirmChip(text: "svuota tutte") { tx.melodies = Array(repeating: Array(repeating: nil, count: 16), count: 6) }
                 Text("con note: " + ((1...6).filter { tx.melodies[$0 - 1].contains { $0 != nil } }.map { "\($0)" }.joined(separator: " ")).ifEmpty("nessuna"))
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(Palette.dim)
+            }
+        }
+    }
+}
+
+/// Un tasto che cancella tanto: il primo tocco chiede conferma, il secondo (entro 4 secondi) cancella.
+/// Col Controllo Vocale basta ridire lo stesso numero.
+struct ConfirmChip: View {
+    let text: String
+    let action: () -> Void
+    @State private var armed = false
+
+    var body: some View {
+        Chip(text: armed ? "sicuro? tocca di nuovo" : text, on: armed, color: Palette.rec) {
+            if armed {
+                armed = false
+                action()
+            } else {
+                armed = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4) { armed = false }
             }
         }
     }
@@ -782,6 +812,7 @@ struct TX6RitmoView: View {
                             label: { tx.gate[$0] ? "■" : "·" },
                             filled: { tx.gate[$0] },
                             tap: { tx.gate[$0].toggle() })
+                Chip(text: "rimetti tutti i passi aperti") { tx.gate = Array(repeating: true, count: 16) }
                 TrackPicker(tracks: $tx.gateTracks)
             }
 
