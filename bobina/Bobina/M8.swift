@@ -191,6 +191,8 @@ final class M8Engine: ObservableObject {
             // l'ascolto è la sorgente dello stesso M8: serve per leggere il firmware
             io.use(destination: dest, source: dest == 0 ? 0 : (POEngine.source(of: dest) ?? 0))
             if dest != 0 {
+                // una nota o un tasto rimasti giù quando Bobina si è chiusa: si spengono appena l'M8 c'è
+                allNotesOff()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in self?.readFirmware() }
             }
             objectWillChange.send()
@@ -251,6 +253,21 @@ final class M8Engine: ObservableObject {
         io.send(M8.noteOn(last, channel: channel), at: now + io.ticks(ms: 40))
         io.send(M8.noteOff(last, channel: channel), at: now + io.ticks(ms: 110))
         io.send(first.reversed().flatMap { M8.noteOff($0, channel: channel) }, at: now + io.ticks(ms: 160))
+    }
+
+    /// Silenzio: lascia gli 8 tasti e spegne ogni nota (0-127) sul canale dei pad.
+    /// Succede che una nota resti accesa se Bobina si chiude o si reinstalla mentre è giù.
+    /// I mute e i solo (note 12-27) non si toccano: spegnerli toglierebbe quelli messi a mano sull'M8.
+    func allNotesOff() {
+        guard io.destination != 0 else { return }
+        let keys = M8.Key.allCases.flatMap { M8.noteOff($0, channel: channel) }
+        let ch = UInt8((player.channel - 1) & 0x0F)
+        let notes: [UInt8] = (0...127).flatMap { [0x80 | ch, UInt8($0), 0] }
+        held.removeAll()
+        player.forgetHeld()
+        send(keys)
+        io.send(notes)
+        trace("M8: silenzio")
     }
 
     // MARK: tempo

@@ -115,6 +115,9 @@ final class M8Player: ObservableObject {
         send(bytes)
     }
 
+    /// Dopo il silenzio: niente più note tenute.
+    func forgetHeld() { held.removeAll() }
+
     func octave(_ d: Int) {
         releaseAll()
         base = max(0, min(108, base + 12 * d))
