@@ -205,12 +205,48 @@ struct ParamMenu: View {
 
 struct TX6MixerView: View {
     @EnvironmentObject var tx: TX6Engine
+    /// Cosa regolano le sei righe: volume, guadagno, EQ, compressore… La scelta resta salvata.
+    @AppStorage("bobina.tx6.mixer.strato") private var layerRaw = TX6.Param.volume.rawValue
+    @State private var strip = 1
+
+    static let layers: [TX6.Param] = [.volume, .gain, .comp, .eqHigh, .eqMid, .eqLow, .pan, .filter, .fx1Send, .auxSend, .aux2Send]
+    static let stripParams: [TX6.Param] = [.gain, .eqHigh, .eqMid, .eqLow, .comp, .pan, .filter, .fx1Send, .auxSend, .volume]
+
+    static func label(_ p: TX6.Param) -> String {
+        switch p {
+        case .eqHigh: return "EQ alti"
+        case .eqMid: return "EQ medi"
+        case .eqLow: return "EQ bassi"
+        case .comp: return "comp"
+        case .fx1Send: return "FX I"
+        default: return p.name
+        }
+    }
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
 
     var body: some View {
+        let layer = TX6.Param(rawValue: layerRaw) ?? .volume
         TX6Page(title: "Mixer") {
-            Card(title: "le sei tracce", note: "Volume e muto. Tocca «tr» per tutto il resto della traccia: EQ, filtro, mandate, synth. Il TX-6 va messo su MIDI → CTRL IN. Non dice com'è messo: qui vedi quello che gli ha mandato Bobina.") {
+            Card(title: "le sei tracce", note: "Scegli cosa regolare su tutte e sei le tracce: volume, guadagno, compressore, EQ, pan, filtro, mandate. M è il muto, «tr» apre tutta la traccia. Il TX-6 va messo su MIDI → CTRL IN; non dice com'è messo: qui vedi quello che gli ha mandato Bobina.") {
+                LazyVGrid(columns: columns, spacing: 6) {
+                    ForEach(Self.layers) { p in
+                        GridChip(text: Self.label(p), on: layer == p) { layerRaw = p.rawValue }
+                    }
+                }
                 ForEach(1...6, id: \.self) { t in
-                    TX6ChannelRow(track: t)
+                    TX6ChannelRow(track: t, param: layer)
+                }
+            }
+
+            Card(title: "un canale", note: "Tutte le funzioni di un canale insieme, come sulla macchina: guadagno, EQ a tre bande (±18 dB), compressore, pan, filtro, mandate e volume.") {
+                OneTrackPicker(selected: strip) { strip = $0 }
+                ForEach(Self.stripParams) { p in
+                    StepSlider(name: Self.label(p), value: tx.value(strip, p), shown: p.shown(tx.value(strip, p))) { tx.set(strip, p, $0) }
+                }
+                HStack(spacing: 8) {
+                    Chip(text: tx.mutes[strip - 1] ? "muta" : "muto", on: tx.mutes[strip - 1], color: Palette.rec) { tx.toggleMute(strip) }
+                    Chip(text: "EQ piatto e filtro spento") { tx.flatten(strip) }
                 }
             }
 
@@ -234,12 +270,14 @@ struct TX6MixerView: View {
     }
 }
 
+/// Una riga del mixer: la traccia, il parametro scelto con − e +, il valore e il muto.
 struct TX6ChannelRow: View {
     @EnvironmentObject var tx: TX6Engine
     let track: Int
+    var param: TX6.Param = .volume
 
     var body: some View {
-        let vol = tx.value(track, .volume)
+        let v = tx.value(track, param)
         HStack(spacing: 6) {
             NavigationLink {
                 TX6TrackView(start: track)
@@ -251,12 +289,14 @@ struct TX6ChannelRow: View {
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18)))
             }
             .buttonStyle(.plain)
-            SmallKey(text: "−") { tx.set(track, .volume, vol - 8) }
-            Slider(value: Binding(get: { Double(vol) }, set: { tx.set(track, .volume, Int($0.rounded())) }), in: 0...127)
-            SmallKey(text: "+") { tx.set(track, .volume, vol + 8) }
-            Text("\(vol)")
+            SmallKey(text: "−") { tx.set(track, param, v - 8) }
+            Slider(value: Binding(get: { Double(v) }, set: { tx.set(track, param, Int($0.rounded())) }), in: 0...127)
+            SmallKey(text: "+") { tx.set(track, param, v + 8) }
+            Text(param.shown(v))
                 .font(.system(.caption, design: .monospaced))
-                .frame(width: 28, alignment: .trailing)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .frame(width: 48, alignment: .trailing)
             Chip(text: "M", on: tx.mutes[track - 1], color: Palette.rec) { tx.toggleMute(track) }
         }
     }
