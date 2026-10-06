@@ -30,6 +30,8 @@ final class TX6Sequencer {
         var gate: [Bool] = Array(repeating: true, count: 16)
         var gateTracks: [Int] = []
         var mutes: [Bool] = Array(repeating: false, count: 6)
+        /// Il volume di ogni traccia come deve uscire adesso (zero se è muta): il cancello lo rimette nei passi aperti.
+        var volumes: [Int] = Array(repeating: 100, count: 6)
         var pumpOn = false
         var pumpDepth = 0.7
         var pumpRelease = 0.6
@@ -346,8 +348,10 @@ final class TX6Sequencer {
             let open = p.gate[i]
             if open != gateState {
                 gateState = open
+                // il muto del TX-6 più il volume: col synth acceso il cc 120 da solo non basta
                 for tr in p.gateTracks {
                     now += TX6.cc(TX6.ccMute, open ? (p.mutes[tr - 1] ? 127 : 0) : 127, channel: tr)
+                    now += TX6.cc(TX6.Param.volume.cc, open ? p.volumes[tr - 1] : 0, channel: tr)
                 }
             }
         }
@@ -372,7 +376,10 @@ final class TX6Sequencer {
         guard gateState != nil else { return }
         gateState = nil
         var bytes: [UInt8] = []
-        for tr in p.gateTracks { bytes += TX6.cc(TX6.ccMute, p.mutes[tr - 1] ? 127 : 0, channel: tr) }
+        for tr in p.gateTracks {
+            bytes += TX6.cc(TX6.ccMute, p.mutes[tr - 1] ? 127 : 0, channel: tr)
+            bytes += TX6.cc(TX6.Param.volume.cc, p.volumes[tr - 1], channel: tr)
+        }
         if !bytes.isEmpty { io.send(bytes) }
     }
 
