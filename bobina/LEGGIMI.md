@@ -43,6 +43,10 @@ Quello che si sa dell'NTS-1 è in `NTS1-RICERCA.md`.
 
 ---
 
+## Per le chat che ci lavorano: installare senza cancellare gli altri
+
+Ogni sezione vive su un suo branch `claude/…`. Si installa **sempre** con `zsh bobina/strumenti/installa.sh`: unisce tutti i branch `claude/*` locali, compila in Release e installa sull'iPhone 18 Pro di Giampiero. Installare da un branch solo toglie dal telefono le sezioni degli altri.
+
 ## Installarla sull'iPhone (una volta sola, circa 20 minuti)
 
 Serve: un Mac con **Xcode** (gratis dal Mac App Store, versione 16 o successiva), l'iPhone con iOS 17 o successivo, il cavo per collegarlo al Mac.
