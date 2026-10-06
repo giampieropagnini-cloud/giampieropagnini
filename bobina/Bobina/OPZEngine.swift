@@ -423,14 +423,16 @@ final class OPZEngine: ObservableObject {
     /// Valore assoluto (CC 1-18).
     func setValue(_ cc: Int, _ v: Int, track: Int) {
         let v = max(0, min(127, v))
-        guard values[track - 1][cc - 1] != v else { return }
+        // si manda sempre: Bobina non sa dov'è davvero la manopola (l'OP-Z può averla mossa)
         values[track - 1][cc - 1] = v
         send(OPZ.cc(cc, v, channel: track))
     }
 
     /// Un passo su o giù coi CC relativi: l'OP-Z parte dal valore che ha davvero.
+    /// Un passo relativo dell'OP-Z è minuscolo (6/10/2026: con un messaggio solo «non vedo cambiamenti»):
+    /// ogni tocco ne manda 8, in un pacchetto solo.
     func nudge(_ cc: Int, up: Bool, track: Int) {
-        send(OPZ.cc(cc + 31, up ? 1 : 127, channel: track))
+        send((0..<8).flatMap { _ in OPZ.cc(cc + 31, up ? 1 : 127, channel: track) })
     }
 
     func setSteps(_ n: Int, track: Int) {

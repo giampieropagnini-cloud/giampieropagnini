@@ -398,10 +398,18 @@ struct OPZPunchKey: View {
 struct OPZSoundCard: View {
     @EnvironmentObject var opz: OPZEngine
 
-    private let shown = [3, 4, 16, 13, 14, 15, 1, 2, 5, 6, 7, 8, 9, 10]
+    /// Le quattro pagine delle manopole dell'OP-Z: verde, blu, giallo, rosso.
+    private let pages: [(String, [Int])] = [
+        ("pagina 1 · suono e filtro", [1, 2, 3, 4]),
+        ("pagina 2 · inviluppo", [5, 6, 7, 8]),
+        ("pagina 3 · lfo", [9, 10, 11, 12]),
+        ("pagina 4 · mandate, pan, volume", [13, 14, 15, 16]),
+    ]
+    private let knob: [Color] = [Color(red: 0.36, green: 0.8, blue: 0.45), Color(red: 0.4, green: 0.6, blue: 1.0),
+                                 Color(red: 0.98, green: 0.82, blue: 0.3), Color(red: 1.0, green: 0.42, blue: 0.4)]
 
     var body: some View {
-        Card(title: "suono della traccia", note: "− e + muovono la manopola di un passo, partendo da dove è davvero sull'OP-Z.") {
+        Card(title: "le manopole della traccia", note: "Le quattro pagine delle manopole dell'OP-Z, sulla traccia scelta. − e + spostano la manopola di un bel pezzo partendo da dov'è; min, metà, max la mettono lì di colpo.") {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
                 ForEach(OPZ.tracks.prefix(8)) { t in
                     Button { opz.soundTrack = t.number } label: {
@@ -416,29 +424,33 @@ struct OPZSoundCard: View {
                     .accessibilityAddTraits(opz.soundTrack == t.number ? .isSelected : [])
                 }
             }
-            ForEach(shown, id: \.self) { cc in
-                let p = OPZ.params[cc - 1]
-                let name = OPZ.paramName(p, track: opz.soundTrack)
-                HStack(spacing: 8) {
-                    Text(name)
-                        .font(.system(.subheadline, design: .monospaced))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Button { opz.nudge(cc, up: false, track: opz.soundTrack) } label: {
-                        Text("−").font(.system(.title3, design: .monospaced))
-                            .frame(width: 52, height: 40)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18)))
+            ForEach(pages.indices, id: \.self) { pg in
+                Text(pages[pg].0)
+                    .font(.system(.caption, design: .monospaced).weight(.semibold))
+                    .foregroundStyle(Palette.dim)
+                    .padding(.top, 4)
+                ForEach(pages[pg].1, id: \.self) { cc in
+                    let name = OPZ.paramName(OPZ.params[cc - 1], track: opz.soundTrack)
+                    let color = knob[(cc - 1) % 4]
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Circle().fill(color).frame(width: 10, height: 10)
+                            Text(name).font(.system(.subheadline, design: .monospaced))
+                        }
+                        HStack(spacing: 5) {
+                            GridChip(text: "min") { opz.setValue(cc, 0, track: opz.soundTrack) }
+                                .accessibilityLabel("\(name) al minimo")
+                            GridChip(text: "−") { opz.nudge(cc, up: false, track: opz.soundTrack) }
+                                .accessibilityLabel("\(name) meno")
+                            GridChip(text: "metà") { opz.setValue(cc, 64, track: opz.soundTrack) }
+                                .accessibilityLabel("\(name) a metà")
+                            GridChip(text: "+") { opz.nudge(cc, up: true, track: opz.soundTrack) }
+                                .accessibilityLabel("\(name) più")
+                            GridChip(text: "max") { opz.setValue(cc, 127, track: opz.soundTrack) }
+                                .accessibilityLabel("\(name) al massimo")
+                        }
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("\(name) meno")
-                    Button { opz.nudge(cc, up: true, track: opz.soundTrack) } label: {
-                        Text("+").font(.system(.title3, design: .monospaced))
-                            .frame(width: 52, height: 40)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18)))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("\(name) più")
                 }
-                .foregroundStyle(Color.white)
             }
         }
     }
