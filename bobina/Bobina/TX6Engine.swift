@@ -468,6 +468,27 @@ final class TX6Engine: ObservableObject {
         lastSent[track - 1][p.rawValue] = v
     }
 
+    /// Per la prova dei comandi: un cc solo sul canale 1 (traccia 1), mandato da solo in un pacchetto.
+    func probe(_ cc: UInt8, _ value: Int) {
+        send(TX6.cc(cc, value, channel: 1))
+    }
+
+    /// Rimette la traccia 1 come la crede Bobina, dopo la prova dei comandi.
+    func restoreTrack1() {
+        mutes[0] = false
+        var bytes: [UInt8] = TX6.cc(TX6.ccMute, 0, channel: 1)
+        for p in [TX6.Param.volume, .pan, .filter, .eqHigh, .eqMid, .eqLow, .comp, .fx1Send, .auxSend, .aux2Send] {
+            let v = output(1, p, io.now())
+            bytes += TX6.cc(p.cc, v, channel: 1)
+            lastSent[0][p.rawValue] = v
+        }
+        for k in stride(from: 0, to: bytes.count, by: 3) {
+            let msg = Array(bytes[k..<k + 3])
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(k / 3) * 0.03) { [weak self] in self?.io.send(msg) }
+        }
+        logText("traccia 1 rimessa com'era")
+    }
+
     /// Il muto: il cc 120 del TX-6 e, in più, il volume a zero (lo tiene `output`). Misurato il 6/10/2026:
     /// col synth acceso il cc 120 da solo non zittiva la traccia; il volume a zero la zittisce sempre.
     /// Togliendo il muto il volume torna quello di prima.

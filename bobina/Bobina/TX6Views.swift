@@ -228,6 +228,8 @@ struct TX6MixerView: View {
     var body: some View {
         let layer = TX6.Param(rawValue: layerRaw) ?? .volume
         TX6Page(title: "Mixer") {
+            TX6ProbeCard()
+
             Card(title: "le sei tracce", note: "Scegli cosa regolare su tutte e sei le tracce: volume, guadagno, compressore, EQ, pan, filtro, mandate. M è il muto (Bobina manda il muto del TX-6 e porta anche il volume a zero; togliendolo torna com'era), «tr» apre tutta la traccia. Il TX-6 va messo su MIDI → CTRL IN; non dice com'è messo: qui vedi quello che gli ha mandato Bobina.") {
                 LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(Self.layers) { p in
@@ -266,6 +268,38 @@ struct TX6MixerView: View {
             }
 
             TX6ScenesCard()
+        }
+    }
+}
+
+/// Prova dei comandi: ogni tasto manda un solo numero (cc) alla traccia 1, e il display del TX-6 salta
+/// sulla pagina di quello che ha capito. Serve a controllare la tabella ufficiale sulla macchina vera.
+struct TX6ProbeCard: View {
+    @EnvironmentObject var tx: TX6Engine
+    @AppStorage("bobina.tx6.prova.nascosta") private var hidden = false
+
+    static let probes: [(name: String, cc: UInt8, value: Int)] = [
+        ("volume", 7, 32), ("pan", 8, 32), ("guadagno", 9, 32), ("filtro", 74, 32),
+        ("EQ alti", 85, 32), ("EQ medi", 86, 32), ("EQ bassi", 87, 32), ("compressore", 93, 32),
+        ("FX I", 91, 32), ("aux", 92, 32), ("aux II", 94, 32), ("muto", 120, 127), ("togli muto", 120, 0)
+    ]
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 2)
+
+    var body: some View {
+        if hidden {
+            Chip(text: "mostra la prova dei comandi") { hidden = false }
+        } else {
+            Card(title: "prova dei comandi", note: "Ogni tasto manda un solo comando alla traccia 1, col valore 32 (il muto 127). Toccali uno alla volta e guarda il display del TX-6: salta sulla pagina di quello che ha capito. Dimmi cosa compare per ogni numero. Alla fine «rimetti a posto la traccia 1».") {
+                LazyVGrid(columns: columns, spacing: 6) {
+                    ForEach(Array(Self.probes.enumerated()), id: \.offset) { i, p in
+                        GridChip(text: "\(i + 1) · \(p.name) · cc \(p.cc)") { tx.probe(p.cc, p.value) }
+                    }
+                }
+                HStack(spacing: 8) {
+                    Chip(text: "rimetti a posto la traccia 1") { tx.restoreTrack1() }
+                    Chip(text: "nascondi") { hidden = true }
+                }
+            }
         }
     }
 }
