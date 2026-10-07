@@ -643,6 +643,8 @@ final class TX6Engine: ObservableObject {
 
     /// Suona un pattern: se il ritmo gira entra all'inizio della prossima battuta, se no subito.
     func play(_ pat: TX6Pattern) {
+        beatsOn = true
+        melodyOn = true
         if pulsing {
             var part = makePart(pat)
             if !patternTempo || clockMode == .follow { part.bpm = nil }
