@@ -753,10 +753,11 @@ final class Engine: ObservableObject {
         let dt = lastTick == 0 ? 0.008 : min(0.1, io.ms(ticks: now &- lastTick) / 1000)
         lastTick = now
 
-        // i passi a tempo, preparati 150 ms prima: CoreMIDI li consegna all'istante giusto,
-        // così il ritmo non inciampa se lo schermo tiene occupato il main thread (per esempio scorrendo)
+        // i passi a tempo, preparati 450 ms prima: CoreMIDI li consegna all'istante giusto,
+        // così il ritmo non inciampa se lo schermo tiene occupato il main thread (scorrendo, o passando
+        // da un menu all'altro: con sei sezioni in Bobina il 6/10/2026 150 ms non bastavano più)
         if running && !followClock {
-            let horizon = now + io.ticks(ms: 150)
+            let horizon = now + io.ticks(ms: 450)
             if nextStepAt < now { nextStepAt = now }
             while nextStepAt < horizon {
                 fire(stepIndex, at: nextStepAt)
