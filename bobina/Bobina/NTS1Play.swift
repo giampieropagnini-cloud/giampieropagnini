@@ -93,6 +93,12 @@ final class NTS1Player: ObservableObject {
     /// La nota che si scrive toccando un passo vuoto: l'ultimo pad, o l'ultimo tasto dell'NTS-1.
     @Published var pick: Int
     @Published private(set) var stepsOn = false
+    /// Quanti passi gira la sequenza: 8 o 16.
+    @Published var stepLength: Int { didSet { save(); push(); if cursor >= stepLength { cursor = 0 } } }
+    /// Il passo dove va la prossima nota scritta. Dopo ogni nota va avanti da solo.
+    @Published var cursor = 0
+    /// L'ottava della tastiera dei passi (3 = il do centrale basso, nota 48).
+    @Published var writeOctave: Int { didSet { save() } }
     @Published private(set) var held: Set<Int> = []
 
     /// L'onda a tempo.
@@ -134,6 +140,8 @@ final class NTS1Player: ObservableObject {
             steps = Array(repeating: nil, count: 16)
         }
         pick = d.object(forKey: "bobina.nts1.suona.base") as? Int ?? 48
+        stepLength = d.object(forKey: "bobina.nts1.passi.lunghezza") as? Int ?? 16
+        writeOctave = d.object(forKey: "bobina.nts1.passi.ottava") as? Int ?? 3
         waveKnob = NTS1.Knob(rawValue: d.string(forKey: "bobina.nts1.onda.manopola") ?? "") ?? .cutoff
         waveShape = NTS1Shape(rawValue: d.integer(forKey: "bobina.nts1.onda.forma")) ?? .sine
         waveBeats = d.object(forKey: "bobina.nts1.onda.quarti") as? Double ?? 4
@@ -156,6 +164,8 @@ final class NTS1Player: ObservableObject {
     private func save() {
         let d = UserDefaults.standard
         d.set(base, forKey: "bobina.nts1.suona.base")
+        d.set(stepLength, forKey: "bobina.nts1.passi.lunghezza")
+        d.set(writeOctave, forKey: "bobina.nts1.passi.ottava")
         if let data = try? JSONEncoder().encode(steps) { d.set(data, forKey: "bobina.nts1.suona.passi") }
         d.set(waveKnob.rawValue, forKey: "bobina.nts1.onda.manopola")
         d.set(waveShape.rawValue, forKey: "bobina.nts1.onda.forma")
@@ -173,6 +183,7 @@ final class NTS1Player: ObservableObject {
         guard let e = engine else { return }
         var p = NTS1Sequencer.Plan()
         p.steps = steps
+        p.length = stepLength
         p.channel = e.channel
         p.waveCC = waveKnob.cc
         p.waveShape = waveShape
@@ -259,6 +270,51 @@ final class NTS1Player: ObservableObject {
 
     func clearSteps() {
         steps = Array(repeating: nil, count: 16)
+        cursor = 0
+    }
+
+    /// Scrittura in fila: la nota (0-11 nell'ottava scelta) si sente, va nel passo del cursore,
+    /// e il cursore passa al passo dopo. Un tocco per nota.
+    func write(_ semitone: Int) {
+        let n = max(0, min(127, (writeOctave + 1) * 12 + semitone))
+        preview(n)
+        pick = n
+        steps[cursor] = n
+        advance()
+    }
+
+    /// Il passo del cursore resta vuoto, e si va avanti.
+    func rest() {
+        steps[cursor] = nil
+        advance()
+    }
+
+    /// Il cursore torna indietro di uno, per correggere l'ultima nota.
+    func back() {
+        cursor = (cursor - 1 + stepLength) % stepLength
+    }
+
+    func select(_ i: Int) {
+        cursor = i
+        if let n = steps[i] { preview(n) }
+    }
+
+    /// I passi 1-8 copiati su 9-16.
+    func copyHalf() {
+        var s = steps
+        for i in 0..<8 { s[i + 8] = s[i] }
+        steps = s
+    }
+
+    private func advance() {
+        cursor = (cursor + 1) % stepLength
+    }
+
+    /// Fa sentire una nota per un attimo, anche con l'arpeggio acceso.
+    private func preview(_ n: Int) {
+        guard let io = engine?.io else { return }
+        send([0x90 | ch, UInt8(n), 100])
+        io.send([0x80 | ch, UInt8(n), 64], at: io.now() + io.ticks(ms: 200))
     }
 
     func toggleSteps() {
@@ -346,6 +402,8 @@ final class NTS1Sequencer {
 
     struct Plan {
         var steps: [Int?] = Array(repeating: nil, count: 16)
+        /// Quanti passi gira: 8 o 16.
+        var length = 16
         var channel = 1
         var velocity = 100
         var gate = 0.5
@@ -544,7 +602,8 @@ final class NTS1Sequencer {
         if stepsOn {
             while line.time(ofBeat: Double(nextSixteenth) / 4) < horizon {
                 let t = line.time(ofBeat: Double(nextSixteenth) / 4)
-                let i = ((nextSixteenth - firstSixteenth) % 16 + 16) % 16
+                let len = max(1, min(16, p.length))
+                let i = ((nextSixteenth - firstSixteenth) % len + len) % len
                 if t >= now, let note = p.steps[i] {
                     let n = UInt8(max(0, min(127, note)))
                     io.send([0x90 | ch, n, UInt8(max(1, min(127, p.velocity)))], at: t)

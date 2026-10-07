@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - le quattro schermate dell'NTS-1
 
-/// Suono, Suona, Banche, Collega. Riapre l'ultima scheda usata.
+/// Suono, Suona, Passi, Banche, Collega. Riapre l'ultima scheda usata.
 struct NTS1Tabs: View {
     @AppStorage("bobina.nts1.scheda") private var tab = 0
 
@@ -12,6 +12,8 @@ struct NTS1Tabs: View {
                 .tabItem { Label("Suono", systemImage: "dial.medium") }.tag(0)
             NTS1SuonaView()
                 .tabItem { Label("Suona", systemImage: "pianokeys") }.tag(1)
+            NTS1PassiView()
+                .tabItem { Label("Passi", systemImage: "square.grid.4x3.fill") }.tag(4)
             NTS1BancheView()
                 .tabItem { Label("Banche", systemImage: "square.stack.3d.up") }.tag(2)
             NTS1CollegaView()
@@ -23,6 +25,8 @@ struct NTS1Tabs: View {
 
 struct NTS1Page<Content: View>: View {
     let title: String
+    /// Senza la fascia col nome: per le schede che devono stare tutte in uno schermo.
+    var compact = false
     @ViewBuilder var content: () -> Content
 
     var body: some View {
@@ -31,8 +35,8 @@ struct NTS1Page<Content: View>: View {
         #endif
         NavigationStack {
             ScrollView {
-                VStack(spacing: 12) {
-                    NTS1Banner()
+                VStack(spacing: compact ? 10 : 12) {
+                    if !compact { NTS1Banner() }
                     NTS1StatusStrip()
                     content()
                 }
@@ -198,7 +202,6 @@ struct NTS1SuonaView: View {
         NTS1Page(title: "Suona") {
             NTS1PadsCard(player: nts1.player)
             NTS1BobinaArpCard(player: nts1.player)
-            NTS1StepsCard(player: nts1.player)
             NTS1TempoCard()
             NTS1WaveCard(player: nts1.player)
             NTS1TiltCard(player: nts1.player)
@@ -319,45 +322,6 @@ struct NTS1ArpCard: View {
             NTS1ChoiceGrid(choice: .arpIntervals, selected: sound.choices[.arpIntervals]) { nts1.set(.arpIntervals, $0) }
             let v = sound.value(.arpLength)
             StepSlider(name: "lunghezza", value: v, shown: NTS1.Knob.arpLength.shown(v), step: 6) { nts1.set(.arpLength, $0) }
-        }
-    }
-}
-
-struct NTS1StepsCard: View {
-    @ObservedObject var player: NTS1Player
-
-    var body: some View {
-        Card(title: "passi", note: "Nota da scrivere: \(NTS1Player.name(player.pick)). La cambi con un pad o suonando la tastiera dell'NTS-1. Vanno a tempo con le altre macchine.") {
-            NTS1BigButton(text: player.stepsOn ? "ferma i passi" : "fai partire i passi", on: player.stepsOn) { player.toggleSteps() }
-            NTS1StepGrid(player: player, live: player.live)
-            Button("svuota i passi") { player.clearSteps() }.font(.footnote)
-        }
-    }
-}
-
-struct NTS1StepGrid: View {
-    @ObservedObject var player: NTS1Player
-    @ObservedObject var live: NTS1Live
-
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 5), count: 4)
-
-    var body: some View {
-        LazyVGrid(columns: columns, spacing: 6) {
-            ForEach(0..<16, id: \.self) { i in
-                let note = player.steps[i]
-                let now = live.step == i
-                Button { player.toggleStep(i) } label: {
-                    VStack(spacing: 1) {
-                        Text("\(i + 1)").font(.system(.caption2, design: .monospaced))
-                        Text(note.map(NTS1Player.name) ?? "—").font(.system(.footnote, design: .monospaced).weight(.semibold))
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 46)
-                    .background(RoundedRectangle(cornerRadius: 7).fill(now ? Palette.accent : note != nil ? NTS1.color : Color(white: 0.18)))
-                    .foregroundStyle(now || note != nil ? Color.black : Color.white)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("passo \(i + 1)")
-            }
         }
     }
 }
@@ -578,5 +542,132 @@ struct NTS1CollegaView: View {
                 .foregroundStyle(ok ? Color.white : Palette.rec)
         }
         .accessibilityElement(children: .combine)
+    }
+}
+
+// MARK: - Passi
+
+/// Scrivere una sequenza col minimo di tocchi: tutto in uno schermo. Tocchi una nota e va nel passo
+/// del cursore, che passa da solo al passo dopo. 16 note = 16 tocchi.
+struct NTS1PassiView: View {
+    @EnvironmentObject var nts1: NTS1Engine
+
+    var body: some View {
+        NTS1Page(title: "Passi", compact: true) {
+            NTS1PassiEditor(player: nts1.player)
+        }
+    }
+}
+
+struct NTS1PassiEditor: View {
+    @EnvironmentObject var nts1: NTS1Engine
+    @ObservedObject var player: NTS1Player
+    @State private var confirmClear = false
+
+    private static let noteNames = ["do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "sol#", "la", "la#", "si"]
+    private let six = Array(repeating: GridItem(.flexible(), spacing: 5), count: 6)
+
+    var body: some View {
+        VStack(spacing: 10) {
+            // suona / ferma, e il tempo
+            HStack(spacing: 8) {
+                Button { player.toggleSteps() } label: {
+                    Text(player.stepsOn ? "ferma" : "suona")
+                        .font(.system(.title3, design: .monospaced).weight(.bold))
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(player.stepsOn ? Palette.rec : Color(red: 0.40, green: 0.82, blue: 0.40)))
+                        .foregroundStyle(Color.black)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(player.stepsOn ? "ferma i passi" : "suona i passi")
+                SmallKey(text: "−5") { nts1.setBPM(nts1.bpm - 5) }.accessibilityLabel("tempo meno 5")
+                Text("\(nts1.bpm)")
+                    .font(.system(.title3, design: .monospaced).weight(.bold))
+                    .frame(minWidth: 44)
+                SmallKey(text: "+5") { nts1.setBPM(nts1.bpm + 5) }.accessibilityLabel("tempo più 5")
+            }
+
+            // la tastiera: 12 note, una per tasto
+            LazyVGrid(columns: six, spacing: 5) {
+                ForEach(0..<12, id: \.self) { i in
+                    let black = [1, 3, 6, 8, 10].contains(i)
+                    Button { player.write(i) } label: {
+                        Text(NTS1PassiEditor.noteNames[i])
+                            .font(.system(.body, design: .monospaced).weight(.semibold))
+                            .frame(maxWidth: .infinity, minHeight: 50)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(black ? NTS1.color.opacity(0.55) : NTS1.color))
+                            .foregroundStyle(Color.black)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("nota \(NTS1PassiEditor.noteNames[i])")
+                }
+            }
+
+            // ottava, pausa, indietro
+            HStack(spacing: 5) {
+                GridChip(text: "ottava −") { player.writeOctave = max(0, player.writeOctave - 1) }
+                Text("ott. \(player.writeOctave)")
+                    .font(.system(.footnote, design: .monospaced))
+                    .frame(minWidth: 48)
+                GridChip(text: "ottava +") { player.writeOctave = min(8, player.writeOctave + 1) }
+                GridChip(text: "pausa") { player.rest() }
+                GridChip(text: "indietro") { player.back() }
+            }
+
+            // i passi: il cursore ha il bordo bianco, quello che suona è arancio
+            NTS1CursorGrid(player: player, live: player.live)
+
+            HStack(spacing: 5) {
+                GridChip(text: "8 passi", on: player.stepLength == 8) { player.stepLength = 8 }
+                GridChip(text: "16 passi", on: player.stepLength == 16) { player.stepLength = 16 }
+                GridChip(text: "copia 1-8 su 9-16") { player.copyHalf() }
+            }
+            GridChip(text: confirmClear ? "sicuro? svuota tutti i passi" : "svuota i passi", on: confirmClear) {
+                if confirmClear {
+                    confirmClear = false
+                    player.clearSteps()
+                } else {
+                    confirmClear = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 4) { confirmClear = false }
+                }
+            }
+            .accessibilityLabel(confirmClear ? "conferma svuota" : "svuota i passi")
+        }
+    }
+}
+
+/// I 16 passi in due file da 8. Guarda `live` solo per il passo che suona.
+struct NTS1CursorGrid: View {
+    @ObservedObject var player: NTS1Player
+    @ObservedObject var live: NTS1Live
+
+    private let eight = Array(repeating: GridItem(.flexible(), spacing: 4), count: 8)
+
+    var body: some View {
+        LazyVGrid(columns: eight, spacing: 5) {
+            ForEach(0..<16, id: \.self) { i in
+                let note = player.steps[i]
+                let inside = i < player.stepLength
+                let now = live.step == i
+                let here = player.cursor == i
+                Button { player.select(i) } label: {
+                    VStack(spacing: 0) {
+                        Text("\(i + 1)").font(.system(.caption2, design: .monospaced))
+                        Text(note.map { NTS1Player.name($0).replacingOccurrences(of: " ", with: "") } ?? "·")
+                            .font(.system(.caption, design: .monospaced).weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .background(RoundedRectangle(cornerRadius: 7).fill(now ? Palette.accent : note != nil ? NTS1.color : Color(white: 0.18)))
+                    .overlay(RoundedRectangle(cornerRadius: 7).stroke(here ? Color.white : Color.clear, lineWidth: 3))
+                    .foregroundStyle(now || note != nil ? Color.black : Color.white)
+                    .opacity(inside ? 1 : 0.3)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("passo \(i + 1)")
+                .accessibilityAddTraits(here ? .isSelected : [])
+            }
+        }
     }
 }
