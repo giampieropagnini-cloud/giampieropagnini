@@ -115,54 +115,166 @@ struct NTS1BigButton: View {
 
 // MARK: - Suono
 
+/// Le sezioni della scheda Suono: se ne vede una per volta, così tutto sta in uno schermo.
+enum NTS1Part: String, CaseIterable, Identifiable {
+    case osc, filter, eg, mod, delay, reverb, volume
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .osc: return "osc"
+        case .filter: return "filtro"
+        case .eg: return "inviluppo"
+        case .mod: return "mod"
+        case .delay: return "delay"
+        case .reverb: return "reverb"
+        case .volume: return "volume"
+        }
+    }
+
+    var choice: NTS1.Choice? {
+        switch self {
+        case .osc: return .osc
+        case .filter: return .filter
+        case .eg: return .eg
+        case .mod: return .mod
+        case .delay: return .delay
+        case .reverb: return .reverb
+        case .volume: return nil
+        }
+    }
+
+    var knobs: [NTS1.Knob] {
+        switch self {
+        case .osc: return [.oscA, .oscB, .lfoRate, .lfoDepth]
+        case .filter: return [.cutoff, .resonance, .sweepDepth, .sweepRate]
+        case .eg: return [.attack, .release, .tremoloDepth, .tremoloRate]
+        case .mod: return [.modA, .modB]
+        case .delay: return [.delayA, .delayB, .delayMix]
+        case .reverb: return [.reverbA, .reverbB, .reverbMix]
+        case .volume: return [.volume]
+        }
+    }
+}
+
 struct NTS1SuonoView: View {
     @EnvironmentObject var nts1: NTS1Engine
+    @AppStorage("bobina.nts1.suono.parte") private var part = NTS1Part.filter.rawValue
+
+    private let four = Array(repeating: GridItem(.flexible(), spacing: 5), count: 4)
 
     var body: some View {
-        NTS1Page(title: "Suono") {
-            NTS1ProgramCard(sound: nts1.sound)
-            NTS1SectionCard(sound: nts1.sound, title: "oscillatore", choice: .osc, knobs: [.oscA, .oscB, .lfoRate, .lfoDepth])
-            NTS1SectionCard(sound: nts1.sound, title: "filtro", choice: .filter, knobs: [.cutoff, .resonance, .sweepDepth, .sweepRate])
-            NTS1SectionCard(sound: nts1.sound, title: "inviluppo", choice: .eg, knobs: [.attack, .release, .tremoloDepth, .tremoloRate])
-            NTS1SectionCard(sound: nts1.sound, title: "mod", choice: .mod, knobs: [.modA, .modB])
-            NTS1SectionCard(sound: nts1.sound, title: "delay", choice: .delay, knobs: [.delayA, .delayB, .delayMix])
-            NTS1SectionCard(sound: nts1.sound, title: "reverb", choice: .reverb, knobs: [.reverbA, .reverbB, .reverbMix])
-            NTS1SectionCard(sound: nts1.sound, title: "volume", choice: nil, knobs: [.volume])
+        let current = NTS1Part(rawValue: part) ?? .filter
+        NTS1Page(title: "Suono", compact: true) {
+            NTS1ProgramLine(sound: nts1.sound)
+            // le sezioni: un tocco e si vede quella
+            LazyVGrid(columns: four, spacing: 5) {
+                ForEach(NTS1Part.allCases) { p in
+                    NTS1SmallChip(text: p.label, on: p == current, height: 40) { part = p.rawValue }
+                        .accessibilityLabel("sezione \(p.label)")
+                }
+            }
+            NTS1PartPanel(sound: nts1.sound, part: current)
         }
     }
 }
 
-struct NTS1ProgramCard: View {
+/// Il nome del suono in una riga, con «rileggi».
+struct NTS1ProgramLine: View {
     @EnvironmentObject var nts1: NTS1Engine
     @ObservedObject var sound: NTS1Sound
 
     var body: some View {
-        Card(title: "suono di adesso", note: "Quando giri una manopola sull'NTS-1, qui si muove anche il valore.") {
-            Text(sound.programName.isEmpty ? "non ancora letto" : sound.programName)
-                .font(.system(.title3, design: .monospaced))
-            Chip(text: "rileggi il suono dall'NTS-1") { nts1.readProgram() }
+        HStack(spacing: 8) {
+            Text(sound.programName.isEmpty ? "suono non letto" : sound.programName)
+                .font(.system(.body, design: .monospaced).weight(.semibold))
+                .lineLimit(1)
+            Spacer()
+            NTS1SmallChip(text: "rileggi") { nts1.readProgram() }
+                .frame(width: 90)
+                .accessibilityLabel("rileggi il suono")
         }
     }
 }
 
-/// Una sezione dell'NTS-1: i tasti del tipo e le manopole.
-struct NTS1SectionCard: View {
+/// Una sezione: i tipi in tasti piccoli e le manopole coi salti.
+struct NTS1PartPanel: View {
     @EnvironmentObject var nts1: NTS1Engine
     @ObservedObject var sound: NTS1Sound
-    let title: String
-    let choice: NTS1.Choice?
-    let knobs: [NTS1.Knob]
+    let part: NTS1Part
 
     var body: some View {
-        Card(title: title) {
-            if let c = choice {
-                NTS1ChoiceGrid(choice: c, selected: sound.choices[c], name: sound.names[c]) { nts1.set(c, $0) }
+        VStack(alignment: .leading, spacing: 10) {
+            if let c = part.choice {
+                NTS1ChoiceGrid(choice: c, selected: sound.choices[c], name: sound.names[c], columns: 4, small: true) { nts1.set(c, $0) }
             }
-            ForEach(knobs) { k in
-                let v = sound.value(k)
-                StepSlider(name: k.label, value: v, shown: k.shown(v)) { nts1.set(k, $0) }
+            ForEach(part.knobs) { k in
+                NTS1KnobRow(knob: k, value: sound.value(k)) { nts1.set(k, $0) }
             }
         }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Palette.card))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.cardEdge, lineWidth: 1))
+    }
+}
+
+/// Una manopola senza slider: nome e valore, poi − · 0 · ¼ · ½ · ¾ · max · +.
+/// Da zero al massimo è un tocco solo; − e + ritoccano di 8.
+struct NTS1KnobRow: View {
+    let knob: NTS1.Knob
+    let value: Int
+    let set: (Int) -> Void
+
+    static let jumps: [(Int, String, String)] = [(0, "0", "zero"), (32, "¼", "un quarto"), (64, "½", "metà"), (96, "¾", "tre quarti"), (127, "max", "massimo")]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(knob.label)
+                    .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                Spacer()
+                Text(knob.shown(value))
+                    .font(.system(.footnote, design: .monospaced))
+                    .foregroundStyle(NTS1.color)
+            }
+            ProgressView(value: Double(value), total: 127)
+                .tint(NTS1.color)
+                .accessibilityHidden(true)
+            HStack(spacing: 4) {
+                NTS1SmallChip(text: "−") { set(max(0, value - 8)) }
+                    .accessibilityLabel("\(knob.label) meno")
+                ForEach(NTS1KnobRow.jumps, id: \.0) { j in
+                    NTS1SmallChip(text: j.1, on: abs(value - j.0) <= 4) { set(j.0) }
+                        .accessibilityLabel("\(knob.label) \(j.2)")
+                }
+                NTS1SmallChip(text: "+") { set(min(127, value + 8)) }
+                    .accessibilityLabel("\(knob.label) più")
+            }
+        }
+    }
+}
+
+/// Un tasto più piccolo di GridChip, per le schede fitte.
+struct NTS1SmallChip: View {
+    let text: String
+    var on = false
+    var height: CGFloat = 34
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(text)
+                .font(.system(.footnote, design: .monospaced))
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity, minHeight: height)
+                .background(RoundedRectangle(cornerRadius: 7).fill(on ? NTS1.color : Color(white: 0.18)))
+                .foregroundStyle(on ? Color.black : Color.white)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(on ? .isSelected : [])
     }
 }
 
@@ -171,9 +283,10 @@ struct NTS1ChoiceGrid: View {
     let choice: NTS1.Choice
     let selected: Int?
     var name: String? = nil
+    var columns = 3
+    /// Tasti piccoli, per la scheda Suono.
+    var small = false
     let pick: (Int) -> Void
-
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -182,11 +295,17 @@ struct NTS1ChoiceGrid: View {
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(NTS1.color)
             }
-            LazyVGrid(columns: columns, spacing: 6) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: small ? 4 : 6), count: columns), spacing: small ? 4 : 6) {
                 ForEach(choice.items.indices, id: \.self) { i in
-                    GridChip(text: choice.items[i], on: selected == i) { pick(i) }
-                        .accessibilityLabel("\(choice.title) \(choice.items[i])")
-                        .accessibilityAddTraits(selected == i ? .isSelected : [])
+                    Group {
+                        if small {
+                            NTS1SmallChip(text: choice.items[i], on: selected == i) { pick(i) }
+                        } else {
+                            GridChip(text: choice.items[i], on: selected == i) { pick(i) }
+                        }
+                    }
+                    .accessibilityLabel("\(choice.title) \(choice.items[i])")
+                    .accessibilityAddTraits(selected == i ? .isSelected : [])
                 }
             }
         }
