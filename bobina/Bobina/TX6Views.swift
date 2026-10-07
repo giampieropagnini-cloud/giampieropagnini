@@ -857,8 +857,31 @@ struct TX6MelodyCard: View {
     private let columns7 = Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
 
     var body: some View {
-        Card(title: "melodia", note: "Scegli la traccia e una nota, poi tocca i passi: la senti subito. Ritocca un passo con la stessa nota per toglierla.") {
+        Card(title: "melodia", note: "Scegli la traccia e una nota, poi tocca i passi: la senti subito. Ritocca un passo con la stessa nota per toglierla. Le melodie scure pronte mettono note e suono; gli accordi usano tre tracce, quella scelta e le due dopo.") {
             OneTrackPicker(selected: track) { track = $0 }
+            Menu {
+                Section("linee, sulla traccia \(track)") {
+                    ForEach(TX6MelodyPreset.dark.filter { !$0.chord }) { m in
+                        Button(m.name) { tx.applyMelody(m, from: track) }
+                    }
+                }
+                Section(track <= 4 ? "accordi, sulle tracce \(track)-\(track + 2)" : "accordi: scegli una traccia fino alla 4") {
+                    ForEach(TX6MelodyPreset.dark.filter { $0.chord }) { m in
+                        Button(m.name) { tx.applyMelody(m, from: track) }
+                            .disabled(track > 4)
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("melodie scure")
+                    Image(systemName: "chevron.down")
+                }
+                .font(.system(.subheadline, design: .monospaced))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(RoundedRectangle(cornerRadius: 9).fill(Color(white: 0.18)))
+                .foregroundStyle(Color.white)
+            }
             HStack(spacing: 6) {
                 SmallKey(text: "−") { tx.melodyOctaves[track - 1] = max(1, tx.melodyOctaves[track - 1] - 1) }
                 Text("ottava do\(tx.melodyOctaves[track - 1])")

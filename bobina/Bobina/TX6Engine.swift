@@ -156,6 +156,64 @@ struct TX6Preset: Codable, Identifiable, Equatable {
     ]
 }
 
+/// Una melodia pronta: una linea su una traccia, o un accordo su tre tracce (la scelta e le due dopo).
+/// Le note sono semitoni sopra il do dell'ottava della traccia (0 = do … 12 = do sopra), come nella melodia a passi.
+struct TX6MelodyPreset: Identifiable {
+    var id: String { name }
+    let name: String
+    let chord: Bool
+    let voices: [[Int?]]
+    let octaves: [Int]
+    /// Quanti sedicesimi dura ogni nota (vale per tutte le melodie).
+    let length: Int
+    /// Il preset di suono da mettere sulle tracce usate.
+    let sound: String
+
+    private static func line(_ notes: [(Int, Int)]) -> [Int?] {
+        var r = [Int?](repeating: nil, count: 16)
+        for (step, semi) in notes { r[step] = semi }
+        return r
+    }
+
+    private static func lineP(_ name: String, oct: Int, len: Int, sound: String, _ notes: [(Int, Int)]) -> TX6MelodyPreset {
+        TX6MelodyPreset(name: name, chord: false, voices: [line(notes)], octaves: [oct], length: len, sound: sound)
+    }
+
+    /// Accordi di quattro quarti: per ogni quarto le tre note (basso, medio, alto).
+    private static func chords(_ name: String, octaves: [Int] = [2, 3, 4], sound: String = "tappeto largo", _ seq: [(Int, Int, Int)]) -> TX6MelodyPreset {
+        let steps = [0, 4, 8, 12]
+        let voices = (0..<3).map { v in line(seq.enumerated().map { (steps[$0.offset], [$0.element.0, $0.element.1, $0.element.2][v]) }) }
+        return TX6MelodyPreset(name: name, chord: true, voices: voices, octaves: octaves, length: 4, sound: sound)
+    }
+
+    /// Scure, da film: seconde minori, tritoni, scale frigia e diminuita, accordi minori che scendono.
+    static let dark: [TX6MelodyPreset] = [
+        lineP("squalo", oct: 2, len: 1, sound: "basso pieno",
+              [(0, 0), (2, 1), (4, 0), (6, 1), (8, 0), (9, 1), (10, 0), (11, 1), (12, 0), (13, 1), (14, 0), (15, 1)]),
+        lineP("pedale martellato", oct: 1, len: 1, sound: "sub",
+              (0..<16).map { ($0, $0 == 12 || $0 == 13 ? 1 : 0) }),
+        lineP("lamento", oct: 2, len: 4, sound: "basso pieno",
+              [(0, 12), (3, 11), (6, 10), (8, 9), (11, 8), (14, 7)]),
+        lineP("tritono", oct: 2, len: 2, sound: "basso quadro",
+              [(0, 0), (4, 6), (8, 0), (12, 6), (14, 7), (15, 6)]),
+        lineP("frigio", oct: 3, len: 2, sound: "lead sega",
+              [(0, 0), (2, 1), (4, 0), (6, 3), (8, 1), (11, 0), (12, 1), (14, 0)]),
+        lineP("diminuito", oct: 3, len: 2, sound: "pluck",
+              [(0, 0), (2, 3), (4, 6), (6, 9), (8, 12), (10, 9), (12, 6), (14, 3)]),
+        lineP("orologio", oct: 4, len: 1, sound: "pluck",
+              [(0, 7), (2, 7), (4, 7), (6, 7), (8, 7), (10, 7), (12, 8), (14, 7)]),
+        // do minore, la bemolle, mi bemolle, si bemolle: il giro epico e scuro dei film
+        chords("epico minore", [(0, 3, 7), (8, 0, 3), (3, 7, 10), (10, 2, 5)]),
+        // il re resta appeso sopra accordi che cambiano: do minore con la nona, la bemolle con l'undicesima
+        // aumentata, fa minore con la sesta, sol con la nona bemolle
+        chords("attesa", [(0, 3, 2), (8, 0, 2), (5, 8, 2), (7, 11, 8)]),
+        // accordi minori che scendono di un semitono alla volta
+        chords("discesa", [(0, 3, 7), (11, 2, 6), (10, 1, 5), (9, 0, 4)]),
+        // tre note vicine che stridono, poi lo stesso grappolo un tritono più su
+        chords("grappolo", octaves: [3, 3, 3], [(0, 1, 2), (0, 1, 2), (6, 7, 8), (6, 7, 8)]),
+    ]
+}
+
 enum TX6Chord: String, CaseIterable, Identifiable {
     case single = "una nota", major = "maggiore", minor = "minore", sus = "sospeso", seventh = "settima"
     var id: String { rawValue }
@@ -708,6 +766,22 @@ final class TX6Engine: ObservableObject {
         currentPatternID = nil
         currentPatternName = nil
         logText("sequenza svuotata")
+    }
+
+    /// Una melodia pronta: le note sulla traccia (o, per gli accordi, sulla traccia e le due dopo), le ottave,
+    /// la durata e il suono adatto. Accende la melodia.
+    func applyMelody(_ m: TX6MelodyPreset, from track: Int) {
+        for (k, voice) in m.voices.enumerated() {
+            let t = track + k
+            guard t <= 6 else { break }
+            melodies[t - 1] = voice
+            melodyOctaves[t - 1] = m.octaves[k]
+            if let p = TX6Preset.builtIn.first(where: { $0.name == m.sound }) { apply(p, to: t) }
+        }
+        melodyLength = m.length
+        melodyOn = true
+        let used = min(m.voices.count, 7 - track)
+        logText("melodia «\(m.name)» sulla traccia \(track)" + (used > 1 ? "-\(track + used - 1)" : ""))
     }
 
     /// Mette un preset sulla traccia: suono e manopole, in un pacchetto solo.
