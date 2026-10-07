@@ -93,7 +93,7 @@ struct TX6StatusStrip: View {
         }
         .padding(.top, 6)
         if tx.strayClock && tx.clockMode != .follow {
-            Text("Il TX-6 manda il clock ma qui non serve, e intasa il bluetooth: sul TX-6 shift + select → CLOCK → OUT off.")
+            Text("Il TX-6 manda il suo tempo (32 messaggi al secondo) e intasa il bluetooth: i comandi di Bobina si perdono. Sul TX-6: shift + select → CLOCK → OUT off.")
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(Palette.rec)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1049,7 +1049,7 @@ struct TX6CollegaView: View {
                 Chip(text: "cerca il TX-6") { showBluetooth = true }
             }
 
-            Card(title: "come va messo il TX-6", note: "Shift + select → MIDI. CTRL IN: ascolta Bobina (ed è l'unico modo in cui la ascolta). NOTE on: le note suonano il synth, che va acceso (menu → SYNTH → play). CTRL OUT: diventa un controller e manda qui i suoi fader, ma non ascolta più niente.") {
+            Card(title: "come va messo il TX-6", note: "Shift + select → MIDI. CTRL IN: ascolta Bobina (ed è l'unico modo in cui la ascolta). NOTE on: le note suonano il synth, che va acceso (menu → SYNTH → play). CTRL OUT: diventa un controller e manda qui i suoi fader, ma non ascolta più niente. CLOCK → OUT off, a meno che Bobina non debba seguire il suo tempo: col bluetooth il suo clock intasa tutto e i comandi si perdono.") {
                 EmptyView()
             }
 
