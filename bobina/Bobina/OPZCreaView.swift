@@ -71,6 +71,8 @@ struct OPZCreaView: View {
                 }
             }
 
+            OPZInstrumentHelp(track: opz.createTrack)
+
             Card(title: opz.createTrack <= 4 ? "suono" : "nota", note: opz.createTrack <= 4 ? "I 24 suoni del kit di questa traccia. Toccane uno: lo senti e diventa quello che metti nei passi." : "Due ottave, come la tastiera dell'OP-Z. Toccane una: la senti e diventa quella che metti nei passi.") {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 6), spacing: 8) {
                     ForEach(OPZ.keyboardF...(OPZ.keyboardF + 23), id: \.self) { n in
@@ -221,6 +223,29 @@ struct OPZCreaView: View {
             }
 
             OPZAutomCard()
+
+            if opz.recordLockReminder {
+                VStack(spacing: 8) {
+                    Text("Registrazione finita")
+                        .font(.system(.title3, design: .rounded).weight(.bold))
+                    Text("Ele: sull'OP-Z premi REC per togliere il record lock, se no registra anche quello che suoni dopo.")
+                        .font(.system(.body, design: .rounded))
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button { opz.recordLockReminder = false } label: {
+                        Text("fatto, tolto")
+                            .font(.system(.headline, design: .monospaced))
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white))
+                            .foregroundStyle(Color.black)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity)
+                .background(RoundedRectangle(cornerRadius: 14).fill(Palette.rec))
+                .foregroundStyle(Color.white)
+            }
 
             Card(title: "scrivi sull'OP-Z", note: "Per mettere questi passi dentro il pattern dell'OP-Z: Ele accende il record lock (tiene REC e preme PLAY). Poi tocca qui con «Crea suona» spento: Bobina suona quello che c'è in Crea (anche la catena), una battuta per pattern dell'OP-Z, e alla fine ferma tutto. Un pattern dell'OP-Z ha al massimo 16 passi: per suonarli in fila c'è la canzone a pattern in Suona.") {
                 HStack(spacing: 5) {
@@ -584,6 +609,51 @@ struct OPZAutoCells: View {
                 .accessibilityLabel("automazione passo \(i + 1)")
                 .accessibilityValue(v.map { "livello \($0)" } ?? "vuoto")
             }
+        }
+    }
+}
+
+/// Promemoria: come si cambia lo strumento della traccia sulla macchina (via MIDI non si può). Dalla guida OP-Z, cap. «track».
+struct OPZInstrumentHelp: View {
+    let track: Int
+
+    private var what: String {
+        switch track {
+        case 1...3: return "il kit di batteria"
+        case 4: return "il kit di campioni"
+        case 7: return "lo strumento dell'arpeggio"
+        case 8: return "lo strumento degli accordi"
+        default: return "lo strumento"
+        }
+    }
+
+    var body: some View {
+        let name = OPZ.track(track).name
+        Card(title: "cambiare \(what) · \(name)", note: "Si fa sulla macchina (via MIDI non si può). Prima la traccia \(name) dev'essere quella attiva.") {
+            VStack(alignment: .leading, spacing: 8) {
+                OPZHelpRow(n: "1", text: "Traccia attiva: tieni TRACK e premi il tasto \(track) della fila dei numeri.")
+                OPZHelpRow(n: "2", text: track <= 4 ? "Altro kit: tieni TRACK e premi i tasti della fila di SOPRA." : "Altro strumento: tieni TRACK e premi i tasti della fila di SOPRA.")
+                OPZHelpRow(n: "3", text: "Altro suono dello stesso strumento: tieni TRACK e premi i tasti ACCESI della fila di SOTTO (fino a 14).")
+                OPZHelpRow(n: "4", text: "Un suono a caso: tieni TRACK e premi REC.")
+                OPZHelpRow(n: "5", text: "Salvare il suono di adesso: tieni TRACK e un tasto della fila di sotto per 2 secondi.")
+            }
+        }
+    }
+}
+
+struct OPZHelpRow: View {
+    let n: String
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(n)
+                .font(.system(.subheadline, design: .monospaced).weight(.bold))
+                .foregroundStyle(OPZ.tint)
+                .frame(width: 18)
+            Text(text)
+                .font(.system(.subheadline, design: .rounded))
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

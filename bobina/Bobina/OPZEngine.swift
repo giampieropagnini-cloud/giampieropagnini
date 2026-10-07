@@ -178,6 +178,8 @@ final class OPZEngine: ObservableObject {
     @Published var fxEvery = 1 { didSet { save() } }
     /// Sta suonando il giro solo per farlo registrare all'OP-Z.
     @Published private(set) var writing = false
+    /// La scrittura è finita: il record lock dell'OP-Z è ancora acceso (lo stop MIDI non lo spegne, misurato 7/10/2026).
+    @Published var recordLockReminder = false
 
     // MARK: interni
 
@@ -237,6 +239,7 @@ final class OPZEngine: ObservableObject {
                 self.running = false
                 self.queuedPattern = nil
                 self.logText("giro per l'OP-Z finito: fermo")
+                self.recordLockReminder = true
             }
         }
         sequencer.onOnceDone = { [weak self] in
