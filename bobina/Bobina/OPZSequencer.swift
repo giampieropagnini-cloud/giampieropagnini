@@ -57,6 +57,8 @@ final class OPZSequencer {
         var fxTrack: Int?
         /// Gli effetti scritti nei passi, per pattern: 32 passi, un effetto o niente.
         var fxSteps: [[CreaFx?]] = Array(repeating: Array(repeating: nil, count: 32), count: 16)
+        /// L'automazione a passi, per pattern: 4 righe, ognuna una manopola di una traccia con un valore per passo.
+        var autom: [[OPZLane]] = Array(repeating: OPZLane.empty, count: 16)
         /// Gli effetti dei passi suonano solo nell'ultima di ogni tot battute (1 = sempre).
         var fxEvery = 1
     }
@@ -70,6 +72,8 @@ final class OPZSequencer {
     var onStep: ((Int, MIDITimeStamp) -> Void)?
     /// Il pattern di Crea che comincia adesso (0-15) e la voce della catena (o nil), con l'istante.
     var onCreatePattern: ((Int, Int?, MIDITimeStamp) -> Void)?
+    /// Il sequencer si è fermato da solo (dopo il giro «scrivi sull'OP-Z»).
+    var onHalted: (() -> Void)?
     /// Il giro «scrivi sull'OP-Z» è finito.
     var onOnceDone: (() -> Void)?
     /// Un messaggio raro è partito (per il monitor). Niente clock.
@@ -83,6 +87,8 @@ final class OPZSequencer {
     private var waiting: [UInt8] = []
     /// Chiesto un giro solo dei passi di Crea, dalla battuta dopo (sotto lock).
     private var onceRequested = false
+    private var onceBarsWanted = 1
+    private var onceFirstWanted: Int?
 
     // da qui in giù: solo sul filo del sequencer
     private var timer: DispatchSourceTimer?
@@ -121,6 +127,11 @@ final class OPZSequencer {
     private var chainDone = false
     /// Il giro solo per scrivere sull'OP-Z: acceso per un giro del pattern.
     private var onceActive = false
+    /// Il sedicesimo in cui è cominciato il giro per l'OP-Z: dopo 16 tutto si ferma, esattamente lì.
+    private var onceStart: Int?
+    /// Quante battute scrive questo giro e in quale pattern dell'OP-Z comincia.
+    private var onceBars = 1
+    private var onceFirst: Int?
     /// Le note che partono più tardi (l'eco), per sedicesimo.
     private var onsAt: [Int: [UInt8]] = [:]
     /// Gli effetti accesi al passo prima, e da quando.
@@ -176,9 +187,13 @@ final class OPZSequencer {
     private var runningCopy = false
 
     /// Un giro solo dei passi di Crea, dalla prossima battuta: per farli registrare all'OP-Z in record lock.
-    func playOnce() {
+    /// `bars` battute (1, 2 o 4): ogni battuta va in un pattern dell'OP-Z, da `firstPattern` (1-16) in avanti,
+    /// perché un pattern dell'OP-Z ha al massimo 16 passi. Bobina cambia pattern da sola fra una battuta e l'altra.
+    func playOnce(bars: Int = 1, firstPattern: Int? = nil) {
         lock.lock()
         onceRequested = true
+        onceBarsWanted = max(1, min(4, bars))
+        onceFirstWanted = firstPattern
         lock.unlock()
     }
 
@@ -234,7 +249,12 @@ final class OPZSequencer {
 
     /// Si ferma: stop all'OP-Z, e la griglia lo lascia andare.
     func stop() {
-        queue.async { [self] in
+        queue.async { [self] in halt(at: 0) }
+    }
+
+    /// Ferma tutto all'istante `t` (0 = subito): le note tenute si lasciano e lo stop parte nello stesso pacchetto.
+    /// Solo sul filo del sequencer.
+    private func halt(at t: MIDITimeStamp) {
             guard running else { return }
             let p = plan()
             running = false
@@ -256,9 +276,8 @@ final class OPZSequencer {
             lock.lock()
             onceRequested = false
             lock.unlock()
-            send(offs + OPZ.stop, at: 0)
+            send(offs + OPZ.stop, at: t)
             onStep?(-1, io.now())
-        }
     }
 
     private func setRunningCopy(_ v: Bool) {
@@ -313,11 +332,11 @@ final class OPZSequencer {
 
         // i battiti: start, cambi alla battuta, canzone
         if running {
-            while line.time(ofBeat: Double(nextBeat)) < horizon {
+            while running && line.time(ofBeat: Double(nextBeat)) < horizon {
                 beat(nextBeat, p, now)
                 nextBeat += 1
             }
-            while line.time(ofBeat: Double(nextSixteenth) / 4) < horizon {
+            while running && line.time(ofBeat: Double(nextSixteenth) / 4) < horizon {
                 sixteenth(nextSixteenth, p, now)
                 nextSixteenth += 1
             }
@@ -385,17 +404,42 @@ final class OPZSequencer {
     /// Le note di tutte le tracce di questo passo in un pacchetto solo, con le note del passo prima che finiscono.
     private func sixteenth(_ n: Int, _ p: Plan, _ now: MIDITimeStamp) {
         let t = max(now, at(line.time(ofBeat: Double(n) / 4), p))
+        // il giro per l'OP-Z dura sempre 16 passi, una battuta: quanto un pattern dell'OP-Z di serie.
+        // (6/10/2026: col giro lungo quanto la traccia più lunga di Crea si fermava dopo 32 e registrava troppo)
+        // fra una battuta e l'altra del giro: il pattern dell'OP-Z dopo, un soffio prima del battere
+        if onceActive, let s0 = onceStart, let f = onceFirst, n > s0, (n - s0) % 16 == 0, (n - s0) / 16 < onceBars {
+            let early = io.ticks(ms: patternEarlyMs)
+            send(OPZ.pattern(min(16, f + (n - s0) / 16), project: p.project), at: t > now + early ? t - early : now)
+        }
+        if onceActive, let s0 = onceStart, n - s0 >= 16 * onceBars {
+            onceStart = nil
+            if !p.createOn {
+                halt(at: t)
+                onHalted?()
+                return
+            }
+            onceActive = false
+            onOnceDone?()
+        }
         // un giro del pattern di Crea è finito: si decide il prossimo (la catena, o quello scelto)
         if crPos == 0 {
-            if onceActive && n != nextSixteenthStart {
-                onceActive = false
-                onOnceDone?()
-            }
             lock.lock()
             let wanted = onceRequested
             onceRequested = false
+            if wanted {
+                onceBars = onceBarsWanted
+                onceFirst = onceFirstWanted
+            }
             lock.unlock()
-            if wanted { onceActive = true }
+            if wanted {
+                onceActive = true
+                onceStart = n
+                // la prima battuta nel primo pattern scelto
+                if let f = onceFirst {
+                    let early = io.ticks(ms: 40)
+                    send(OPZ.pattern(f, project: p.project), at: t > now + early ? t - early : now)
+                }
+            }
             var next = p.createPattern
             if p.chainOn && !p.chain.isEmpty {
                 if chainIdx == nil || chainIdx! >= p.chain.count {
@@ -506,6 +550,13 @@ final class OPZSequencer {
             if !shortOffs.isEmpty { io.send(shortOffs, at: t + io.ticks(ms: min(30, stepMs / 3))) }
             for j in 1..<repeats where !subs[j].isEmpty {
                 io.send(subs[j], at: t + io.ticks(ms: stepMs * Double(j) / Double(repeats)))
+            }
+
+            // l'automazione a passi: in un passo con un valore, la manopola va lì (un CC per riga, nel pacchetto del passo)
+            if p.autom.indices.contains(curCreate) {
+                for lane in p.autom[curCreate] where lane.values.indices.contains(i) {
+                    if let v = lane.values[i] { bytes += OPZ.cc(lane.cc, OPZLane.value(v), channel: lane.track) }
+                }
             }
 
             // filter sweep: giù per mezza battuta, su per l'altra metà
@@ -670,4 +721,16 @@ enum OPZArpStyle: Int, CaseIterable, Identifiable, Codable {
             return even + odd
         }
     }
+}
+
+/// Una riga di automazione a passi: quale traccia (1-8), quale manopola (CC 1-16), e in ogni passo un livello 1-8 o niente.
+struct OPZLane: Codable, Hashable {
+    var track = 5
+    var cc = 3
+    var values: [Int?] = Array(repeating: nil, count: 32)
+
+    static let empty: [OPZLane] = [OPZLane(track: 5, cc: 3), OPZLane(track: 6, cc: 3), OPZLane(track: 1, cc: 1), OPZLane(track: 8, cc: 13)]
+
+    /// Livello 1-8 → valore del CC (1 = minimo, 8 = massimo).
+    static func value(_ level: Int) -> Int { Int((Double(max(1, min(8, level)) - 1) / 7 * 127).rounded()) }
 }

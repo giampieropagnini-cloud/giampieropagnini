@@ -93,7 +93,7 @@ struct TX6StatusStrip: View {
         }
         .padding(.top, 6)
         if tx.strayClock && tx.clockMode != .follow {
-            Text("Il TX-6 manda il clock ma qui non serve, e intasa il bluetooth: sul TX-6 shift + select → CLOCK → OUT off.")
+            Text("Il TX-6 manda il suo tempo (32 messaggi al secondo) e intasa il bluetooth: i comandi di Bobina si perdono. Sul TX-6: shift + select → CLOCK → OUT off.")
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(Palette.rec)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -468,102 +468,263 @@ struct TX6EffettiView: View {
 
 struct TX6SuonaView: View {
     @EnvironmentObject var tx: TX6Engine
+    /// crea (sequenze), suona (tastiera e pad), suoni (strumenti, preset, campioni). Resta salvata.
+    @AppStorage("bobina.tx6.suona.parte") private var part = 0
     @State private var beatTrack = 1
     @State private var lockBrush: Int? = 127
 
     private let keyNames = ["do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "sol#", "la", "la#", "si", "do"]
     private let black: Set<Int> = [1, 3, 6, 8, 10]
     private let columns7 = Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
+    private static let parts = ["crea", "suona", "suoni"]
 
     var body: some View {
         TX6Page(title: "Suona") {
-            TX6PatternCard()
-
-            TX6SamplerCard()
-
-            Card(title: "i sei strumenti", note: "Ogni traccia del TX-6 è uno strumento. Scegli la traccia, poi il suono, e regola le barre: sono le stesse cose che sulla macchina fai con le manopoline. «prova» lo fa suonare. Serve il synth acceso (menu → SYNTH → play). L'ordine dei suoni sui 128 valori è ancora da misurare: il display del TX-6 dice quale ha preso.") {
-                OneTrackPicker(selected: beatTrack) { beatTrack = $0 }
-                SoundGrid(track: beatTrack)
-                ForEach([TX6.Param.volume, .freq, .length, .detune, .filter]) { p in
-                    StepSlider(name: p.name, value: tx.value(beatTrack, p), shown: p.shown(tx.value(beatTrack, p))) { tx.set(beatTrack, p, $0) }
+            HStack(spacing: 6) {
+                ForEach(Array(Self.parts.enumerated()), id: \.offset) { i, name in
+                    GridChip(text: name, on: part == i) { part = i }
                 }
-                Chip(text: "prova la traccia \(beatTrack)") { tx.hitPad(beatTrack) }
             }
 
-            TX6PresetCard(track: beatTrack, pickTrack: { beatTrack = $0 })
-
-            Card(title: "tastiera", note: "Serve MIDI → NOTE on e il synth su play. Suona la traccia scelta a quella nota; con un accordo le sei tracce diventano sei voci.") {
-                OneTrackPicker(selected: tx.keyTrack) { tx.keyTrack = $0 }
-                HStack(spacing: 8) {
-                    Chip(text: "ottava −") { tx.octave = max(0, tx.octave - 1) }
-                    Text("do\(tx.octave)")
-                        .font(.system(.subheadline, design: .monospaced))
-                        .frame(minWidth: 44)
-                    Chip(text: "ottava +") { tx.octave = min(8, tx.octave + 1) }
-                }
-                ChipRow(items: TX6Chord.allCases.map { $0.rawValue }, selected: TX6Chord.allCases.firstIndex(of: tx.chord)) { tx.chord = TX6Chord.allCases[$0] }
-                LazyVGrid(columns: columns7, spacing: 6) {
-                    ForEach(0..<13, id: \.self) { k in
-                        PressPad(lit: tx.heldKeys.contains(k), onPress: { tx.keyDown(k) }, onRelease: { tx.keyUp(k) }) {
-                            Text(keyNames[k])
-                                .font(.system(.footnote, design: .monospaced))
-                                .foregroundStyle(black.contains(k) && !tx.heldKeys.contains(k) ? Palette.dim : Color.white)
+            if part == 0 {
+                TX6CreaHeader()
+                TX6DrumMachine(live: tx.live)
+                TX6MelodyCard()
+                Card(title: "passi con manopola", note: "Un valore diverso a ogni passo per un parametro di una traccia: sei suoni diversi dalla stessa traccia.") {
+                    Toggle("accesi (con la batteria)", isOn: $tx.lockOn)
+                    OneTrackPicker(selected: tx.lockTrack) { tx.lockTrack = $0 }
+                    ParamMenu(selected: tx.lockParam) { tx.lockParam = $0 }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            Chip(text: "vuoto", on: lockBrush == nil) { lockBrush = nil }
+                            ForEach([0, 32, 64, 96, 127], id: \.self) { v in
+                                Chip(text: "\(v)", on: lockBrush == v) { lockBrush = v }
+                            }
                         }
-                        .frame(height: 54)
+                    }
+                    TX6StepGrid(live: tx.live, pulsing: tx.pulsing,
+                                label: { tx.locks[$0].map { "\($0)" } ?? "·" },
+                                filled: { tx.locks[$0] != nil },
+                                tap: { tx.locks[$0] = tx.locks[$0] == lockBrush ? nil : lockBrush })
+                    Chip(text: "svuota i passi con manopola") { tx.locks = Array(repeating: nil, count: 16) }
+                }
+                TX6PatternCard()
+            } else if part == 1 {
+                Card(title: "tastiera", note: "Serve MIDI → NOTE on e il synth su play. Suona la traccia scelta a quella nota; con un accordo le sei tracce diventano sei voci.") {
+                    OneTrackPicker(selected: tx.keyTrack) { tx.keyTrack = $0 }
+                    HStack(spacing: 8) {
+                        Chip(text: "ottava −") { tx.octave = max(0, tx.octave - 1) }
+                        Text("do\(tx.octave)")
+                            .font(.system(.subheadline, design: .monospaced))
+                            .frame(minWidth: 44)
+                        Chip(text: "ottava +") { tx.octave = min(8, tx.octave + 1) }
+                    }
+                    ChipRow(items: TX6Chord.allCases.map { $0.rawValue }, selected: TX6Chord.allCases.firstIndex(of: tx.chord)) { tx.chord = TX6Chord.allCases[$0] }
+                    LazyVGrid(columns: columns7, spacing: 6) {
+                        ForEach(0..<13, id: \.self) { k in
+                            PressPad(lit: tx.heldKeys.contains(k), onPress: { tx.keyDown(k) }, onRelease: { tx.keyUp(k) }) {
+                                Text(keyNames[k])
+                                    .font(.system(.footnote, design: .monospaced))
+                                    .foregroundStyle(black.contains(k) && !tx.heldKeys.contains(k) ? Palette.dim : Color.white)
+                            }
+                            .frame(height: 54)
+                        }
                     }
                 }
-            }
 
-            Card(title: "sei pad", note: "Ogni pad fa suonare la sua traccia alla nota dell'ottava scelta, come la tastiera. Serve NOTE on e il synth su play. Do2 (di fabbrica) dà casse giuste; per una cassa più profonda scendi a do1.") {
-                TX6PadGrid(live: tx.live)
-                HStack(spacing: 6) {
-                    Text("ottava")
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(Palette.dim)
-                    ForEach([24, 36, 48, 60, 72], id: \.self) { b in
-                        Chip(text: "do\(b / 12 - 1)", on: tx.padBase == b) { tx.padBase = b }
-                    }
-                }
-            }
-
-            Card(title: "batteria a passi", note: "Sedici passi per ogni traccia: a ogni passo acceso il pad di quella traccia suona. Parte col tempo della scheda Ritmo.") {
-                HStack {
-                    Toggle("accesa", isOn: $tx.beatsOn)
-                    Chip(text: tx.running ? "■" : "▶", on: tx.running) { tx.toggleRun() }
-                }
-                OneTrackPicker(selected: beatTrack) { beatTrack = $0 }
-                TX6StepGrid(live: tx.live, pulsing: tx.pulsing,
-                            label: { tx.beats[beatTrack - 1][$0] ? "■" : "·" },
-                            filled: { tx.beats[beatTrack - 1][$0] },
-                            tap: { tx.beats[beatTrack - 1][$0].toggle() })
-                Text("tracce con passi: " + ((1...6).filter { tx.beats[$0 - 1].contains(true) }.map { "\($0)" }.joined(separator: " ")).ifEmpty("nessuna"))
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.dim)
-                HStack(spacing: 8) {
-                    Chip(text: "svuota la traccia \(beatTrack)") { tx.beats[beatTrack - 1] = Array(repeating: false, count: 16) }
-                    ConfirmChip(text: "svuota tutta la batteria") { tx.beats = Array(repeating: Array(repeating: false, count: 16), count: 6) }
-                }
-            }
-
-            TX6MelodyCard()
-
-            Card(title: "passi con manopola", note: "A ogni passo un valore diverso per un parametro di una traccia, mandato un attimo prima del colpo: sei suoni diversi dalla stessa traccia. Scegli il pennello e tocca i passi; «vuoto» lascia il valore normale.") {
-                Toggle("accesi (con la batteria)", isOn: $tx.lockOn)
-                OneTrackPicker(selected: tx.lockTrack) { tx.lockTrack = $0 }
-                ParamMenu(selected: tx.lockParam) { tx.lockParam = $0 }
-                ScrollView(.horizontal, showsIndicators: false) {
+                Card(title: "sei pad", note: "Ogni pad fa suonare la sua traccia alla nota dell'ottava scelta, come la tastiera. Serve NOTE on e il synth su play. Do2 (di fabbrica) dà casse giuste; per una cassa più profonda scendi a do1.") {
+                    TX6PadGrid(live: tx.live)
                     HStack(spacing: 6) {
-                        Chip(text: "vuoto", on: lockBrush == nil) { lockBrush = nil }
-                        ForEach([0, 32, 64, 96, 127], id: \.self) { v in
-                            Chip(text: "\(v)", on: lockBrush == v) { lockBrush = v }
+                        Text("ottava")
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(Palette.dim)
+                        ForEach([24, 36, 48, 60, 72], id: \.self) { b in
+                            Chip(text: "do\(b / 12 - 1)", on: tx.padBase == b) { tx.padBase = b }
                         }
                     }
                 }
-                TX6StepGrid(live: tx.live, pulsing: tx.pulsing,
-                            label: { tx.locks[$0].map { "\($0)" } ?? "·" },
-                            filled: { tx.locks[$0] != nil },
-                            tap: { tx.locks[$0] = tx.locks[$0] == lockBrush ? nil : lockBrush })
-                Chip(text: "svuota i passi con manopola") { tx.locks = Array(repeating: nil, count: 16) }
+
+            } else {
+                Card(title: "i sei strumenti", note: "Ogni traccia del TX-6 è uno strumento. Scegli la traccia, poi il suono, e regola le barre: sono le stesse cose che sulla macchina fai con le manopoline. «prova» lo fa suonare. Serve il synth acceso (menu → SYNTH → play). L'ordine dei suoni sui 128 valori è ancora da misurare: il display del TX-6 dice quale ha preso.") {
+                    OneTrackPicker(selected: beatTrack) { beatTrack = $0 }
+                    SoundGrid(track: beatTrack)
+                    ForEach([TX6.Param.volume, .freq, .length, .detune, .filter]) { p in
+                        StepSlider(name: p.name, value: tx.value(beatTrack, p), shown: p.shown(tx.value(beatTrack, p))) { tx.set(beatTrack, p, $0) }
+                    }
+                    Chip(text: "prova la traccia \(beatTrack)") { tx.hitPad(beatTrack) }
+                }
+
+                TX6PresetCard(track: beatTrack, pickTrack: { beatTrack = $0 })
+                TX6SamplerCard()
+            }
+        }
+    }
+}
+
+/// In cima a «crea»: suona/ferma, il tempo, gli stili e i pattern, salva e cancella. Tutto in una scheda corta.
+struct TX6CreaHeader: View {
+    @EnvironmentObject var tx: TX6Engine
+
+    private func menuLabel(_ text: String) -> some View {
+        HStack(spacing: 4) {
+            Text(text)
+            Image(systemName: "chevron.down")
+        }
+        .font(.system(.subheadline, design: .monospaced))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(RoundedRectangle(cornerRadius: 9).fill(Color(white: 0.18)))
+        .foregroundStyle(Color.white)
+    }
+
+    var body: some View {
+        Card(title: "crea") {
+            HStack(spacing: 8) {
+                Chip(text: tx.running ? "■ ferma" : "▶ suona", on: tx.running) {
+                    if !tx.running { tx.beatsOn = true; tx.melodyOn = true }
+                    tx.toggleRun()
+                }
+                Spacer()
+                SmallKey(text: "−") { tx.bpm = max(40, tx.bpm - 1) }
+                Text("\(Int(tx.bpm.rounded())) bpm")
+                    .font(.system(.subheadline, design: .monospaced))
+                    .frame(minWidth: 70)
+                SmallKey(text: "+") { tx.bpm = min(300, tx.bpm + 1) }
+            }
+            HStack(spacing: 8) {
+                Menu {
+                    ForEach(TX6Pattern.styles) { st in Button(st.name) { tx.play(st) } }
+                } label: { menuLabel("stile") }
+                if !tx.patterns.isEmpty {
+                    Menu {
+                        ForEach(tx.patterns) { p in Button(p.name) { tx.play(p) } }
+                    } label: { menuLabel("i miei") }
+                }
+                Chip(text: "salva") { tx.saveNewPattern() }
+                ConfirmChip(text: "cancella") { tx.clearSequence() }
+            }
+            Text("suona: " + (tx.currentPatternName ?? "—") + (tx.pendingPatternName.map { " · poi \($0), alla battuta" } ?? ""))
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+        }
+    }
+}
+
+/// La batteria come su una drum machine: le sei tracce una sotto l'altra, otto passi alla volta.
+/// Toccando un quadratino il colpo c'è o non c'è; toccando il nome la traccia suona e diventa la riga
+/// su cui lavorano i riempimenti veloci (ogni 4, ogni 2…).
+struct TX6DrumMachine: View {
+    @EnvironmentObject var tx: TX6Engine
+    @ObservedObject var live: TX6Live
+    @AppStorage("bobina.tx6.crea.meta") private var half = 0
+    @State private var row = 1
+
+    private static let fills: [(name: String, steps: [Int])] = [
+        ("ogni 4", [0, 4, 8, 12]), ("ogni 2", Array(stride(from: 0, to: 16, by: 2))),
+        ("contro", [2, 6, 10, 14]), ("tutti", Array(0..<16)), ("svuota", [])
+    ]
+    private let fillColumns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 5)
+    /// Prima la batteria, poi le onde.
+    private static let soundOrder = [4, 5, 6, 7, 8, 0, 1, 2, 3, 9]
+
+    private func pick(_ p: TX6Preset) {
+        tx.apply(p, to: row)
+        let r = row
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { tx.hitPad(r) }
+    }
+
+    var body: some View {
+        #if DEBUG
+        let _ = Diagnostics.shared.count("batteria tx6")
+        #endif
+        Card(title: "batteria") {
+            HStack(spacing: 6) {
+                GridChip(text: "passi 1-8", on: half == 0) { half = 0 }
+                GridChip(text: "passi 9-16", on: half == 1) { half = 1 }
+            }
+            VStack(spacing: 5) {
+                ForEach(1...6, id: \.self) { t in
+                    HStack(spacing: 4) {
+                        Button {
+                            row = t
+                            tx.hitPad(t)
+                        } label: {
+                            Text("\(t) \(tx.soundName(t))")
+                                .font(.system(.caption, design: .monospaced))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                                .padding(.leading, 5)
+                                .frame(width: 70, height: 36, alignment: .leading)
+                                .background(RoundedRectangle(cornerRadius: 7).fill(row == t ? Palette.accent.opacity(0.4) : Color(white: 0.14)))
+                                .foregroundStyle(Color.white)
+                        }
+                        .buttonStyle(.plain)
+                        ForEach(0..<8, id: \.self) { c in
+                            let i = half * 8 + c
+                            let on = tx.beats[t - 1][i]
+                            Button {
+                                tx.beats[t - 1][i].toggle()
+                                tx.beatsOn = true
+                                row = t
+                            } label: {
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(on ? Palette.accent : Color(white: c % 4 == 0 ? 0.26 : 0.18))
+                                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(tx.pulsing && live.step == i ? Color.white : Color.clear, lineWidth: 2))
+                                    .frame(height: 36)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("traccia \(t), passo \(i + 1)")
+                            .accessibilityValue(on ? "acceso" : "spento")
+                        }
+                    }
+                }
+            }
+            Text("riga \(row): riempi")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+            LazyVGrid(columns: fillColumns, spacing: 6) {
+                ForEach(Self.fills, id: \.name) { f in
+                    GridChip(text: f.name) {
+                        tx.beats[row - 1] = (0..<16).map { f.steps.contains($0) }
+                        if !f.steps.isEmpty { tx.beatsOn = true }
+                    }
+                }
+            }
+            Text("riga \(row): suono")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+            LazyVGrid(columns: fillColumns, spacing: 6) {
+                ForEach(Self.soundOrder, id: \.self) { i in
+                    GridChip(text: TX6.sounds[i], on: tx.sentSounds[row - 1].map { TX6.soundIndex($0) } == i) {
+                        tx.set(row, .sound, TX6.soundValue(i))
+                        let r = row
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { tx.hitPad(r) }
+                    }
+                }
+            }
+            Menu {
+                ForEach(TX6Preset.groups, id: \.self) { g in
+                    Section(g) {
+                        ForEach(TX6Preset.builtIn.filter { $0.group == g }) { p in
+                            Button(p.name) { pick(p) }
+                        }
+                    }
+                }
+                if !tx.myPresets.isEmpty {
+                    Section("miei") {
+                        ForEach(tx.myPresets) { p in Button(p.name) { pick(p) } }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("preset per la riga \(row)")
+                    Image(systemName: "chevron.down")
+                }
+                .font(.system(.subheadline, design: .monospaced))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(RoundedRectangle(cornerRadius: 9).fill(Color(white: 0.18)))
+                .foregroundStyle(Color.white)
             }
         }
     }
@@ -666,40 +827,12 @@ struct TX6SamplerCard: View {
 
 struct TX6PatternCard: View {
     @EnvironmentObject var tx: TX6Engine
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
 
     var body: some View {
-        Card(title: "pattern e stili", note: "Un pattern è tutto quello che suona: batteria, melodie, suoni delle sei tracce e tempo. Tocca uno stile o un tuo pattern: se il ritmo gira, entra all'inizio della prossima battuta. Gli stili usano le tracce così: 1 cassa, 2 rullante, 3 battimani, 4 charleston, 5 basso, 6 melodia.") {
-            HStack(spacing: 8) {
-                Chip(text: tx.running ? "■" : "▶", on: tx.running) { tx.toggleRun() }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("suona: " + (tx.currentPatternName ?? "—"))
-                        .font(.system(.subheadline, design: .monospaced))
-                    if let next = tx.pendingPatternName {
-                        Text("poi: \(next), alla battuta")
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(Palette.accent)
-                    }
-                }
-                Spacer()
-                if tx.pendingPatternName != nil {
-                    Chip(text: "annulla") { tx.cancelPendingPattern() }
-                }
-            }
-            Toggle("cambia anche il tempo", isOn: $tx.patternTempo)
-            Text("stili")
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(Palette.dim)
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(TX6Pattern.styles) { st in
-                    GridChip(text: st.name, on: tx.currentPatternID == st.id) { tx.play(st) }
-                }
-            }
-            Text("i tuoi pattern")
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(Palette.dim)
+        Card(title: "i miei pattern", note: "Un pattern è tutto quello che suona: batteria, melodie, suoni delle sei tracce e tempo. Si salvano e si scelgono anche da «crea», in cima; se il ritmo gira, il cambio arriva all'inizio della battuta.") {
+            Toggle("cambiando pattern cambia anche il tempo", isOn: $tx.patternTempo)
             if tx.patterns.isEmpty {
-                Text("ancora nessuno: prepara batteria e melodia, poi «salva come pattern nuovo»")
+                Text("ancora nessuno: prepara batteria e melodia, poi «salva» in cima")
                     .font(.footnote)
                     .foregroundStyle(Palette.dim)
             }
@@ -707,14 +840,9 @@ struct TX6PatternCard: View {
                 HStack(spacing: 6) {
                     GridChip(text: pat.name, on: tx.currentPatternID == pat.id) { tx.play(pat) }
                     Chip(text: "salva qui") { tx.overwrite(pat) }
-                    Chip(text: "✕") { tx.deletePattern(pat) }
+                    ConfirmChip(text: "✕") { tx.deletePattern(pat) }
                 }
             }
-            Chip(text: "salva come pattern nuovo") { tx.saveNewPattern() }
-            ConfirmChip(text: "cancella il pattern: ricomincia da zero") { tx.clearSequence() }
-            Text("Svuota batteria, melodie e passi con manopola, anche mentre suona. I suoni delle tracce, il tempo e i pattern salvati restano.")
-                .font(.footnote)
-                .foregroundStyle(Palette.dim)
         }
     }
 }
@@ -729,22 +857,42 @@ struct TX6MelodyCard: View {
     private let columns7 = Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
 
     var body: some View {
-        Card(title: "melodia a passi", note: "Sedici passi per ogni traccia: in ogni passo una nota. Scegli la traccia, tocca una nota (il pennello) e poi i passi dove la vuoi: la senti subito. Ritocca un passo con la stessa nota per svuotarlo. Più tracce con la melodia suonano insieme. Serve NOTE on e il synth su play; parte col tempo della scheda Ritmo, insieme alla batteria.") {
-            HStack {
-                Toggle("accesa", isOn: $tx.melodyOn)
-                Chip(text: tx.running ? "■" : "▶", on: tx.running) { tx.toggleRun() }
-            }
+        Card(title: "melodia", note: "Scegli la traccia e una nota, poi tocca i passi: la senti subito. Ritocca un passo con la stessa nota per toglierla. Le melodie scure pronte mettono note e suono; gli accordi usano tre tracce, quella scelta e le due dopo.") {
             OneTrackPicker(selected: track) { track = $0 }
-            HStack(spacing: 8) {
-                Chip(text: "ottava −") { tx.melodyOctaves[track - 1] = max(1, tx.melodyOctaves[track - 1] - 1) }
-                Text("do\(tx.melodyOctaves[track - 1])")
-                    .font(.system(.subheadline, design: .monospaced))
-                    .frame(minWidth: 44)
-                Chip(text: "ottava +") { tx.melodyOctaves[track - 1] = min(7, tx.melodyOctaves[track - 1] + 1) }
+            Menu {
+                Section("linee, sulla traccia \(track)") {
+                    ForEach(TX6MelodyPreset.dark.filter { !$0.chord }) { m in
+                        Button(m.name) { tx.applyMelody(m, from: track) }
+                    }
+                }
+                Section(track <= 4 ? "accordi, sulle tracce \(track)-\(track + 2)" : "accordi: scegli una traccia fino alla 4") {
+                    ForEach(TX6MelodyPreset.dark.filter { $0.chord }) { m in
+                        Button(m.name) { tx.applyMelody(m, from: track) }
+                            .disabled(track > 4)
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("melodie scure")
+                    Image(systemName: "chevron.down")
+                }
+                .font(.system(.subheadline, design: .monospaced))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(RoundedRectangle(cornerRadius: 9).fill(Color(white: 0.18)))
+                .foregroundStyle(Color.white)
             }
-            Text("pennello")
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(Palette.dim)
+            HStack(spacing: 6) {
+                SmallKey(text: "−") { tx.melodyOctaves[track - 1] = max(1, tx.melodyOctaves[track - 1] - 1) }
+                Text("ottava do\(tx.melodyOctaves[track - 1])")
+                    .font(.system(.caption, design: .monospaced))
+                    .frame(minWidth: 84)
+                SmallKey(text: "+") { tx.melodyOctaves[track - 1] = min(7, tx.melodyOctaves[track - 1] + 1) }
+                Spacer()
+                Text(tx.soundName(track))
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+            }
             LazyVGrid(columns: columns7, spacing: 6) {
                 GridChip(text: "vuoto", on: brush == nil) { brush = nil }
                 ForEach(0..<13, id: \.self) { k in
@@ -757,7 +905,7 @@ struct TX6MelodyCard: View {
                         tap: { i in
                             let now = tx.melodies[track - 1][i] == brush ? nil : brush
                             tx.melodies[track - 1][i] = now
-                            if let k = now { tx.preview(track, k) }
+                            if let k = now { tx.preview(track, k); tx.melodyOn = true }
                         })
             HStack(spacing: 6) {
                 Text("ogni nota dura")
@@ -768,11 +916,12 @@ struct TX6MelodyCard: View {
                 }
             }
             HStack(spacing: 8) {
-                Chip(text: "svuota la traccia \(track)") { tx.melodies[track - 1] = Array(repeating: nil, count: 16) }
+                Chip(text: "nota su ogni 4") {
+                    for i in stride(from: 0, to: 16, by: 4) { tx.melodies[track - 1][i] = brush }
+                    if brush != nil { tx.melodyOn = true }
+                }
+                Chip(text: "svuota") { tx.melodies[track - 1] = Array(repeating: nil, count: 16) }
                 ConfirmChip(text: "svuota tutte") { tx.melodies = Array(repeating: Array(repeating: nil, count: 16), count: 6) }
-                Text("con note: " + ((1...6).filter { tx.melodies[$0 - 1].contains { $0 != nil } }.map { "\($0)" }.joined(separator: " ")).ifEmpty("nessuna"))
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.dim)
             }
         }
     }
@@ -853,7 +1002,7 @@ struct TX6PadGrid: View {
                 PressPad(lit: live.flash.contains(t) || (tx.pulsing && tx.beatsOn && tx.beats[t - 1][live.step]), onPress: { tx.hitPad(t) }) {
                     VStack(spacing: 2) {
                         Text("traccia \(t)").font(.system(.subheadline, design: .monospaced))
-                        Text(TX6.sounds[TX6.soundIndex(tx.value(t, .sound))]).font(.system(.caption, design: .monospaced))
+                        Text(tx.soundName(t)).font(.system(.caption, design: .monospaced))
                         Text("do\(tx.padBase / 12 - 1)").font(.system(.caption2, design: .monospaced))
                     }
                 }
@@ -1049,7 +1198,7 @@ struct TX6CollegaView: View {
                 Chip(text: "cerca il TX-6") { showBluetooth = true }
             }
 
-            Card(title: "come va messo il TX-6", note: "Shift + select → MIDI. CTRL IN: ascolta Bobina (ed è l'unico modo in cui la ascolta). NOTE on: le note suonano il synth, che va acceso (menu → SYNTH → play). CTRL OUT: diventa un controller e manda qui i suoi fader, ma non ascolta più niente.") {
+            Card(title: "come va messo il TX-6", note: "Shift + select → MIDI. CTRL IN: ascolta Bobina (ed è l'unico modo in cui la ascolta). NOTE on: le note suonano il synth, che va acceso (menu → SYNTH → play). CTRL OUT: diventa un controller e manda qui i suoi fader, ma non ascolta più niente. CLOCK → OUT off, a meno che Bobina non debba seguire il suo tempo: col bluetooth il suo clock intasa tutto e i comandi si perdono.") {
                 EmptyView()
             }
 
