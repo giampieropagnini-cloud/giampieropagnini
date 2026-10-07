@@ -220,7 +220,7 @@ struct OPZCreaView: View {
                 GridChip(text: "togli gli effetti dai passi") { opz.clearFxSteps() }
             }
 
-            Card(title: "scrivi sull'OP-Z", note: "Per mettere questi passi dentro il pattern dell'OP-Z: Ele accende il record lock (tiene REC e preme PLAY). Poi tocca qui: Bobina suona i passi per una battuta sola, dall'inizio della battuta dopo. Da provare: è la prima volta.") {
+            Card(title: "scrivi sull'OP-Z", note: "Per mettere questi passi dentro il pattern dell'OP-Z: Ele accende il record lock (tiene REC e preme PLAY). Poi tocca qui con «Crea suona» spento: Bobina suona 16 passi, una battuta, e alla fine ferma l'OP-Z.") {
                 GridChip(text: opz.writing ? "sto scrivendo…" : "scrivi una battuta sull'OP-Z", on: opz.writing) { opz.writeOnce() }
                     .disabled(opz.writing)
             }

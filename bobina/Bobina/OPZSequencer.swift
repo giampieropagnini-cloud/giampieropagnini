@@ -123,6 +123,8 @@ final class OPZSequencer {
     private var chainDone = false
     /// Il giro solo per scrivere sull'OP-Z: acceso per un giro del pattern.
     private var onceActive = false
+    /// Il sedicesimo in cui è cominciato il giro per l'OP-Z: dopo 16 tutto si ferma, esattamente lì.
+    private var onceStart: Int?
     /// Le note che partono più tardi (l'eco), per sedicesimo.
     private var onsAt: [Int: [UInt8]] = [:]
     /// Gli effetti accesi al passo prima, e da quando.
@@ -391,24 +393,25 @@ final class OPZSequencer {
     /// Le note di tutte le tracce di questo passo in un pacchetto solo, con le note del passo prima che finiscono.
     private func sixteenth(_ n: Int, _ p: Plan, _ now: MIDITimeStamp) {
         let t = max(now, at(line.time(ofBeat: Double(n) / 4), p))
+        // il giro per l'OP-Z dura sempre 16 passi, una battuta: quanto un pattern dell'OP-Z di serie.
+        // (6/10/2026: col giro lungo quanto la traccia più lunga di Crea si fermava dopo 32 e registrava troppo)
+        if onceActive, let s0 = onceStart, n - s0 >= 16 {
+            onceStart = nil
+            if !p.createOn {
+                halt(at: t)
+                onHalted?()
+                return
+            }
+            onceActive = false
+            onOnceDone?()
+        }
         // un giro del pattern di Crea è finito: si decide il prossimo (la catena, o quello scelto)
         if crPos == 0 {
-            if onceActive && n != nextSixteenthStart {
-                // fine del giro per l'OP-Z: se Crea non suona per conto suo, tutto si ferma esattamente qui,
-                // così l'OP-Z in record lock non registra niente oltre il giro (6/10/2026: «continua un po' a registrare»)
-                if !p.createOn {
-                    halt(at: t)
-                    onHalted?()
-                    return
-                }
-                onceActive = false
-                onOnceDone?()
-            }
             lock.lock()
             let wanted = onceRequested
             onceRequested = false
             lock.unlock()
-            if wanted { onceActive = true }
+            if wanted { onceActive = true; onceStart = n }
             var next = p.createPattern
             if p.chainOn && !p.chain.isEmpty {
                 if chainIdx == nil || chainIdx! >= p.chain.count {
