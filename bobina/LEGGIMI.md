@@ -47,6 +47,8 @@ Quello che si sa dell'NTS-1 è in `NTS1-RICERCA.md`.
 
 Ogni sezione vive su un suo branch `claude/…`. Si installa **sempre** con `zsh bobina/strumenti/installa.sh`: unisce tutti i branch `claude/*` locali, compila in Release e installa sull'iPhone 18 Pro di Giampiero. Installare da un branch solo toglie dal telefono le sezioni degli altri.
 
+**Dopo ogni cambiamento** (commit o installazione) si avvisano tutte le altre chat di Bobina con SendMessage (ListAgents, nomi con «Bobina»): branch e commit, file comuni toccati, cosa cambia per gli altri, se va unito. Una chat nuova si presenta alle altre appena nasce. È una regola di Giampiero (8/10/2026), scritta anche nel suo CLAUDE.md globale.
+
 ## Installarla sull'iPhone (una volta sola, circa 20 minuti)
 
 Serve: un Mac con **Xcode** (gratis dal Mac App Store, versione 16 o successiva), l'iPhone con iOS 17 o successivo, il cavo per collegarlo al Mac.
