@@ -232,6 +232,23 @@ final class TX6Engine: ObservableObject {
 
     @Published private(set) var values: [[Int]] = Array(repeating: TX6.Param.allCases.map { $0.initial }, count: 6)
     @Published private(set) var mutes = Array(repeating: false, count: 6)
+    /// Il suono mandato a ogni traccia (nil = Bobina non l'ha mai mandato, quindi non lo sa). Resta salvato:
+    /// così i nomi delle tracce in «crea» sono quelli veri anche dopo una chiusura.
+    @Published private(set) var sentSounds: [Int?] = {
+        let saved = UserDefaults.standard.array(forKey: "bobina.tx6.suoni") as? [Int] ?? []
+        return saved.count == 6 ? saved.map { $0 < 0 ? nil : $0 } : Array(repeating: nil, count: 6)
+    }()
+
+    /// Il nome del suono della traccia, o «?» se Bobina non lo sa.
+    func soundName(_ t: Int) -> String {
+        sentSounds[t - 1].map { TX6.sounds[TX6.soundIndex($0)] } ?? "?"
+    }
+
+    private func rememberSound(_ t: Int, _ v: Int) {
+        sentSounds[t - 1] = v
+        UserDefaults.standard.set(sentSounds.map { $0 ?? -1 }, forKey: "bobina.tx6.suoni")
+    }
+
     /// Le tracce in solo: se ce n'è almeno una, le altre tacciono (volume a zero, fatto da Bobina).
     @Published private(set) var solos: Set<Int> = []
     /// main, aux, cue
@@ -361,6 +378,7 @@ final class TX6Engine: ObservableObject {
     private let haptic = UIImpactFeedbackGenerator(style: .rigid)
 
     init() {
+        for t in 0..<6 { if let v = sentSounds[t] { values[t][TX6.Param.sound.rawValue] = v } }
         load()
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, stamp in self?.received(bytes, stamp) }
@@ -468,6 +486,7 @@ final class TX6Engine: ObservableObject {
     private func sendParam(_ track: Int, _ p: TX6.Param, _ v: Int, at time: MIDITimeStamp = 0, quiet: Bool) {
         send(TX6.cc(p.cc, v, channel: track), at: time, quiet: quiet)
         lastSent[track - 1][p.rawValue] = v
+        if p == .sound { rememberSound(track, v) }
     }
 
     /// Per la prova dei comandi: un cc solo sul canale 1 (traccia 1), mandato da solo in un pacchetto.
@@ -703,6 +722,7 @@ final class TX6Engine: ObservableObject {
             lastSent[track - 1][p.rawValue] = out
         }
         send(bytes, quiet: true)
+        rememberSound(track, TX6.soundValue(preset.sound))
         logText("traccia \(track): preset «\(preset.name)»")
     }
 
@@ -763,6 +783,7 @@ final class TX6Engine: ObservableObject {
             for (k, param) in TX6Pattern.soundParams.enumerated() {
                 let v = pat.sounds[t - 1][k]
                 values[t - 1][param.rawValue] = v
+                if param == .sound { rememberSound(t, v) }
                 lastSent[t - 1][param.rawValue] = v
                 bytes += TX6.cc(param.cc, v, channel: t)
             }

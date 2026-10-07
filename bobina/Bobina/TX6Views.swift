@@ -624,6 +624,14 @@ struct TX6DrumMachine: View {
         ("contro", [2, 6, 10, 14]), ("tutti", Array(0..<16)), ("svuota", [])
     ]
     private let fillColumns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 5)
+    /// Prima la batteria, poi le onde.
+    private static let soundOrder = [4, 5, 6, 7, 8, 0, 1, 2, 3, 9]
+
+    private func pick(_ p: TX6Preset) {
+        tx.apply(p, to: row)
+        let r = row
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { tx.hitPad(r) }
+    }
 
     var body: some View {
         #if DEBUG
@@ -641,7 +649,7 @@ struct TX6DrumMachine: View {
                             row = t
                             tx.hitPad(t)
                         } label: {
-                            Text("\(t) \(TX6.sounds[TX6.soundIndex(tx.value(t, .sound))])")
+                            Text("\(t) \(tx.soundName(t))")
                                 .font(.system(.caption, design: .monospaced))
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.6)
@@ -671,7 +679,7 @@ struct TX6DrumMachine: View {
                     }
                 }
             }
-            Text("riempi la riga \(row) (\(TX6.sounds[TX6.soundIndex(tx.value(row, .sound))]))")
+            Text("riga \(row): riempi")
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(Palette.dim)
             LazyVGrid(columns: fillColumns, spacing: 6) {
@@ -681,6 +689,42 @@ struct TX6DrumMachine: View {
                         if !f.steps.isEmpty { tx.beatsOn = true }
                     }
                 }
+            }
+            Text("riga \(row): suono")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+            LazyVGrid(columns: fillColumns, spacing: 6) {
+                ForEach(Self.soundOrder, id: \.self) { i in
+                    GridChip(text: TX6.sounds[i], on: tx.sentSounds[row - 1].map { TX6.soundIndex($0) } == i) {
+                        tx.set(row, .sound, TX6.soundValue(i))
+                        let r = row
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { tx.hitPad(r) }
+                    }
+                }
+            }
+            Menu {
+                ForEach(TX6Preset.groups, id: \.self) { g in
+                    Section(g) {
+                        ForEach(TX6Preset.builtIn.filter { $0.group == g }) { p in
+                            Button(p.name) { pick(p) }
+                        }
+                    }
+                }
+                if !tx.myPresets.isEmpty {
+                    Section("miei") {
+                        ForEach(tx.myPresets) { p in Button(p.name) { pick(p) } }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("preset per la riga \(row)")
+                    Image(systemName: "chevron.down")
+                }
+                .font(.system(.subheadline, design: .monospaced))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(RoundedRectangle(cornerRadius: 9).fill(Color(white: 0.18)))
+                .foregroundStyle(Color.white)
             }
         }
     }
@@ -822,7 +866,7 @@ struct TX6MelodyCard: View {
                     .frame(minWidth: 84)
                 SmallKey(text: "+") { tx.melodyOctaves[track - 1] = min(7, tx.melodyOctaves[track - 1] + 1) }
                 Spacer()
-                Text(TX6.sounds[TX6.soundIndex(tx.value(track, .sound))])
+                Text(tx.soundName(track))
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(Palette.dim)
             }
@@ -935,7 +979,7 @@ struct TX6PadGrid: View {
                 PressPad(lit: live.flash.contains(t) || (tx.pulsing && tx.beatsOn && tx.beats[t - 1][live.step]), onPress: { tx.hitPad(t) }) {
                     VStack(spacing: 2) {
                         Text("traccia \(t)").font(.system(.subheadline, design: .monospaced))
-                        Text(TX6.sounds[TX6.soundIndex(tx.value(t, .sound))]).font(.system(.caption, design: .monospaced))
+                        Text(tx.soundName(t)).font(.system(.caption, design: .monospaced))
                         Text("do\(tx.padBase / 12 - 1)").font(.system(.caption2, design: .monospaced))
                     }
                 }
