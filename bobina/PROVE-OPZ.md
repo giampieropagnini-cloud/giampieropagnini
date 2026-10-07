@@ -38,3 +38,4 @@ Da provare ancora: «scrivi una battuta sull'OP-Z» col record lock, clock di Bo
 - Tasti nota tocca/tieni, note tenute accavallate, arpeggio sulle note tenute: «suona tutto perfetto».
 - Mixer di Crea (suona/muta, solo, volume): va.
 - 7/10: «scrivi sull'OP-Z» con 2 battute (32 passi, pattern 1 e 2): «sembra funzionare» → il record lock regge il cambio di pattern via CC 103.
+- 7/10: lo stop MIDI (anche due volte) NON spegne il record lock: va tolto a mano (REC). In Bobina, alla fine della scrittura, un avviso rosso lo ricorda.
