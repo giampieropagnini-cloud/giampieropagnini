@@ -57,6 +57,8 @@ final class OPZSequencer {
         var fxTrack: Int?
         /// Gli effetti scritti nei passi, per pattern: 32 passi, un effetto o niente.
         var fxSteps: [[CreaFx?]] = Array(repeating: Array(repeating: nil, count: 32), count: 16)
+        /// L'automazione a passi, per pattern: 4 righe, ognuna una manopola di una traccia con un valore per passo.
+        var autom: [[OPZLane]] = Array(repeating: OPZLane.empty, count: 16)
         /// Gli effetti dei passi suonano solo nell'ultima di ogni tot battute (1 = sempre).
         var fxEvery = 1
     }
@@ -550,6 +552,13 @@ final class OPZSequencer {
                 io.send(subs[j], at: t + io.ticks(ms: stepMs * Double(j) / Double(repeats)))
             }
 
+            // l'automazione a passi: in un passo con un valore, la manopola va lì (un CC per riga, nel pacchetto del passo)
+            if p.autom.indices.contains(curCreate) {
+                for lane in p.autom[curCreate] where lane.values.indices.contains(i) {
+                    if let v = lane.values[i] { bytes += OPZ.cc(lane.cc, OPZLane.value(v), channel: lane.track) }
+                }
+            }
+
             // filter sweep: giù per mezza battuta, su per l'altra metà
             if active.contains(.sweep), let a = fxSince[.sweep] {
                 let phase = ((n - a) % 16 + 16) % 16   // mezza battuta giù, mezza su: non dipende dalla lunghezza del pattern
@@ -712,4 +721,16 @@ enum OPZArpStyle: Int, CaseIterable, Identifiable, Codable {
             return even + odd
         }
     }
+}
+
+/// Una riga di automazione a passi: quale traccia (1-8), quale manopola (CC 1-16), e in ogni passo un livello 1-8 o niente.
+struct OPZLane: Codable, Hashable {
+    var track = 5
+    var cc = 3
+    var values: [Int?] = Array(repeating: nil, count: 32)
+
+    static let empty: [OPZLane] = [OPZLane(track: 5, cc: 3), OPZLane(track: 6, cc: 3), OPZLane(track: 1, cc: 1), OPZLane(track: 8, cc: 13)]
+
+    /// Livello 1-8 → valore del CC (1 = minimo, 8 = massimo).
+    static func value(_ level: Int) -> Int { Int((Double(max(1, min(8, level)) - 1) / 7 * 127).rounded()) }
 }

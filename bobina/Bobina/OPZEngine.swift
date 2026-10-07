@@ -152,6 +152,7 @@ final class OPZEngine: ObservableObject {
     /// Il pattern copiato, da incollare.
     @Published private(set) var copied: [[[Int]]]?
     private var copiedFx: [CreaFx?]?
+    private var copiedAutom: [OPZLane]?
     private var copiedLength: [Int]?
     private var copiedGates: [Int]?
 
@@ -570,6 +571,27 @@ final class OPZEngine: ObservableObject {
         fxSteps[createPattern - 1] = row
     }
 
+    // MARK: automazione a passi
+
+    @Published var autom: [[OPZLane]] = Array(repeating: OPZLane.empty, count: 16) { didSet { save() } }
+    /// La riga che si scrive (0-3) e il livello che si mette nei passi (1-8).
+    @Published var laneIndex = 0
+    @Published var autoLevel = 8
+
+    var lane: OPZLane {
+        get { autom[createPattern - 1][laneIndex] }
+        set { autom[createPattern - 1][laneIndex] = newValue }
+    }
+
+    func toggleAutoStep(_ i: Int) {
+        var l = lane
+        guard l.values.indices.contains(i) else { return }
+        l.values[i] = l.values[i] == autoLevel ? nil : autoLevel
+        lane = l
+    }
+
+    func clearLane() { lane.values = Array(repeating: nil, count: 32) }
+
     func clearFxSteps() { fxSteps[createPattern - 1] = Array(repeating: nil, count: 32) }
 
     // MARK: catena
@@ -637,7 +659,7 @@ final class OPZEngine: ObservableObject {
     private static func projectKey(_ n: Int) -> String { "bobina.opz.crea.\(n)" }
 
     private func snapshot() -> CreaProject {
-        CreaProject(patterns: patterns, lengths: lengths, gates: gates, fxSteps: fxSteps, chain: chain, chainLoop: chainLoop,
+        CreaProject(patterns: patterns, lengths: lengths, gates: gates, fxSteps: fxSteps, autom: autom, chain: chain, chainLoop: chainLoop,
                     trackOn: trackOn, arpOn: arpOn, arpStyle: arpStyle, arpRate: arpRate, arpOctaves: arpOctaves,
                     fxEvery: fxEvery, fxLength: fxLength)
     }
@@ -648,6 +670,7 @@ final class OPZEngine: ObservableObject {
         lengths = c.lengths
         gates = c.gates
         fxSteps = c.fxSteps
+        autom = c.autom ?? Array(repeating: OPZLane.empty, count: 16)
         chain = c.chain
         chainLoop = c.chainLoop
         trackOn = c.trackOn
@@ -713,6 +736,7 @@ final class OPZEngine: ObservableObject {
         lengths = Array(repeating: Array(repeating: 16, count: 8), count: 16)
         gates = Array(repeating: [1, 1, 1, 1, 1, 1, 0, 0], count: 16)
         fxSteps = Array(repeating: Array(repeating: nil, count: 32), count: 16)
+        autom = Array(repeating: OPZLane.empty, count: 16)
         trackOn = Array(repeating: true, count: 8)
         fxHeld = []
         createPattern = 1
@@ -725,6 +749,7 @@ final class OPZEngine: ObservableObject {
     func copyPattern() {
         copied = steps
         copiedFx = fxSteps[createPattern - 1]
+        copiedAutom = autom[createPattern - 1]
         copiedLength = lengths[createPattern - 1]
         copiedGates = gates[createPattern - 1]
         logText("pattern \(createPattern) copiato")
@@ -734,6 +759,7 @@ final class OPZEngine: ObservableObject {
         guard let c = copied else { return }
         steps = c
         if let f = copiedFx { fxSteps[createPattern - 1] = f }
+        if let a = copiedAutom { autom[createPattern - 1] = a }
         if let l = copiedLength { lengths[createPattern - 1] = l }
         if let g = copiedGates { gates[createPattern - 1] = g }
         logText("incollato nel pattern \(createPattern)")
@@ -819,6 +845,7 @@ final class OPZEngine: ObservableObject {
         p.fxLive = fxHeld
         p.fxTrack = fxAll ? nil : createTrack
         p.fxSteps = fxSteps
+        p.autom = autom
         p.lengths = lengths
         p.gates = gates
         p.arpOn = arpOn
@@ -990,6 +1017,8 @@ struct CreaProject: Codable {
     var lengths: [[Int]] = Array(repeating: Array(repeating: 16, count: 8), count: 16)
     var gates: [[Int]] = Array(repeating: [1, 1, 1, 1, 1, 1, 0, 0], count: 16)
     var fxSteps: [[CreaFx?]] = Array(repeating: Array(repeating: nil, count: 32), count: 16)
+    /// Facoltativo: i progetti salvati prima del 7/10/2026 non ce l'hanno (senza «?» non si aprirebbero più).
+    var autom: [[OPZLane]]? = Array(repeating: OPZLane.empty, count: 16)
     var chain: [OPZChainStep] = []
     var chainLoop = true
     var trackOn: [Bool] = Array(repeating: true, count: 8)

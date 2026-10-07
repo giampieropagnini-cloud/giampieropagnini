@@ -220,6 +220,8 @@ struct OPZCreaView: View {
                 GridChip(text: "togli gli effetti dai passi") { opz.clearFxSteps() }
             }
 
+            OPZAutomCard()
+
             Card(title: "scrivi sull'OP-Z", note: "Per mettere questi passi dentro il pattern dell'OP-Z: Ele accende il record lock (tiene REC e preme PLAY). Poi tocca qui con «Crea suona» spento: Bobina suona quello che c'è in Crea (anche la catena), una battuta per pattern dell'OP-Z, e alla fine ferma tutto. Un pattern dell'OP-Z ha al massimo 16 passi: per suonarli in fila c'è la canzone a pattern in Suona.") {
                 HStack(spacing: 5) {
                     Text("battute")
@@ -497,6 +499,91 @@ struct OPZResetRow: View {
             }
             .buttonStyle(.plain)
             .accessibilityHint("cancella tutti i pattern, gli effetti e la catena del progetto aperto")
+        }
+    }
+}
+
+/// L'automazione a passi: Bobina gira una manopola dell'OP-Z a ogni passo, a tempo. Salvata nel progetto.
+struct OPZAutomCard: View {
+    @EnvironmentObject var opz: OPZEngine
+
+    private static let short = ["par 1", "par 2", "filtro", "riso", "att", "dec", "sus", "rel",
+                                "lfo prof", "lfo vel", "lfo dest", "lfo forma", "fx 1", "fx 2", "pan", "vol"]
+
+    var body: some View {
+        let lane = opz.lane
+        Card(title: "automazione · pattern \(opz.createPattern)", note: "Bobina gira una manopola dell'OP-Z a ogni passo, a tempo. 4 righe per pattern: scegli la riga, la traccia, la manopola, poi il livello e i passi. Fra un passo e l'altro la manopola resta dov'è.") {
+            HStack(spacing: 5) {
+                Text("riga")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                ForEach(0..<4, id: \.self) { r in
+                    let l = opz.autom[opz.createPattern - 1][r]
+                    GridChip(text: "\(r + 1)\(l.values.contains { $0 != nil } ? "•" : "")", on: opz.laneIndex == r) { opz.laneIndex = r }
+                        .accessibilityLabel("riga \(r + 1)")
+                }
+            }
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 4), spacing: 5) {
+                ForEach(OPZ.tracks.prefix(8)) { t in
+                    GridChip(text: t.short, on: lane.track == t.number) { opz.lane.track = t.number }
+                        .accessibilityLabel("automazione su \(t.name)")
+                }
+            }
+            Text("manopola")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 4), spacing: 5) {
+                ForEach(1...16, id: \.self) { cc in
+                    GridChip(text: OPZAutomCard.short[cc - 1], on: lane.cc == cc) { opz.lane.cc = cc }
+                        .accessibilityLabel("manopola \(OPZ.paramName(OPZ.params[cc - 1], track: lane.track))")
+                }
+            }
+            Text("livello: 1 = minimo, 8 = massimo")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+            HStack(spacing: 5) {
+                ForEach(1...8, id: \.self) { v in
+                    GridChip(text: "\(v)", on: opz.autoLevel == v) { opz.autoLevel = v }
+                        .accessibilityLabel("livello \(v)")
+                }
+            }
+            OPZAutoCells(live: opz.live, values: Array(lane.values.prefix(opz.patternLength)), tap: { opz.toggleAutoStep($0) })
+            GridChip(text: "svuota la riga \(opz.laneIndex + 1)") { opz.clearLane() }
+        }
+    }
+}
+
+/// I passi dell'automazione: in ognuno il livello, con una barretta alta quanto il livello. Guarda `live`.
+struct OPZAutoCells: View {
+    @ObservedObject var live: OPZLive
+    let values: [Int?]
+    let tap: (Int) -> Void
+
+    var body: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: values.count > 16 ? 8 : 4), spacing: 5) {
+            ForEach(0..<values.count, id: \.self) { i in
+                let v = values[i]
+                Button { tap(i) } label: {
+                    ZStack(alignment: .bottom) {
+                        RoundedRectangle(cornerRadius: 8).fill(Color(white: i % 4 == 0 ? 0.22 : 0.16))
+                        if let v = v {
+                            RoundedRectangle(cornerRadius: 6).fill(OPZ.tint)
+                                .frame(height: 46 * CGFloat(v) / 8)
+                        }
+                        VStack(spacing: 0) {
+                            Text("\(i + 1)").font(.system(.caption2, design: .monospaced))
+                            Text(v.map { "\($0)" } ?? "·").font(.system(.footnote, design: .monospaced).weight(.bold))
+                        }
+                        .frame(maxHeight: .infinity)
+                        .foregroundStyle(v != nil && v! >= 5 ? Color.black : Color.white)
+                    }
+                    .frame(height: 50)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(live.step >= 0 && live.step % values.count == i ? Color.white : Color.clear, lineWidth: 3))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("automazione passo \(i + 1)")
+                .accessibilityValue(v.map { "livello \($0)" } ?? "vuoto")
+            }
         }
     }
 }
