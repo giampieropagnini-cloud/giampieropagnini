@@ -314,221 +314,241 @@ struct NTS1ChoiceGrid: View {
 
 // MARK: - Suona
 
+/// Le parti della scheda Suona: se ne vede una per volta.
+enum NTS1PlayPart: String, CaseIterable, Identifiable {
+    case pads, wave, tilt, machineArp
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .pads: return "pad"
+        case .wave: return "onda"
+        case .tilt: return "inclina"
+        case .machineArp: return "arp NTS-1"
+        }
+    }
+}
+
 struct NTS1SuonaView: View {
     @EnvironmentObject var nts1: NTS1Engine
+    @AppStorage("bobina.nts1.suona.parte") private var part = NTS1PlayPart.pads.rawValue
+
+    private let four = Array(repeating: GridItem(.flexible(), spacing: 5), count: 4)
 
     var body: some View {
-        NTS1Page(title: "Suona") {
-            NTS1PadsCard(player: nts1.player)
-            NTS1BobinaArpCard(player: nts1.player)
-            NTS1TempoCard()
-            NTS1WaveCard(player: nts1.player)
-            NTS1TiltCard(player: nts1.player)
-            NTS1ArpCard(sound: nts1.sound)
+        let current = NTS1PlayPart(rawValue: part) ?? .pads
+        NTS1Page(title: "Suona", compact: true) {
+            NTS1TempoLine()
+            LazyVGrid(columns: four, spacing: 5) {
+                ForEach(NTS1PlayPart.allCases) { p in
+                    NTS1SmallChip(text: p.label, on: p == current, height: 40) { part = p.rawValue }
+                        .accessibilityLabel("parte \(p.label)")
+                }
+            }
+            NTS1Panel {
+                switch current {
+                case .pads: NTS1PadsPanel(player: nts1.player)
+                case .wave: NTS1WavePanel(player: nts1.player)
+                case .tilt: NTS1TiltPanel(player: nts1.player)
+                case .machineArp: NTS1MachineArpPanel(sound: nts1.sound)
+                }
+            }
         }
     }
 }
 
-/// 16 pad, ognuno diviso in due: sopra suona, sotto tiene la nota.
-struct NTS1PadsCard: View {
-    @ObservedObject var player: NTS1Player
-
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 4)
+/// Il riquadro scuro di una parte.
+struct NTS1Panel<Content: View>: View {
+    @ViewBuilder var content: () -> Content
 
     var body: some View {
-        Card(title: "pad", note: player.arpOn ? "Arpeggio di Bobina acceso: ogni pad entra o esce dall'arpeggio." : "Sopra suona, sotto «tieni».") {
-            HStack(spacing: 8) {
-                Button("ottava giù") { player.octave(-1) }.font(.footnote)
-                Button("ottava su") { player.octave(1) }.font(.footnote)
-                Spacer()
-                Button("silenzio") { player.panic() }.font(.footnote)
-            }
-            LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(0..<16, id: \.self) { i in
-                    pad(player.base + (3 - i / 4) * 4 + i % 4)
-                }
-            }
-            if !player.held.isEmpty {
-                Button("lascia tutte le note") { player.releaseAll() }.font(.footnote)
-            }
-        }
-    }
-
-    private func pad(_ n: Int) -> some View {
-        let name = NTS1Player.name(n)
-        let held = player.held.contains(n)
-        let picked = player.pick == n
-        return VStack(spacing: 3) {
-            Button { player.touch(n) } label: {
-                Text(name)
-                    .font(.system(.footnote, design: .monospaced).weight(.semibold))
-                    .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(NTS1.color))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(held || picked ? Color.white : Palette.cardEdge, lineWidth: held ? 3 : picked ? 2 : 1))
-                    .foregroundStyle(Color.black)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("nota \(name)")
-            Button { player.toggleHold(n) } label: {
-                Text(held ? "lascia" : "tieni")
-                    .font(.system(.caption2, design: .monospaced).weight(held ? .bold : .regular))
-                    .frame(maxWidth: .infinity, minHeight: 36)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(held ? Color.white : NTS1.color.opacity(0.4)))
-                    .foregroundStyle(held ? Color.black : Color.white.opacity(0.9))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(held ? "lascia \(name)" : "tieni \(name)")
-        }
+        VStack(alignment: .leading, spacing: 8) { content() }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 14).fill(Palette.card))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.cardEdge, lineWidth: 1))
     }
 }
 
-/// L'arpeggio suonato da Bobina: non serve il tasto ARP dell'NTS-1.
-struct NTS1BobinaArpCard: View {
-    @ObservedObject var player: NTS1Player
-
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
-
+struct NTS1Label: View {
+    let text: String
+    init(_ t: String) { text = t }
     var body: some View {
-        Card(title: "arpeggio di Bobina", note: "Acceso: ogni pad che tocchi entra nell'arpeggio, ritoccato esce. Suona a tempo con le altre macchine, senza il tasto ARP.") {
-            NTS1BigButton(text: player.arpOn ? "spegni l'arpeggio" : "accendi l'arpeggio", on: player.arpOn) { player.toggleArp() }
-            if player.arpOn {
-                Text(player.held.isEmpty ? "tocca uno o più pad" : "note: " + player.held.sorted().map(NTS1Player.name).joined(separator: " · "))
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(NTS1.color)
-            }
-            label("come sale")
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(NTS1ArpMode.allCases) { m in
-                    GridChip(text: m.label, on: player.arpMode == m) { player.arpMode = m }
-                        .accessibilityLabel("arpeggio \(m.label)")
-                }
-            }
-            label("accordo")
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(NTS1ArpChord.allCases) { c in
-                    GridChip(text: c.label, on: player.arpChord == c) { player.arpChord = c }
-                        .accessibilityLabel("accordo \(c.label)")
-                }
-            }
-            label("ottave")
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(1...3, id: \.self) { o in
-                    GridChip(text: o == 1 ? "1 ottava" : "\(o) ottave", on: player.arpOctaves == o) { player.arpOctaves = o }
-                }
-            }
-            label("velocità: una nota ogni…")
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(NTS1Player.arpSpeeds, id: \.0) { d in
-                    GridChip(text: d.1, on: player.arpDiv == d.0) { player.arpDiv = d.0 }
-                        .accessibilityLabel("velocità \(d.1)")
-                }
-            }
-        }
-    }
-
-    private func label(_ t: String) -> some View {
-        Text(t).font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
+        Text(text).font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
     }
 }
 
-struct NTS1ArpCard: View {
-    @EnvironmentObject var nts1: NTS1Engine
-    @ObservedObject var sound: NTS1Sound
-
-    var body: some View {
-        Card(title: "arpeggio dell'NTS-1", note: "Questo è quello della macchina: si accende solo col tasto ARP sull'NTS-1.") {
-            NTS1ChoiceGrid(choice: .arpPattern, selected: sound.choices[.arpPattern]) { nts1.set(.arpPattern, $0) }
-            NTS1ChoiceGrid(choice: .arpIntervals, selected: sound.choices[.arpIntervals]) { nts1.set(.arpIntervals, $0) }
-            let v = sound.value(.arpLength)
-            StepSlider(name: "lunghezza", value: v, shown: NTS1.Knob.arpLength.shown(v), step: 6) { nts1.set(.arpLength, $0) }
-        }
-    }
-}
-
-/// L'NTS-1 a tempo con Bobina: lo stesso bpm e la stessa battuta delle altre macchine.
-struct NTS1TempoCard: View {
+/// Il tempo in una riga, sempre in cima: dai il tempo all'NTS-1 (con o senza la sua sequenza) e il bpm.
+struct NTS1TempoLine: View {
     @EnvironmentObject var nts1: NTS1Engine
 
     var body: some View {
-        Card(title: "a tempo con Bobina", note: "«solo il tempo»: delay «bpm» e arpeggio della macchina vanno al tempo di Bobina, la sequenza dell'NTS-1 resta ferma. «anche la sua sequenza»: parte pure quella. Se suona già un'altra macchina, entra alla battuta dopo.") {
+        HStack(spacing: 5) {
             if nts1.running {
-                NTS1BigButton(text: nts1.withSequence ? "ferma l'NTS-1" : "smetti di dare il tempo", on: true) { nts1.stopRun() }
-                Text(nts1.withSequence ? "tempo e sequenza dell'NTS-1" : "solo il tempo: la sequenza dell'NTS-1 è ferma")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(NTS1.color)
+                NTS1SmallChip(text: nts1.withSequence ? "ferma l'NTS-1" : "ferma il tempo", on: true, height: 44) { nts1.stopRun() }
             } else {
-                NTS1BigButton(text: "dai solo il tempo all'NTS-1", color: Color(red: 0.40, green: 0.82, blue: 0.40)) { nts1.startClock() }
-                NTS1BigButton(text: "fai partire anche la sua sequenza", color: Color(red: 0.40, green: 0.82, blue: 0.40).opacity(0.7)) { nts1.startWithSequence() }
+                NTS1SmallChip(text: "dai il tempo", height: 44) { nts1.startClock() }
+                    .accessibilityLabel("dai solo il tempo all'NTS-1")
+                NTS1SmallChip(text: "+ sequenza", height: 44) { nts1.startWithSequence() }
+                    .accessibilityLabel("fai partire anche la sua sequenza")
             }
-            HStack(spacing: 8) {
-                Text("bpm")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.dim)
-                SmallKey(text: "−5") { nts1.setBPM(nts1.bpm - 5) }
-                SmallKey(text: "−1") { nts1.setBPM(nts1.bpm - 1) }
-                Text("\(nts1.bpm)")
-                    .font(.system(.title2, design: .monospaced).weight(.bold))
-                    .frame(minWidth: 56)
-                SmallKey(text: "+1") { nts1.setBPM(nts1.bpm + 1) }
-                SmallKey(text: "+5") { nts1.setBPM(nts1.bpm + 5) }
-            }
-            .frame(maxWidth: .infinity)
+            SmallKey(text: "−5") { nts1.setBPM(nts1.bpm - 5) }.accessibilityLabel("tempo meno 5")
+            Text("\(nts1.bpm)")
+                .font(.system(.title3, design: .monospaced).weight(.bold))
+                .frame(minWidth: 44)
+            SmallKey(text: "+5") { nts1.setBPM(nts1.bpm + 5) }.accessibilityLabel("tempo più 5")
         }
     }
 }
 
-/// Una manopola mossa a tempo: onda, cancello, pompa. L'NTS-1 da solo non lo fa a tempo con le altre macchine.
-struct NTS1WaveCard: View {
+/// I pad: un tasto per pad, e il modo sopra (tocca · tieni · arpeggio). Con l'arpeggio le sue scelte stanno sotto.
+struct NTS1PadsPanel: View {
+    @ObservedObject var player: NTS1Player
+
+    private let four = Array(repeating: GridItem(.flexible(), spacing: 5), count: 4)
+
+    var body: some View {
+        HStack(spacing: 5) {
+            NTS1SmallChip(text: "tocca", on: player.padMode == .tap, height: 40) { player.setPadMode(.tap) }
+                .accessibilityLabel("modo tocca")
+            NTS1SmallChip(text: "tieni", on: player.padMode == .hold, height: 40) { player.setPadMode(.hold) }
+                .accessibilityLabel("modo tieni")
+            NTS1SmallChip(text: "arpeggio", on: player.padMode == .arp, height: 40) { player.setPadMode(.arp) }
+                .accessibilityLabel("modo arpeggio")
+        }
+        LazyVGrid(columns: four, spacing: 5) {
+            ForEach(0..<16, id: \.self) { i in
+                let n = player.base + (3 - i / 4) * 4 + i % 4
+                let lit = player.held.contains(n)
+                Button { player.pad(n) } label: {
+                    Text(NTS1Player.name(n))
+                        .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(lit ? Color.white : NTS1.color))
+                        .foregroundStyle(Color.black)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("nota \(NTS1Player.name(n))")
+                .accessibilityAddTraits(lit ? .isSelected : [])
+            }
+        }
+        HStack(spacing: 5) {
+            NTS1SmallChip(text: "ottava −") { player.octave(-1) }
+            NTS1SmallChip(text: "ottava +") { player.octave(1) }
+            NTS1SmallChip(text: "lascia tutto") { player.releaseAll() }
+            NTS1SmallChip(text: "silenzio") { player.panic() }
+        }
+        if player.padMode == .arp {
+            NTS1ArpChoices(player: player)
+        }
+    }
+}
+
+/// Le scelte dell'arpeggio di Bobina, in tasti piccoli.
+struct NTS1ArpChoices: View {
+    @ObservedObject var player: NTS1Player
+
+    private let four = Array(repeating: GridItem(.flexible(), spacing: 4), count: 4)
+
+    var body: some View {
+        NTS1Label("come sale")
+        LazyVGrid(columns: four, spacing: 4) {
+            ForEach(NTS1ArpMode.allCases) { m in
+                NTS1SmallChip(text: m.label, on: player.arpMode == m) { player.arpMode = m }
+                    .accessibilityLabel("arpeggio \(m.label)")
+            }
+        }
+        NTS1Label("accordo")
+        LazyVGrid(columns: four, spacing: 4) {
+            ForEach(NTS1ArpChord.allCases) { c in
+                NTS1SmallChip(text: c.label, on: player.arpChord == c) { player.arpChord = c }
+                    .accessibilityLabel("accordo \(c.label)")
+            }
+        }
+        NTS1Label("ottave · una nota ogni…")
+        LazyVGrid(columns: four, spacing: 4) {
+            ForEach(1...3, id: \.self) { o in
+                NTS1SmallChip(text: o == 1 ? "1 ottava" : "\(o) ottave", on: player.arpOctaves == o) { player.arpOctaves = o }
+            }
+            ForEach(NTS1Player.arpSpeeds, id: \.0) { d in
+                NTS1SmallChip(text: d.1, on: player.arpDiv == d.0) { player.arpDiv = d.0 }
+                    .accessibilityLabel("velocità \(d.1)")
+            }
+        }
+    }
+}
+
+/// L'onda a tempo: cosa muove, la forma, quanto dura un giro, quanto si muove.
+struct NTS1WavePanel: View {
     @ObservedObject var player: NTS1Player
 
     static let targets: [NTS1.Knob] = [.cutoff, .resonance, .oscA, .oscB, .volume, .modA, .delayMix, .reverbMix]
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
+    private let four = Array(repeating: GridItem(.flexible(), spacing: 4), count: 4)
 
     var body: some View {
-        Card(title: "onda a tempo", note: "Muove una manopola a tempo, scendendo dal suo valore. «Cancello» sul volume taglia il suono a ritmo, «pompa» lo fa respirare come un sidechain.") {
-            NTS1BigButton(text: player.waveOn ? "ferma l'onda" : "fai partire l'onda", on: player.waveOn) { player.toggleWave() }
-            Text("cosa muove").font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(NTS1WaveCard.targets) { k in
-                    GridChip(text: k.label, on: player.waveKnob == k) { player.waveKnob = k }
-                        .accessibilityLabel("onda su \(k.label)")
-                }
+        NTS1SmallChip(text: player.waveOn ? "ferma l'onda" : "fai partire l'onda", on: player.waveOn, height: 44) { player.toggleWave() }
+        NTS1Label("cosa muove")
+        LazyVGrid(columns: four, spacing: 4) {
+            ForEach(NTS1WavePanel.targets) { k in
+                NTS1SmallChip(text: k.label, on: player.waveKnob == k) { player.waveKnob = k }
+                    .accessibilityLabel("onda su \(k.label)")
             }
-            Text("forma").font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(NTS1Shape.allCases) { s in
-                    GridChip(text: s.label, on: player.waveShape == s) { player.waveShape = s }
-                        .accessibilityLabel("forma \(s.label)")
-                }
+        }
+        NTS1Label("forma")
+        LazyVGrid(columns: four, spacing: 4) {
+            ForEach(NTS1Shape.allCases) { s in
+                NTS1SmallChip(text: s.label, on: player.waveShape == s) { player.waveShape = s }
+                    .accessibilityLabel("forma \(s.label)")
             }
-            Text("un giro dura").font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.dim)
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(NTS1Player.waveLengths, id: \.0) { len in
-                    GridChip(text: len.1, on: player.waveBeats == len.0) { player.waveBeats = len.0 }
-                        .accessibilityLabel("giro \(len.1)")
-                }
+        }
+        NTS1Label("un giro dura")
+        LazyVGrid(columns: four, spacing: 4) {
+            ForEach(NTS1Player.waveLengths, id: \.0) { len in
+                NTS1SmallChip(text: len.1, on: player.waveBeats == len.0) { player.waveBeats = len.0 }
+                    .accessibilityLabel("giro \(len.1)")
             }
-            StepSlider(name: "quanto", value: player.waveDepth) { player.waveDepth = $0 }
+        }
+        NTS1KnobRowPlain(name: "quanto si muove", value: player.waveDepth) { player.waveDepth = $0 }
+    }
+}
+
+/// Come NTS1KnobRow, per un valore di Bobina (non una manopola dell'NTS-1).
+struct NTS1KnobRowPlain: View {
+    let name: String
+    let value: Int
+    let set: (Int) -> Void
+
+    var body: some View {
+        HStack {
+            NTS1Label(name)
+            Spacer()
+            Text("\(value)").font(.system(.footnote, design: .monospaced)).foregroundStyle(NTS1.color)
+        }
+        HStack(spacing: 4) {
+            NTS1SmallChip(text: "−") { set(max(0, value - 8)) }.accessibilityLabel("\(name) meno")
+            ForEach(NTS1KnobRow.jumps, id: \.0) { j in
+                NTS1SmallChip(text: j.1, on: abs(value - j.0) <= 4) { set(j.0) }
+                    .accessibilityLabel("\(name) \(j.2)")
+            }
+            NTS1SmallChip(text: "+") { set(min(127, value + 8)) }.accessibilityLabel("\(name) più")
         }
     }
 }
 
-struct NTS1TiltCard: View {
+struct NTS1TiltPanel: View {
     @ObservedObject var player: NTS1Player
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
+    private let four = Array(repeating: GridItem(.flexible(), spacing: 4), count: 4)
 
     var body: some View {
-        Card(title: "inclinazione", note: "Inclina il telefono: muove la manopola scelta. Quando la spegni, la manopola torna dov'era.") {
-            Toggle("inclinazione accesa", isOn: $player.tiltOn)
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(NTS1WaveCard.targets) { k in
-                    GridChip(text: k.label, on: player.tiltKnob == k) { player.tiltKnob = k }
-                        .accessibilityLabel("inclina \(k.label)")
-                }
+        NTS1SmallChip(text: player.tiltOn ? "spegni l'inclinazione" : "accendi l'inclinazione", on: player.tiltOn, height: 44) { player.tiltOn.toggle() }
+        NTS1Label("cosa muove (quando la spegni torna dov'era)")
+        LazyVGrid(columns: four, spacing: 4) {
+            ForEach(NTS1WavePanel.targets) { k in
+                NTS1SmallChip(text: k.label, on: player.tiltKnob == k) { player.tiltKnob = k }
+                    .accessibilityLabel("inclina \(k.label)")
             }
-            if player.tiltOn { NTS1TiltBar(live: player.live) }
         }
+        if player.tiltOn { NTS1TiltBar(live: player.live) }
     }
 }
 
@@ -540,6 +560,19 @@ struct NTS1TiltBar: View {
             ProgressView(value: Double(live.tilt), total: 127).tint(NTS1.color)
             Text("\(live.tilt)").font(.system(.caption, design: .monospaced)).frame(width: 36, alignment: .trailing)
         }
+    }
+}
+
+/// L'arpeggio della macchina: si accende solo col tasto ARP sull'NTS-1.
+struct NTS1MachineArpPanel: View {
+    @EnvironmentObject var nts1: NTS1Engine
+    @ObservedObject var sound: NTS1Sound
+
+    var body: some View {
+        NTS1Label("si accende solo col tasto ARP sull'NTS-1")
+        NTS1ChoiceGrid(choice: .arpPattern, selected: sound.choices[.arpPattern], columns: 4, small: true) { nts1.set(.arpPattern, $0) }
+        NTS1ChoiceGrid(choice: .arpIntervals, selected: sound.choices[.arpIntervals], columns: 4, small: true) { nts1.set(.arpIntervals, $0) }
+        NTS1KnobRow(knob: .arpLength, value: sound.value(.arpLength)) { nts1.set(.arpLength, $0) }
     }
 }
 

@@ -208,6 +208,29 @@ final class NTS1Player: ObservableObject {
     static func name(_ n: Int) -> String { "\(names[n % 12]) \(n / 12 - 1)" }
 
     /// La metà di sopra: suona la nota per un quarto di secondo. Se era tenuta, la lascia.
+    /// Come risponde un pad: suona un attimo, resta acceso, o entra nell'arpeggio di Bobina.
+    enum PadMode { case tap, hold, arp }
+
+    @Published private(set) var holdMode = false
+
+    var padMode: PadMode { arpOn ? .arp : holdMode ? .hold : .tap }
+
+    func setPadMode(_ m: PadMode) {
+        guard m != padMode else { return }
+        if arpOn { toggleArp() }
+        if m != .hold { releaseAll() }
+        holdMode = m == .hold
+        if m == .arp { toggleArp() }
+    }
+
+    /// Il tocco di un pad, secondo il modo.
+    func pad(_ n: Int) {
+        switch padMode {
+        case .tap: touch(n)
+        case .hold, .arp: toggleHold(n)
+        }
+    }
+
     func touch(_ n: Int) {
         pick = n
         if arpOn { toggleHold(n); return }
