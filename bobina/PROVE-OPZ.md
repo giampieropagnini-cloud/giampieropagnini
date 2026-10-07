@@ -37,3 +37,4 @@ Da provare ancora: «scrivi una battuta sull'OP-Z» col record lock, clock di Bo
 - Arpeggio: quello dell'OP-Z non va a tempo con Bobina e col CC 9 = 8 restava acceso lentissimo; tenuto solo quello di Bobina (CC 9 = 0 spegne quello dell'OP-Z). Va a tempo.
 - Tasti nota tocca/tieni, note tenute accavallate, arpeggio sulle note tenute: «suona tutto perfetto».
 - Mixer di Crea (suona/muta, solo, volume): va.
+- 7/10: «scrivi sull'OP-Z» con 2 battute (32 passi, pattern 1 e 2): «sembra funzionare» → il record lock regge il cambio di pattern via CC 103.
