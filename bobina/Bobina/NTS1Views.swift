@@ -555,6 +555,7 @@ struct NTS1PassiView: View {
     var body: some View {
         NTS1Page(title: "Passi", compact: true) {
             NTS1PassiEditor(player: nts1.player)
+            NTS1PresetsCard(player: nts1.player)
         }
     }
 }
@@ -667,6 +668,53 @@ struct NTS1CursorGrid: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("passo \(i + 1)")
                 .accessibilityAddTraits(here ? .isSelected : [])
+            }
+        }
+    }
+}
+
+/// Le sequenze pronte, sotto i passi: un tocco le carica, «annulla» rimette quelle di prima.
+struct NTS1PresetsCard: View {
+    @ObservedObject var player: NTS1Player
+
+    private let two = Array(repeating: GridItem(.flexible(), spacing: 6), count: 2)
+
+    var body: some View {
+        Card(title: "sequenze pronte", note: "Tutte scure. Un tocco la mette nei passi; poi la puoi cambiare nota per nota.") {
+            HStack(spacing: 6) {
+                GridChip(text: player.presetTempo ? "cambia anche il tempo: sì" : "cambia anche il tempo: no", on: player.presetTempo) {
+                    player.presetTempo.toggle()
+                }
+                if player.undo != nil {
+                    GridChip(text: "annulla") { player.undoPreset() }
+                        .accessibilityLabel("annulla la sequenza pronta")
+                }
+            }
+            ForEach(NTS1Preset.groups, id: \.self) { g in
+                Text(g)
+                    .font(.system(.caption, design: .monospaced).weight(.semibold))
+                    .foregroundStyle(NTS1.color)
+                    .padding(.top, 4)
+                LazyVGrid(columns: two, spacing: 6) {
+                    ForEach(NTS1Preset.all.filter { $0.group == g }) { p in
+                        Button { player.load(p) } label: {
+                            VStack(spacing: 1) {
+                                Text(p.name)
+                                    .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                                Text("\(p.bpm) bpm")
+                                    .font(.system(.caption2, design: .monospaced))
+                                    .opacity(0.7)
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(player.presetName == p.name ? NTS1.color : Color(white: 0.18)))
+                            .foregroundStyle(player.presetName == p.name ? Color.black : Color.white)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("sequenza \(p.name)")
+                    }
+                }
             }
         }
     }

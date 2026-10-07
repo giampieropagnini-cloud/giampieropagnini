@@ -280,6 +280,7 @@ final class NTS1Player: ObservableObject {
         preview(n)
         pick = n
         steps[cursor] = n
+        presetName = nil
         advance()
     }
 
@@ -297,6 +298,34 @@ final class NTS1Player: ObservableObject {
     func select(_ i: Int) {
         cursor = i
         if let n = steps[i] { preview(n) }
+    }
+
+    // MARK: sequenze pronte
+
+    /// I passi di prima dell'ultima sequenza pronta caricata: «annulla» li rimette.
+    @Published private(set) var undo: (steps: [Int?], length: Int)?
+    @Published private(set) var presetName: String?
+    /// Con una sequenza pronta cambia anche il tempo di Bobina (per tutte le macchine).
+    @Published var presetTempo = UserDefaults.standard.bool(forKey: "bobina.nts1.passi.tempo") {
+        didSet { UserDefaults.standard.set(presetTempo, forKey: "bobina.nts1.passi.tempo") }
+    }
+
+    func load(_ p: NTS1Preset) {
+        if undo == nil || presetName == nil { undo = (steps, stepLength) }
+        steps = p.steps
+        stepLength = p.length
+        cursor = 0
+        presetName = p.name
+        if presetTempo { engine?.setBPM(p.bpm) }
+    }
+
+    func undoPreset() {
+        guard let u = undo else { return }
+        steps = u.steps
+        stepLength = u.length
+        cursor = 0
+        undo = nil
+        presetName = nil
     }
 
     /// I passi 1-8 copiati su 9-16.
