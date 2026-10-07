@@ -70,6 +70,8 @@ final class OPZSequencer {
     var onStep: ((Int, MIDITimeStamp) -> Void)?
     /// Il pattern di Crea che comincia adesso (0-15) e la voce della catena (o nil), con l'istante.
     var onCreatePattern: ((Int, Int?, MIDITimeStamp) -> Void)?
+    /// Il sequencer si è fermato da solo (dopo il giro «scrivi sull'OP-Z»).
+    var onHalted: (() -> Void)?
     /// Il giro «scrivi sull'OP-Z» è finito.
     var onOnceDone: (() -> Void)?
     /// Un messaggio raro è partito (per il monitor). Niente clock.
@@ -234,7 +236,12 @@ final class OPZSequencer {
 
     /// Si ferma: stop all'OP-Z, e la griglia lo lascia andare.
     func stop() {
-        queue.async { [self] in
+        queue.async { [self] in halt(at: 0) }
+    }
+
+    /// Ferma tutto all'istante `t` (0 = subito): le note tenute si lasciano e lo stop parte nello stesso pacchetto.
+    /// Solo sul filo del sequencer.
+    private func halt(at t: MIDITimeStamp) {
             guard running else { return }
             let p = plan()
             running = false
@@ -256,9 +263,8 @@ final class OPZSequencer {
             lock.lock()
             onceRequested = false
             lock.unlock()
-            send(offs + OPZ.stop, at: 0)
+            send(offs + OPZ.stop, at: t)
             onStep?(-1, io.now())
-        }
     }
 
     private func setRunningCopy(_ v: Bool) {
@@ -313,11 +319,11 @@ final class OPZSequencer {
 
         // i battiti: start, cambi alla battuta, canzone
         if running {
-            while line.time(ofBeat: Double(nextBeat)) < horizon {
+            while running && line.time(ofBeat: Double(nextBeat)) < horizon {
                 beat(nextBeat, p, now)
                 nextBeat += 1
             }
-            while line.time(ofBeat: Double(nextSixteenth) / 4) < horizon {
+            while running && line.time(ofBeat: Double(nextSixteenth) / 4) < horizon {
                 sixteenth(nextSixteenth, p, now)
                 nextSixteenth += 1
             }
@@ -388,6 +394,13 @@ final class OPZSequencer {
         // un giro del pattern di Crea è finito: si decide il prossimo (la catena, o quello scelto)
         if crPos == 0 {
             if onceActive && n != nextSixteenthStart {
+                // fine del giro per l'OP-Z: se Crea non suona per conto suo, tutto si ferma esattamente qui,
+                // così l'OP-Z in record lock non registra niente oltre il giro (6/10/2026: «continua un po' a registrare»)
+                if !p.createOn {
+                    halt(at: t)
+                    onHalted?()
+                    return
+                }
                 onceActive = false
                 onOnceDone?()
             }

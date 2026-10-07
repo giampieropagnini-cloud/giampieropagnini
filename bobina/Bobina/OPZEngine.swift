@@ -230,6 +230,14 @@ final class OPZEngine: ObservableObject {
                 if self.live.chainIndex != c { self.live.chainIndex = c }
             }
         }
+        sequencer.onHalted = { [weak self] in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.running = false
+                self.queuedPattern = nil
+                self.logText("giro per l'OP-Z finito: fermo")
+            }
+        }
         sequencer.onOnceDone = { [weak self] in
             DispatchQueue.main.async {
                 self?.writing = false
