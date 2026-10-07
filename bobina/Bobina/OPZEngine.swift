@@ -755,9 +755,15 @@ final class OPZEngine: ObservableObject {
 
     /// Un giro solo dei passi, dalla battuta dopo: con il record lock acceso sull'OP-Z (Ele: REC + PLAY)
     /// l'OP-Z dovrebbe scriverli nel suo pattern. Se l'OP-Z è fermo, prima lo fa partire.
+    /// Quante battute scrivere sull'OP-Z (1, 2, 4) e da quale suo pattern (1-16).
+    @Published var writeBars = 1
+    @Published var writeFirst = 1
+
     func writeOnce() {
         writing = true
-        sequencer.playOnce()
+        let first = min(writeFirst, 17 - writeBars)
+        sequencer.playOnce(bars: writeBars, firstPattern: first)
+        pattern = first
         if !running { toggleRun() }
         logText("giro per l'OP-Z dalla battuta dopo")
     }

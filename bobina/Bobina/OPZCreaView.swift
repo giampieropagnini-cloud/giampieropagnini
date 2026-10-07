@@ -220,8 +220,26 @@ struct OPZCreaView: View {
                 GridChip(text: "togli gli effetti dai passi") { opz.clearFxSteps() }
             }
 
-            Card(title: "scrivi sull'OP-Z", note: "Per mettere questi passi dentro il pattern dell'OP-Z: Ele accende il record lock (tiene REC e preme PLAY). Poi tocca qui con «Crea suona» spento: Bobina suona 16 passi, una battuta, e alla fine ferma l'OP-Z.") {
-                GridChip(text: opz.writing ? "sto scrivendo…" : "scrivi una battuta sull'OP-Z", on: opz.writing) { opz.writeOnce() }
+            Card(title: "scrivi sull'OP-Z", note: "Per mettere questi passi dentro il pattern dell'OP-Z: Ele accende il record lock (tiene REC e preme PLAY). Poi tocca qui con «Crea suona» spento: Bobina suona quello che c'è in Crea (anche la catena), una battuta per pattern dell'OP-Z, e alla fine ferma tutto. Un pattern dell'OP-Z ha al massimo 16 passi: per suonarli in fila c'è la canzone a pattern in Suona.") {
+                HStack(spacing: 5) {
+                    Text("battute")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                    ForEach([1, 2, 4], id: \.self) { b in
+                        GridChip(text: "\(b) · \(b * 16) passi", on: opz.writeBars == b) { opz.writeBars = b }
+                            .accessibilityLabel("\(b) battute")
+                    }
+                }
+                Text("nei pattern dell'OP-Z da \(min(opz.writeFirst, 17 - opz.writeBars)) a \(min(opz.writeFirst, 17 - opz.writeBars) + opz.writeBars - 1)")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 8), spacing: 5) {
+                    ForEach(1...16, id: \.self) { n in
+                        GridChip(text: "\(n)", on: opz.writeFirst == n) { opz.writeFirst = n }
+                            .accessibilityLabel("comincia dal pattern \(n) dell'OP-Z")
+                    }
+                }
+                GridChip(text: opz.writing ? "sto scrivendo…" : "scrivi \(opz.writeBars) battut\(opz.writeBars == 1 ? "a" : "e") sull'OP-Z", on: opz.writing) { opz.writeOnce() }
                     .disabled(opz.writing)
             }
         }

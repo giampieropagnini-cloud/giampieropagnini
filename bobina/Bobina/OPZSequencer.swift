@@ -85,6 +85,8 @@ final class OPZSequencer {
     private var waiting: [UInt8] = []
     /// Chiesto un giro solo dei passi di Crea, dalla battuta dopo (sotto lock).
     private var onceRequested = false
+    private var onceBarsWanted = 1
+    private var onceFirstWanted: Int?
 
     // da qui in giù: solo sul filo del sequencer
     private var timer: DispatchSourceTimer?
@@ -125,6 +127,9 @@ final class OPZSequencer {
     private var onceActive = false
     /// Il sedicesimo in cui è cominciato il giro per l'OP-Z: dopo 16 tutto si ferma, esattamente lì.
     private var onceStart: Int?
+    /// Quante battute scrive questo giro e in quale pattern dell'OP-Z comincia.
+    private var onceBars = 1
+    private var onceFirst: Int?
     /// Le note che partono più tardi (l'eco), per sedicesimo.
     private var onsAt: [Int: [UInt8]] = [:]
     /// Gli effetti accesi al passo prima, e da quando.
@@ -180,9 +185,13 @@ final class OPZSequencer {
     private var runningCopy = false
 
     /// Un giro solo dei passi di Crea, dalla prossima battuta: per farli registrare all'OP-Z in record lock.
-    func playOnce() {
+    /// `bars` battute (1, 2 o 4): ogni battuta va in un pattern dell'OP-Z, da `firstPattern` (1-16) in avanti,
+    /// perché un pattern dell'OP-Z ha al massimo 16 passi. Bobina cambia pattern da sola fra una battuta e l'altra.
+    func playOnce(bars: Int = 1, firstPattern: Int? = nil) {
         lock.lock()
         onceRequested = true
+        onceBarsWanted = max(1, min(4, bars))
+        onceFirstWanted = firstPattern
         lock.unlock()
     }
 
@@ -395,7 +404,12 @@ final class OPZSequencer {
         let t = max(now, at(line.time(ofBeat: Double(n) / 4), p))
         // il giro per l'OP-Z dura sempre 16 passi, una battuta: quanto un pattern dell'OP-Z di serie.
         // (6/10/2026: col giro lungo quanto la traccia più lunga di Crea si fermava dopo 32 e registrava troppo)
-        if onceActive, let s0 = onceStart, n - s0 >= 16 {
+        // fra una battuta e l'altra del giro: il pattern dell'OP-Z dopo, un soffio prima del battere
+        if onceActive, let s0 = onceStart, let f = onceFirst, n > s0, (n - s0) % 16 == 0, (n - s0) / 16 < onceBars {
+            let early = io.ticks(ms: patternEarlyMs)
+            send(OPZ.pattern(min(16, f + (n - s0) / 16), project: p.project), at: t > now + early ? t - early : now)
+        }
+        if onceActive, let s0 = onceStart, n - s0 >= 16 * onceBars {
             onceStart = nil
             if !p.createOn {
                 halt(at: t)
@@ -410,8 +424,20 @@ final class OPZSequencer {
             lock.lock()
             let wanted = onceRequested
             onceRequested = false
+            if wanted {
+                onceBars = onceBarsWanted
+                onceFirst = onceFirstWanted
+            }
             lock.unlock()
-            if wanted { onceActive = true; onceStart = n }
+            if wanted {
+                onceActive = true
+                onceStart = n
+                // la prima battuta nel primo pattern scelto
+                if let f = onceFirst {
+                    let early = io.ticks(ms: 40)
+                    send(OPZ.pattern(f, project: p.project), at: t > now + early ? t - early : now)
+                }
+            }
             var next = p.createPattern
             if p.chainOn && !p.chain.isEmpty {
                 if chainIdx == nil || chainIdx! >= p.chain.count {
