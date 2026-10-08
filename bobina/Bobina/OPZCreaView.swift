@@ -870,8 +870,8 @@ struct OPZAutomCard: View {
                 }
             }
             LazyVGrid(columns: eight, spacing: 4) {
-                // il volume no: un guadagno non si muove a passi (regola dell'8/10/2026)
-                ForEach(Array(1...15), id: \.self) { cc in
+                // volume e mandate no: un guadagno non si muove a passi (regola dell'8/10/2026)
+                ForEach((1...16).filter { !OPZ.gainCCs.contains($0) }, id: \.self) { cc in
                     OPZChip(text: OPZAutomCard.short[cc - 1], on: lane.cc == cc, height: 34) { opz.lane.cc = cc }
                         .accessibilityLabel("manopola \(OPZ.paramName(OPZ.params[cc - 1], track: lane.track))")
                 }
