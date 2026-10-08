@@ -349,6 +349,11 @@ final class TX6Engine: ObservableObject {
     // MARK: effetti
 
     @Published private(set) var fxOn = [false, false]
+    /// Se Bobina ha già detto al TX-6 acceso o spento: il TX-6 non dice com'è, e i suoi tasti FX lo cambiano.
+    @Published private(set) var fxKnown = [false, false]
+    /// FX I spento da Bobina: il ritorno resta a zero (cc 7 canale 8) finché non si riaccende. Così l'effetto
+    /// tace anche con le mandate delle tracce alzate (8/10/2026: spegnendolo si sentiva ancora).
+    private var fx1Silenced: Bool { fxKnown[0] && !fxOn[0] }
     @Published private(set) var fxEngine: [Int?] = [nil, nil]
     @Published private(set) var fxParams = [[64, 64, 64], [64, 64, 64]]
     @Published private(set) var fxReturn = 100
@@ -667,9 +672,24 @@ final class TX6Engine: ObservableObject {
 
     // MARK: effetti
 
-    func toggleFx(_ i: Int) {
-        fxOn[i].toggle()
-        send(TX6.cc(TX6.ccFxOn, fxOn[i] ? 127 : 0, channel: TX6.fxChannels[i]))
+    /// Acceso o spento, sempre mandato (cc 82: 0 spento, 127 acceso), qualunque cosa creda Bobina.
+    /// FX I spento mette anche il ritorno a zero; riacceso lo rimette dov'era.
+    func setFx(_ i: Int, on: Bool) {
+        fxOn[i] = on
+        fxKnown[i] = true
+        var bytes = TX6.cc(TX6.ccFxOn, on ? 127 : 0, channel: TX6.fxChannels[i])
+        if i == 0 {
+            let r = on ? fxReturn : 0
+            bytes += TX6.cc(TX6.ccFxReturn, r, channel: TX6.fxChannels[0])
+            fxReturnSent = r
+        }
+        send(bytes)
+    }
+
+    /// Un tocco: FX I e FX II spenti.
+    func allFxOff() {
+        setFx(0, on: false)
+        setFx(1, on: false)
     }
 
     func setFxEngine(_ i: Int, _ index: Int) {
@@ -687,10 +707,12 @@ final class TX6Engine: ObservableObject {
 
     func setFxReturn(_ v: Int) {
         let v = max(0, min(127, v))
-        guard v != fxReturnSent else { return }
         fxReturn = v
-        fxReturnSent = v
-        send(TX6.cc(TX6.ccFxReturn, v, channel: TX6.fxChannels[0]))
+        // con FX I spento il ritorno resta a zero: il valore nuovo parte quando si riaccende
+        let out = fx1Silenced ? 0 : v
+        guard out != fxReturnSent else { return }
+        fxReturnSent = out
+        send(TX6.cc(TX6.ccFxReturn, out, channel: TX6.fxChannels[0]))
     }
 
     func setFx2Place(_ index: Int) {
@@ -1022,8 +1044,11 @@ final class TX6Engine: ObservableObject {
         let r = Int((Double(a.fxReturn) + Double(s.fxReturn - a.fxReturn) * p).rounded())
         if force || r != fxReturn {
             fxReturn = r
-            fxReturnSent = r
-            send(TX6.cc(TX6.ccFxReturn, r, channel: TX6.fxChannels[0]), quiet: true)
+            let out = fx1Silenced ? 0 : r
+            if force || out != fxReturnSent {
+                fxReturnSent = out
+                send(TX6.cc(TX6.ccFxReturn, out, channel: TX6.fxChannels[0]), quiet: true)
+            }
         }
         if force { logText("scena «\(s.name)» mandata") }
     }

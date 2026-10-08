@@ -129,8 +129,12 @@ struct TX6FxPanel: View {
         let name = index == 0 ? "FX I" : "FX II"
         TX6Box {
             HStack(spacing: 4) {
-                TX6Mini(text: tx.fxOn[index] ? "\(name) acceso" : "\(name) spento", on: tx.fxOn[index], height: 40) { tx.toggleFx(index) }
-                    .accessibilityLabel(tx.fxOn[index] ? "spegni \(name)" : "accendi \(name)")
+                TX6Mini(text: "acceso", on: tx.fxKnown[index] && tx.fxOn[index], height: 40) { tx.setFx(index, on: true) }
+                    .accessibilityLabel("accendi \(name)")
+                TX6Mini(text: "spento", on: tx.fxKnown[index] && !tx.fxOn[index], color: Palette.rec, height: 40) { tx.setFx(index, on: false) }
+                    .accessibilityLabel("spegni \(name)")
+                TX6Mini(text: "spegni FX I e II", height: 40) { tx.allFxOff() }
+                    .accessibilityLabel("spegni tutti e due gli effetti")
             }
             LazyVGrid(columns: three, spacing: 4) {
                 ForEach(TX6.fxEngines[index].indices, id: \.self) { i in
@@ -139,14 +143,15 @@ struct TX6FxPanel: View {
                 }
             }
             ForEach(0..<3, id: \.self) { k in
-                TX6KnobRow(name: "\(name) parametro \(k + 1)", value: tx.fxParams[index][k]) { tx.setFxParam(index, k, $0) }
+                TX6KnobRow(name: "\(name) " + ["1 · preset o quantità", "2 · secondo valore", "3 · terzo valore"][k], value: tx.fxParams[index][k]) { tx.setFxParam(index, k, $0) }
             }
+            TX6Label("Quasi ogni effetto ha un valore solo, l'1. Il 2 e il 3 contano solo dove ce ne sono di più, come nel filtro.")
             if index == 0 {
                 TX6KnobRow(name: "ritorno", value: tx.fxReturn) { tx.setFxReturn($0) }
                 if let show = showSends {
                     TX6Mini(text: "mandate delle tracce →", height: 38) { show() }
                 }
-                TX6Label("Ogni traccia manda la sua parte all'effetto; il ritorno decide quanto ne rientra.")
+                TX6Label("Spento, il ritorno va a zero: tace anche con le mandate alzate. Riacceso, torna dov'era.")
             } else {
                 TX6Label("su quale traccia")
                 LazyVGrid(columns: seven, spacing: 4) {
