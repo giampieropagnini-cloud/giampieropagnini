@@ -393,15 +393,21 @@ final class OPZEngine: ObservableObject {
         punchHeld.removeAll()
         fxHeld = []
         liveHeld = [:]
+        var perTrack: [[UInt8]] = []
         for t in 1...8 {
             var notes = Set<Int>()
             for pat in patterns { for cell in pat[t - 1] { notes.formUnion(cell) } }
             if t <= 4 { notes.insert(drumPick[t - 1]) }
-            for n in notes.sorted() { bytes += OPZ.noteOff(n, channel: t) }
+            perTrack.append(notes.sorted().flatMap { OPZ.noteOff($0, channel: t) })
         }
-        bytes += (OPZ.punchF..<(OPZ.punchF + 24)).flatMap { OPZ.noteOff($0, channel: 13) }
         bytes += OPZ.allNotesOff()
         send(bytes)
+        // il resto a pezzi, una traccia ogni 15 ms: tutto in un colpo intasava il bluetooth (lezione del TX-6, 8/10/2026)
+        var pieces: [[UInt8]] = perTrack
+        pieces.append((OPZ.punchF..<(OPZ.punchF + 24)).flatMap { OPZ.noteOff($0, channel: 13) })
+        for (k, piece) in pieces.enumerated() where !piece.isEmpty {
+            io.send(piece, at: ms(15 * Double(k + 1)))
+        }
         logText("silenzio")
     }
 
@@ -491,6 +497,8 @@ final class OPZEngine: ObservableObject {
 
     /// Valore assoluto (CC 1-18).
     func setValue(_ cc: Int, _ v: Int, track: Int) {
+        // un guadagno non si mette mai a un valore assoluto (regola dell'8/10/2026)
+        guard !OPZ.gainCCs.contains(cc) else { return }
         let v = max(0, min(127, v))
         // si manda sempre: Bobina non sa dov'è davvero la manopola (l'OP-Z può averla mossa)
         values[track - 1][cc - 1] = v
@@ -874,7 +882,12 @@ final class OPZEngine: ObservableObject {
 
     /// Volume di una traccia: 4 passi del CC relativo (CC 47) in un pacchetto solo.
     func volumeNudge(_ track: Int, up: Bool) {
-        send((0..<4).flatMap { _ in OPZ.cc(16 + 31, up ? 1 : 127, channel: track) })
+        gainNudge(16, up: up, track: track)
+    }
+
+    /// Un guadagno (il volume) si muove solo a passi piccoli: 2 passi relativi per tocco, mai un valore assoluto.
+    func gainNudge(_ cc: Int, up: Bool, track: Int) {
+        send((0..<2).flatMap { _ in OPZ.cc(cc + 31, up ? 1 : 127, channel: track) })
     }
 
     /// Solo questa traccia suona in Crea; ritoccata, suonano tutte.

@@ -187,17 +187,27 @@ struct OPZLiveKnobs: View {
                         Circle().fill(OPZLiveKnobs.knob[(cc - 1) % 4]).frame(width: 10, height: 10)
                         Text(name).font(.system(.subheadline, design: .monospaced))
                     }
-                    HStack(spacing: 4) {
-                        OPZChip(text: "min", height: 40) { opz.setValue(cc, 0, track: tr) }
-                            .accessibilityLabel("\(name) al minimo")
-                        OPZChip(text: "−", height: 40) { opz.nudge(cc, up: false, track: tr) }
-                            .accessibilityLabel("\(name) meno")
-                        OPZChip(text: "metà", height: 40) { opz.setValue(cc, 64, track: tr) }
-                            .accessibilityLabel("\(name) a metà")
-                        OPZChip(text: "+", height: 40) { opz.nudge(cc, up: true, track: tr) }
-                            .accessibilityLabel("\(name) più")
-                        OPZChip(text: "max", height: 40) { opz.setValue(cc, 127, track: tr) }
-                            .accessibilityLabel("\(name) al massimo")
+                    if OPZ.gainCCs.contains(cc) {
+                        // un guadagno solo a passi piccoli: niente min, metà, max (regola dell'8/10/2026)
+                        HStack(spacing: 4) {
+                            OPZChip(text: "− un poco", height: 40) { opz.gainNudge(cc, up: false, track: tr) }
+                                .accessibilityLabel("\(name) un poco meno")
+                            OPZChip(text: "+ un poco", height: 40) { opz.gainNudge(cc, up: true, track: tr) }
+                                .accessibilityLabel("\(name) un poco più")
+                        }
+                    } else {
+                        HStack(spacing: 4) {
+                            OPZChip(text: "min", height: 40) { opz.setValue(cc, 0, track: tr) }
+                                .accessibilityLabel("\(name) al minimo")
+                            OPZChip(text: "−", height: 40) { opz.nudge(cc, up: false, track: tr) }
+                                .accessibilityLabel("\(name) meno")
+                            OPZChip(text: "metà", height: 40) { opz.setValue(cc, 64, track: tr) }
+                                .accessibilityLabel("\(name) a metà")
+                            OPZChip(text: "+", height: 40) { opz.nudge(cc, up: true, track: tr) }
+                                .accessibilityLabel("\(name) più")
+                            OPZChip(text: "max", height: 40) { opz.setValue(cc, 127, track: tr) }
+                                .accessibilityLabel("\(name) al massimo")
+                        }
                     }
                 }
             }
