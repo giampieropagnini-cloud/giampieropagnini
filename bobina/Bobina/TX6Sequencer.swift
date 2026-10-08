@@ -1,4 +1,37 @@
 import Foundation
+
+/// Le note che Bobina ha acceso sul TX-6 (canale e nota) dall'ultimo «silenzio». «silenzio» spegne queste e
+/// basta: prima ne mandava 768, una per nota e canale, e col bluetooth il TX-6 a volte si bloccava (8/10/2026).
+/// Resta salvato, così al collegamento dopo una chiusura brusca si spengono anche quelle rimaste accese.
+final class TX6PlayedNotes {
+    static let shared = TX6PlayedNotes()
+    private let lock = NSLock()
+    private var notes: Set<Int>
+    private static let key = "bobina.tx6.notesuonate"
+
+    private init() {
+        notes = Set(UserDefaults.standard.array(forKey: Self.key) as? [Int] ?? [])
+    }
+
+    func add(_ channel: Int, _ note: Int) {
+        let k = channel << 8 | (note & 0x7F)
+        lock.lock()
+        let fresh = notes.insert(k).inserted
+        let all = fresh ? Array(notes) : nil
+        lock.unlock()
+        if let all = all { DispatchQueue.main.async { UserDefaults.standard.set(all, forKey: Self.key) } }
+    }
+
+    /// Tutte le note da spegnere, e il registro riparte vuoto.
+    func takeAll() -> [(channel: Int, note: Int)] {
+        lock.lock()
+        let all = notes
+        notes.removeAll()
+        lock.unlock()
+        UserDefaults.standard.set([Int](), forKey: Self.key)
+        return all.map { (channel: $0 >> 8, note: $0 & 0x7F) }
+    }
+}
 import CoreMIDI
 
 /// Il ritmo del TX-6 su un filo tutto suo: scorrere lo schermo non lo tocca.
@@ -247,8 +280,12 @@ final class TX6Sequencer {
         let fresh = BobinaClock.shared.snapshot()
         if fresh.generation != line.generation {
             line = fresh
-            // la griglia è saltata avanti (il TX-6 è ripartito mentre lo seguiamo): niente raffica di passi vecchi
-            if time(ofBeat: Double(nextSixteenth) / 4) + io.ticks(ms: 30) < now {
+            // la griglia è saltata avanti (il TX-6 è ripartito mentre lo seguiamo): niente raffica di passi vecchi.
+            // O è saltata indietro (ripartita da zero mentre suoniamo): il prossimo passo sarebbe fra minuti e il
+            // TX-6 resterebbe muto. In tutti e due i casi si riparte dal passo di adesso.
+            let next = time(ofBeat: Double(nextSixteenth) / 4)
+            let farAhead = now &+ io.ticks(ms: lookahead + line.beatMs * 4 + 50)
+            if next &+ io.ticks(ms: 30) < now || next > farAhead {
                 nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
                 nextClockTick = nextSixteenth * 6
             }
@@ -346,6 +383,7 @@ final class TX6Sequencer {
                 // sul canale della traccia, come la tastiera: lì la nota cambia davvero l'altezza
                 let note = p.padBase
                 now += TX6.noteOn(note, channel: tr)
+                TX6PlayedNotes.shared.add(tr, note)
                 offsAt[n + 1, default: []] += TX6.noteOff(note, channel: tr)
                 hit.insert(tr)
             }
@@ -356,6 +394,7 @@ final class TX6Sequencer {
                 guard let semi = p.melodies[tr - 1][i] else { continue }
                 let note = 12 * (p.melodyOctaves[tr - 1] + 1) + semi
                 now += TX6.noteOn(note, channel: tr)
+                TX6PlayedNotes.shared.add(tr, note)
                 offsAt[n + max(1, p.melodyLength), default: []] += TX6.noteOff(note, channel: tr)
             }
         }

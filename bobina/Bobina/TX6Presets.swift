@@ -8,6 +8,9 @@ import Foundation
 // sullo swing dei breakbeat): «documentato» o «ricostruito» è scritto accanto. Il TX-6 suona una batteria
 // sintetizzata, non i breakbeat campionati dei dischi: ritmo, tempo, swing e accordatura sì, il suono identico no.
 //
+// Senza velocity le note fantasma e i colpi sul cerchio il TX-6 li suona come rullanti pieni: le fantasma sono
+// tolte e il cerchio è un clic di legno (8/10/2026, «hai messo troppi snare»).
+//
 // Una riga di 16 caratteri per traccia, «x» = colpo, «.» = niente. Le righe sono le tracce 1-4 del TX-6: cassa,
 // rullante, percussione, charleston. I suoni sono i preset di suono (TX6Preset.builtIn) per nome; le tracce 5 e 6
 // (basso e melodia) non si toccano. Lo swing è quello delle MPC: 0,5 dritto, 0,66 terzina.
@@ -34,18 +37,18 @@ struct TX6DrumPreset: Identifiable {
         // TRIP HOP
         // documentato: drumstheword.com e Songsterr (a mano); il break è Smokey Brooks «Spin It Jig»
         TX6DrumPreset(name: "Sour Times", group: "trip hop", bpm: 92,
-                      rows: ["x.xx...xx..x...x", "....x.......x...", ".x.....x.x.....x", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa trip hop", "rullante secco", "fantasma", "charleston polvere"],
+                      rows: ["x.xx...xx..x...x", "....x.......x...", "..........x.....", "x.x.x.x.x.x.x.x."],
+                      sounds: ["cassa trip hop", "rullante secco", "aperto morbido", "charleston polvere"],
                       swing: 0.54, ref: "Portishead · Sour Times (1994)"),
         // documentato: Songsterr a mano; il giro è Isaac Hayes «Ike's Rap II» (anche Tricky, «Hell Is Round the Corner»)
         TX6DrumPreset(name: "Glory Box", group: "trip hop", bpm: 60,
                       rows: ["x......xx.......", "....x.......x...", "................", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa trip hop", "rullante trip hop", "fantasma", "charleston polvere"],
+                      sounds: ["cassa trip hop", "rullante trip hop", "aperto morbido", "charleston polvere"],
                       swing: 0.64, ref: "Portishead · Glory Box (1994)"),
         // documentato: Songsterr a mano e il file MIDI di BitMidi coincidono; rullante = colpo sul cerchio
         TX6DrumPreset(name: "Teardrop", group: "trip hop", bpm: 77,
                       rows: ["xx.x....xx.x....", "....x.......x...", "..x.......x.....", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa trip hop", "rimshot", "aperto morbido", "charleston polvere"],
+                      sounds: ["cassa trip hop", "legno", "aperto morbido", "charleston polvere"],
                       swing: 0.5, ref: "Massive Attack · Teardrop (1998)"),
         // documentato: Songsterr (rivisto da un moderatore); a metà tempo, rullante sul 3
         TX6DrumPreset(name: "Angel", group: "trip hop", bpm: 104,
@@ -66,8 +69,8 @@ struct TX6DrumPreset: Identifiable {
                       swing: 0.57, ref: "Nas · N.Y. State of Mind (1994, DJ Premier)"),
         // documentato: trascrizione di Dean McCormick; due casse subito dopo ogni rullante
         TX6DrumPreset(name: "Mass Appeal", group: "hip hop", bpm: 96,
-                      rows: ["x.....xx..x...xx", "....x.......x...", ".......x.......x", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa boom bap", "rullante boom bap", "fantasma", "charleston secco"],
+                      rows: ["x.....xx..x...xx", "....x.......x...", "................", "x.x.x.x.x.x.x.x."],
+                      sounds: ["cassa boom bap", "rullante boom bap", "aperto morbido", "charleston secco"],
                       swing: 0.54, ref: "Gang Starr · Mass Appeal (1994, DJ Premier)"),
         // documentato: trascrizione a mano di 4 battute; campanaccio del ride sui «e»
         TX6DrumPreset(name: "The World", group: "hip hop", bpm: 88,
@@ -108,8 +111,8 @@ struct TX6DrumPreset: Identifiable {
                       swing: 0.5, ref: "Amelie Lens / Charlotte de Witte, techno di oggi"),
         // documentato: Attack Magazine «Sub-Zero Minimal Techno»; lo swing fa il groove
         TX6DrumPreset(name: "Minimal", group: "elettronica", bpm: 127,
-                      rows: ["x...x...x...x...", "....x.......x..x", "...x..x..x......", "..x...xx..x...x."],
-                      sounds: ["cassa 909", "rullante secco", "rimshot", "chiuso 909"],
+                      rows: ["x...x...x...x...", "....x.......x...", "...x..x..x......", "..x...xx..x...x."],
+                      sounds: ["cassa 909", "rullante secco", "legno", "chiuso 909"],
                       swing: 0.6, ref: "Richie Hawtin / Plastikman, minimal"),
 
         // DANCE
@@ -121,7 +124,7 @@ struct TX6DrumPreset: Identifiable {
         // documentato: Attack Magazine «80s Chicago House»; il rimshot fa il «jack»
         TX6DrumPreset(name: "Chicago", group: "dance", bpm: 120,
                       rows: ["x...x...x...x.x.", "....x.......x..x", ".x.....x..x..x..", "xxxxxxxxxxxxxxxx"],
-                      sounds: ["cassa house", "battimani", "rimshot", "chiuso 909"],
+                      sounds: ["cassa house", "battimani", "legno", "chiuso 909"],
                       swing: 0.54, ref: "Frankie Knuckles · Your Love, house di Chicago"),
         // documentato: Attack Magazine «Raw French House» (il beat di Homework); swing forte
         TX6DrumPreset(name: "French", group: "dance", bpm: 124,
@@ -136,7 +139,7 @@ struct TX6DrumPreset: Identifiable {
         // documentato: Pocket Operations «UK Garage»; il 2-step vuole lo swing in terzina
         TX6DrumPreset(name: "UK garage", group: "dance", bpm: 130,
                       rows: ["x.........x.....", "....x.......x...", ".x.....x.....x..", "..xx..x...x...xx"],
-                      sounds: ["cassa corta", "battimani", "rimshot", "chiuso 909"],
+                      sounds: ["cassa corta", "battimani", "legno", "chiuso 909"],
                       swing: 0.66, ref: "MJ Cole / Artful Dodger, UK garage 2-step"),
     ]
 }
