@@ -1011,16 +1011,12 @@ final class TX6Engine: ObservableObject {
         pat.swing = d.swing
         drumPattern = pat
         beatsOn = true
-        if pulsing {
-            var part = makePart(pat)
-            part.soundBytes += extra
-            if !patternTempo || clockMode == .follow { part.bpm = nil }
-            pendingPatternName = pat.name
-            sequencer.queuePattern(part)
-        } else {
-            send(extra, quiet: true)
-            adopt(pat, sendSounds: true)
-        }
+        // subito, anche col ritmo che gira: entrando alla battuta (fino a 4 secondi a 60 bpm) cancellava le
+        // modifiche fatte intanto sulla griglia (8/10/2026, «se voglio svuotare non si svuota»)
+        if pulsing { sequencer.cancelPending() }
+        pendingPatternName = nil
+        send(extra, quiet: true)
+        adopt(pat, sendSounds: true)
     }
 
     func cancelPendingPattern() {
@@ -1046,6 +1042,20 @@ final class TX6Engine: ObservableObject {
         patterns[k] = fresh
         currentPatternID = pat.id
         currentPatternName = pat.name
+    }
+
+    /// Svuota tutta la batteria (le sei righe), lascia melodie e suoni.
+    func clearDrums() {
+        beats = Array(repeating: Array(repeating: false, count: 16), count: 6)
+        logText("batteria svuotata")
+    }
+
+    /// Svuota tutte le melodie (le sei tracce) e spegne le note che suonano.
+    func clearMelodies() {
+        melodies = Array(repeating: Array(repeating: nil, count: 16), count: 6)
+        melodyCursor = 0
+        sequencer.melodyOffNow()
+        logText("melodie svuotate")
     }
 
     /// Svuota la sequenza per ricominciare: batteria, melodie e passi con manopola. Suoni e tempo restano.

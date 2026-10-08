@@ -126,6 +126,9 @@ final class TX6Sequencer {
     private var followBase = 0.0
     private var pending: Part?
     private var override: Part?
+    /// Il pattern che la pagina diceva di suonare quando è entrato `override`: se la pagina passa ad altro
+    /// (per esempio una batteria pronta), il pattern entrato non vale più.
+    private var overrideFrom: UUID?
     private let lookahead = 150.0
 
     init(io: MIDIIO) {
@@ -191,6 +194,16 @@ final class TX6Sequencer {
     /// Il clock del TX-6 non arriva più: la griglia di Bobina smette di seguirlo.
     func clockLost() { queue.async { BobinaClock.shared.leave(.tx6) } }
     func melodyOffNow() { queue.async { [self] in flushOffs() } }
+
+    #if DEBUG
+    /// Per le prove: il piano che il sequencer suonerebbe adesso, col pattern entrato se c'è.
+    func debugEffectivePlan(_ done: @escaping (Plan) -> Void) {
+        queue.async { [self] in
+            let p = effective(plan())
+            DispatchQueue.main.async { done(p) }
+        }
+    }
+    #endif
     func forgetLock() { queue.async { [self] in lockSent = nil } }
 
     // MARK: dal filo del MIDI (Bobina segue il TX-6)
@@ -327,6 +340,7 @@ final class TX6Sequencer {
         guard i == 0, let part = pending else { return [] }
         pending = nil
         override = part
+        overrideFrom = plan().patternID
         lockSent = nil
         if running, let b = part.bpm, b != line.bpm {
             BobinaClock.shared.setBPM(b, at: t)
@@ -339,7 +353,8 @@ final class TX6Sequencer {
     /// Il piano col pattern appena entrato, finché la pagina non se ne accorge.
     private func effective(_ base: Plan) -> Plan {
         guard let o = override else { return base }
-        if base.patternID == o.id {
+        // la pagina ha preso il pattern entrato, o è già passata ad altro: vale quello che dice la pagina
+        if base.patternID == o.id || base.patternID != overrideFrom {
             override = nil
             return base
         }
