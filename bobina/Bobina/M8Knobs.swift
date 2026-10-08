@@ -66,6 +66,10 @@ struct M8Knob: Codable, Equatable {
     /// L'automazione a passi: il valore di ogni passo, nil = resta com'è.
     var steps: [Int?] = Array(repeating: nil, count: 16)
 
+    /// Un volume o una mandata: regola di Giampiero (8/10/2026), mai a salti e mai mossa da sola,
+    /// solo − e + piccoli. Un «max» capito male dal Controllo Vocale può rompere casse e cuffie.
+    var isGain: Bool { M8Knobs.gainNames.contains(name) }
+
     init(name: String, cc: Int) {
         self.name = name
         self.cc = cc
@@ -110,6 +114,11 @@ final class M8Knobs: ObservableObject {
     static let names = ["cue vol", "forma", "size", "mult", "warp", "scan", "cutoff", "res",
                         "amp", "chorus", "delay", "reverb", "volume", "filtro DJ", "timbre", "color"]
 
+    /// I nomi che sono un guadagno: volumi e mandate agli effetti.
+    static let gainNames: Set<String> = ["cue vol", "volume", "amp", "chorus", "delay", "reverb"]
+    /// Il passo di − e + su un guadagno: il più piccolo che si sente (2 su 127).
+    static let gainStep = 2
+
     /// Quanto dura un giro dell'onda: in battiti, col nome in battute.
     static let lengths: [(Double, String)] = [(0.25, "1/16"), (0.5, "1/8"), (1, "1/4"), (2, "1/2"), (4, "1"), (8, "2"), (16, "4")]
 
@@ -128,8 +137,19 @@ final class M8Knobs: ObservableObject {
                      M8Knob(name: "amp", cc: 26), M8Knob(name: "volume", cc: 27)]
         }
         selected = max(0, min(7, d.integer(forKey: "bobina.m8.manopole.scelta")))
+        for i in knobs.indices where knobs[i].isGain && knobs[i].motion != .none { knobs[i].motion = .none }
         if let v = d.array(forKey: "bobina.m8.manopole.valori") as? [Int], v.count == 8 {
             live.values = v
+        } else {
+            // un guadagno mai toccato da Bobina parte da 0: il primo + alza di poco, non salta a metà
+            live.values = knobs.map { $0.isGain ? 0 : 64 }
+        }
+        // una volta sola, con la regola dei guadagni (8/10/2026): la versione di prima aveva salvato 64 per tutte,
+        // anche per i volumi mai toccati; da 64 il primo + salterebbe a metà. Si riparte da 0, verso il silenzio.
+        if !d.bool(forKey: "bobina.m8.manopole.guadagni") {
+            for i in knobs.indices where knobs[i].isGain { live.values[i] = 0 }
+            d.set(true, forKey: "bobina.m8.manopole.guadagni")
+            d.set(live.values, forKey: "bobina.m8.manopole.valori")
         }
     }
 
@@ -184,7 +204,14 @@ final class M8Knobs: ObservableObject {
 
     /// Accende o spegne un modo di muoversi (onda o passi) per la manopola scelta.
     func toggle(_ m: M8Motion) {
+        if knobs[selected].isGain && knobs[selected].motion == .none { return }
         knobs[selected].motion = knobs[selected].motion == m ? .none : m
+    }
+
+    /// Il nome nuovo; se diventa un guadagno, smette di muoversi da solo.
+    func rename(_ i: Int, _ name: String) {
+        knobs[i].name = name
+        if knobs[i].isGain && knobs[i].motion != .none { knobs[i].motion = .none }
     }
 
     // MARK: collegare all'M8
