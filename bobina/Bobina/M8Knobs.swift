@@ -66,8 +66,8 @@ struct M8Knob: Codable, Equatable {
     /// L'automazione a passi: il valore di ogni passo, nil = resta com'è.
     var steps: [Int?] = Array(repeating: nil, count: 16)
 
-    /// Un volume o una mandata: regola di Giampiero (8/10/2026), mai a salti e mai mossa da sola,
-    /// solo − e + piccoli. Un «max» capito male dal Controllo Vocale può rompere casse e cuffie.
+    /// Un guadagno: regola di Giampiero (8/10/2026), mai a salti e mai mosso da solo, solo − e + piccoli.
+    /// Un «max» capito male dal Controllo Vocale può rompere casse e cuffie.
     var isGain: Bool { M8Knobs.gainNames.contains(name) }
 
     init(name: String, cc: Int) {
@@ -114,8 +114,9 @@ final class M8Knobs: ObservableObject {
     static let names = ["cue vol", "forma", "size", "mult", "warp", "scan", "cutoff", "res",
                         "amp", "chorus", "delay", "reverb", "volume", "filtro DJ", "timbre", "color"]
 
-    /// I nomi che sono un guadagno: volumi e mandate agli effetti.
-    static let gainNames: Set<String> = ["cue vol", "volume", "amp", "chorus", "delay", "reverb"]
+    /// I nomi che sono un guadagno. Solo AMP, che amplifica l'onda: volumi e mandate tengono i salti
+    /// (Giampiero, 8/10/2026: «non è pericoloso, ed è comodo avere tutti quei tasti»).
+    static let gainNames: Set<String> = ["amp"]
     /// Il passo di − e + su un guadagno: il più piccolo che si sente (2 su 127).
     static let gainStep = 2
 

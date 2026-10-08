@@ -458,7 +458,7 @@ struct M8TiltPanel: View {
             Text("\(player.tiltCC)").font(.system(.title3, design: .monospaced)).frame(minWidth: 40)
             SmallKey(text: "+") { player.tiltCC = min(127, player.tiltCC + 1) }.accessibilityLabel("CC inclinazione più")
         }
-        M8Label("Sull'M8: Project > MIDI Mapping, tieni OPTION sul parametro e inclina il telefono. Mai su un volume.")
+        M8Label("Sull'M8: Project > MIDI Mapping, tieni OPTION sul parametro e inclina il telefono. Mai su un guadagno (amp).")
     }
 }
 
@@ -803,7 +803,7 @@ struct M8GainRow: View {
                 .frame(maxWidth: 70)
                 .accessibilityLabel("\(name) più")
         }
-        M8Label("È un volume: solo − e +, a passi piccoli, per proteggere casse e cuffie.")
+        M8Label("È un guadagno: solo − e +, a passi piccoli, per proteggere casse e cuffie.")
     }
 }
 
@@ -812,7 +812,7 @@ struct M8GainNotice: View {
     let name: String
 
     var body: some View {
-        Text("«\(name)» è un volume: niente onde né passi, solo − e + in «valore». Così un comando capito male non lo porta mai al massimo.")
+        Text("«\(name)» è un guadagno: niente onde né passi, solo − e + in «valore». Così un comando capito male non lo porta mai al massimo.")
             .font(.system(.footnote, design: .monospaced))
             .foregroundStyle(Palette.dim)
             .fixedSize(horizontal: false, vertical: true)
