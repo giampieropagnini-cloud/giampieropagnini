@@ -51,3 +51,5 @@ Tempo: insieme a TX-6/PO, «da solo» (CC 56), swing (CC 57), canzone a pattern,
 - 8/10: automazione a passi (bass → filtro, livello 1 e 8): il filtro si muove.
 - 8/10: CC 102 sul canale 1, valore traccia−1, sceglie la traccia attiva: misurato con le luci (TRACK tenuto): kick 1, snare 2, bass 5, chord 8. ✅
 - 8/10: effetti punch-in via MIDI: «solo traccia» (ottava bassa) resta sulla prima traccia attiva anche se CC 102 cambia la luce; «gruppo» (ottava alta) resta sulla batteria anche scegliendo bass. Tolta la scelta della traccia da Live; restano «su tutto il gruppo» e «solo traccia attiva» (scelta sulla macchina).
+- 8/10: Live → manopole: vanno (min/max sul filtro). Effetti punch-in «su tutto il gruppo» dopo la semplificazione: vanno.
+- 8/10: progetti di Crea: restano separati (progetto 2 nuovo, progetto 1 intatto). Gruppo A delle prove: tutto ✅.
