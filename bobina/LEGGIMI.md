@@ -30,6 +30,16 @@ Il tasto «passa a…» in alto a destra di ogni pagina passa da una sezione all
 
 Quello che si sa dell'adattatore è in `PO-RICERCA.md`, le prove con le macchine vere in `PROVE-PO.md`.
 
+### Sezione OP-Z
+
+- **Suona**: ▶ ■ dell'OP-Z, i suoi 16 pattern (alla battuta o subito), il progetto, la **canzone a pattern** (i pattern dell'OP-Z in fila, da soli).
+- **Crea** (Bobina suona l'OP-Z a passi, col suo clock): in cima ▶/■, «solo OP-Z», tempo e **silenzio**; sotto una parte per volta, ognuna in uno schermo: **batteria** a griglia (4 righe, riempi in un tocco, 24 suoni) · **note** col cursore (un tocco = una nota o un accordo intero, scrivi/suona/tieni) · **pattern** (16 progetti × 16 pattern, catena che parte da sola, passi 1-32 per traccia, poliritmi) · **effetti di Bobina** (loop, ramp, pitch, random, echo, filter sweep, duck… dal vivo o nei passi) · **mixer** · **manopole** (automazione a passi) · **scrivi** (Crea dentro i pattern dell'OP-Z, 1-4 battute, col record lock). In più 20 batterie e 20 melodie pronte, scure, e l'arpeggio di Bobina a tempo.
+- **Live** (l'OP-Z da solo): muti delle 16 tracce · effetti punch-in dell'OP-Z (gruppo o traccia attiva) · manopole una pagina per volta (min − metà + max) · pattern · scene di muti, gruppi dell'OP-Z, poliritmi · silenzio.
+- **Ritmo**: Bobina dà il clock (sulla stessa battuta di TX-6 e PO) o l'OP-Z va da solo (CC 56, fino a 127 bpm), swing, anticipo.
+- **Collega**: bluetooth o cavo, le impostazioni MIDI da fare sull'OP-Z, il monitor.
+
+Quello che si sa dell'OP-Z è in `OPZ-RICERCA.md`, le prove in `PROVE-OPZ.md`.
+
 ### Sezione NTS-1 (Korg NTS-1 digital kit mkII)
 
 - **Suono**: tutte le manopole dell'NTS-1 con un nome: oscillatore, filtro, inviluppo, mod, delay, reverb, volume, e i tasti dei tipi (saw, lp2, chorus, hall…). Quando giri una manopola sull'NTS-1, il valore si muove anche in Bobina.
@@ -102,6 +112,15 @@ Tieni **shift** e premi **select** per il menu, poi:
 - **Col cavo**: micro USB dell'adattatore → iPhone. Compare come «Teensy MIDI».
 - **A tempo col TX-6, col cavo**: aux del TX-6 → ingresso del PO. Sul TX-6: aux, shift + gira select → sync 8. Sul PO: tasto in alto + bpm fino a **SY2**. In Bobina: *Ritmo → cavo sync dal TX-6*.
 - Via MIDI **le manopole A e B non si muovono**, e il PO non dice mai com'è messo.
+
+## Preparare l'OP-Z
+
+- **Col bluetooth**: la prima volta si tiene il tasto di pairing sotto l'OP-Z finché la luce lampeggia blu, poi in Bobina *Collega → cerca l'OP-Z*. L'app ufficiale OP-Z va chiusa: parla con un telefono per volta.
+- Una volta sola, sull'OP-Z: tieni **TEMPO + SCREEN** e controlla i tasti 1-8. **1 spento** (se no il canale 1 va alla traccia attiva), **2 e 3 accesi**, **4 acceso** (midi clock in: senza, l'OP-Z non segue il tempo di Bobina e va a due tempi diversi; di fabbrica è spento), 5 spento, 6 spento, **7 spento** (eco), 8 acceso.
+- Il **metronomo** dell'OP-Z si spegne tenendo TEMPO e girando la manopola rossa tutta a sinistra. Se il tempo non cambia mai, è bloccato: TEMPO + SHIFT lo sblocca.
+- Gli **effetti punch-in** via MIDI sono note 5-28 sul canale 13 e lavorano sul sequencer dell'OP-Z (non sulle note di Crea). La traccia attiva si sceglie col CC 102, ma via MIDI non sposta gli effetti (misurato l'8/10/2026).
+- **Lo stop MIDI non spegne il record lock**: dopo «scrivi sull'OP-Z» Ele preme REC.
+- Lo strumento di una traccia si cambia solo sulla macchina: TRACK + i tasti della fila di sopra (strumento) o di sotto (suono).
 
 ## Preparare l'NTS-1
 
