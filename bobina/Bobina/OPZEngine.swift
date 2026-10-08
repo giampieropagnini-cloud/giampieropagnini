@@ -481,6 +481,91 @@ final class OPZEngine: ObservableObject {
         steps[createTrack - 1][i] = cell
     }
 
+    // MARK: crea in uno schermo (8/10/2026): batteria a griglia, note scritte col cursore
+
+    /// Il passo dove va la prossima nota scritta (traccia melodica scelta).
+    @Published var cursor = 0
+    /// Cosa scrive un tocco sulla tastiera: una nota o un accordo intero.
+    @Published var chordType = OPZChord.single
+    /// L'ottava della tastiera delle note: 4 = il do centrale (60), dentro la tastiera dell'OP-Z (53-76).
+    @Published var noteOctave = 4
+    /// Cosa fa un tocco sulla tastiera: scrive nel passo del cursore, suona e basta, o tiene la nota.
+    @Published var noteMode = OPZNoteMode.write
+    /// Il suono di ogni riga della batteria (kick, snare, perc, sample): 53-76.
+    @Published var drumPick: [Int] = [53, 53, 53, 53]
+
+    /// Quante note insieme regge la traccia: il basso una, il lead tre, arp e accordi quattro.
+    func polyphony(_ track: Int) -> Int { track == 5 ? 1 : track == 6 ? 3 : 4 }
+
+    /// Un tocco sulla tastiera: la nota (o l'accordo) suona; in «scrivi» va nel passo del cursore e il cursore va avanti.
+    func keyNote(_ semitone: Int) {
+        let tr = max(5, createTrack)
+        let root = 12 * (noteOctave + 1) + semitone
+        let notes = Array(chordType.notes(root).prefix(polyphony(tr))).filter { $0 <= 127 }
+        switch noteMode {
+        case .hold:
+            for n in notes { toggleLiveHold(n) }
+            return
+        case .play, .write:
+            send(notes.flatMap { OPZ.noteOn($0, channel: tr) })
+            io.send(notes.flatMap { OPZ.noteOff($0, channel: tr) }, at: ms(220))
+        }
+        guard noteMode == .write else { return }
+        let len = lengths[createPattern - 1][tr - 1]
+        if cursor >= len { cursor = 0 }
+        steps[tr - 1][cursor] = notes
+        pick = root
+        cursor = (cursor + 1) % max(1, len)
+    }
+
+    /// Un passo vuoto, e il cursore va avanti.
+    func writeRest() {
+        let tr = max(5, createTrack)
+        let len = lengths[createPattern - 1][tr - 1]
+        if cursor >= len { cursor = 0 }
+        steps[tr - 1][cursor] = []
+        cursor = (cursor + 1) % max(1, len)
+    }
+
+    func cursorBack() {
+        let len = lengths[createPattern - 1][max(5, createTrack) - 1]
+        cursor = (cursor - 1 + max(1, len)) % max(1, len)
+    }
+
+    /// Batteria: accende o spegne il suono della riga in un passo.
+    func toggleDrum(_ track: Int, _ i: Int) {
+        let p = drumPick[track - 1]
+        var cell = steps[track - 1][i]
+        if cell.contains(p) { cell.removeAll { $0 == p } } else if cell.count < 3 { cell.append(p) }
+        steps[track - 1][i] = cell
+        createTrack = track
+    }
+
+    /// Batteria: il suono di una riga (la senti subito).
+    func setDrumPick(_ track: Int, _ note: Int) {
+        drumPick[track - 1] = note
+        createTrack = track
+        auditionDrum(track)
+    }
+
+    func auditionDrum(_ track: Int) {
+        let n = drumPick[track - 1]
+        send(OPZ.noteOn(n, channel: track))
+        io.send(OPZ.noteOff(n, channel: track), at: ms(200))
+    }
+
+    /// Batteria: riempie una riga in un tocco (ogni 4, ogni 2, in levare, tutti, niente).
+    func fillDrum(_ track: Int, every: Int, offset: Int = 0) {
+        let p = drumPick[track - 1]
+        let len = lengths[createPattern - 1][track - 1]
+        var row = steps[track - 1]
+        for i in 0..<32 {
+            if every == 0 { row[i] = [] } else if i < len { row[i] = i % every == offset ? [p] : [] }
+        }
+        steps[track - 1] = row
+        createTrack = track
+    }
+
     /// Le note tenute dal vivo, per traccia (1-8): restano giù finché non le lasci.
     @Published private(set) var liveHeld: [Int: Set<Int>] = [:]
 
@@ -789,6 +874,8 @@ final class OPZEngine: ObservableObject {
     @Published var writeFirst = 1
 
     func writeOnce() {
+        // il giro si ferma da solo solo se Crea non suona per conto suo
+        createOn = false
         writing = true
         let first = min(writeFirst, 17 - writeBars)
         sequencer.playOnce(bars: writeBars, firstPattern: first)
@@ -1031,4 +1118,32 @@ struct CreaProject: Codable {
     var arpOctaves = 1
     var fxEvery = 1
     var fxLength = 4
+}
+
+/// Cosa scrive un tocco sulla tastiera delle note di Crea.
+enum OPZChord: String, CaseIterable, Identifiable {
+    case single = "nota", major = "maggiore", minor = "minore", seventh = "settima", minor7 = "min 7", sus4 = "sus4", fifth = "quinta", octave = "ottava"
+
+    var id: String { rawValue }
+
+    func notes(_ root: Int) -> [Int] {
+        let iv: [Int]
+        switch self {
+        case .single: iv = [0]
+        case .major: iv = [0, 4, 7]
+        case .minor: iv = [0, 3, 7]
+        case .seventh: iv = [0, 4, 7, 10]
+        case .minor7: iv = [0, 3, 7, 10]
+        case .sus4: iv = [0, 5, 7]
+        case .fifth: iv = [0, 7]
+        case .octave: iv = [0, 12]
+        }
+        return iv.map { root + $0 }
+    }
+}
+
+/// Cosa fa un tocco sulla tastiera: scrive nel passo del cursore, suona soltanto, o tiene la nota (sull'arp: l'arpeggio).
+enum OPZNoteMode: String, CaseIterable, Identifiable {
+    case write = "scrivi", play = "suona", hold = "tieni"
+    var id: String { rawValue }
 }

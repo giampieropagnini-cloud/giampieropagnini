@@ -27,6 +27,8 @@ struct OPZTabs: View {
 /// Come Page, con la fascia dell'OP-Z e la striscia del collegamento.
 struct OPZPage<Content: View>: View {
     let title: String
+    /// Senza la fascia col nome: per le schede che devono stare in uno schermo.
+    var compact = false
     @ViewBuilder var content: () -> Content
 
     var body: some View {
@@ -35,8 +37,8 @@ struct OPZPage<Content: View>: View {
         #endif
         NavigationStack {
             ScrollView {
-                VStack(spacing: 12) {
-                    OPZBanner()
+                VStack(spacing: compact ? 8 : 12) {
+                    if !compact { OPZBanner() }
                     OPZStatusStrip()
                     content()
                 }
@@ -246,115 +248,6 @@ struct OPZSongRow: View {
 
 // MARK: - Muti
 
-/// Muti ed effetti nella stessa scheda: le cose da suonare dal vivo.
-struct OPZLiveView: View {
-    var body: some View {
-        OPZPage(title: "Live") {
-            OPZTransport()
-            OPZMuteCards()
-            OPZEffectCards()
-        }
-    }
-}
-
-struct OPZMuteCards: View {
-    @EnvironmentObject var opz: OPZEngine
-
-    var body: some View {
-        Group {
-            Card(title: "tracce", note: "Tocca una traccia per farla tacere, ritoccala per farla suonare. Bobina ricorda quello che ha mandato: se muti dall'OP-Z, qui non si vede.") {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
-                    ForEach(OPZ.tracks) { t in
-                        let m = opz.muted[t.number - 1]
-                        Button { opz.toggleMute(t.number) } label: {
-                            VStack(spacing: 1) {
-                                Text(t.short)
-                                    .font(.system(.subheadline, design: .monospaced).weight(.semibold))
-                                Text(m ? "muto" : "suona")
-                                    .font(.system(.caption2, design: .monospaced))
-                            }
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                            .frame(maxWidth: .infinity, minHeight: 52)
-                            .background(RoundedRectangle(cornerRadius: 9).fill(m ? Color(white: 0.12) : OPZ.color(t.number)))
-                            .overlay(RoundedRectangle(cornerRadius: 9).stroke(OPZ.color(t.number), lineWidth: m ? 2 : 0))
-                            .foregroundStyle(m ? OPZ.color(t.number) : Color.black)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(t.name)
-                        .accessibilityValue(m ? "muto" : "suona")
-                    }
-                }
-                HStack(spacing: 6) {
-                    GridChip(text: "tutto suona") { opz.unmuteAll() }
-                    GridChip(text: "solo batteria") { opz.solo(1...4) }
-                    GridChip(text: "solo synth") { opz.solo(5...8) }
-                }
-                HStack(spacing: 6) {
-                    GridChip(text: "muto vero", on: !opz.audioOnly) { opz.audioOnly = false }
-                    GridChip(text: "muto solo audio", on: opz.audioOnly) { opz.audioOnly = true }
-                }
-                Text("«muto solo audio»: la traccia tace ma continua a suonare dentro gli effetti e il nastro.")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.dim)
-            }
-
-            Card(title: "scene di Bobina", note: "«salva» ricorda i muti di adesso; il tasto della scena li rimette tutti insieme, alla battuta.") {
-                ForEach(0..<4, id: \.self) { i in
-                    HStack(spacing: 6) {
-                        GridChip(text: opz.scenes[i] == nil ? "scena \(i + 1) · vuota" : "scena \(i + 1)", on: false) { opz.recallScene(i) }
-                            .disabled(opz.scenes[i] == nil)
-                        GridChip(text: "salva \(i + 1)") { opz.saveScene(i) }
-                            .frame(width: 96)
-                    }
-                }
-            }
-
-            Card(title: "gruppi di muti dell'OP-Z", note: "I 10 gruppi salvati nel progetto dell'OP-Z (si preparano sulla macchina, nel mixer). Uno solo messaggio per cambiare tutto.") {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 5), spacing: 6) {
-                    ForEach(1...10, id: \.self) { n in
-                        GridChip(text: "\(n)", on: opz.muteGroup == n) { opz.chooseMuteGroup(n) }
-                            .accessibilityLabel("gruppo \(n)")
-                    }
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Effetti
-
-struct OPZEffectCards: View {
-    @EnvironmentObject var opz: OPZEngine
-
-    var body: some View {
-        Group {
-            Card(title: "effetti punch-in", note: "Quelli della traccia perform. Sopra: l'effetto per mezzo secondo. Sotto: resta finché non tocchi «lascia».") {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 8) {
-                    ForEach(OPZ.punchIn.indices, id: \.self) { i in
-                        OPZPunchKey(index: i, name: OPZ.punchIn[i], held: opz.punchHeld.contains(i))
-                    }
-                }
-                HStack(spacing: 6) {
-                    GridChip(text: "su una traccia", on: !opz.punchHigh) { opz.punchHigh = false }
-                    GridChip(text: "su tutte", on: opz.punchHigh) { opz.punchHigh = true }
-                    GridChip(text: "lascia tutti") { opz.punchReleaseAll() }
-                }
-            }
-
-            OPZSoundCard()
-
-            Card(title: "poliritmi", note: "Ogni traccia può avere un numero di passi diverso: girano una contro l'altra. Il tasto parte alla battuta.") {
-                HStack(spacing: 6) {
-                    GridChip(text: "tutte 16") { opz.polyrhythm(Array(repeating: 16, count: 8)) }
-                    GridChip(text: "16 · 12 · 7") { opz.polyrhythm([16, 12, 7, 16, 16, 12, 7, 16]) }
-                    GridChip(text: "16 · 15 · 13") { opz.polyrhythm([16, 15, 13, 16, 16, 15, 13, 16]) }
-                }
-            }
-        }
-    }
-}
-
 /// Un effetto diviso in due: sopra un tocco, sotto tieni / lascia. Ognuno col suo colore.
 struct OPZPunchKey: View {
     @EnvironmentObject var opz: OPZEngine
@@ -390,68 +283,6 @@ struct OPZPunchKey: View {
             .buttonStyle(.plain)
             .accessibilityLabel(held ? "lascia \(name)" : "tieni \(name)")
             .accessibilityAddTraits(held ? .isSelected : [])
-        }
-    }
-}
-
-/// I parametri del suono della traccia scelta: − e + coi CC relativi (partono dal valore vero dell'OP-Z).
-struct OPZSoundCard: View {
-    @EnvironmentObject var opz: OPZEngine
-
-    /// Le quattro pagine delle manopole dell'OP-Z: verde, blu, giallo, rosso.
-    private let pages: [(String, [Int])] = [
-        ("pagina 1 · suono e filtro", [1, 2, 3, 4]),
-        ("pagina 2 · inviluppo", [5, 6, 7, 8]),
-        ("pagina 3 · lfo", [9, 10, 11, 12]),
-        ("pagina 4 · mandate, pan, volume", [13, 14, 15, 16]),
-    ]
-    private let knob: [Color] = [Color(red: 0.36, green: 0.8, blue: 0.45), Color(red: 0.4, green: 0.6, blue: 1.0),
-                                 Color(red: 0.98, green: 0.82, blue: 0.3), Color(red: 1.0, green: 0.42, blue: 0.4)]
-
-    var body: some View {
-        Card(title: "le manopole della traccia", note: "Le quattro pagine delle manopole dell'OP-Z, sulla traccia scelta. − e + spostano la manopola di un bel pezzo partendo da dov'è; min, metà, max la mettono lì di colpo.") {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
-                ForEach(OPZ.tracks.prefix(8)) { t in
-                    Button { opz.soundTrack = t.number } label: {
-                        Text(t.short)
-                            .font(.system(.footnote, design: .monospaced).weight(opz.soundTrack == t.number ? .bold : .regular))
-                            .frame(maxWidth: .infinity, minHeight: 40)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(opz.soundTrack == t.number ? OPZ.color(t.number) : OPZ.color(t.number).opacity(0.18)))
-                            .foregroundStyle(opz.soundTrack == t.number ? Color.black : OPZ.color(t.number))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("traccia \(t.name)")
-                    .accessibilityAddTraits(opz.soundTrack == t.number ? .isSelected : [])
-                }
-            }
-            ForEach(pages.indices, id: \.self) { pg in
-                Text(pages[pg].0)
-                    .font(.system(.caption, design: .monospaced).weight(.semibold))
-                    .foregroundStyle(Palette.dim)
-                    .padding(.top, 4)
-                ForEach(pages[pg].1, id: \.self) { cc in
-                    let name = OPZ.paramName(OPZ.params[cc - 1], track: opz.soundTrack)
-                    let color = knob[(cc - 1) % 4]
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 6) {
-                            Circle().fill(color).frame(width: 10, height: 10)
-                            Text(name).font(.system(.subheadline, design: .monospaced))
-                        }
-                        HStack(spacing: 5) {
-                            GridChip(text: "min") { opz.setValue(cc, 0, track: opz.soundTrack) }
-                                .accessibilityLabel("\(name) al minimo")
-                            GridChip(text: "−") { opz.nudge(cc, up: false, track: opz.soundTrack) }
-                                .accessibilityLabel("\(name) meno")
-                            GridChip(text: "metà") { opz.setValue(cc, 64, track: opz.soundTrack) }
-                                .accessibilityLabel("\(name) a metà")
-                            GridChip(text: "+") { opz.nudge(cc, up: true, track: opz.soundTrack) }
-                                .accessibilityLabel("\(name) più")
-                            GridChip(text: "max") { opz.setValue(cc, 127, track: opz.soundTrack) }
-                                .accessibilityLabel("\(name) al massimo")
-                        }
-                    }
-                }
-            }
         }
     }
 }
