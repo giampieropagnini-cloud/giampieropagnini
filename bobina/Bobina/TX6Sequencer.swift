@@ -135,10 +135,16 @@ final class TX6Sequencer {
             timer = nil
             BobinaClock.shared.leave(.tx6)
             if sendStop { io.send(TX6.stop) }
-            releaseGate(plan())
-            flushOffs()
+            // i passi già consegnati a CoreMIDI col loro istante (fino a 150 ms avanti) arrivano dopo lo stop:
+            // gli spegnimenti e i muti del cancello vanno mandati dopo di loro, se no le note restano appese
+            let after = io.now() + io.ticks(ms: lookahead + 40)
+            releaseGate(plan(), at: after)
+            flushOffs(at: after)
         }
     }
+
+    /// Quanto dopo lo stop arriva l'ultimo messaggio già preparato (per chi deve rimettere a posto dopo).
+    static let tailMs = 150.0 + 40
 
     /// Il pattern entra all'inizio della prossima battuta.
     func queuePattern(_ part: Part) { queue.async { [self] in pending = part } }
@@ -372,7 +378,7 @@ final class TX6Sequencer {
         onStep?(i, t, hit)
     }
 
-    private func releaseGate(_ p: Plan) {
+    private func releaseGate(_ p: Plan, at time: MIDITimeStamp = 0) {
         guard gateState != nil else { return }
         gateState = nil
         var bytes: [UInt8] = []
@@ -380,12 +386,14 @@ final class TX6Sequencer {
             bytes += TX6.cc(TX6.ccMute, p.mutes[tr - 1] ? 127 : 0, channel: tr)
             bytes += TX6.cc(TX6.Param.volume.cc, p.volumes[tr - 1], channel: tr)
         }
-        if !bytes.isEmpty { io.send(bytes) }
+        if !bytes.isEmpty { io.send(bytes, at: time) }
     }
 
-    private func flushOffs() {
+    /// Manda tutti gli spegnimenti in attesa. Mentre il ritmo gira (o subito dopo lo stop) vanno dopo le note
+    /// già preparate, quindi di serie a 190 ms da adesso.
+    private func flushOffs(at time: MIDITimeStamp? = nil) {
         let bytes = offsAt.keys.sorted().flatMap { offsAt[$0] ?? [] }
         offsAt.removeAll()
-        if !bytes.isEmpty { io.send(bytes) }
+        if !bytes.isEmpty { io.send(bytes, at: time ?? io.now() + io.ticks(ms: lookahead + 40)) }
     }
 }

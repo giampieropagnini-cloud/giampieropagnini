@@ -949,8 +949,14 @@ final class TX6Engine: ObservableObject {
             running = false
             sequencer.stop(sendStop: clockMode == .send)
             if clockMode == .send { note(TX6.stop, incoming: false) }
-            if beatsOn && lockOn { restoreLock() }
-            if pumpOn { restorePump() }
+            // passi con manopola e pompa hanno messaggi già preparati fino a 150 ms (la pompa fino a un battito):
+            // si rimette a posto dopo che sono arrivati, se no l'ultimo valore preparato vince
+            let tail = TX6Sequencer.tailMs + (pumpOn ? beatMs * pumpRelease : 0)
+            DispatchQueue.main.asyncAfter(deadline: .now() + tail / 1000) { [weak self] in
+                guard let self = self, !self.running else { return }
+                if self.beatsOn && self.lockOn { self.restoreLock() }
+                if self.pumpOn { self.restorePump() }
+            }
         } else {
             guard clockMode != .follow else { return }
             let start = io.now() + io.ticks(ms: 30)
