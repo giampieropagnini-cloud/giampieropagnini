@@ -116,7 +116,7 @@ struct TX6WavesPanel: View {
                 TX6Switch(name: "onda \(i + 1)", on: w.on) { tx.waves[i].on.toggle() }
             }
             LazyVGrid(columns: five, spacing: 4) {
-                ForEach(TX6.Param.allCases.filter { $0.continuous }) { p in
+                ForEach(TX6.Param.movable) { p in
                     TX6Mini(text: p.name, on: w.param == p, color: Color(white: 0.75)) { tx.waves[i].param = p }
                         .accessibilityLabel("muove \(p.name)")
                 }
@@ -173,7 +173,7 @@ struct TX6TiltPanel: View {
                 if tx.tiltOn { TX6TiltReadout(side: tx.side) }
             }
             LazyVGrid(columns: five, spacing: 4) {
-                ForEach(TX6.Param.allCases.filter { $0.continuous }) { p in
+                ForEach(TX6.Param.movable) { p in
                     TX6Mini(text: p.name, on: tx.tiltParam == p, color: Color(white: 0.75)) { tx.tiltParam = p }
                         .accessibilityLabel("muove \(p.name)")
                 }
@@ -390,7 +390,8 @@ struct TX6ProbePanel: View {
             TX6Label("Un comando alla volta sulla traccia 1: il display del TX-6 salta sulla pagina che ha capito. Il filtro è da provare.")
             LazyVGrid(columns: two, spacing: 4) {
                 ForEach(Array(Self.probes.enumerated()), id: \.offset) { i, p in
-                    TX6Mini(text: "\(i + 1) · \(p.name) · cc \(p.cc)", height: 38) { tx.probe(p.cc, p.value) }
+                    // il guadagno si prova col valore che ha già: la prova non deve alzarlo
+                    TX6Mini(text: "\(i + 1) · \(p.name) · cc \(p.cc)", height: 38) { tx.probe(p.cc, p.cc == 9 ? tx.value(1, .gain) : p.value) }
                 }
             }
             TX6Mini(text: "rimetti a posto la traccia 1", height: 40) { tx.restoreTrack1() }

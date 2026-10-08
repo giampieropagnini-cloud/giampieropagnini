@@ -126,10 +126,14 @@ struct TX6Preset: Codable, Identifiable, Equatable {
         p("cassa", "808 lunga", 4, freq: 28, len: 110, comp: 30),
         p("cassa", "cassa techno", 4, freq: 36, len: 75, flt: 52, comp: 90),
         p("cassa", "cassa sorda", 4, freq: 32, len: 45, flt: 40),
+        p("cassa", "cassa lontana", 4, freq: 26, len: 100, flt: 36),
+        p("cassa", "battito", 4, freq: 22, len: 25, flt: 40),
         p("rullante", "rullante secco", 5, freq: 64, len: 35, comp: 40),
         p("rullante", "rullante pieno", 5, freq: 54, len: 70, comp: 60),
         p("rullante", "rimshot", 5, freq: 96, len: 15),
         p("rullante", "rullante scuro", 5, freq: 44, len: 55, flt: 48),
+        p("rullante", "rullante lontano", 5, freq: 40, len: 100, flt: 40),
+        p("rullante", "frusta", 5, freq: 110, len: 10),
         p("battimani", "battimani", 6, freq: 64, len: 50),
         p("battimani", "battimani lunghi", 6, freq: 58, len: 95),
         p("battimani", "schiocco", 6, freq: 90, len: 20, flt: 76),
@@ -137,11 +141,16 @@ struct TX6Preset: Codable, Identifiable, Equatable {
         p("charleston", "aperto", 7, freq: 76, len: 80),
         p("charleston", "shaker", 7, freq: 100, len: 30, flt: 84),
         p("charleston", "piatto", 7, freq: 60, len: 120),
+        p("charleston", "fruscio", 7, freq: 110, len: 50, flt: 90),
         p("percussioni", "tom basso", 0, freq: 36, len: 50),
         p("percussioni", "tom alto", 0, freq: 52, len: 40),
         p("percussioni", "cowbell", 2, freq: 78, len: 25, det: 72),
         p("percussioni", "blip", 1, freq: 96, len: 10),
         p("percussioni", "conga", 1, freq: 58, len: 35, det: 60),
+        // la cassa alta suona come un tamburo grande: da film
+        p("percussioni", "taiko", 4, freq: 60, len: 90, comp: 60),
+        p("percussioni", "metallo", 7, freq: 30, len: 100, flt: 50),
+        p("percussioni", "legno", 1, freq: 90, len: 8),
         p("basso", "sub", 0, freq: 24, len: 80),
         p("basso", "basso quadro", 2, freq: 30, len: 60, flt: 50),
         p("basso", "acid", 3, freq: 32, len: 40, det: 70, flt: 40, comp: 40),
@@ -202,6 +211,24 @@ struct TX6MelodyPreset: Identifiable {
               [(0, 0), (2, 3), (4, 6), (6, 9), (8, 12), (10, 9), (12, 6), (14, 3)]),
         lineP("orologio", oct: 4, len: 1, sound: "pluck",
               [(0, 7), (2, 7), (4, 7), (6, 7), (8, 7), (10, 7), (12, 8), (14, 7)]),
+        // trip hop: do minore, lento, con la seconda (re) che resta sospesa
+        lineP("mezzanotte", oct: 2, len: 2, sound: "basso pieno",
+              [(0, 0), (3, 0), (6, 3), (8, 5), (10, 3), (14, 2)]),
+        // horror: un carillon in minore col si (la sensibile) che non si risolve
+        lineP("carillon", oct: 5, len: 1, sound: "pluck",
+              [(0, 12), (2, 7), (4, 8), (6, 7), (8, 3), (10, 2), (12, 3), (14, 11)]),
+        // horror: tritoni che a metà battuta salgono di un semitono
+        lineP("sirena", oct: 4, len: 2, sound: "lead sega",
+              [(0, 0), (2, 6), (4, 0), (6, 6), (8, 1), (10, 7), (12, 1), (14, 7)]),
+        // dark: un cuore basso, due colpi, e la seconda minore che stringe
+        lineP("battito", oct: 1, len: 1, sound: "sub",
+              [(0, 0), (1, 0), (6, 1), (8, 0), (9, 0), (14, 1)]),
+        // cinema: l'arpeggio minore che va al sesto grado (lab), da titoli di testa
+        lineP("titoli", oct: 3, len: 2, sound: "lead quadro",
+              [(0, 0), (2, 3), (4, 7), (6, 3), (8, 0), (10, 3), (12, 8), (14, 7)]),
+        // cinema: archi in sedicesimi, l'inseguimento
+        lineP("ostinato", oct: 3, len: 1, sound: "pluck",
+              Array(zip(0..<16, [0, 3, 7, 3, 0, 3, 8, 3, 0, 3, 7, 3, 0, 2, 3, 2]))),
         // do minore, la bemolle, mi bemolle, si bemolle: il giro epico e scuro dei film
         chords("epico minore", [(0, 3, 7), (8, 0, 3), (3, 7, 10), (10, 2, 5)]),
         // il re resta appeso sopra accordi che cambiano: do minore con la nona, la bemolle con l'undicesima
@@ -211,6 +238,12 @@ struct TX6MelodyPreset: Identifiable {
         chords("discesa", [(0, 3, 7), (11, 2, 6), (10, 1, 5), (9, 0, 4)]),
         // tre note vicine che stridono, poi lo stesso grappolo un tritono più su
         chords("grappolo", octaves: [3, 3, 3], [(0, 1, 2), (0, 1, 2), (6, 7, 8), (6, 7, 8)]),
+        // trip hop: do minore con la settima, fa minore, la bemolle, sol (la cadenza della minore armonica)
+        chords("noir", [(0, 3, 10), (5, 8, 0), (8, 0, 3), (7, 11, 2)]),
+        // cinema: le stesse quattro tappe all'organo, aperte
+        chords("cattedrale", sound: "organo", [(0, 7, 3), (8, 3, 0), (5, 0, 8), (7, 2, 11)]),
+        // horror: accordi eccedenti e diminuiti che scivolano di un semitono
+        chords("incubo", [(0, 4, 8), (1, 5, 9), (0, 3, 6), (11, 2, 5)]),
     ]
 }
 
@@ -316,6 +349,11 @@ final class TX6Engine: ObservableObject {
     // MARK: effetti
 
     @Published private(set) var fxOn = [false, false]
+    /// Se Bobina ha già detto al TX-6 acceso o spento: il TX-6 non dice com'è, e i suoi tasti FX lo cambiano.
+    @Published private(set) var fxKnown = [false, false]
+    /// FX I spento da Bobina: il ritorno resta a zero (cc 7 canale 8) finché non si riaccende. Così l'effetto
+    /// tace anche con le mandate delle tracce alzate (8/10/2026: spegnendolo si sentiva ancora).
+    private var fx1Silenced: Bool { fxKnown[0] && !fxOn[0] }
     @Published private(set) var fxEngine: [Int?] = [nil, nil]
     @Published private(set) var fxParams = [[64, 64, 64], [64, 64, 64]]
     @Published private(set) var fxReturn = 100
@@ -360,7 +398,8 @@ final class TX6Engine: ObservableObject {
     /// Passi con manopola: a ogni passo un valore diverso per un parametro di una traccia.
     @Published var lockOn = false { didSet { if !lockOn && oldValue && pulsing { restoreLock() } } }
     @Published var lockTrack = 1 { didSet { save() } }
-    @Published var lockParam = TX6.Param.freq { didSet { save() } }
+    /// Mai il guadagno: un valore a passi lo farebbe saltare (vedi stepGain).
+    @Published var lockParam = TX6.Param.freq { didSet { if lockParam == .gain { lockParam = .freq }; save() } }
     @Published var locks: [Int?] = Array(repeating: nil, count: 16) { didSet { save() } }
 
     /// Melodia a passi: per ogni traccia sedici passi, ognuno una nota (0 = do … 12 = do sopra) o niente.
@@ -383,7 +422,13 @@ final class TX6Engine: ObservableObject {
     @Published var pumpRelease = 0.6
     @Published var pumpTracks: Set<Int> = [1] { didSet { save() } }
 
-    @Published var waves: [TX6Wave] = [TX6Wave(), TX6Wave(tracks: [2], param: .pan, shape: .triangle, beats: 8, depth: 40)] { didSet { save() } }
+    @Published var waves: [TX6Wave] = [TX6Wave(), TX6Wave(tracks: [2], param: .pan, shape: .triangle, beats: 8, depth: 40)] {
+        didSet {
+            // mai il guadagno: un'onda lo farebbe salire e scendere da solo
+            for i in waves.indices where waves[i].param == .gain { waves[i].param = .filter }
+            save()
+        }
+    }
 
     @Published var driftOn = false { didSet { if !driftOn { resetDrift() } } }
     @Published var driftAmount = 0.5
@@ -391,7 +436,7 @@ final class TX6Engine: ObservableObject {
     @Published var driftPan = false
 
     @Published var tiltOn = false { didSet { if tiltOn { startMotion() } else { stopMotion() } } }
-    @Published var tiltParam = TX6.Param.filter
+    @Published var tiltParam = TX6.Param.filter { didSet { if tiltParam == .gain { tiltParam = .filter } } }
     @Published var tiltTracks: Set<Int> = [1]
 
     @Published var scenes: [TX6Scene] = [] { didSet { save() } }
@@ -493,25 +538,59 @@ final class TX6Engine: ObservableObject {
     /// Una nota rimasta accesa sul TX-6 si sente così: una cassa che suona anche alta come un tom, un'onda che
     /// non si spegne più. Succede se Bobina si chiude (o si reinstalla) mentre una nota è giù: lo spegnimento
     /// non parte mai. Qui si mandano tutti, a gruppi di otto ogni 10 ms, per non intasare il bluetooth.
+    /// Ogni «silenzio» nuovo ferma gli spegnimenti di quello prima, così non si accumulano.
+    private var silenceRun = 0
+
+    /// Spegne le note rimaste accese sul TX-6. Prima, in un pacchetto, quelle che restano appese di solito
+    /// (i pad e le note delle melodie); poi tutte le altre piano, due ogni 15 ms (circa 5 secondi).
+    /// 8/10/2026: mandarne 768 in un secondo intasava il bluetooth e dopo il TX-6 non suonava più.
     func allNotesOff() {
         guard io.destination != 0 else { return }
-        var chunks: [[UInt8]] = []
-        for ch in 1...6 {
-            var chunk: [UInt8] = []
-            for n in 0...127 {
-                chunk += TX6.noteOff(n, channel: ch)
-                if chunk.count >= 24 { chunks.append(chunk); chunk = [] }
+        silenceRun += 1
+        let run = silenceRun
+        var first: [UInt8] = []
+        var done = Set<Int>()
+        for t in 1...6 {
+            var notes: Set<Int> = [padBase]
+            for k in melodies[t - 1].compactMap({ $0 }) { notes.insert(melodyNote(t, k)) }
+            for n in notes where (0...127).contains(n) {
+                first += TX6.noteOff(n, channel: t)
+                done.insert(t << 8 | n)
             }
-            if !chunk.isEmpty { chunks.append(chunk) }
         }
-        for (i, c) in chunks.enumerated() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.01) { [weak self] in self?.io.send(c) }
+        io.send(first)
+        // il TX-6 suona da do0 (12) in su: sotto non c'è niente da spegnere
+        var rest: [[UInt8]] = []
+        var chunk: [UInt8] = []
+        for t in 1...6 {
+            for n in 12...127 where !done.contains(t << 8 | n) {
+                chunk += TX6.noteOff(n, channel: t)
+                if chunk.count >= 6 { rest.append(chunk); chunk = [] }
+            }
+        }
+        if !chunk.isEmpty { rest.append(chunk) }
+        for (i, c) in rest.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05 + Double(i) * 0.015) { [weak self] in
+                guard let self = self, self.silenceRun == run, self.io.destination != 0 else { return }
+                self.io.send(c)
+            }
         }
         held.removeAll()
         heldKeys.removeAll()
         sequencer.melodyOffNow()
         logText("silenzio: tutte le note spente")
-        trace("TX-6: silenzio, \(chunks.count) pacchetti di spegnimento")
+        trace("TX-6: silenzio, \(rest.count + 1) pacchetti di spegnimento in \(String(format: "%.1f", 0.05 + Double(rest.count) * 0.015)) s")
+    }
+
+    // MARK: guadagno
+
+    /// Il guadagno (cc 9, da 0 a +42 dB) si muove solo di un dB alla volta, mai a salti: un «max» sentito male
+    /// dal Controllo Vocale porterebbe una traccia a +42 dB e può rompere le casse (regola di Giampiero, 8/10/2026).
+    func gainDB(_ track: Int) -> Int { Int((Double(value(track, .gain)) / 127 * 42).rounded()) }
+
+    func stepGain(_ track: Int, by d: Int) {
+        let db = max(0, min(42, gainDB(track) + d))
+        set(track, .gain, Int((Double(db) * 127 / 42).rounded()))
     }
 
     // MARK: invio
@@ -634,9 +713,24 @@ final class TX6Engine: ObservableObject {
 
     // MARK: effetti
 
-    func toggleFx(_ i: Int) {
-        fxOn[i].toggle()
-        send(TX6.cc(TX6.ccFxOn, fxOn[i] ? 127 : 0, channel: TX6.fxChannels[i]))
+    /// Acceso o spento, sempre mandato (cc 82: 0 spento, 127 acceso), qualunque cosa creda Bobina.
+    /// FX I spento mette anche il ritorno a zero; riacceso lo rimette dov'era.
+    func setFx(_ i: Int, on: Bool) {
+        fxOn[i] = on
+        fxKnown[i] = true
+        var bytes = TX6.cc(TX6.ccFxOn, on ? 127 : 0, channel: TX6.fxChannels[i])
+        if i == 0 {
+            let r = on ? fxReturn : 0
+            bytes += TX6.cc(TX6.ccFxReturn, r, channel: TX6.fxChannels[0])
+            fxReturnSent = r
+        }
+        send(bytes)
+    }
+
+    /// Un tocco: FX I e FX II spenti.
+    func allFxOff() {
+        setFx(0, on: false)
+        setFx(1, on: false)
     }
 
     func setFxEngine(_ i: Int, _ index: Int) {
@@ -654,10 +748,12 @@ final class TX6Engine: ObservableObject {
 
     func setFxReturn(_ v: Int) {
         let v = max(0, min(127, v))
-        guard v != fxReturnSent else { return }
         fxReturn = v
-        fxReturnSent = v
-        send(TX6.cc(TX6.ccFxReturn, v, channel: TX6.fxChannels[0]))
+        // con FX I spento il ritorno resta a zero: il valore nuovo parte quando si riaccende
+        let out = fx1Silenced ? 0 : v
+        guard out != fxReturnSent else { return }
+        fxReturnSent = out
+        send(TX6.cc(TX6.ccFxReturn, out, channel: TX6.fxChannels[0]))
     }
 
     func setFx2Place(_ index: Int) {
@@ -765,6 +861,41 @@ final class TX6Engine: ObservableObject {
         }
     }
 
+    /// L'ultima batteria pronta chiesta, fatta pattern: serve al sequencer per riconoscerla quando entra.
+    private var drumPattern: TX6Pattern?
+
+    /// Una batteria pronta: cambia solo le tracce 1-4 (passi e suoni), il resto di quello che suona resta.
+    /// Entra come un pattern: se il ritmo gira all'inizio della battuta, se no subito.
+    func playDrums(_ d: TX6DrumPreset) {
+        var pat = capture(name: d.name)
+        var extra: [UInt8] = []
+        for r in 0..<4 {
+            pat.beats[r] = d.steps(r)
+            guard let p = TX6Preset.builtIn.first(where: { $0.name == d.sounds[r] }) else { continue }
+            pat.sounds[r] = [TX6.soundValue(p.sound), p.freq, p.length, p.detune]
+            // filtro e compressore del preset non stanno nel pattern: partono insieme ai suoni
+            for (param, v) in [(TX6.Param.filter, p.filter), (.comp, p.comp)] {
+                values[r][param.rawValue] = v
+                let out = output(r + 1, param, io.now())
+                extra += TX6.cc(param.cc, out, channel: r + 1)
+                lastSent[r][param.rawValue] = out
+            }
+        }
+        pat.bpm = Double(d.bpm)
+        drumPattern = pat
+        beatsOn = true
+        if pulsing {
+            var part = makePart(pat)
+            part.soundBytes += extra
+            if !patternTempo || clockMode == .follow { part.bpm = nil }
+            pendingPatternName = pat.name
+            sequencer.queuePattern(part)
+        } else {
+            send(extra, quiet: true)
+            adopt(pat, sendSounds: true)
+        }
+    }
+
     func cancelPendingPattern() {
         sequencer.cancelPending()
         pendingPatternName = nil
@@ -864,17 +995,19 @@ final class TX6Engine: ObservableObject {
                 bytes += TX6.cc(param.cc, pat.sounds[t - 1][k], channel: t)
             }
         }
-        let lockBase = TX6Pattern.soundParams.firstIndex(of: pat.lockParam).map { pat.sounds[pat.lockTrack - 1][$0] }
-            ?? values[pat.lockTrack - 1][pat.lockParam.rawValue]
+        // mai il guadagno a passi, neanche da un pattern salvato prima
+        let lockParam = pat.lockParam == .gain ? TX6.Param.freq : pat.lockParam
+        let lockBase = TX6Pattern.soundParams.firstIndex(of: lockParam).map { pat.sounds[pat.lockTrack - 1][$0] }
+            ?? values[pat.lockTrack - 1][lockParam.rawValue]
         return TX6Sequencer.Part(id: pat.id, beats: pat.beats, melodies: pat.melodies, melodyOctaves: pat.melodyOctaves,
                                  melodyLength: pat.melodyLength, locks: pat.locks, lockTrack: pat.lockTrack,
-                                 lockCC: pat.lockParam.cc, lockBase: lockBase, gate: pat.gate,
+                                 lockCC: lockParam.cc, lockBase: lockBase, gate: pat.gate,
                                  soundBytes: bytes, bpm: pat.bpm)
     }
 
     /// Il sequencer ha fatto entrare un pattern: la pagina si mette in pari (i suoni sono già partiti).
     private func switched(_ id: UUID) {
-        guard let pat = (patterns + TX6Pattern.styles).first(where: { $0.id == id }) else { return }
+        guard let pat = (patterns + TX6Pattern.styles + [drumPattern].compactMap { $0 }).first(where: { $0.id == id }) else { return }
         adopt(pat, sendSounds: false)
     }
 
@@ -954,8 +1087,11 @@ final class TX6Engine: ObservableObject {
         let r = Int((Double(a.fxReturn) + Double(s.fxReturn - a.fxReturn) * p).rounded())
         if force || r != fxReturn {
             fxReturn = r
-            fxReturnSent = r
-            send(TX6.cc(TX6.ccFxReturn, r, channel: TX6.fxChannels[0]), quiet: true)
+            let out = fx1Silenced ? 0 : r
+            if force || out != fxReturnSent {
+                fxReturnSent = out
+                send(TX6.cc(TX6.ccFxReturn, out, channel: TX6.fxChannels[0]), quiet: true)
+            }
         }
         if force { logText("scena «\(s.name)» mandata") }
     }

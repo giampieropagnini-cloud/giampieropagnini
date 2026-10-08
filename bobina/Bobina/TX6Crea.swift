@@ -36,7 +36,8 @@ struct TX6DrumPanel: View {
     @ObservedObject var live: TX6Live
     @AppStorage("bobina.tx6.crea.meta") private var half = 0
     @AppStorage("bobina.tx6.crea.riga") private var row = 1
-    @AppStorage("bobina.tx6.crea.batteria.pronti") private var showPresets = false
+    /// Sotto la griglia: 0 i suoni della riga, 1 i preset di suono della riga; 2 = al posto della griglia le batterie pronte.
+    @AppStorage("bobina.tx6.crea.batteria.vista") private var view = 0
     @AppStorage("bobina.tx6.crea.batteria.gruppo") private var group = "cassa"
 
     private static let fills: [(name: String, steps: [Int])] = [
@@ -46,7 +47,7 @@ struct TX6DrumPanel: View {
     /// Prima la batteria, poi le onde.
     static let soundOrder = [4, 5, 6, 7, 8, 0, 1, 2, 3, 9]
     private let five = Array(repeating: GridItem(.flexible(), spacing: 4), count: 5)
-    private let three = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
+    private let four = Array(repeating: GridItem(.flexible(), spacing: 4), count: 4)
 
     private func pick(_ p: TX6Preset) {
         tx.apply(p, to: row)
@@ -60,96 +61,112 @@ struct TX6DrumPanel: View {
         #endif
         TX6Box {
             HStack(spacing: 4) {
-                TX6Mini(text: "passi 1-8", on: half == 0) { half = 0 }
-                TX6Mini(text: "9-16", on: half == 1) { half = 1 }
+                TX6Mini(text: "1-8", on: half == 0 && view != 2) { half = 0; if view == 2 { view = 0 } }
+                    .accessibilityLabel("passi 1-8")
+                TX6Mini(text: "9-16", on: half == 1 && view != 2) { half = 1; if view == 2 { view = 0 } }
                     .accessibilityLabel("passi 9-16")
-                TX6Mini(text: "suoni", on: !showPresets) { showPresets = false }
+                TX6Mini(text: "suoni", on: view == 0, color: Color(white: 0.75)) { view = 0 }
                     .accessibilityLabel("suoni della riga")
-                TX6Mini(text: "pronti", on: showPresets) { showPresets = true }
-                    .accessibilityLabel("preset pronti della riga")
+                TX6Mini(text: "preset", on: view == 1, color: Color(white: 0.75)) { view = 1 }
+                    .accessibilityLabel("preset di suono della riga")
+                TX6Mini(text: "pronte", on: view == 2) { view = 2 }
+                    .accessibilityLabel("batterie pronte")
             }
-            VStack(spacing: 4) {
-                ForEach(1...6, id: \.self) { t in
-                    HStack(spacing: 4) {
-                        Button {
-                            row = t
-                            tx.hitPad(t)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text("\(t)")
-                                    .font(.system(.caption2, design: .monospaced))
-                                    .foregroundStyle(row == t ? Color.black : Palette.dim)
-                                Text(tx.soundName(t))
-                                    .font(.system(.caption, design: .monospaced).weight(.semibold))
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.6)
-                            }
-                            .padding(.leading, 6)
-                            .frame(width: 62, height: 40, alignment: .leading)
-                            .background(RoundedRectangle(cornerRadius: 7).fill(row == t ? Palette.accent : Color(white: 0.14)))
-                            .foregroundStyle(row == t ? Color.black : Color.white)
+            if view == 2 {
+                TX6Label("Cambiano solo le tracce 1-4: melodie e tracce 5-6 restano. Col ritmo che gira entrano alla battuta.")
+                ForEach(TX6DrumPreset.groups, id: \.self) { g in
+                    TX6Label(g)
+                    LazyVGrid(columns: four, spacing: 4) {
+                        ForEach(TX6DrumPreset.all.filter { $0.group == g }) { d in
+                            TX6Mini(text: d.name, on: tx.currentPatternName == d.name || tx.pendingPatternName == d.name, height: 40) { tx.playDrums(d) }
+                                .accessibilityLabel("batteria \(d.name), \(d.bpm) bpm")
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("riga \(t), \(tx.soundName(t))")
-                        ForEach(0..<8, id: \.self) { c in
-                            let i = half * 8 + c
-                            let on = tx.beats[t - 1][i]
-                            Button {
-                                tx.beats[t - 1][i].toggle()
-                                tx.beatsOn = true
-                                row = t
-                            } label: {
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(on ? Palette.accent : Color(white: c % 4 == 0 ? 0.26 : 0.18))
-                                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(tx.pulsing && live.step == i ? Color.white : Color.clear, lineWidth: 2))
-                                    .frame(height: 40)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("traccia \(t), passo \(i + 1)")
-                            .accessibilityValue(on ? "acceso" : "spento")
-                        }
-                    }
-                }
-            }
-            HStack(spacing: 4) {
-                Text("riga \(row)")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.dim)
-                    .frame(width: 50, alignment: .leading)
-                ForEach(Self.fills, id: \.name) { f in
-                    TX6Mini(text: f.name) {
-                        tx.beats[row - 1] = (0..<16).map { f.steps.contains($0) }
-                        if !f.steps.isEmpty { tx.beatsOn = true }
-                    }
-                    .accessibilityLabel("riga \(row) \(f.name)")
-                }
-            }
-            if showPresets {
-                LazyVGrid(columns: five, spacing: 4) {
-                    ForEach(TX6Preset.groups + ["miei"], id: \.self) { g in
-                        TX6Mini(text: g, on: group == g, color: Color(white: 0.75)) { group = g }
-                            .accessibilityLabel("gruppo \(g)")
-                    }
-                }
-                let list = group == "miei" ? tx.myPresets : TX6Preset.builtIn.filter { $0.group == group }
-                if list.isEmpty {
-                    TX6Label("Ancora nessun preset tuo: si salvano da Suona → strumenti.")
-                }
-                LazyVGrid(columns: three, spacing: 4) {
-                    ForEach(list) { p in
-                        TX6Mini(text: p.name) { pick(p) }
-                            .accessibilityLabel("preset \(p.name) sulla riga \(row)")
                     }
                 }
             } else {
-                LazyVGrid(columns: five, spacing: 4) {
-                    ForEach(Self.soundOrder, id: \.self) { i in
-                        TX6Mini(text: TX6.sounds[i], on: tx.sentSounds[row - 1].map { TX6.soundIndex($0) } == i) {
-                            tx.set(row, .sound, TX6.soundValue(i))
-                            let r = row
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { tx.hitPad(r) }
+                VStack(spacing: 4) {
+                    ForEach(1...6, id: \.self) { t in
+                        HStack(spacing: 4) {
+                            Button {
+                                row = t
+                                tx.hitPad(t)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 0) {
+                                    Text("\(t)")
+                                        .font(.system(.caption2, design: .monospaced))
+                                        .foregroundStyle(row == t ? Color.black : Palette.dim)
+                                    Text(tx.soundName(t))
+                                        .font(.system(.caption, design: .monospaced).weight(.semibold))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.6)
+                                }
+                                .padding(.leading, 6)
+                                .frame(width: 62, height: 40, alignment: .leading)
+                                .background(RoundedRectangle(cornerRadius: 7).fill(row == t ? Palette.accent : Color(white: 0.14)))
+                                .foregroundStyle(row == t ? Color.black : Color.white)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("riga \(t), \(tx.soundName(t))")
+                            ForEach(0..<8, id: \.self) { c in
+                                let i = half * 8 + c
+                                let on = tx.beats[t - 1][i]
+                                Button {
+                                    tx.beats[t - 1][i].toggle()
+                                    tx.beatsOn = true
+                                    row = t
+                                } label: {
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(on ? Palette.accent : Color(white: c % 4 == 0 ? 0.26 : 0.18))
+                                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(tx.pulsing && live.step == i ? Color.white : Color.clear, lineWidth: 2))
+                                        .frame(height: 40)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("traccia \(t), passo \(i + 1)")
+                                .accessibilityValue(on ? "acceso" : "spento")
+                            }
                         }
-                        .accessibilityLabel("riga \(row) suono \(TX6.sounds[i])")
+                    }
+                }
+                HStack(spacing: 4) {
+                    Text("riga \(row)")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                        .frame(width: 50, alignment: .leading)
+                    ForEach(Self.fills, id: \.name) { f in
+                        TX6Mini(text: f.name) {
+                            tx.beats[row - 1] = (0..<16).map { f.steps.contains($0) }
+                            if !f.steps.isEmpty { tx.beatsOn = true }
+                        }
+                        .accessibilityLabel("riga \(row) \(f.name)")
+                    }
+                }
+                if view == 1 {
+                    LazyVGrid(columns: five, spacing: 4) {
+                        ForEach(TX6Preset.groups + ["miei"], id: \.self) { g in
+                            TX6Mini(text: g, on: group == g, color: Color(white: 0.75)) { group = g }
+                                .accessibilityLabel("gruppo \(g)")
+                        }
+                    }
+                    let list = group == "miei" ? tx.myPresets : TX6Preset.builtIn.filter { $0.group == group }
+                    if list.isEmpty {
+                        TX6Label("Ancora nessun preset tuo: si salvano da Suona → strumenti.")
+                    }
+                    LazyVGrid(columns: four, spacing: 4) {
+                        ForEach(list) { p in
+                            TX6Mini(text: p.name) { pick(p) }
+                                .accessibilityLabel("preset \(p.name) sulla riga \(row)")
+                        }
+                    }
+                } else {
+                    LazyVGrid(columns: five, spacing: 4) {
+                        ForEach(Self.soundOrder, id: \.self) { i in
+                            TX6Mini(text: TX6.sounds[i], on: tx.sentSounds[row - 1].map { TX6.soundIndex($0) } == i) {
+                                tx.set(row, .sound, TX6.soundValue(i))
+                                let r = row
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { tx.hitPad(r) }
+                            }
+                            .accessibilityLabel("riga \(row) suono \(TX6.sounds[i])")
+                        }
                     }
                 }
             }
@@ -170,9 +187,11 @@ struct TX6MelodyPanel: View {
     static let names = ["do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "sol#", "la", "la#", "si", "do↑"]
     private static let black: Set<Int> = [1, 3, 6, 8, 10]
     private let seven = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
-    private let two = Array(repeating: GridItem(.flexible(), spacing: 4), count: 2)
     /// L'ultima nota toccata: «ogni 4» la mette sui passi 1, 5, 9, 13.
     @State private var lastNote = 0
+    /// L'ultima melodia pronta scelta, per vederla accesa.
+    @State private var picked: String?
+    private let three = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
 
     var body: some View {
         let t = min(6, max(1, track))
@@ -187,21 +206,22 @@ struct TX6MelodyPanel: View {
             }
             if showPresets {
                 TX6Label("linee, sulla traccia \(t)")
-                LazyVGrid(columns: two, spacing: 4) {
+                LazyVGrid(columns: three, spacing: 4) {
                     ForEach(TX6MelodyPreset.dark.filter { !$0.chord }) { m in
-                        TX6Mini(text: m.name) { tx.applyMelody(m, from: t); showPresets = false }
+                        TX6Mini(text: m.name, on: picked == m.name, height: 40) { tx.applyMelody(m, from: t); picked = m.name }
                             .accessibilityLabel("melodia \(m.name)")
                     }
                 }
                 TX6Label(t <= 4 ? "accordi, sulle tracce \(t)-\(t + 2)" : "accordi: scegli una traccia fino alla 4")
-                LazyVGrid(columns: two, spacing: 4) {
+                LazyVGrid(columns: three, spacing: 4) {
                     ForEach(TX6MelodyPreset.dark.filter { $0.chord }) { m in
-                        TX6Mini(text: m.name) { tx.applyMelody(m, from: t); showPresets = false }
+                        TX6Mini(text: m.name, on: picked == m.name, height: 40) { tx.applyMelody(m, from: t); picked = m.name }
                             .disabled(t > 4)
                             .opacity(t > 4 ? 0.4 : 1)
                             .accessibilityLabel("accordi \(m.name)")
                     }
                 }
+                TX6Label("Tocca «pronte» per tornare a scrivere.")
             } else {
                 LazyVGrid(columns: seven, spacing: 4) {
                     ForEach(0..<13, id: \.self) { k in
@@ -239,6 +259,7 @@ struct TX6MelodyPanel: View {
                     .accessibilityLabel("nota su ogni 4")
                 }
             }
+            if !showPresets {
             TX6CursorGrid(live: live, pulsing: tx.pulsing, cursor: tx.melodyCursor,
                           label: { tx.melodies[t - 1][$0].map { Self.names[$0] } ?? "·" },
                           filled: { tx.melodies[t - 1][$0] != nil },
@@ -261,6 +282,7 @@ struct TX6MelodyPanel: View {
                     tx.melodyCursor = 0
                 }
                 .accessibilityLabel("svuota tutte le melodie")
+            }
             }
         }
     }
@@ -287,7 +309,7 @@ struct TX6LockPanel: View {
                 }
             }
             LazyVGrid(columns: five, spacing: 4) {
-                ForEach(TX6.Param.allCases.filter { $0.continuous }) { p in
+                ForEach(TX6.Param.movable) { p in
                     TX6Mini(text: p.name, on: tx.lockParam == p, color: Color(white: 0.75)) { tx.lockParam = p }
                         .accessibilityLabel("parametro \(p.name)")
                 }

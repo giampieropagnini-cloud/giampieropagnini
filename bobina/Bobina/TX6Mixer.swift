@@ -95,15 +95,23 @@ struct TX6Strip: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .frame(height: 14)
-            ForEach(TX6Jump.of(param).reversed(), id: \.self) { j in
-                TX6Mini(text: j.label, on: abs(v - j.value) <= 4, height: 32) { tx.set(track, param, j.value) }
-                    .accessibilityLabel("traccia \(track) \(name) \(j.spoken)")
-            }
-            HStack(spacing: 3) {
-                TX6Mini(text: "−", height: 32) { tx.set(track, param, v - 8) }
-                    .accessibilityLabel("traccia \(track) \(name) meno")
-                TX6Mini(text: "+", height: 32) { tx.set(track, param, v + 8) }
-                    .accessibilityLabel("traccia \(track) \(name) più")
+            if param == .gain {
+                // il guadagno solo un dB alla volta, mai a salti: un «max» sentito male rompe le casse
+                TX6Mini(text: "+1 dB", height: 84) { tx.stepGain(track, by: 1) }
+                    .accessibilityLabel("traccia \(track) guadagno più un decibel")
+                TX6Mini(text: "−1 dB", height: 84) { tx.stepGain(track, by: -1) }
+                    .accessibilityLabel("traccia \(track) guadagno meno un decibel")
+            } else {
+                ForEach(TX6Jump.of(param).reversed(), id: \.self) { j in
+                    TX6Mini(text: j.label, on: abs(v - j.value) <= 4, height: 32) { tx.set(track, param, j.value) }
+                        .accessibilityLabel("traccia \(track) \(name) \(j.spoken)")
+                }
+                HStack(spacing: 3) {
+                    TX6Mini(text: "−", height: 32) { tx.set(track, param, v - 8) }
+                        .accessibilityLabel("traccia \(track) \(name) meno")
+                    TX6Mini(text: "+", height: 32) { tx.set(track, param, v + 8) }
+                        .accessibilityLabel("traccia \(track) \(name) più")
+                }
             }
             HStack(spacing: 3) {
                 TX6Mini(text: "M", on: tx.mutes[track - 1], color: Palette.rec, height: 32) { tx.toggleMute(track) }
@@ -125,12 +133,39 @@ struct TX6FxPanel: View {
     private let three = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let seven = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
 
+    /// I valori che ogni effetto ha davvero, dalle pagine degli effetti della guida ufficiale (8/10/2026):
+    /// uno solo per effetto (il parametro 1), più la risonanza (parametro 2) nel filtro. Nessuno usa il 3.
+    /// Che il parametro 1 sia proprio quel valore viene dalla guida, non è ancora misurato (prova 19).
+    static func paramNames(_ index: Int, _ engine: Int?) -> [String] {
+        if index == 0 {
+            switch engine {
+            case 0: return ["1 · drone · light · small · medium · large"]
+            case 1: return ["1 · subtle · medium · strong"]
+            case 2: return ["1 · 1/8 … 3/2 a tempo, warp, mash"]
+            default: return ["1 · tipo o tempo dell'effetto"]
+            }
+        }
+        switch engine {
+        case 0: return ["1 · taglio", "2 · risonanza"]
+        case 1: return ["1 · shape · bend · chip · bit"]
+        case 2: return ["1 · push · drive · blow · dstroy"]
+        case 3: return ["1 · quantità 0-99"]
+        case 4: return ["1 · freeze − … +"]
+        case 5: return ["1 · stop 1 · stop 2 · pong"]
+        default: return ["1 · il valore dell'effetto", "2 · risonanza, solo nel filtro"]
+        }
+    }
+
     var body: some View {
         let name = index == 0 ? "FX I" : "FX II"
         TX6Box {
             HStack(spacing: 4) {
-                TX6Mini(text: tx.fxOn[index] ? "\(name) acceso" : "\(name) spento", on: tx.fxOn[index], height: 40) { tx.toggleFx(index) }
-                    .accessibilityLabel(tx.fxOn[index] ? "spegni \(name)" : "accendi \(name)")
+                TX6Mini(text: "acceso", on: tx.fxKnown[index] && tx.fxOn[index], height: 40) { tx.setFx(index, on: true) }
+                    .accessibilityLabel("accendi \(name)")
+                TX6Mini(text: "spento", on: tx.fxKnown[index] && !tx.fxOn[index], color: Palette.rec, height: 40) { tx.setFx(index, on: false) }
+                    .accessibilityLabel("spegni \(name)")
+                TX6Mini(text: "spegni FX I e II", height: 40) { tx.allFxOff() }
+                    .accessibilityLabel("spegni tutti e due gli effetti")
             }
             LazyVGrid(columns: three, spacing: 4) {
                 ForEach(TX6.fxEngines[index].indices, id: \.self) { i in
@@ -138,15 +173,17 @@ struct TX6FxPanel: View {
                         .accessibilityLabel("effetto \(TX6.fxEngines[index][i])")
                 }
             }
-            ForEach(0..<3, id: \.self) { k in
-                TX6KnobRow(name: "\(name) parametro \(k + 1)", value: tx.fxParams[index][k]) { tx.setFxParam(index, k, $0) }
+            let names = Self.paramNames(index, tx.fxEngine[index])
+            ForEach(names.indices, id: \.self) { k in
+                TX6KnobRow(name: names[k], value: tx.fxParams[index][k]) { tx.setFxParam(index, k, $0) }
             }
+            TX6Label("Dalla guida: un valore per effetto (1); il filtro ha anche la risonanza (2). Il 3 non serve.")
             if index == 0 {
                 TX6KnobRow(name: "ritorno", value: tx.fxReturn) { tx.setFxReturn($0) }
                 if let show = showSends {
                     TX6Mini(text: "mandate delle tracce →", height: 38) { show() }
                 }
-                TX6Label("Ogni traccia manda la sua parte all'effetto; il ritorno decide quanto ne rientra.")
+                TX6Label("Spento, il ritorno va a zero: tace anche con le mandate alzate. Riacceso, torna dov'era.")
             } else {
                 TX6Label("su quale traccia")
                 LazyVGrid(columns: seven, spacing: 4) {
@@ -250,7 +287,11 @@ struct TX6TrackView: View {
                         }
                     }
                     ForEach(Self.groups[min(3, max(0, part))]) { p in
-                        TX6KnobRow(name: p.name, value: tx.value(t, p), shown: p.shown(tx.value(t, p)), jumps: TX6Jump.of(p)) { tx.set(t, p, $0) }
+                        if p == .gain {
+                            TX6GainRow(track: t)
+                        } else {
+                            TX6KnobRow(name: p.name, value: tx.value(t, p), shown: p.shown(tx.value(t, p)), jumps: TX6Jump.of(p)) { tx.set(t, p, $0) }
+                        }
                     }
                     if part == 3 {
                         HStack(spacing: 4) {

@@ -17,7 +17,7 @@ Il tasto «passa a…» in alto a destra di ogni pagina passa da una sezione all
 Cinque schede, ognuna in uno schermo (8/10/2026): in cima a ogni scheda una fila di parti, una alla volta, niente slider (ogni manopola ha − · 0 · ¼ · ½ · ¾ · max · +) e niente menu.
 
 - **Mixer**: *tracce* (le sei tracce in colonna come sul TX-6: scegli cosa regolare, volume, guadagno, compressore, EQ, pan, filtro, mandate; muto e solo; in cima a ogni colonna si apre la traccia intera), *FX I* (riverbero, chorus, delay, ritorno), *FX II* (filtro, crush, distorsione, tremolo, freeze, tape, su una traccia o su tutto), *generale* (main, aux, cue, manopole del TX-6 spente), *scene* (a b c della macchina e le **scene che sfumano** in 1-16 battute).
-- **Crea**: in cima suona/ferma e il tempo; *batteria* (sei righe, suoni e preset pronti della riga), *melodia* **scritta in fila** (ogni nota toccata riempie il passo del cursore; melodie scure pronte), *manopola* (passi con manopola, scritti in fila), *pattern* (sette stili pronti e i tuoi; il cambio entra all'inizio della battuta). Il ritmo gira su un filo suo: scorrere lo schermo non lo rallenta.
+- **Crea**: in cima suona/ferma e il tempo; *batteria* (sei righe, suoni e preset della riga, e **20 batterie pronte** scure: trip hop, lenti e scuri, horror, industriale, spezzati), *melodia* **scritta in fila** (ogni nota toccata riempie il passo del cursore; **20 melodie scure pronte**, linee e accordi), *manopola* (passi con manopola, scritti in fila), *pattern* (sette stili pronti e i tuoi; il cambio entra all'inizio della battuta). Il ritmo gira su un filo suo: scorrere lo schermo non lo rallenta.
 - **Suona**: *suona* (tastiera su una traccia o accordi sulle sei, e i sei pad sul canale della traccia), *strumenti* (suono e manopole di ogni traccia, preset pronti e tuoi), *campioni* (campioni e loop del TX-6).
 - **Ritmo**: in cima il tempo in tre modi (di Bobina, Bobina lo dà al TX-6, Bobina segue il TX-6) e start/stop e tempo del TX-6; poi *pompa* (il sidechain che il TX-6 non ha), *cancello*, *onde* (gli LFO che mancano), *deriva* di volumi e pan, *corpo* (un parametro inclinando il telefono).
 - **Collega**: *collega* (cavo o bluetooth, a chi parla Bobina, il **ponte** verso il TP-7, le tabelle MIDI), *specchio* di fader e manopole in CTRL OUT, *monitor*, *prova* dei comandi.
@@ -71,6 +71,8 @@ Quello che si sa dell'NTS-1 è in `NTS1-RICERCA.md`.
 Ogni sezione vive su un suo branch `claude/…`. Si installa **sempre** con `zsh bobina/strumenti/installa.sh`: unisce tutti i branch `claude/*` locali, compila in Release e installa sull'iPhone 18 Pro di Giampiero. Installare da un branch solo toglie dal telefono le sezioni degli altri.
 
 **Dopo ogni cambiamento** (commit o installazione) si avvisano tutte le altre chat di Bobina con SendMessage (ListAgents, nomi con «Bobina»): branch e commit, file comuni toccati, cosa cambia per gli altri, se va unito. Una chat nuova si presenta alle altre appena nasce. È una regola di Giampiero (8/10/2026), scritta anche nel suo CLAUDE.md globale.
+
+**Guadagno, mai a salti** (regola di Giampiero, 8/10/2026): dove c'è un guadagno (gain) niente tasti 0 · ¼ · ½ · ¾ · max e niente onde, passi o inclinazione che lo muovano: solo − e + di un dB alla volta. Un «max» sentito male dal Controllo Vocale può rompere casse e cuffie.
 
 ## Installarla sull'iPhone (una volta sola, circa 20 minuti)
 

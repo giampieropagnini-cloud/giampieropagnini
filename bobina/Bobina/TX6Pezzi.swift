@@ -3,6 +3,40 @@ import SwiftUI
 // I pezzi delle schermate del TX-6 fatte per stare in uno schermo (8/10/2026), come NTS-1, OP-Z e M8:
 // niente slider, una parte alla volta, e da zero al massimo un tocco solo.
 
+extension TX6.Param {
+    /// I parametri che si possono far muovere (passi con manopola, onde, inclinazione): tutti tranne il guadagno,
+    /// che va solo a mano, un dB alla volta.
+    static let movable = allCases.filter { $0.continuous && $0 != .gain }
+}
+
+/// Il guadagno: solo − e + di un dB, niente salti e niente «max» (può rompere le casse, regola di Giampiero).
+struct TX6GainRow: View {
+    @EnvironmentObject var tx: TX6Engine
+    let track: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack {
+                Text("guadagno")
+                    .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                Spacer()
+                Text("+\(tx.gainDB(track)) dB")
+                    .font(.system(.footnote, design: .monospaced))
+                    .foregroundStyle(Palette.accent)
+            }
+            ProgressView(value: Double(tx.gainDB(track)), total: 42)
+                .tint(Palette.accent)
+                .accessibilityHidden(true)
+            HStack(spacing: 4) {
+                TX6Mini(text: "−1 dB") { tx.stepGain(track, by: -1) }
+                    .accessibilityLabel("guadagno meno un decibel")
+                TX6Mini(text: "+1 dB") { tx.stepGain(track, by: 1) }
+                    .accessibilityLabel("guadagno più un decibel")
+            }
+        }
+    }
+}
+
 /// Un salto della manopola: il valore, la scritta sul tasto, il nome per il Controllo Vocale.
 struct TX6Jump: Hashable {
     let value: Int
