@@ -5,15 +5,15 @@ Le fonti dei dubbi sono in OPZ-RICERCA.md §14.
 
 | # | prova | come | risultato |
 |---|---|---|---|
-| 1 | collegamento bluetooth | Collega → cerca l'OP-Z (tasto pairing sotto l'OP-Z). Che nome compare? | |
-| 2 | ▶ ■ | Suona → suona / ferma | |
-| 3 | pattern 1-16 | Suona → tasti pattern, da fermo e mentre suona (alla battuta) | |
-| 4 | pattern prima / dopo | CC 103 valori 16 e 17 | |
-| 5 | muti | Muti → kick, snare… (CC 53, 127 = muto) | |
+| 1 | collegamento bluetooth | Collega → cerca l'OP-Z (tasto pairing sotto l'OP-Z). Che nome compare? | ✅ 4/10 («funziona quasi tutto») |
+| 2 | ▶ ■ | Suona → suona / ferma | ✅ 4/10 («funziona quasi tutto») |
+| 3 | pattern 1-16 | Suona → tasti pattern, da fermo e mentre suona (alla battuta) | ✅ 4/10 («funziona quasi tutto») |
+| 4 | pattern prima / dopo | CC 103 valori 16 e 17 | ✅ 4/10 («funziona quasi tutto») |
+| 5 | muti | Muti → kick, snare… (CC 53, 127 = muto) | ✅ 4/10 («funziona quasi tutto») |
 | 6 | muto solo audio | CC 54 | |
 | 7 | gruppi di muti | CC 55, 0 = gruppo 1? | |
 | 8 | tempo da solo | Ritmo → l'OP-Z va da solo, − + (CC 56 = bpm, 40-127) | |
-| 9 | clock di Bobina col bluetooth | Ritmo → Bobina dà il clock (tasto 4 acceso sull'OP-Z): sta a tempo? scatti? | |
+| 9 | clock di Bobina col bluetooth | Ritmo → Bobina dà il clock (tasto 4 acceso sull'OP-Z): sta a tempo? scatti? | ✅ 8/10: col tasto 4 (midi clock in) acceso Crea e OP-Z vanno a tempo («vado tutto a tempo») |
 | 10 | insieme a TX-6 / PO | stessa battuta? anticipo da regolare? | |
 | 11 | swing | CC 57: 64 = niente swing? | |
 | 12 | punch-in | Effetti: quale ottava (53-64 o 65-76) fa partire gli effetti? | ✅ 4/10: SHIFT + tasto manda note 9 e 11 sul canale 13 → fa = 5. Con 5-16 e 17-28 vanno («vanno forti») |
@@ -39,3 +39,18 @@ Da provare ancora: «scrivi una battuta sull'OP-Z» col record lock, clock di Bo
 - Mixer di Crea (suona/muta, solo, volume): va.
 - 7/10: «scrivi sull'OP-Z» con 2 battute (32 passi, pattern 1 e 2): «sembra funzionare» → il record lock regge il cambio di pattern via CC 103.
 - 7/10: lo stop MIDI (anche due volte) NON spegne il record lock: va tolto a mano (REC). In Bobina, alla fine della scrittura, un avviso rosso lo ricorda.
+
+## Da provare (elenco dell'8/10/2026)
+
+Cose nuove: Crea in uno schermo (griglia e cursore), sequenze pronte, automazione, Live in uno schermo
+(manopole ed effetti), progetti. Con Ele: TRACK + numero sceglie la traccia, 4 battute, gruppi di muti.
+Tempo: insieme a TX-6/PO, «da solo» (CC 56), swing (CC 57), canzone a pattern, poliritmi (CC 60), muto solo audio (CC 54).
+- 8/10: Crea → batteria a griglia: va. Batterie e melodie pronte: vanno.
+- 8/10: il tempo diverso fra Crea e OP-Z era il tasto 4 spento (di fabbrica): acceso, va tutto a tempo.
+- 8/10: Crea → note col cursore: le note finiscono nei passi giusti.
+- 8/10: automazione a passi (bass → filtro, livello 1 e 8): il filtro si muove.
+- 8/10: CC 102 sul canale 1, valore traccia−1, sceglie la traccia attiva: misurato con le luci (TRACK tenuto): kick 1, snare 2, bass 5, chord 8. ✅
+- 8/10: effetti punch-in via MIDI: «solo traccia» (ottava bassa) resta sulla prima traccia attiva anche se CC 102 cambia la luce; «gruppo» (ottava alta) resta sulla batteria anche scegliendo bass. Tolta la scelta della traccia da Live; restano «su tutto il gruppo» e «solo traccia attiva» (scelta sulla macchina).
+- 8/10: Live → manopole: vanno (min/max sul filtro). Effetti punch-in «su tutto il gruppo» dopo la semplificazione: vanno.
+- 8/10: progetti di Crea: restano separati (progetto 2 nuovo, progetto 1 intatto). Gruppo A delle prove: tutto ✅.
+- 5/10 (dalla chat M8): M8 e OP-Z sulla stessa battuta col clock di Bobina: «perfetto».

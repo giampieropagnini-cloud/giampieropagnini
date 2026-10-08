@@ -237,11 +237,10 @@ final class OPZSequencer {
             // l'arpeggio di Bobina vuole l'arpeggio dell'OP-Z spento (velocità tutta a sinistra = 0):
             // il 4/10/2026 col valore 8 l'OP-Z arpeggiava ancora, lentissimo, sopra quello di Bobina
             if p.arpOn { head += OPZ.cc(9, 0, channel: 7) }
-            if p.sync == .own {
-                let v = tempoValue(line.bpm)
-                head += OPZ.tempo(Double(v))
-                lastTempo = v
-            }
+            // il tempo anche col clock: se l'OP-Z non ascolta il clock (tasto 4 spento) almeno parte allo stesso bpm
+            let v = tempoValue(line.bpm)
+            head += OPZ.tempo(Double(v))
+            lastTempo = v
             if !head.isEmpty { send(head, at: t0 > io.ticks(ms: 40) ? t0 - io.ticks(ms: 40) : t0) }
             startTimer()
         }
@@ -276,7 +275,12 @@ final class OPZSequencer {
             lock.lock()
             onceRequested = false
             lock.unlock()
-            send(offs + OPZ.stop, at: t)
+            send(OPZ.stop, at: t)
+            // le note già consegnate a CoreMIDI arrivano fino a `lookahead` dopo: le note-off partono dopo di loro,
+            // se no una nota partita un attimo dopo lo stop resta suonata per sempre (8/10/2026: «suoni che restano fissi»)
+            let base = t == 0 ? io.now() : t
+            let late = base + io.ticks(ms: lookahead + max(0, p.leadMs) + 40)
+            io.send(offs + OPZ.allNotesOff(), at: late)
             onStep?(-1, io.now())
     }
 

@@ -181,6 +181,10 @@ final class POSequencer {
                 io.send(PO.noteOff(.play, channel: p.channel), at: io.now() + io.ticks(ms: 60))
             }
             if !bytes.isEmpty { send(bytes, at: 0) }
+            // i passi già consegnati a CoreMIDI (fino a 150 ms avanti) arrivano dopo questo stop: dopo l'ultimo
+            // si lasciano tutti i 23 tasti, così sul PO non resta niente giù (lezione dell'OP-Z, 8/10/2026)
+            let after = io.now() + io.ticks(ms: lookahead + max(0, p.leadMs) + 40)
+            send(PO.Key.allCases.flatMap { PO.noteOff($0, channel: p.channel) }, at: after)
         }
     }
 

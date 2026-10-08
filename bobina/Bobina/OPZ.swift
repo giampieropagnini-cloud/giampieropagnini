@@ -146,6 +146,13 @@ enum OPZ {
 
     static func swing(_ value: Int) -> [UInt8] { cc(57, value, channel: 1) }
 
+    /// Sceglie la traccia attiva dell'OP-Z (CC 102 sul canale 1, valore 0-15): quella su cui lavorano la sua
+    /// tastiera, le sue manopole e gli effetti punch-in «sulla traccia». Misurato l'8/10/2026: kick 1, snare 2, bass 5, chord 8.
+    static func activeTrack(_ n: Int) -> [UInt8] { cc(102, max(1, min(16, n)) - 1, channel: 1) }
+
+    /// «Tutte le note giù» (CC 123) sulle tracce che suonano: 1-8 e perform (13).
+    static func allNotesOff() -> [UInt8] { (Array(1...8) + [13]).flatMap { cc(123, 0, channel: $0) } }
+
     // MARK: per il monitor
 
     static func describe(_ m: [UInt8]) -> String {

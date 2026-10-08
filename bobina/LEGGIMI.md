@@ -14,11 +14,13 @@ Il tasto «passa a…» in alto a destra di ogni pagina passa da una sezione all
 
 ### Sezione TX-6
 
-- **Mixer**: volume e muto delle sei tracce; ogni traccia si apre con tutto il resto (pan, guadagno, filtro, EQ, compressore, mandate, synth). Il generale (main, aux, cue, manopole del TX-6 spente), le scene a b c della macchina, e le **scene che sfumano**: quante ne vuoi, e il passaggio dall'una all'altra in 1-16 battute.
-- **Effetti**: FX I (riverbero, chorus, delay) con le mandate delle tracce e il ritorno, FX II (filtro, crush, distorsione, tremolo, freeze, tape) su una traccia o su tutto, le mandate aux.
-- **Suona**: **pattern e stili** (sette stili pronti, house, techno, hip hop, reggaeton, drum'n'bass, electro, ambient, e i tuoi pattern salvati: il cambio entra all'inizio della battuta), **i sei strumenti** (suono e barre di ogni traccia), una tastiera (una traccia, o accordi sulle sei tracce), sei pad (do-la sul canale 7), la **batteria a passi**, la **melodia a passi** e i **passi con manopola**. Il ritmo gira su un filo suo: scorrere lo schermo non lo rallenta.
-- **Ritmo**: il tempo in tre modi (di Bobina, Bobina lo dà al TX-6, Bobina segue il TX-6), start/stop e tempo del TX-6, la **pompa** (il sidechain che il TX-6 non ha), il **cancello**, due **onde** (gli LFO che mancano), la **deriva** di volumi e pan, e il filtro **col corpo** inclinando il telefono.
-- **Collega**: cavo o bluetooth, lo specchio di fader e manopole in CTRL OUT, il **ponte** (il TX-6 in CTRL OUT comanda la sezione TP-7), il monitor e tutte le tabelle MIDI del TX-6.
+Cinque schede, ognuna in uno schermo (8/10/2026): in cima a ogni scheda una fila di parti, una alla volta, niente slider (ogni manopola ha − · 0 · ¼ · ½ · ¾ · max · +) e niente menu.
+
+- **Mixer**: *tracce* (le sei tracce in colonna come sul TX-6: scegli cosa regolare, volume, guadagno, compressore, EQ, pan, filtro, mandate; muto e solo; in cima a ogni colonna si apre la traccia intera), *FX I* (riverbero, chorus, delay, ritorno), *FX II* (filtro, crush, distorsione, tremolo, freeze, tape, su una traccia o su tutto), *generale* (main, aux, cue, manopole del TX-6 spente), *scene* (a b c della macchina e le **scene che sfumano** in 1-16 battute).
+- **Crea**: in cima suona/ferma e il tempo; *batteria* (sei righe, suoni e preset pronti della riga), *melodia* **scritta in fila** (ogni nota toccata riempie il passo del cursore; melodie scure pronte), *manopola* (passi con manopola, scritti in fila), *pattern* (sette stili pronti e i tuoi; il cambio entra all'inizio della battuta). Il ritmo gira su un filo suo: scorrere lo schermo non lo rallenta.
+- **Suona**: *suona* (tastiera su una traccia o accordi sulle sei, e i sei pad sul canale della traccia), *strumenti* (suono e manopole di ogni traccia, preset pronti e tuoi), *campioni* (campioni e loop del TX-6).
+- **Ritmo**: in cima il tempo in tre modi (di Bobina, Bobina lo dà al TX-6, Bobina segue il TX-6) e start/stop e tempo del TX-6; poi *pompa* (il sidechain che il TX-6 non ha), *cancello*, *onde* (gli LFO che mancano), *deriva* di volumi e pan, *corpo* (un parametro inclinando il telefono).
+- **Collega**: *collega* (cavo o bluetooth, a chi parla Bobina, il **ponte** verso il TP-7, le tabelle MIDI), *specchio* di fader e manopole in CTRL OUT, *monitor*, *prova* dei comandi.
 
 ### Sezione Pocket Operator
 
@@ -29,6 +31,27 @@ Il tasto «passa a…» in alto a destra di ogni pagina passa da una sezione all
 - **Collega**: bluetooth o cavo, il canale, le scorciatoie a CC, il monitor e le tabelle MIDI dell'adattatore.
 
 Quello che si sa dell'adattatore è in `PO-RICERCA.md`, le prove con le macchine vere in `PROVE-PO.md`.
+
+### Sezione OP-Z
+
+- **Suona**: ▶ ■ dell'OP-Z, i suoi 16 pattern (alla battuta o subito), il progetto, la **canzone a pattern** (i pattern dell'OP-Z in fila, da soli).
+- **Crea** (Bobina suona l'OP-Z a passi, col suo clock): in cima ▶/■, «solo OP-Z», tempo e **silenzio**; sotto una parte per volta, ognuna in uno schermo: **batteria** a griglia (4 righe, riempi in un tocco, 24 suoni) · **note** col cursore (un tocco = una nota o un accordo intero, scrivi/suona/tieni) · **pattern** (16 progetti × 16 pattern, catena che parte da sola, passi 1-32 per traccia, poliritmi) · **effetti di Bobina** (loop, ramp, pitch, random, echo, filter sweep, duck… dal vivo o nei passi) · **mixer** · **manopole** (automazione a passi) · **scrivi** (Crea dentro i pattern dell'OP-Z, 1-4 battute, col record lock). In più 20 batterie e 20 melodie pronte, scure, e l'arpeggio di Bobina a tempo.
+- **Live** (l'OP-Z da solo): muti delle 16 tracce · effetti punch-in dell'OP-Z (gruppo o traccia attiva) · manopole una pagina per volta (min − metà + max) · pattern · scene di muti, gruppi dell'OP-Z, poliritmi · silenzio.
+- **Ritmo**: Bobina dà il clock (sulla stessa battuta di TX-6 e PO) o l'OP-Z va da solo (CC 56, fino a 127 bpm), swing, anticipo.
+- **Collega**: bluetooth o cavo, le impostazioni MIDI da fare sull'OP-Z, il monitor.
+
+Quello che si sa dell'OP-Z è in `OPZ-RICERCA.md`, le prove in `PROVE-OPZ.md`.
+
+### Sezione M8 (Dirtywave M8)
+
+Ogni scheda sta in uno schermo.
+- **Tasti**: gli 8 tasti dell'M8 come sulla macchina, ognuno diviso in due (sopra un tocco, sotto «tieni»); **M8 a tempo** (start e clock sulla stessa battuta di TX-6, PO, OP-Z, NTS-1) e bpm; **live mode** in un tocco (shift + sinistra, dal Song); **silenzio**; poi **muta e solo 1-8** oppure le **manopole**.
+- **Suona**: **traccia 1-8** (traccia N = canale N) e **strumento −/+** (Program Change), sedici pad a tasto unico (modo tocca o tieni), **inclinazione** su un CC.
+- **Passi**: 8 o 16 passi a tempo con la **scrittura in fila** (un tocco = una nota nel passo del cursore), pausa, indietro, copia 1-8 su 9-16.
+- **Manopole**: 8 manopole, ognuna un CC che sull'M8 si collega a un parametro qualsiasi (forma dell'onda, cutoff, res, mandate, volumi…). Per ognuna: **valore** a salti (0 · ¼ · ½ · ¾ · max), **onda a tempo** (onda, triangolo, sale, scende, cancello, pompa, a caso; giro da 1/16 a 4 battute; da… a…), **passi** (automazione a passi con la scrittura in fila), **imposta** (nome, CC, e «collega al parametro dell'M8»: Bobina tiene OPTION e muove il CC).
+- **Collega**: la porta (col cavo USB-C, l'M8 non ha il bluetooth), il **microfono** (con l'M8 attaccato l'iPhone prenderebbe il suo ingresso come microfono e il Controllo Vocale non sentirebbe più: Bobina tiene un microfono USB vero, es. il CM-15 sull'hub, se no quello dell'iPhone), il **firmware** letto dall'M8 (lo schermo dell'M8 dentro Bobina chiede il firmware 6), i canali.
+
+Quello che si sa dell'M8 è in `M8-RICERCA.md`. Provato col vero il 5/10/2026: tasti, live mode, muta e solo, pad, passi, M8 e OP-Z sulla stessa battuta.
 
 ### Sezione NTS-1 (Korg NTS-1 digital kit mkII)
 
@@ -102,6 +125,25 @@ Tieni **shift** e premi **select** per il menu, poi:
 - **Col cavo**: micro USB dell'adattatore → iPhone. Compare come «Teensy MIDI».
 - **A tempo col TX-6, col cavo**: aux del TX-6 → ingresso del PO. Sul TX-6: aux, shift + gira select → sync 8. Sul PO: tasto in alto + bpm fino a **SY2**. In Bobina: *Ritmo → cavo sync dal TX-6*.
 - Via MIDI **le manopole A e B non si muovono**, e il PO non dice mai com'è messo.
+
+## Preparare l'OP-Z
+
+- **Col bluetooth**: la prima volta si tiene il tasto di pairing sotto l'OP-Z finché la luce lampeggia blu, poi in Bobina *Collega → cerca l'OP-Z*. L'app ufficiale OP-Z va chiusa: parla con un telefono per volta.
+- Una volta sola, sull'OP-Z: tieni **TEMPO + SCREEN** e controlla i tasti 1-8. **1 spento** (se no il canale 1 va alla traccia attiva), **2 e 3 accesi**, **4 acceso** (midi clock in: senza, l'OP-Z non segue il tempo di Bobina e va a due tempi diversi; di fabbrica è spento), 5 spento, 6 spento, **7 spento** (eco), 8 acceso.
+- Il **metronomo** dell'OP-Z si spegne tenendo TEMPO e girando la manopola rossa tutta a sinistra. Se il tempo non cambia mai, è bloccato: TEMPO + SHIFT lo sblocca.
+- Gli **effetti punch-in** via MIDI sono note 5-28 sul canale 13 e lavorano sul sequencer dell'OP-Z (non sulle note di Crea). La traccia attiva si sceglie col CC 102, ma via MIDI non sposta gli effetti (misurato l'8/10/2026).
+- **Lo stop MIDI non spegne il record lock**: dopo «scrivi sull'OP-Z» Ele preme REC.
+- Lo strumento di una traccia si cambia solo sulla macchina: TRACK + i tasti della fila di sopra (strumento) o di sotto (suono).
+
+## Preparare l'M8
+
+Sull'M8, **Project → MIDI → Settings**:
+- **CONTROL MAP CHAN = 10** (o lo stesso numero di Bobina → M8 → Collega → canali): i tasti, muta e solo, le manopole.
+- **TRACK INPUT**: traccia 1 = CHAN 1, traccia 2 = CHAN 2 … traccia 8 = CHAN 8 (così «traccia N» in Bobina suona la traccia N); **INST#** = lo strumento di ogni traccia; **PG CHANGE** acceso per cambiarlo da Bobina.
+- **SYNC IN = CLOCK+TRANSP.** per «a tempo con Bobina».
+- Le manopole e l'inclinazione: cursore sul parametro, poi in Bobina **Manopole → imposta → collega al parametro dell'M8** (oppure a mano: Project → MIDI Mapping, tieni OPTION e muovi il CC).
+
+Col cavo all'iPhone, insieme a un microfono USB (es. TE CM-15) su un hub USB-C, così il Controllo Vocale continua a sentire.
 
 ## Preparare l'NTS-1
 

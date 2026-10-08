@@ -116,8 +116,10 @@ final class M8Engine: ObservableObject {
     /// Il microfono dell'iPhone tenuto acceso col cavo dell'M8 attaccato.
     let mic = M8Mic()
     private(set) lazy var sequencer = M8Sequencer(io: io)
-    /// Bobina che suona l'M8 (scheda Suona).
+    /// Bobina che suona l'M8 (schede Suona e Passi).
     let player = M8Player()
+    /// Le 8 manopole: valori, onde a tempo, automazione a passi (scheda Manopole).
+    let knobs = M8Knobs()
 
     /// L'M8 va a tempo con Bobina (start, clock, stop).
     @Published private(set) var running = false
@@ -136,11 +138,13 @@ final class M8Engine: ObservableObject {
     var connected: Bool { io.destination != 0 }
     var connectedName: String { destinations.first(where: { $0.id == destinationID })?.name ?? "" }
 
-    /// Il canale «CONTROL MAP CHAN» dell'M8.
-    @Published var channel: Int { didSet { UserDefaults.standard.set(channel, forKey: "bobina.m8.canale") } }
-    /// La manopola: un CC che sull'M8 si assegna in Project > MIDI Mapping.
-    @Published var knobCC: Int { didSet { UserDefaults.standard.set(knobCC, forKey: "bobina.m8.cc") } }
-    @Published private(set) var knob = 64
+    /// Il canale «CONTROL MAP CHAN» dell'M8: tasti, muta e solo, e i CC delle manopole.
+    @Published var channel: Int {
+        didSet {
+            UserDefaults.standard.set(channel, forKey: "bobina.m8.canale")
+            knobs.push()
+        }
+    }
     /// Il firmware letto dall'M8 (es. «6.1.2»). nil = non ancora letto; «prima del 6» = non ha risposto.
     @Published private(set) var firmware: String?
     @Published private(set) var model: String?
@@ -156,7 +160,6 @@ final class M8Engine: ObservableObject {
     init() {
         let d = UserDefaults.standard
         channel = d.object(forKey: "bobina.m8.canale") as? Int ?? 10
-        knobCC = d.object(forKey: "bobina.m8.cc") as? Int ?? 1
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, _ in self?.received(bytes) }
         bpmObserver = NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
@@ -165,6 +168,7 @@ final class M8Engine: ObservableObject {
         }
         refreshPorts()
         player.attach(self)
+        knobs.attach(self)
     }
 
     // MARK: porte
@@ -301,13 +305,6 @@ final class M8Engine: ObservableObject {
         muted.removeAll()
         soloed.removeAll()
         send(bytes)
-    }
-
-    func setKnob(_ v: Int) {
-        let v = max(0, min(127, v))
-        guard v != knob else { return }
-        knob = v
-        send(M8.cc(knobCC, v, channel: channel))
     }
 
     // MARK: firmware

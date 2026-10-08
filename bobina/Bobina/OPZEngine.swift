@@ -107,6 +107,22 @@ final class OPZEngine: ObservableObject {
 
     /// Ottava alta: l'effetto punch-in agisce su tutte le tracce; bassa: sulla traccia attiva (da provare).
     @Published var punchHigh = false { didSet { save() } }
+    /// La traccia attiva dell'OP-Z scelta da Bobina (nil = non ancora scelta: vale quella scelta sulla macchina).
+    @Published private(set) var activeTrack: Int?
+
+    /// Rende attiva sull'OP-Z una traccia: gli effetti punch-in «sulla traccia» lavorano su quella.
+    func setActiveTrack(_ t: Int) {
+        activeTrack = t
+        // 8/10/2026: dopo un effetto sul kick, toccando snare l'OP-Z restava sul kick. Prima si lasciano tutti gli
+        // effetti (anche quelli che Bobina crede già lasciati), poi la traccia nuova, un attimo dopo.
+        punchHeld.removeAll()
+        send((OPZ.punchF..<(OPZ.punchF + 24)).flatMap { OPZ.noteOff($0, channel: 13) })
+        io.send(OPZ.activeTrack(t), at: ms(40))
+        note(OPZ.activeTrack(t), incoming: false)
+    }
+
+    /// Prima di ogni effetto si ridice all'OP-Z la traccia attiva: se l'ha persa, l'effetto va comunque lì.
+    private func punchPrefix() -> [UInt8] { activeTrack.map { OPZ.activeTrack($0) } ?? [] }
     /// Gli effetti tenuti adesso (0-11).
     @Published private(set) var punchHeld: Set<Int> = []
 
@@ -255,6 +271,8 @@ final class OPZEngine: ObservableObject {
             // il numero mostrato è intero: un bpm che tremola di qualche decimo non deve ridisegnare la pagina
             guard let self = self, let v = n.object as? Double, abs(self.bpm - v) >= 0.5 || self.bpm.rounded() != v.rounded() else { return }
             self.bpm = v
+            // il tempo cambiato da un'altra sezione arriva anche all'OP-Z
+            self.sendTempo()
         }
         refreshPorts()
         startTimer()
@@ -290,8 +308,13 @@ final class OPZEngine: ObservableObject {
         let n = connectedName.lowercased()
         viaBluetooth = n.contains("ble") || n.contains("bluetooth")
         if dest != io.destination || src != io.source {
+            let wasOff = io.destination == 0
             io.use(destination: dest, source: src)
             objectWillChange.send()
+            // appena l'OP-Z si collega: silenzio, così una nota rimasta giù da prima non suona per sempre
+            if wasOff && dest != 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in self?.silence() }
+            }
         }
     }
 
@@ -344,8 +367,42 @@ final class OPZEngine: ObservableObject {
     func setBPM(_ v: Double) {
         let range = sync == .own ? OPZ.tempoRange : 40...200
         bpm = max(range.lowerBound, min(range.upperBound, v))
-        // da fermo l'OP-Z il tempo lo sa solo dal CC 56; mentre suona ci pensa il sequencer (col clock lo segue da sé)
-        if !running { send(OPZ.tempo(min(OPZ.tempoRange.upperBound, bpm))) }
+        // sempre anche il CC 56 (8/10/2026: «Crea e l'OP-Z vanno a due tempi diversi»): se l'OP-Z non segue il clock
+        // (tasto 4 delle impostazioni MIDI spento) almeno il suo tempo è lo stesso. Oltre 127 il CC non arriva.
+        sendTempo()
+    }
+
+    /// Il tempo di Bobina all'OP-Z col CC 56, solo quando cambia il numero intero.
+    private var lastTempoSent: Int?
+    private func sendTempo() {
+        let v = Int(min(OPZ.tempoRange.upperBound, max(OPZ.tempoRange.lowerBound, bpm)).rounded())
+        guard v != lastTempoSent, connected else { return }
+        lastTempoSent = v
+        send(OPZ.tempo(Double(v)))
+    }
+
+    // MARK: silenzio
+
+    /// Spegne tutto quello che può essere rimasto acceso: le note di Crea e quelle tenute, gli effetti tenuti,
+    /// e «tutte le note giù» (CC 123) sulle tracce che suonano. Le note-off sono solo quelle che Bobina usa,
+    /// così il bluetooth non si intasa.
+    func silence() {
+        var bytes: [UInt8] = []
+        // le note tenute a mano (tieni) prima di tutto: possono non essere in nessun pattern
+        for (t, notes) in liveHeld { for n in notes { bytes += OPZ.noteOff(n, channel: t) } }
+        punchHeld.removeAll()
+        fxHeld = []
+        liveHeld = [:]
+        for t in 1...8 {
+            var notes = Set<Int>()
+            for pat in patterns { for cell in pat[t - 1] { notes.formUnion(cell) } }
+            if t <= 4 { notes.insert(drumPick[t - 1]) }
+            for n in notes.sorted() { bytes += OPZ.noteOff(n, channel: t) }
+        }
+        bytes += (OPZ.punchF..<(OPZ.punchF + 24)).flatMap { OPZ.noteOff($0, channel: 13) }
+        bytes += OPZ.allNotesOff()
+        send(bytes)
+        logText("silenzio")
     }
 
     func setSwing(_ v: Int) {
@@ -541,6 +598,23 @@ final class OPZEngine: ObservableObject {
         createTrack = track
     }
 
+    /// Svuota tutta la batteria (tracce 1-4) del pattern che scrivi.
+    func clearDrums() {
+        var st = steps
+        for r in 0..<4 { st[r] = Array(repeating: [], count: 32) }
+        steps = st
+        logText("batteria svuotata")
+    }
+
+    /// Svuota tutte le melodie (tracce 5-8: bass, lead, arp, chord) del pattern che scrivi.
+    func clearMelodies() {
+        var st = steps
+        for t in 4..<8 { st[t] = Array(repeating: [], count: 32) }
+        steps = st
+        cursor = 0
+        logText("melodie svuotate")
+    }
+
     /// Batteria: il suono di una riga (la senti subito).
     func setDrumPick(_ track: Int, _ note: Int) {
         drumPick[track - 1] = note
@@ -564,6 +638,110 @@ final class OPZEngine: ObservableObject {
         }
         steps[track - 1] = row
         createTrack = track
+    }
+
+    // MARK: sequenze pronte (OPZPresets.swift)
+
+    /// Una sequenza pronta cambia anche il tempo di Bobina (di serie no).
+    @Published var presetTempo = false
+    /// L'ultima sequenza pronta caricata, per mostrarla accesa.
+    @Published private(set) var presetName: String?
+    @Published private(set) var canUndoPreset = false
+
+    private struct PresetUndo {
+        var steps: [[[Int]]]
+        var lengths: [Int]
+        var gates: [Int]
+        var drumPick: [Int]
+        var trackOn: [Bool]
+        var arpOn: Bool
+        var arpStyle: OPZArpStyle
+        var arpRate: Int
+        var arpOctaves: Int
+        var bpm: Double
+        var name: String?
+    }
+    private var presetUndo: PresetUndo?
+
+    private func rememberForUndo() {
+        presetUndo = PresetUndo(steps: steps, lengths: lengths[createPattern - 1], gates: gates[createPattern - 1],
+                                drumPick: drumPick, trackOn: trackOn, arpOn: arpOn, arpStyle: arpStyle, arpRate: arpRate,
+                                arpOctaves: arpOctaves, bpm: bpm, name: presetName)
+        canUndoPreset = true
+    }
+
+    /// Una batteria pronta nelle tracce 1-4 del pattern che scrivi (le melodie restano).
+    func loadDrums(_ p: OPZDrumPreset) {
+        rememberForUndo()
+        var st = steps
+        var l = lengths[createPattern - 1]
+        var g = gates[createPattern - 1]
+        for r in 0..<4 {
+            let row = p.steps(r)
+            let note = OPZ.keyboardF + max(1, min(24, p.sounds[r])) - 1
+            st[r] = (0..<32).map { i in i < row.count && row[i] ? [note] : [] }
+            drumPick[r] = note
+            l[r] = 16
+            g[r] = 1
+            trackOn[r] = true
+        }
+        steps = st
+        lengths[createPattern - 1] = l
+        gates[createPattern - 1] = g
+        if presetTempo { setBPM(Double(p.bpm)) }
+        presetName = p.name
+        logText("batteria pronta: \(p.name)")
+    }
+
+    /// Una melodia pronta nelle tracce 5-8 del pattern che scrivi (la batteria resta). Le tracce che la melodia
+    /// non usa si svuotano, così non restano note vecchie in mezzo.
+    func loadMelody(_ p: OPZMelodyPreset) {
+        rememberForUndo()
+        var st = steps
+        var l = lengths[createPattern - 1]
+        var g = gates[createPattern - 1]
+        for t in 5...8 {
+            let cells = p.steps(track: t)
+            if cells.isEmpty {
+                st[t - 1] = Array(repeating: [], count: 32)
+                continue
+            }
+            st[t - 1] = (0..<32).map { i in i < cells.count ? Array(cells[i].prefix(polyphony(t))) : [] }
+            l[t - 1] = max(1, min(32, cells.count))
+            g[t - 1] = p.gates[t - 5]
+            trackOn[t - 1] = true
+        }
+        steps = st
+        lengths[createPattern - 1] = l
+        gates[createPattern - 1] = g
+        if !p.arp.isEmpty {
+            arpStyle = p.arpStyle
+            arpRate = p.arpRate
+            arpOctaves = p.arpOctaves
+            arpOn = true
+        }
+        if presetTempo { setBPM(Double(p.bpm)) }
+        presetName = p.name
+        logText("melodia pronta: \(p.name)")
+    }
+
+    /// Rimette il pattern com'era prima dell'ultima sequenza pronta.
+    func undoPreset() {
+        guard let u = presetUndo else { return }
+        steps = u.steps
+        lengths[createPattern - 1] = u.lengths
+        gates[createPattern - 1] = u.gates
+        drumPick = u.drumPick
+        trackOn = u.trackOn
+        arpStyle = u.arpStyle
+        arpRate = u.arpRate
+        arpOctaves = u.arpOctaves
+        arpOn = u.arpOn
+        if presetTempo { setBPM(u.bpm) }
+        presetName = u.name
+        presetUndo = nil
+        canUndoPreset = false
+        logText("sequenza pronta annullata")
     }
 
     /// Le note tenute dal vivo, per traccia (1-8): restano giù finché non le lasci.
@@ -892,15 +1070,21 @@ final class OPZEngine: ObservableObject {
     func punchTap(_ i: Int, length: Double = 500) {
         if punchHeld.contains(i) { punchRelease(i); return }
         let n = punchNote(i)
-        send(OPZ.noteOn(n, channel: 13))
-        io.send(OPZ.noteOff(n, channel: 13), at: ms(length))
+        let pre = punchPrefix()
+        if !pre.isEmpty { send(pre) }
+        io.send(OPZ.noteOn(n, channel: 13), at: ms(pre.isEmpty ? 0 : 30))
+        note(OPZ.noteOn(n, channel: 13), incoming: false)
+        io.send(OPZ.noteOff(n, channel: 13), at: ms(length + 30))
     }
 
     /// Metà di sotto: l'effetto resta finché non lo ritocchi.
     func punchToggle(_ i: Int) {
         if punchHeld.contains(i) { punchRelease(i) } else {
             punchHeld.insert(i)
-            send(OPZ.noteOn(punchNote(i), channel: 13))
+            let pre = punchPrefix()
+            if !pre.isEmpty { send(pre) }
+            io.send(OPZ.noteOn(punchNote(i), channel: 13), at: ms(pre.isEmpty ? 0 : 30))
+            note(OPZ.noteOn(punchNote(i), channel: 13), incoming: false)
         }
     }
 
@@ -1058,7 +1242,7 @@ final class OPZEngine: ObservableObject {
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: "bobina.opz"),
               let s = try? JSONDecoder().decode(Saved.self, from: data),
-              s.scenes.count == 4, !s.song.isEmpty else { return }
+              s.scenes.count == 4 else { return }
         loading = true
         sync = s.sync
         clockAlways = s.clockAlways

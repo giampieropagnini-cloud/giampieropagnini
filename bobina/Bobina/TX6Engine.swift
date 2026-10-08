@@ -369,6 +369,10 @@ final class TX6Engine: ObservableObject {
     @Published var melodyOctaves: [Int] = Array(repeating: 4, count: 6) { didSet { save() } }
     /// Quanti sedicesimi dura ogni nota.
     @Published var melodyLength = 1 { didSet { save() } }
+    /// Scrittura in fila, come NTS-1 e M8: il passo dove va la prossima nota della melodia…
+    @Published var melodyCursor = 0
+    /// …e quello dove va il prossimo valore dei passi con manopola.
+    @Published var lockCursor = 0
 
     @Published var gateOn = false { didSet { if !gateOn { sequencer.releaseGateNow() } } }
     @Published var gate: [Bool] = [true, false, true, false, true, true, false, true, true, false, true, false, true, true, false, false] { didSet { save() } }
@@ -715,6 +719,35 @@ final class TX6Engine: ObservableObject {
         send(TX6.noteOff(n, channel: track), at: io.now() + io.ticks(ms: 180), quiet: true)
     }
 
+    // MARK: scrittura in fila
+
+    /// Una nota toccata (o una pausa, `nil`) va nel passo del cursore, si sente, e il cursore va avanti di uno.
+    func writeNote(_ track: Int, _ semitone: Int?) {
+        melodies[track - 1][melodyCursor] = semitone
+        if let k = semitone {
+            preview(track, k)
+            melodyOn = true
+        }
+        melodyCursor = (melodyCursor + 1) % 16
+    }
+
+    func melodyBack() { melodyCursor = (melodyCursor + 15) % 16 }
+
+    /// Toccando un passo il cursore va lì, e si sente la nota che c'è.
+    func selectMelodyStep(_ track: Int, _ i: Int) {
+        melodyCursor = i
+        if let k = melodies[track - 1][i] { preview(track, k) }
+    }
+
+    /// Un valore (o un passo vuoto, `nil`) dei passi con manopola nel passo del cursore, poi il cursore va avanti.
+    func writeLock(_ v: Int?) {
+        locks[lockCursor] = v
+        if v != nil { lockOn = true }
+        lockCursor = (lockCursor + 1) % 16
+    }
+
+    func lockBack() { lockCursor = (lockCursor + 15) % 16 }
+
 
     // MARK: pattern
 
@@ -762,6 +795,8 @@ final class TX6Engine: ObservableObject {
         beats = Array(repeating: Array(repeating: false, count: 16), count: 6)
         melodies = Array(repeating: Array(repeating: nil, count: 16), count: 6)
         locks = Array(repeating: nil, count: 16)
+        melodyCursor = 0
+        lockCursor = 0
         sequencer.melodyOffNow()
         currentPatternID = nil
         currentPatternName = nil
@@ -949,8 +984,14 @@ final class TX6Engine: ObservableObject {
             running = false
             sequencer.stop(sendStop: clockMode == .send)
             if clockMode == .send { note(TX6.stop, incoming: false) }
-            if beatsOn && lockOn { restoreLock() }
-            if pumpOn { restorePump() }
+            // passi con manopola e pompa hanno messaggi già preparati fino a 150 ms (la pompa fino a un battito):
+            // si rimette a posto dopo che sono arrivati, se no l'ultimo valore preparato vince
+            let tail = TX6Sequencer.tailMs + (pumpOn ? beatMs * pumpRelease : 0)
+            DispatchQueue.main.asyncAfter(deadline: .now() + tail / 1000) { [weak self] in
+                guard let self = self, !self.running else { return }
+                if self.beatsOn && self.lockOn { self.restoreLock() }
+                if self.pumpOn { self.restorePump() }
+            }
         } else {
             guard clockMode != .follow else { return }
             let start = io.now() + io.ticks(ms: 30)

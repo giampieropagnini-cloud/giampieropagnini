@@ -26,11 +26,12 @@ struct OPZLiveView: View {
         let current = OPZLivePart(rawValue: part) ?? .mutes
         OPZPage(title: "Live", compact: true) {
             OPZLiveTop()
-            HStack(spacing: 4) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 3), spacing: 5) {
                 ForEach(OPZLivePart.allCases) { p in
-                    OPZChip(text: p.label, on: p == current, height: 40) { part = p.rawValue }
+                    OPZChip(text: p.label, on: p == current, height: 38) { part = p.rawValue }
                         .accessibilityLabel("parte \(p.label)")
                 }
+                OPZSilenceKey()
             }
             switch current {
             case .mutes: OPZLiveMutes()
@@ -49,7 +50,11 @@ struct OPZLiveTop: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            Button { opz.toggleRun() } label: {
+            Button {
+                // Live è l'OP-Z da solo: il ▶ di qui non fa suonare i passi di Crea
+                if !opz.running { opz.createOn = false }
+                opz.toggleRun()
+            } label: {
                 Text(opz.running ? "■ ferma" : "▶ suona")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
                     .frame(maxWidth: .infinity, minHeight: 50)
@@ -125,21 +130,23 @@ struct OPZLivePunch: View {
     private let four = Array(repeating: GridItem(.flexible(), spacing: 5), count: 4)
 
     var body: some View {
+        // 8/10/2026: via MIDI la scelta della traccia (CC 102) non sposta gli effetti: «solo la traccia» resta sulla
+        // traccia attiva di prima e «tutto il gruppo» resta sulla batteria. Restano le due cose che funzionano.
         OPZPanel {
+            HStack(spacing: 5) {
+                OPZChip(text: "su tutto il gruppo", on: opz.punchHigh, height: 40) { opz.punchHigh = true }
+                    .accessibilityLabel("effetti su tutto il gruppo")
+                OPZChip(text: "solo traccia attiva", on: !opz.punchHigh, height: 40) { opz.punchHigh = false }
+                    .accessibilityLabel("effetti solo sulla traccia attiva dell'OP-Z")
+            }
             OPZLabel("sopra: mezzo secondo · sotto: resta finché non tocchi «lascia»")
             LazyVGrid(columns: four, spacing: 6) {
                 ForEach(OPZ.punchIn.indices, id: \.self) { i in
                     OPZPunchKey(index: i, name: OPZ.punchIn[i], held: opz.punchHeld.contains(i))
                 }
             }
-            HStack(spacing: 5) {
-                OPZChip(text: "una traccia", on: !opz.punchHigh, height: 38) { opz.punchHigh = false }
-                    .accessibilityLabel("effetti su una traccia")
-                OPZChip(text: "tutte", on: opz.punchHigh, height: 38) { opz.punchHigh = true }
-                    .accessibilityLabel("effetti su tutte le tracce")
-                OPZChip(text: "lascia tutti", height: 38) { opz.punchReleaseAll() }
-            }
-            OPZLabel("toccano il sequencer dell'OP-Z, non le note di Crea")
+            OPZChip(text: "lascia tutti gli effetti", height: 40) { opz.punchReleaseAll() }
+            OPZLabel("la traccia attiva la sceglie Ele sull'OP-Z: TRACK + il numero")
         }
     }
 }
@@ -231,7 +238,7 @@ struct OPZLivePatterns: View {
                 OPZChip(text: "alla battuta", on: opz.onTheBar, height: 36) { opz.onTheBar = true }
                 OPZChip(text: "subito", on: !opz.onTheBar, height: 36) { opz.onTheBar = false }
             }
-            OPZLabel("i pattern dell'OP-Z · la canzone a pattern sta in Suona")
+            OPZLabel("i pattern dell'OP-Z · per metterli in fila: Suona → canzone")
         }
     }
 }
