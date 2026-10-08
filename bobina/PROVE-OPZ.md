@@ -53,3 +53,4 @@ Tempo: insieme a TX-6/PO, «da solo» (CC 56), swing (CC 57), canzone a pattern,
 - 8/10: effetti punch-in via MIDI: «solo traccia» (ottava bassa) resta sulla prima traccia attiva anche se CC 102 cambia la luce; «gruppo» (ottava alta) resta sulla batteria anche scegliendo bass. Tolta la scelta della traccia da Live; restano «su tutto il gruppo» e «solo traccia attiva» (scelta sulla macchina).
 - 8/10: Live → manopole: vanno (min/max sul filtro). Effetti punch-in «su tutto il gruppo» dopo la semplificazione: vanno.
 - 8/10: progetti di Crea: restano separati (progetto 2 nuovo, progetto 1 intatto). Gruppo A delle prove: tutto ✅.
+- 5/10 (dalla chat M8): M8 e OP-Z sulla stessa battuta col clock di Bobina: «perfetto».
