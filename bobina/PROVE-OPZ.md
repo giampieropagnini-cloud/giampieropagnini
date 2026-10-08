@@ -5,11 +5,11 @@ Le fonti dei dubbi sono in OPZ-RICERCA.md §14.
 
 | # | prova | come | risultato |
 |---|---|---|---|
-| 1 | collegamento bluetooth | Collega → cerca l'OP-Z (tasto pairing sotto l'OP-Z). Che nome compare? | |
-| 2 | ▶ ■ | Suona → suona / ferma | |
-| 3 | pattern 1-16 | Suona → tasti pattern, da fermo e mentre suona (alla battuta) | |
-| 4 | pattern prima / dopo | CC 103 valori 16 e 17 | |
-| 5 | muti | Muti → kick, snare… (CC 53, 127 = muto) | |
+| 1 | collegamento bluetooth | Collega → cerca l'OP-Z (tasto pairing sotto l'OP-Z). Che nome compare? | ✅ 4/10 («funziona quasi tutto») |
+| 2 | ▶ ■ | Suona → suona / ferma | ✅ 4/10 («funziona quasi tutto») |
+| 3 | pattern 1-16 | Suona → tasti pattern, da fermo e mentre suona (alla battuta) | ✅ 4/10 («funziona quasi tutto») |
+| 4 | pattern prima / dopo | CC 103 valori 16 e 17 | ✅ 4/10 («funziona quasi tutto») |
+| 5 | muti | Muti → kick, snare… (CC 53, 127 = muto) | ✅ 4/10 («funziona quasi tutto») |
 | 6 | muto solo audio | CC 54 | |
 | 7 | gruppi di muti | CC 55, 0 = gruppo 1? | |
 | 8 | tempo da solo | Ritmo → l'OP-Z va da solo, − + (CC 56 = bpm, 40-127) | |
@@ -39,3 +39,9 @@ Da provare ancora: «scrivi una battuta sull'OP-Z» col record lock, clock di Bo
 - Mixer di Crea (suona/muta, solo, volume): va.
 - 7/10: «scrivi sull'OP-Z» con 2 battute (32 passi, pattern 1 e 2): «sembra funzionare» → il record lock regge il cambio di pattern via CC 103.
 - 7/10: lo stop MIDI (anche due volte) NON spegne il record lock: va tolto a mano (REC). In Bobina, alla fine della scrittura, un avviso rosso lo ricorda.
+
+## Da provare (elenco dell'8/10/2026)
+
+Cose nuove: Crea in uno schermo (griglia e cursore), sequenze pronte, automazione, Live in uno schermo
+(manopole ed effetti), progetti. Con Ele: TRACK + numero sceglie la traccia, 4 battute, gruppi di muti.
+Tempo: insieme a TX-6/PO, «da solo» (CC 56), swing (CC 57), canzone a pattern, poliritmi (CC 60), muto solo audio (CC 54).
