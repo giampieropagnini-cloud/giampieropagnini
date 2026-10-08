@@ -52,6 +52,8 @@ struct TX6Pattern: Codable, Identifiable, Equatable {
     /// Per ogni traccia: suono, frequenza, lunghezza, detune (valori MIDI).
     var sounds: [[Int]]
     var bpm: Double
+    /// Lo swing (0,5 dritto … 0,66 terzina); nei pattern salvati prima non c'è.
+    var swing: Double? = nil
 
     /// I parametri di suono che un pattern si porta dietro, in quest'ordine.
     static let soundParams: [TX6.Param] = [.sound, .freq, .length, .detune]
@@ -422,6 +424,10 @@ final class TX6Engine: ObservableObject {
     @Published var melodyOctaves: [Int] = Array(repeating: 4, count: 6) { didSet { save() } }
     /// Quanti sedicesimi dura ogni nota.
     @Published var melodyLength = 1 { didSet { save() } }
+    /// Lo swing dei passi, come sulle MPC: 0,5 dritto, 0,54-0,58 leggero, 0,62-0,66 pesante. Resta salvato.
+    @Published var swing: Double = UserDefaults.standard.object(forKey: "bobina.tx6.swing") as? Double ?? 0.5 {
+        didSet { UserDefaults.standard.set(swing, forKey: "bobina.tx6.swing") }
+    }
     /// Scrittura in fila, come NTS-1 e M8: il passo dove va la prossima nota della melodia…
     @Published var melodyCursor = 0
     /// …e quello dove va il prossimo valore dei passi con manopola.
@@ -994,6 +1000,7 @@ final class TX6Engine: ObservableObject {
             }
         }
         pat.bpm = Double(d.bpm)
+        pat.swing = d.swing
         drumPattern = pat
         beatsOn = true
         if pulsing {
@@ -1097,7 +1104,7 @@ final class TX6Engine: ObservableObject {
         TX6Pattern(name: name, beats: beats, melodies: melodies, melodyOctaves: melodyOctaves, melodyLength: melodyLength,
                    locks: locks, lockTrack: lockTrack, lockParam: lockParam, gate: gate,
                    sounds: (0..<6).map { t in TX6Pattern.soundParams.map { values[t][$0.rawValue] } },
-                   bpm: bpm)
+                   bpm: bpm, swing: swing)
     }
 
     private func makePart(_ pat: TX6Pattern) -> TX6Sequencer.Part {
@@ -1114,7 +1121,7 @@ final class TX6Engine: ObservableObject {
         return TX6Sequencer.Part(id: pat.id, beats: pat.beats, melodies: pat.melodies, melodyOctaves: pat.melodyOctaves,
                                  melodyLength: pat.melodyLength, locks: pat.locks, lockTrack: pat.lockTrack,
                                  lockCC: lockParam.cc, lockBase: lockBase, gate: pat.gate,
-                                 soundBytes: bytes, bpm: pat.bpm)
+                                 soundBytes: bytes, bpm: pat.bpm, swing: pat.swing)
     }
 
     /// Il sequencer ha fatto entrare un pattern: la pagina si mette in pari (i suoni sono già partiti).
@@ -1144,6 +1151,7 @@ final class TX6Engine: ObservableObject {
         }
         if sendSounds { send(bytes, quiet: true) }
         if patternTempo && clockMode != .follow { bpm = pat.bpm }
+        if let sw = pat.swing { swing = sw }
         currentPatternID = pat.id
         currentPatternName = pat.name
         pendingPatternName = nil
@@ -1278,6 +1286,7 @@ final class TX6Engine: ObservableObject {
         p.pumpDepth = pumpDepth
         p.pumpRelease = pumpRelease
         p.patternID = currentPatternID
+        p.swing = swing
         // il cancello vince sulla pompa: le tracce del cancello non pompano
         p.pumpTops = pumpTracks.sorted().filter { !(gateOn && gateTracks.contains($0)) }.map { tr in
             (track: tr, top: silenced(tr) ? 0 : Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))

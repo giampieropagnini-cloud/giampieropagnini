@@ -15,6 +15,8 @@ struct TX6DrumPreset: Identifiable {
     let rows: [String]
     /// Il preset di suono di ogni riga.
     let sounds: [String]
+    /// Lo swing come sulle MPC (0,5 dritto, 0,66 terzina).
+    var swing: Double = 0.5
     var id: String { name }
 
     func steps(_ row: Int) -> [Bool] { rows[row].map { $0 == "x" } }

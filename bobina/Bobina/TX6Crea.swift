@@ -11,7 +11,8 @@ struct TX6CreaView: View {
     var body: some View {
         TX6Screen(title: "Crea") {
             TX6TempoTop()
-            Text("suona: " + (tx.currentPatternName ?? "—") + (tx.pendingPatternName.map { " · poi \($0), alla battuta" } ?? ""))
+            Text("suona: " + (tx.currentPatternName ?? "—") + (tx.pendingPatternName.map { " · poi \($0), alla battuta" } ?? "")
+                 + (tx.swing > 0.505 ? " · swing \(Int((tx.swing * 100).rounded()))%" : ""))
                 .font(.system(.caption2, design: .monospaced))
                 .foregroundStyle(Palette.dim)
                 .lineLimit(1)
@@ -365,6 +366,15 @@ struct TX6PatternPanel: View {
                 if let m = mine {
                     TX6Mini(text: "salva su \(m.name)") { tx.overwrite(m) }
                     TX6ConfirmMini(text: "togli \(m.name)") { tx.deletePattern(m) }
+                }
+            }
+            HStack(spacing: 4) {
+                Text("swing")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                ForEach([(0.5, "dritto"), (0.54, "54"), (0.58, "58"), (0.62, "62"), (0.66, "66")], id: \.0) { sw in
+                    TX6Mini(text: sw.1, on: abs(tx.swing - sw.0) < 0.005) { tx.swing = sw.0 }
+                        .accessibilityLabel(sw.0 == 0.5 ? "swing dritto" : "swing \(sw.1) per cento")
                 }
             }
             HStack(spacing: 4) {
