@@ -286,6 +286,9 @@ final class TX6Sequencer {
             let next = time(ofBeat: Double(nextSixteenth) / 4)
             let farAhead = now &+ io.ticks(ms: lookahead + line.beatMs * 4 + 50)
             if next &+ io.ticks(ms: 30) < now || next > farAhead {
+                // gli spegnimenti in coda sono legati ai numeri dei passi vecchi: col salto non arriverebbero
+                // più e le note resterebbero accese. Partono dopo le note già preparate (la lezione dello stop).
+                flushOffs()
                 nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
                 nextClockTick = nextSixteenth * 6
             }

@@ -11,6 +11,7 @@ MIDIClientCreateWithBlock("prova" as CFString, &client, nil)
 var dest = MIDIEndpointRef()
 let lock = NSLock()
 var notes: [Double] = []
+var onSince: [Int: Double] = [:]
 let io = MIDIIO()
 MIDIDestinationCreateWithBlock(client, "prova-salto" as CFString, &dest) { list, _ in
     for packet in list.unsafeSequence() {
@@ -18,7 +19,12 @@ MIDIDestinationCreateWithBlock(client, "prova-salto" as CFString, &dest) { list,
         let bytes = withUnsafeBytes(of: packet.pointee.data) { Array($0.prefix(length)) }
         var k = 0
         while k + 2 < bytes.count + 0 || k + 2 == bytes.count {
-            if bytes[k] == 0x90 && bytes[k + 2] > 0 { lock.lock(); notes.append(Date().timeIntervalSince1970); lock.unlock() }
+            if bytes[k] & 0xF0 == 0x90 && bytes[k + 2] > 0 {
+                let now = Date().timeIntervalSince1970
+                lock.lock(); notes.append(now); onSince[Int(bytes[k] & 0x0F) << 8 | Int(bytes[k + 1])] = now; lock.unlock()
+            } else if bytes[k] & 0xF0 == 0x80 || (bytes[k] & 0xF0 == 0x90 && bytes[k + 2] == 0) {
+                lock.lock(); onSince[Int(bytes[k] & 0x0F) << 8 | Int(bytes[k + 1])] = nil; lock.unlock()
+            }
             k += (bytes[k] >= 0xF8) ? 1 : 3
             if k >= bytes.count { break }
         }
@@ -30,6 +36,11 @@ var plan = TX6Sequencer.Plan()
 plan.bpm = 120
 plan.beatsOn = true
 plan.beats[0] = Array(repeating: true, count: 16)
+// una melodia con note lunghe: i loro spegnimenti sono in coda quando la griglia salta
+plan.melodyOn = true
+// otto note diverse per battuta: una nota appesa resta accesa fino alla battuta dopo (2 s), e si vede
+plan.melodies[1] = (0..<16).map { $0 % 2 == 0 ? [0, 2, 3, 5, 7, 8, 10, 12][$0 / 2] : nil }
+plan.melodyLength = 2
 seq.update(plan)
 seq.start(at: io.now() + io.ticks(ms: 30))
 // lascia andare 60 passi, così il prossimo passo del TX-6 è lontano dal battito 0
@@ -38,9 +49,14 @@ RunLoop.main.run(until: Date().addingTimeInterval(7.5))
 BobinaClock.shared.leave(.tx6)
 BobinaClock.shared.join(.m8, at: io.now())
 let jump = Date().timeIntervalSince1970
-RunLoop.main.run(until: Date().addingTimeInterval(1.5))
+RunLoop.main.run(until: Date().addingTimeInterval(1.3))
+// prima dello stop (che spegne tutto): una nota accesa da più di un secondo è rimasta appesa (le note durano 250 ms)
+let check = Date().timeIntervalSince1970
+lock.lock(); let stuck = onSince.values.filter { check - $0 > 1.0 }.count; lock.unlock()
 seq.stop(sendStop: false)
+RunLoop.main.run(until: Date().addingTimeInterval(0.5))
 lock.lock(); let after = notes.filter { $0 > jump + 0.2 }.count; lock.unlock()
-print("note nel secondo e mezzo dopo il salto: \(after)")
-print(after >= 8 ? "OK: il TX-6 continua a suonare" : "NO: il TX-6 si è fermato")
-exit(after >= 8 ? 0 : 1)
+print("note dopo il salto: \(after) · note rimaste accese: \(stuck)")
+let ok = after >= 8 && stuck == 0
+print(ok ? "OK: il TX-6 continua a suonare e non lascia note accese" : "NO")
+exit(ok ? 0 : 1)
