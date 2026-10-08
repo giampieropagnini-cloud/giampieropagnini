@@ -49,3 +49,4 @@ Tempo: insieme a TX-6/PO, «da solo» (CC 56), swing (CC 57), canzone a pattern,
 - 8/10: il tempo diverso fra Crea e OP-Z era il tasto 4 spento (di fabbrica): acceso, va tutto a tempo.
 - 8/10: Crea → note col cursore: le note finiscono nei passi giusti.
 - 8/10: automazione a passi (bass → filtro, livello 1 e 8): il filtro si muove.
+- 8/10: CC 102 sul canale 1, valore traccia−1, sceglie la traccia attiva: misurato con le luci (TRACK tenuto): kick 1, snare 2, bass 5, chord 8. ✅

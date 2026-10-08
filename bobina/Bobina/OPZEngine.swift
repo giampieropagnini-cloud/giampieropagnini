@@ -113,8 +113,16 @@ final class OPZEngine: ObservableObject {
     /// Rende attiva sull'OP-Z una traccia: gli effetti punch-in «sulla traccia» lavorano su quella.
     func setActiveTrack(_ t: Int) {
         activeTrack = t
-        send(OPZ.activeTrack(t))
+        // 8/10/2026: dopo un effetto sul kick, toccando snare l'OP-Z restava sul kick. Prima si lasciano tutti gli
+        // effetti (anche quelli che Bobina crede già lasciati), poi la traccia nuova, un attimo dopo.
+        punchHeld.removeAll()
+        send((OPZ.punchF..<(OPZ.punchF + 24)).flatMap { OPZ.noteOff($0, channel: 13) })
+        io.send(OPZ.activeTrack(t), at: ms(40))
+        note(OPZ.activeTrack(t), incoming: false)
     }
+
+    /// Prima di ogni effetto si ridice all'OP-Z la traccia attiva: se l'ha persa, l'effetto va comunque lì.
+    private func punchPrefix() -> [UInt8] { activeTrack.map { OPZ.activeTrack($0) } ?? [] }
     /// Gli effetti tenuti adesso (0-11).
     @Published private(set) var punchHeld: Set<Int> = []
 
@@ -1062,15 +1070,21 @@ final class OPZEngine: ObservableObject {
     func punchTap(_ i: Int, length: Double = 500) {
         if punchHeld.contains(i) { punchRelease(i); return }
         let n = punchNote(i)
-        send(OPZ.noteOn(n, channel: 13))
-        io.send(OPZ.noteOff(n, channel: 13), at: ms(length))
+        let pre = punchPrefix()
+        if !pre.isEmpty { send(pre) }
+        io.send(OPZ.noteOn(n, channel: 13), at: ms(pre.isEmpty ? 0 : 30))
+        note(OPZ.noteOn(n, channel: 13), incoming: false)
+        io.send(OPZ.noteOff(n, channel: 13), at: ms(length + 30))
     }
 
     /// Metà di sotto: l'effetto resta finché non lo ritocchi.
     func punchToggle(_ i: Int) {
         if punchHeld.contains(i) { punchRelease(i) } else {
             punchHeld.insert(i)
-            send(OPZ.noteOn(punchNote(i), channel: 13))
+            let pre = punchPrefix()
+            if !pre.isEmpty { send(pre) }
+            io.send(OPZ.noteOn(punchNote(i), channel: 13), at: ms(pre.isEmpty ? 0 : 30))
+            note(OPZ.noteOn(punchNote(i), channel: 13), incoming: false)
         }
     }
 
