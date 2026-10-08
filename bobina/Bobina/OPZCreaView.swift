@@ -164,6 +164,8 @@ struct OPZDrumPanel: View {
     @AppStorage("bobina.opz.crea.batteria.pagina") private var page = 0
     /// L'ultima riga di batteria scelta: tornando qui si riprende da lì (passi e durata valgono per la traccia scelta).
     @AppStorage("bobina.opz.crea.batteria.riga") private var lastRow = 1
+    /// Le batterie pronte al posto della griglia.
+    @AppStorage("bobina.opz.crea.batteria.pronti") private var ready = false
     @State private var help = false
 
     private let eight = Array(repeating: GridItem(.flexible(), spacing: 4), count: 8)
@@ -176,6 +178,15 @@ struct OPZDrumPanel: View {
         let pg = min(page, pages - 1)
         let row = (1...4).contains(opz.createTrack) ? opz.createTrack : 1
         OPZPanel {
+            HStack(spacing: 5) {
+                OPZChip(text: "griglia", on: !ready, height: 36) { ready = false }
+                OPZChip(text: "batterie pronte", on: ready, height: 36) { ready = true }
+            }
+            if ready {
+                OPZPresetList(items: OPZDrumPreset.all.map { ($0.name, "\($0.group) · \($0.bpm)") }) { i in
+                    opz.loadDrums(OPZDrumPreset.all[i])
+                }
+            } else {
             if pages > 1 {
                 HStack(spacing: 5) {
                     ForEach(0..<pages, id: \.self) { p in
@@ -241,6 +252,7 @@ struct OPZDrumPanel: View {
                 OPZChip(text: help ? "chiudi aiuto" : "cambia kit?", on: help, height: 34) { help.toggle() }
             }
             if help { OPZInstrumentHelpRows(track: row) }
+            }
         }
         .onAppear { if opz.createTrack > 4 { opz.createTrack = max(1, min(4, lastRow)) } }
         .onChange(of: opz.createTrack) { _, t in if (1...4).contains(t) { lastRow = t } }
@@ -255,6 +267,8 @@ struct OPZNotePanel: View {
     @AppStorage("bobina.opz.crea.note.pagina") private var page = 0
     /// L'ultima traccia di note scelta (5-8).
     @AppStorage("bobina.opz.crea.note.traccia") private var lastTrack = 5
+    /// Le melodie pronte al posto della tastiera.
+    @AppStorage("bobina.opz.crea.note.pronti") private var ready = false
     @State private var help = false
 
     static let names = ["do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "sol#", "la", "la#", "si"]
@@ -272,13 +286,21 @@ struct OPZNotePanel: View {
         OPZPanel {
             HStack(spacing: 5) {
                 ForEach(5...8, id: \.self) { t in
-                    OPZChip(text: OPZ.track(t).short, on: tr == t, color: OPZ.color(t), height: 38) {
+                    OPZChip(text: OPZ.track(t).short, on: !ready && tr == t, color: OPZ.color(t), height: 38) {
                         opz.createTrack = t
                         opz.cursor = 0
+                        ready = false
                     }
                     .accessibilityLabel("scrivi \(OPZ.track(t).name)")
                 }
+                OPZChip(text: "pronte", on: ready, height: 38) { ready.toggle() }
+                    .accessibilityLabel("melodie pronte")
             }
+            if ready {
+                OPZPresetList(items: OPZMelodyPreset.all.map { ($0.name, "\($0.group) · \($0.bpm)") }) { i in
+                    opz.loadMelody(OPZMelodyPreset.all[i])
+                }
+            } else {
             HStack(spacing: 5) {
                 ForEach(OPZNoteMode.allCases) { m in
                     OPZChip(text: m.rawValue, on: opz.noteMode == m, height: 34) { opz.noteMode = m }
@@ -368,6 +390,7 @@ struct OPZNotePanel: View {
                 OPZChip(text: help ? "chiudi aiuto" : "cambia strumento?", on: help, height: 34) { help.toggle() }
             }
             if help { OPZInstrumentHelpRows(track: tr) }
+            }
         }
         .onAppear { if opz.createTrack < 5 { opz.createTrack = max(5, min(8, lastTrack)) } }
         .onChange(of: opz.createTrack) { _, t in if (5...8).contains(t) { lastTrack = t } }
@@ -399,6 +422,47 @@ struct OPZArpRows: View {
                 ForEach(1...3, id: \.self) { o in
                     OPZChip(text: o == 1 ? "1 ottava" : "\(o) ottave", on: opz.arpOctaves == o, height: 32) { opz.arpOctaves = o }
                 }
+            }
+        }
+    }
+}
+
+/// Le sequenze pronte in due colonne: un tocco le carica nel pattern che scrivi. Sotto: annulla e il tempo.
+struct OPZPresetList: View {
+    @EnvironmentObject var opz: OPZEngine
+    let items: [(name: String, detail: String)]
+    let load: (Int) -> Void
+    private let three = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
+
+    var body: some View {
+        HStack(spacing: 5) {
+            OPZChip(text: opz.presetTempo ? "anche il tempo: sì" : "anche il tempo: no", on: opz.presetTempo, height: 36) { opz.presetTempo.toggle() }
+            OPZChip(text: "annulla", height: 36) { opz.undoPreset() }
+                .disabled(!opz.canUndoPreset)
+                .accessibilityLabel("annulla la sequenza pronta")
+        }
+        LazyVGrid(columns: three, spacing: 4) {
+            ForEach(items.indices, id: \.self) { i in
+                let on = opz.presetName == items[i].name
+                Button { load(i) } label: {
+                    VStack(spacing: 1) {
+                        Text(items[i].name)
+                            .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                        Text(items[i].detail)
+                            .font(.system(size: 9, design: .monospaced))
+                            .opacity(0.7)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    }
+                    .padding(.horizontal, 2)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(on ? OPZ.tint : Color(white: 0.18)))
+                    .foregroundStyle(on ? Color.black : Color.white)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(items[i].name)
             }
         }
     }

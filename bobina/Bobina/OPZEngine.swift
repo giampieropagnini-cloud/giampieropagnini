@@ -566,6 +566,110 @@ final class OPZEngine: ObservableObject {
         createTrack = track
     }
 
+    // MARK: sequenze pronte (OPZPresets.swift)
+
+    /// Una sequenza pronta cambia anche il tempo di Bobina (di serie no).
+    @Published var presetTempo = false
+    /// L'ultima sequenza pronta caricata, per mostrarla accesa.
+    @Published private(set) var presetName: String?
+    @Published private(set) var canUndoPreset = false
+
+    private struct PresetUndo {
+        var steps: [[[Int]]]
+        var lengths: [Int]
+        var gates: [Int]
+        var drumPick: [Int]
+        var trackOn: [Bool]
+        var arpOn: Bool
+        var arpStyle: OPZArpStyle
+        var arpRate: Int
+        var arpOctaves: Int
+        var bpm: Double
+        var name: String?
+    }
+    private var presetUndo: PresetUndo?
+
+    private func rememberForUndo() {
+        presetUndo = PresetUndo(steps: steps, lengths: lengths[createPattern - 1], gates: gates[createPattern - 1],
+                                drumPick: drumPick, trackOn: trackOn, arpOn: arpOn, arpStyle: arpStyle, arpRate: arpRate,
+                                arpOctaves: arpOctaves, bpm: bpm, name: presetName)
+        canUndoPreset = true
+    }
+
+    /// Una batteria pronta nelle tracce 1-4 del pattern che scrivi (le melodie restano).
+    func loadDrums(_ p: OPZDrumPreset) {
+        rememberForUndo()
+        var st = steps
+        var l = lengths[createPattern - 1]
+        var g = gates[createPattern - 1]
+        for r in 0..<4 {
+            let row = p.steps(r)
+            let note = OPZ.keyboardF + max(1, min(24, p.sounds[r])) - 1
+            st[r] = (0..<32).map { i in i < row.count && row[i] ? [note] : [] }
+            drumPick[r] = note
+            l[r] = 16
+            g[r] = 1
+            trackOn[r] = true
+        }
+        steps = st
+        lengths[createPattern - 1] = l
+        gates[createPattern - 1] = g
+        if presetTempo { setBPM(Double(p.bpm)) }
+        presetName = p.name
+        logText("batteria pronta: \(p.name)")
+    }
+
+    /// Una melodia pronta nelle tracce 5-8 del pattern che scrivi (la batteria resta). Le tracce che la melodia
+    /// non usa si svuotano, così non restano note vecchie in mezzo.
+    func loadMelody(_ p: OPZMelodyPreset) {
+        rememberForUndo()
+        var st = steps
+        var l = lengths[createPattern - 1]
+        var g = gates[createPattern - 1]
+        for t in 5...8 {
+            let cells = p.steps(track: t)
+            if cells.isEmpty {
+                st[t - 1] = Array(repeating: [], count: 32)
+                continue
+            }
+            st[t - 1] = (0..<32).map { i in i < cells.count ? Array(cells[i].prefix(polyphony(t))) : [] }
+            l[t - 1] = max(1, min(32, cells.count))
+            g[t - 1] = p.gates[t - 5]
+            trackOn[t - 1] = true
+        }
+        steps = st
+        lengths[createPattern - 1] = l
+        gates[createPattern - 1] = g
+        if !p.arp.isEmpty {
+            arpStyle = p.arpStyle
+            arpRate = p.arpRate
+            arpOctaves = p.arpOctaves
+            arpOn = true
+        }
+        if presetTempo { setBPM(Double(p.bpm)) }
+        presetName = p.name
+        logText("melodia pronta: \(p.name)")
+    }
+
+    /// Rimette il pattern com'era prima dell'ultima sequenza pronta.
+    func undoPreset() {
+        guard let u = presetUndo else { return }
+        steps = u.steps
+        lengths[createPattern - 1] = u.lengths
+        gates[createPattern - 1] = u.gates
+        drumPick = u.drumPick
+        trackOn = u.trackOn
+        arpStyle = u.arpStyle
+        arpRate = u.arpRate
+        arpOctaves = u.arpOctaves
+        arpOn = u.arpOn
+        if presetTempo { setBPM(u.bpm) }
+        presetName = u.name
+        presetUndo = nil
+        canUndoPreset = false
+        logText("sequenza pronta annullata")
+    }
+
     /// Le note tenute dal vivo, per traccia (1-8): restano giù finché non le lasci.
     @Published private(set) var liveHeld: [Int: Set<Int>] = [:]
 
