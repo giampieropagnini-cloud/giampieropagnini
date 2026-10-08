@@ -126,10 +126,14 @@ struct TX6Preset: Codable, Identifiable, Equatable {
         p("cassa", "808 lunga", 4, freq: 28, len: 110, comp: 30),
         p("cassa", "cassa techno", 4, freq: 36, len: 75, flt: 52, comp: 90),
         p("cassa", "cassa sorda", 4, freq: 32, len: 45, flt: 40),
+        p("cassa", "cassa lontana", 4, freq: 26, len: 100, flt: 36),
+        p("cassa", "battito", 4, freq: 22, len: 25, flt: 40),
         p("rullante", "rullante secco", 5, freq: 64, len: 35, comp: 40),
         p("rullante", "rullante pieno", 5, freq: 54, len: 70, comp: 60),
         p("rullante", "rimshot", 5, freq: 96, len: 15),
         p("rullante", "rullante scuro", 5, freq: 44, len: 55, flt: 48),
+        p("rullante", "rullante lontano", 5, freq: 40, len: 100, flt: 40),
+        p("rullante", "frusta", 5, freq: 110, len: 10),
         p("battimani", "battimani", 6, freq: 64, len: 50),
         p("battimani", "battimani lunghi", 6, freq: 58, len: 95),
         p("battimani", "schiocco", 6, freq: 90, len: 20, flt: 76),
@@ -137,11 +141,16 @@ struct TX6Preset: Codable, Identifiable, Equatable {
         p("charleston", "aperto", 7, freq: 76, len: 80),
         p("charleston", "shaker", 7, freq: 100, len: 30, flt: 84),
         p("charleston", "piatto", 7, freq: 60, len: 120),
+        p("charleston", "fruscio", 7, freq: 110, len: 50, flt: 90),
         p("percussioni", "tom basso", 0, freq: 36, len: 50),
         p("percussioni", "tom alto", 0, freq: 52, len: 40),
         p("percussioni", "cowbell", 2, freq: 78, len: 25, det: 72),
         p("percussioni", "blip", 1, freq: 96, len: 10),
         p("percussioni", "conga", 1, freq: 58, len: 35, det: 60),
+        // la cassa alta suona come un tamburo grande: da film
+        p("percussioni", "taiko", 4, freq: 60, len: 90, comp: 60),
+        p("percussioni", "metallo", 7, freq: 30, len: 100, flt: 50),
+        p("percussioni", "legno", 1, freq: 90, len: 8),
         p("basso", "sub", 0, freq: 24, len: 80),
         p("basso", "basso quadro", 2, freq: 30, len: 60, flt: 50),
         p("basso", "acid", 3, freq: 32, len: 40, det: 70, flt: 40, comp: 40),
@@ -202,6 +211,24 @@ struct TX6MelodyPreset: Identifiable {
               [(0, 0), (2, 3), (4, 6), (6, 9), (8, 12), (10, 9), (12, 6), (14, 3)]),
         lineP("orologio", oct: 4, len: 1, sound: "pluck",
               [(0, 7), (2, 7), (4, 7), (6, 7), (8, 7), (10, 7), (12, 8), (14, 7)]),
+        // trip hop: do minore, lento, con la seconda (re) che resta sospesa
+        lineP("mezzanotte", oct: 2, len: 2, sound: "basso pieno",
+              [(0, 0), (3, 0), (6, 3), (8, 5), (10, 3), (14, 2)]),
+        // horror: un carillon in minore col si (la sensibile) che non si risolve
+        lineP("carillon", oct: 5, len: 1, sound: "pluck",
+              [(0, 12), (2, 7), (4, 8), (6, 7), (8, 3), (10, 2), (12, 3), (14, 11)]),
+        // horror: tritoni che a metà battuta salgono di un semitono
+        lineP("sirena", oct: 4, len: 2, sound: "lead sega",
+              [(0, 0), (2, 6), (4, 0), (6, 6), (8, 1), (10, 7), (12, 1), (14, 7)]),
+        // dark: un cuore basso, due colpi, e la seconda minore che stringe
+        lineP("battito", oct: 1, len: 1, sound: "sub",
+              [(0, 0), (1, 0), (6, 1), (8, 0), (9, 0), (14, 1)]),
+        // cinema: l'arpeggio minore che va al sesto grado (lab), da titoli di testa
+        lineP("titoli", oct: 3, len: 2, sound: "lead quadro",
+              [(0, 0), (2, 3), (4, 7), (6, 3), (8, 0), (10, 3), (12, 8), (14, 7)]),
+        // cinema: archi in sedicesimi, l'inseguimento
+        lineP("ostinato", oct: 3, len: 1, sound: "pluck",
+              Array(zip(0..<16, [0, 3, 7, 3, 0, 3, 8, 3, 0, 3, 7, 3, 0, 2, 3, 2]))),
         // do minore, la bemolle, mi bemolle, si bemolle: il giro epico e scuro dei film
         chords("epico minore", [(0, 3, 7), (8, 0, 3), (3, 7, 10), (10, 2, 5)]),
         // il re resta appeso sopra accordi che cambiano: do minore con la nona, la bemolle con l'undicesima
@@ -211,6 +238,12 @@ struct TX6MelodyPreset: Identifiable {
         chords("discesa", [(0, 3, 7), (11, 2, 6), (10, 1, 5), (9, 0, 4)]),
         // tre note vicine che stridono, poi lo stesso grappolo un tritono più su
         chords("grappolo", octaves: [3, 3, 3], [(0, 1, 2), (0, 1, 2), (6, 7, 8), (6, 7, 8)]),
+        // trip hop: do minore con la settima, fa minore, la bemolle, sol (la cadenza della minore armonica)
+        chords("noir", [(0, 3, 10), (5, 8, 0), (8, 0, 3), (7, 11, 2)]),
+        // cinema: le stesse quattro tappe all'organo, aperte
+        chords("cattedrale", sound: "organo", [(0, 7, 3), (8, 3, 0), (5, 0, 8), (7, 2, 11)]),
+        // horror: accordi eccedenti e diminuiti che scivolano di un semitono
+        chords("incubo", [(0, 4, 8), (1, 5, 9), (0, 3, 6), (11, 2, 5)]),
     ]
 }
 
@@ -765,6 +798,41 @@ final class TX6Engine: ObservableObject {
         }
     }
 
+    /// L'ultima batteria pronta chiesta, fatta pattern: serve al sequencer per riconoscerla quando entra.
+    private var drumPattern: TX6Pattern?
+
+    /// Una batteria pronta: cambia solo le tracce 1-4 (passi e suoni), il resto di quello che suona resta.
+    /// Entra come un pattern: se il ritmo gira all'inizio della battuta, se no subito.
+    func playDrums(_ d: TX6DrumPreset) {
+        var pat = capture(name: d.name)
+        var extra: [UInt8] = []
+        for r in 0..<4 {
+            pat.beats[r] = d.steps(r)
+            guard let p = TX6Preset.builtIn.first(where: { $0.name == d.sounds[r] }) else { continue }
+            pat.sounds[r] = [TX6.soundValue(p.sound), p.freq, p.length, p.detune]
+            // filtro e compressore del preset non stanno nel pattern: partono insieme ai suoni
+            for (param, v) in [(TX6.Param.filter, p.filter), (.comp, p.comp)] {
+                values[r][param.rawValue] = v
+                let out = output(r + 1, param, io.now())
+                extra += TX6.cc(param.cc, out, channel: r + 1)
+                lastSent[r][param.rawValue] = out
+            }
+        }
+        pat.bpm = Double(d.bpm)
+        drumPattern = pat
+        beatsOn = true
+        if pulsing {
+            var part = makePart(pat)
+            part.soundBytes += extra
+            if !patternTempo || clockMode == .follow { part.bpm = nil }
+            pendingPatternName = pat.name
+            sequencer.queuePattern(part)
+        } else {
+            send(extra, quiet: true)
+            adopt(pat, sendSounds: true)
+        }
+    }
+
     func cancelPendingPattern() {
         sequencer.cancelPending()
         pendingPatternName = nil
@@ -874,7 +942,7 @@ final class TX6Engine: ObservableObject {
 
     /// Il sequencer ha fatto entrare un pattern: la pagina si mette in pari (i suoni sono già partiti).
     private func switched(_ id: UUID) {
-        guard let pat = (patterns + TX6Pattern.styles).first(where: { $0.id == id }) else { return }
+        guard let pat = (patterns + TX6Pattern.styles + [drumPattern].compactMap { $0 }).first(where: { $0.id == id }) else { return }
         adopt(pat, sendSounds: false)
     }
 
