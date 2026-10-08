@@ -105,6 +105,13 @@ final class MIDIIO {
 
     // MARK: invio
 
+    /// Butta via i messaggi già in coda in CoreMIDI col loro orario (i passi preparati in anticipo):
+    /// allo stop, se no arrivano dopo i messaggi di stop e li annullano.
+    func flushScheduled() {
+        guard ready, destination != 0 else { return }
+        _ = MIDIFlushOutput(destination)
+    }
+
     /// Manda un messaggio al TP-7. Con `time` diverso da 0 CoreMIDI lo consegna in quell'istante preciso.
     func send(_ bytes: [UInt8], at time: MIDITimeStamp = 0) {
         guard ready, destination != 0, !bytes.isEmpty else { return }

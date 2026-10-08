@@ -720,6 +720,9 @@ final class Engine: ObservableObject {
     func toggleRun() {
         if running {
             running = false
+            // i passi già in coda (fino a 450 ms) arriverebbero dopo lo stop: si buttano, e i rilasci partono subito
+            io.flushScheduled()
+            lastFiredAt = 0
             releaseGate()
             restoreVolumes()
         } else {
