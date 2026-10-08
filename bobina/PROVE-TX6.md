@@ -33,6 +33,7 @@ Le prime quattro si fanno col cavo al **Mac** e l'ascoltatore (`strumenti/ascolt
 | 20 | i nomi degli effetti e dei preset | sul TX-6 shift + FX I (poi FX II): la pagina dell'effetto; in Bobina Mixer → FX I/II, tocca un effetto alla volta, poi i suoi preset | in parte: 8/10/2026 FX I col cc 15 = 0 riverbero, 64 chorus, 127 delay (l'ordine della guida li scambiava: rimesso quello della tabella MIDI). Riverbero: drone è l'ultimo (light, small, medium, large, drone), misurato. FX II e gli altri preset da confermare. Ogni preset manda il centro della sua fetta di 0-127 |
 | 21 | freeze e tape stop a colpi | Mixer → FX II: «freeze · 1 battuta», «tape stop · 1 battuta», poi «tieni» e «lascia» | da fare: il colpo accende FX II con quell'effetto e dopo una battuta lo spegne |
 | 22 | FX II su quale traccia | Mixer → FX II: «tr 1»… «tr 6», «tutto», con un effetto che si sente (tremolo) | 8/10/2026: cc 9 = tracce 1-6 poi tutto il mix per ultimo (con «tutto» primo ogni tasto cadeva sul posto dopo: tr 6 = tutto, tutto = traccia 1). Corretto, da riprovare |
+| 23 | tremolo e freeze: quale parametro muove il valore | sul TX-6 shift + FX II (pagina del tremolo, barra 0-99); Mixer → FX II → tremolo → «max» su 1, 2, 3 | 8/10/2026: il parametro 1 (cc 12) lascia la barra a 0. Da fare: quale dei tre la muove |
 | 17 | bluetooth | BLE → ACCEPT; Collega → cerca il TX-6 | ✅ 29/9/2026: compare «TX-6 Bluetooth», Bobina lo sceglie da sola per mandare e ascoltare. Il TP-7 resta collegato in bluetooth nello stesso momento |
 
 ## Misure

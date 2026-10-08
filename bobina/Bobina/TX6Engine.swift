@@ -778,6 +778,8 @@ final class TX6Engine: ObservableObject {
 
     func setFxEngine(_ i: Int, _ index: Int) {
         fxEngine[i] = index
+        // un effetto nuovo ha i suoi valori: il prossimo parametro va mandato anche se è uguale all'ultimo
+        fxSent[i] = [nil, nil, nil]
         UserDefaults.standard.set(fxEngine.map { $0 ?? -1 }, forKey: "bobina.tx6.effetti")
         send(TX6.cc(TX6.ccFxEngine, TX6.spread(index, TX6.fxEngines[i].count), channel: TX6.fxChannels[i]))
     }

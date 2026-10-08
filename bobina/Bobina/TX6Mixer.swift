@@ -139,8 +139,9 @@ struct TX6FxPanel: View {
         let name = engine.flatMap { TX6.fxEngines[index].indices.contains($0) ? TX6.fxEngines[index][$0] : nil }
         switch name {
         case "filtro": return ["1 · taglio", "2 · risonanza"]
-        case "tremolo": return ["1 · quantità 0-99"]
-        case "freeze": return ["1 · freeze − … +"]
+        // 8/10/2026: col tremolo il cc 12 non muove la barra 0-99 del TX-6. Finché non si sa quale dei tre la
+        // muove, tremolo e freeze li mostrano tutti e tre (prova 23).
+        case "tremolo", "freeze": return ["1 · cc 12", "2 · cc 13", "3 · cc 14"]
         default: return index == 0 ? ["1 · tipo o tempo dell'effetto"] : ["1 · il valore dell'effetto", "2 · risonanza, solo nel filtro"]
         }
     }
@@ -180,7 +181,11 @@ struct TX6FxPanel: View {
                     TX6KnobRow(name: names[k], value: tx.fxParams[index][k]) { tx.setFxParam(index, k, $0) }
                 }
             }
-            TX6Label("Dalla guida: un valore per effetto; il filtro ha anche la risonanza. Il parametro 3 non serve.")
+            if let e = tx.fxEngine[index], index == 1, ["tremolo", "freeze"].contains(TX6.fxEngines[1][e]) {
+                TX6Label("Prova: sul TX-6 shift + FX II, poi tocca «max» su 1, 2 e 3. Quale muove la barra?")
+            } else {
+                TX6Label("Dalla guida: un valore per effetto; il filtro ha anche la risonanza. Il parametro 3 non serve.")
+            }
             if index == 0 {
                 TX6KnobRow(name: "ritorno", value: tx.fxReturn) { tx.setFxReturn($0) }
                 if let show = showSends {
