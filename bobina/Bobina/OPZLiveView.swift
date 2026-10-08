@@ -238,7 +238,7 @@ struct OPZLivePatterns: View {
                 OPZChip(text: "alla battuta", on: opz.onTheBar, height: 36) { opz.onTheBar = true }
                 OPZChip(text: "subito", on: !opz.onTheBar, height: 36) { opz.onTheBar = false }
             }
-            OPZLabel("i pattern dell'OP-Z · la canzone a pattern sta in Suona")
+            OPZLabel("i pattern dell'OP-Z · per metterli in fila: Suona → canzone")
         }
     }
 }

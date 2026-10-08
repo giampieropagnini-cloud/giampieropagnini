@@ -1242,7 +1242,7 @@ final class OPZEngine: ObservableObject {
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: "bobina.opz"),
               let s = try? JSONDecoder().decode(Saved.self, from: data),
-              s.scenes.count == 4, !s.song.isEmpty else { return }
+              s.scenes.count == 4 else { return }
         loading = true
         sync = s.sync
         clockAlways = s.clockAlways
