@@ -107,6 +107,9 @@ enum NTS1 {
             self == .arpLength ? "\(1 + v * 23 / 127) passi" : "\(v)"
         }
 
+        /// Un guadagno: solo − e + a passi piccoli, mai salti, onde o inclinazione.
+        var isGain: Bool { self == .volume }
+
         static func byCC(_ cc: Int) -> Knob? { allCases.first { $0.cc == cc } }
     }
 
