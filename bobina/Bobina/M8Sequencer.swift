@@ -181,6 +181,10 @@ final class M8Sequencer {
             nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
             nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
             nextWave = Int((line.beat(at: now) * Double(waveRate)).rounded(.up))
+            // la griglia è tornata indietro (il TX-6 che dà il tempo è ripartito da capo, o qualcuno ha
+            // rifatto partire la griglia da 0): le note aspetterebbero minuti un passo lontano. Si parte da adesso.
+            // Entro una battuta invece è l'attesa normale della battuta dopo, e si tiene (la lezione del TX-6).
+            if notesFrom > nextSixteenth + 16 { notesFrom = nextSixteenth }
         }
         let horizon = now + io.ticks(ms: lookahead)
         let (p, knobs, kch) = plan()
@@ -198,11 +202,11 @@ final class M8Sequencer {
         }
 
         // le onde: un punto ogni 1/16 di battito, mandato solo se il valore cambia
-        if knobsOn && knobs.contains(where: { $0.motion == .wave && !$0.isGain }) {
+        if knobsOn && knobs.contains(where: { $0.motion == .wave }) {
             while line.time(ofBeat: Double(nextWave) / Double(waveRate)) < horizon {
                 let t = line.time(ofBeat: Double(nextWave) / Double(waveRate))
                 let beat = Double(nextWave) / Double(waveRate)
-                for (k, knob) in knobs.enumerated() where k < 8 && knob.motion == .wave && !knob.isGain {
+                for (k, knob) in knobs.enumerated() where k < 8 && knob.motion == .wave {
                     let length = max(0.25, knob.beats)
                     let turns = beat / length
                     let turn = Int(turns.rounded(.down))
@@ -239,7 +243,7 @@ final class M8Sequencer {
             }
             var autoStep: Int?
             if knobsOn {
-                for (k, knob) in knobs.enumerated() where k < 8 && knob.motion == .steps && !knob.isGain {
+                for (k, knob) in knobs.enumerated() where k < 8 && knob.motion == .steps {
                     autoStep = i
                     if let v = knob.steps[i] {
                         knobValues[k] = v

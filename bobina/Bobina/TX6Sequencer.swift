@@ -1,4 +1,37 @@
 import Foundation
+
+/// Le note che Bobina ha acceso sul TX-6 (canale e nota) dall'ultimo «silenzio». «silenzio» spegne queste e
+/// basta: prima ne mandava 768, una per nota e canale, e col bluetooth il TX-6 a volte si bloccava (8/10/2026).
+/// Resta salvato, così al collegamento dopo una chiusura brusca si spengono anche quelle rimaste accese.
+final class TX6PlayedNotes {
+    static let shared = TX6PlayedNotes()
+    private let lock = NSLock()
+    private var notes: Set<Int>
+    private static let key = "bobina.tx6.notesuonate"
+
+    private init() {
+        notes = Set(UserDefaults.standard.array(forKey: Self.key) as? [Int] ?? [])
+    }
+
+    func add(_ channel: Int, _ note: Int) {
+        let k = channel << 8 | (note & 0x7F)
+        lock.lock()
+        let fresh = notes.insert(k).inserted
+        let all = fresh ? Array(notes) : nil
+        lock.unlock()
+        if let all = all { DispatchQueue.main.async { UserDefaults.standard.set(all, forKey: Self.key) } }
+    }
+
+    /// Tutte le note da spegnere, e il registro riparte vuoto.
+    func takeAll() -> [(channel: Int, note: Int)] {
+        lock.lock()
+        let all = notes
+        notes.removeAll()
+        lock.unlock()
+        UserDefaults.standard.set([Int](), forKey: Self.key)
+        return all.map { (channel: $0 >> 8, note: $0 & 0x7F) }
+    }
+}
 import CoreMIDI
 
 /// Il ritmo del TX-6 su un filo tutto suo: scorrere lo schermo non lo tocca.
@@ -39,6 +72,8 @@ final class TX6Sequencer {
         var pumpTops: [(track: Int, top: Double)] = []
         /// Il pattern che la pagina crede di suonare.
         var patternID: UUID?
+        /// Lo swing come sulle MPC: 0,5 dritto, 0,66 terzina. I sedicesimi dispari arrivano in ritardo.
+        var swing = 0.5
     }
 
     /// Un pattern pronto a entrare all'inizio della prossima battuta.
@@ -57,6 +92,8 @@ final class TX6Sequencer {
         var soundBytes: [UInt8]
         /// Il tempo del pattern, se cambia anche quello.
         var bpm: Double?
+        /// Lo swing del pattern, se ne ha uno.
+        var swing: Double? = nil
     }
 
     /// Un pattern è entrato (sul filo del sequencer).
@@ -243,8 +280,12 @@ final class TX6Sequencer {
         let fresh = BobinaClock.shared.snapshot()
         if fresh.generation != line.generation {
             line = fresh
-            // la griglia è saltata avanti (il TX-6 è ripartito mentre lo seguiamo): niente raffica di passi vecchi
-            if time(ofBeat: Double(nextSixteenth) / 4) + io.ticks(ms: 30) < now {
+            // la griglia è saltata avanti (il TX-6 è ripartito mentre lo seguiamo): niente raffica di passi vecchi.
+            // O è saltata indietro (ripartita da zero mentre suoniamo): il prossimo passo sarebbe fra minuti e il
+            // TX-6 resterebbe muto. In tutti e due i casi si riparte dal passo di adesso.
+            let next = time(ofBeat: Double(nextSixteenth) / 4)
+            let farAhead = now &+ io.ticks(ms: lookahead + line.beatMs * 4 + 50)
+            if next &+ io.ticks(ms: 30) < now || next > farAhead {
                 nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
                 nextClockTick = nextSixteenth * 6
             }
@@ -252,16 +293,21 @@ final class TX6Sequencer {
         let horizon = now + io.ticks(ms: lookahead)
         while time(ofBeat: Double(nextSixteenth) / 4) < horizon {
             let n = nextSixteenth
-            let t = max(now, time(ofBeat: Double(n) / 4))
+            // lo swing sposta in avanti i sedicesimi dispari: 0,5 dritto, 0,66 terzina (fino a un ottavo di quarto)
+            let late = n % 2 == 1 ? (min(0.75, max(0.5, p.swing)) - 0.5) * 0.5 : 0
+            let t = max(now, time(ofBeat: Double(n) / 4 + late))
             let prefix = switchIfDue(n % 16, at: t)
             if !prefix.isEmpty || override != nil { p = effective(plan()) }
-            fire(n, at: t, p, prefix: prefix, withClock: p.sendClock)
+            // il clock resta dritto: se il passo è spostato dallo swing, l'impulso parte da solo
+            fire(n, at: t, p, prefix: prefix, withClock: p.sendClock && late == 0)
             nextSixteenth += 1
         }
         if p.sendClock {
-            // un impulso su sei cade insieme a un passo ed è già partito nel suo pacchetto
+            // un impulso su sei cade insieme a un passo ed è già partito nel suo pacchetto, se il passo è dritto
             while time(ofBeat: Double(nextClockTick) / 24) < horizon {
-                if nextClockTick % 6 != 0 {
+                let onStep = nextClockTick % 6 == 0
+                let swungStep = onStep && (nextClockTick / 6) % 2 == 1 && p.swing > 0.5
+                if !onStep || swungStep {
                     io.send(TX6.clock, at: max(now, time(ofBeat: Double(nextClockTick) / 24)))
                 }
                 nextClockTick += 1
@@ -305,6 +351,7 @@ final class TX6Sequencer {
         p.lockBase = o.lockBase
         p.gate = o.gate
         if let b = o.bpm { p.bpm = b }
+        if let s = o.swing { p.swing = s }
         return p
     }
 
@@ -336,6 +383,7 @@ final class TX6Sequencer {
                 // sul canale della traccia, come la tastiera: lì la nota cambia davvero l'altezza
                 let note = p.padBase
                 now += TX6.noteOn(note, channel: tr)
+                TX6PlayedNotes.shared.add(tr, note)
                 offsAt[n + 1, default: []] += TX6.noteOff(note, channel: tr)
                 hit.insert(tr)
             }
@@ -346,6 +394,7 @@ final class TX6Sequencer {
                 guard let semi = p.melodies[tr - 1][i] else { continue }
                 let note = 12 * (p.melodyOctaves[tr - 1] + 1) + semi
                 now += TX6.noteOn(note, channel: tr)
+                TX6PlayedNotes.shared.add(tr, note)
                 offsAt[n + max(1, p.melodyLength), default: []] += TX6.noteOff(note, channel: tr)
             }
         }
