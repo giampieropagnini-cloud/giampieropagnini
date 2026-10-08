@@ -576,48 +576,33 @@ final class TX6Engine: ObservableObject {
     /// Una nota rimasta accesa sul TX-6 si sente così: una cassa che suona anche alta come un tom, un'onda che
     /// non si spegne più. Succede se Bobina si chiude (o si reinstalla) mentre una nota è giù: lo spegnimento
     /// non parte mai. Qui si mandano tutti, a gruppi di otto ogni 10 ms, per non intasare il bluetooth.
-    /// Ogni «silenzio» nuovo ferma gli spegnimenti di quello prima, così non si accumulano.
-    private var silenceRun = 0
-
-    /// Spegne le note rimaste accese sul TX-6. Prima, in un pacchetto, quelle che restano appese di solito
-    /// (i pad e le note delle melodie); poi tutte le altre piano, due ogni 15 ms (circa 5 secondi).
-    /// 8/10/2026: mandarne 768 in un secondo intasava il bluetooth e dopo il TX-6 non suonava più.
+    /// Spegne le note rimaste accese sul TX-6: solo quelle che Bobina ha suonato davvero dall'ultimo silenzio
+    /// (TX6PlayedNotes), più i pad e le note delle melodie, e il «tutte le note spente» standard (cc 123) su ogni
+    /// traccia. Di solito un pacchetto o due. 8/10/2026: mandarne centinaia, anche piano, a volte bloccava il TX-6.
     func allNotesOff() {
         guard io.destination != 0 else { return }
-        silenceRun += 1
-        let run = silenceRun
-        var first: [UInt8] = []
-        var done = Set<Int>()
+        var notes = Set<Int>()
+        for (ch, n) in TX6PlayedNotes.shared.takeAll() { notes.insert(ch << 8 | n) }
         for t in 1...6 {
-            var notes: Set<Int> = [padBase]
-            for k in melodies[t - 1].compactMap({ $0 }) { notes.insert(melodyNote(t, k)) }
-            for n in notes where (0...127).contains(n) {
-                first += TX6.noteOff(n, channel: t)
-                done.insert(t << 8 | n)
-            }
+            notes.insert(t << 8 | padBase)
+            for k in melodies[t - 1].compactMap({ $0 }) { notes.insert(t << 8 | max(0, min(127, melodyNote(t, k)))) }
         }
-        io.send(first)
-        // il TX-6 suona da do0 (12) in su: sotto non c'è niente da spegnere
-        var rest: [[UInt8]] = []
-        var chunk: [UInt8] = []
-        for t in 1...6 {
-            for n in 12...127 where !done.contains(t << 8 | n) {
-                chunk += TX6.noteOff(n, channel: t)
-                if chunk.count >= 6 { rest.append(chunk); chunk = [] }
-            }
-        }
-        if !chunk.isEmpty { rest.append(chunk) }
-        for (i, c) in rest.enumerated() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05 + Double(i) * 0.015) { [weak self] in
-                guard let self = self, self.silenceRun == run, self.io.destination != 0 else { return }
+        var bytes: [UInt8] = []
+        for k in notes.sorted() { bytes += TX6.noteOff(k & 0x7F, channel: k >> 8) }
+        for t in 1...6 { bytes += TX6.cc(123, 0, channel: t) }
+        // a pacchetti piccoli, uno ogni 20 ms
+        let chunks = stride(from: 0, to: bytes.count, by: 24).map { Array(bytes[$0..<min(bytes.count, $0 + 24)]) }
+        for (i, c) in chunks.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.02) { [weak self] in
+                guard let self = self, self.io.destination != 0 else { return }
                 self.io.send(c)
             }
         }
         held.removeAll()
         heldKeys.removeAll()
         sequencer.melodyOffNow()
-        logText("silenzio: tutte le note spente")
-        trace("TX-6: silenzio, \(rest.count + 1) pacchetti di spegnimento in \(String(format: "%.1f", 0.05 + Double(rest.count) * 0.015)) s")
+        logText("silenzio: \(notes.count) note spente")
+        trace("TX-6: silenzio, \(notes.count) note in \(chunks.count) pacchetti")
     }
 
     // MARK: guadagno
@@ -909,7 +894,10 @@ final class TX6Engine: ObservableObject {
         let playable = list.filter { $0.note <= 127 }
         held[k] = playable
         heldKeys.insert(k)
-        for n in playable { send(TX6.noteOn(n.note, channel: n.track)) }
+        for n in playable {
+            send(TX6.noteOn(n.note, channel: n.track))
+            TX6PlayedNotes.shared.add(n.track, n.note)
+        }
         haptic.impactOccurred()
     }
 
@@ -925,6 +913,7 @@ final class TX6Engine: ObservableObject {
     func hitPad(_ track: Int, at time: MIDITimeStamp = 0, fromUser: Bool = true) {
         let n = padBase
         send(TX6.noteOn(n, channel: track), at: time, quiet: !fromUser)
+        TX6PlayedNotes.shared.add(track, n)
         let off = (time == 0 ? io.now() : time) + io.ticks(ms: 40)
         send(TX6.noteOff(n, channel: track), at: off, quiet: true)
         if fromUser { haptic.impactOccurred() }
@@ -948,6 +937,7 @@ final class TX6Engine: ObservableObject {
     func preview(_ track: Int, _ semitone: Int) {
         let n = melodyNote(track, semitone)
         send(TX6.noteOn(n, channel: track), quiet: true)
+        TX6PlayedNotes.shared.add(track, n)
         send(TX6.noteOff(n, channel: track), at: io.now() + io.ticks(ms: 180), quiet: true)
     }
 

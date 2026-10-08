@@ -181,6 +181,10 @@ final class M8Sequencer {
             nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
             nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
             nextWave = Int((line.beat(at: now) * Double(waveRate)).rounded(.up))
+            // la griglia è tornata indietro (il TX-6 che dà il tempo è ripartito da capo, o qualcuno ha
+            // rifatto partire la griglia da 0): le note aspetterebbero minuti un passo lontano. Si parte da adesso.
+            // Entro una battuta invece è l'attesa normale della battuta dopo, e si tiene (la lezione del TX-6).
+            if notesFrom > nextSixteenth + 16 { notesFrom = nextSixteenth }
         }
         let horizon = now + io.ticks(ms: lookahead)
         let (p, knobs, kch) = plan()
