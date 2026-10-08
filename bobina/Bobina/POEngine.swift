@@ -131,16 +131,6 @@ final class POEngine: ObservableObject {
     @Published var channel = 1 { didSet { save() } }
     /// Le scorciatoie a CC sono accese nel configuratore dell'adattatore.
     @Published var useCC = false { didSet { save() } }
-    /// L'ultimo volume mandato (1-16). Il PO non lo dice: nil finché Bobina non ne ha mandato uno.
-    @Published private(set) var volume: Int?
-
-    /// Il volume un gradino alla volta. Senza un volume noto si parte da 4, mai dall'alto.
-    func volumeStep(_ d: Int) {
-        let v = max(1, min(16, (volume ?? (d > 0 ? 3 : 5)) + d))
-        volume = v
-        combo(.volume, v)
-    }
-
     /// I tasti tenuti giù dalla faccia.
     @Published private(set) var held: Set<PO.Key> = []
 
@@ -179,7 +169,7 @@ final class POEngine: ObservableObject {
     @Published var gateOn = false
     @Published var gate: [Bool] = [true, true, false, true, true, false, true, false, true, true, false, true, true, false, false, true] { didSet { save() } }
     @Published var gateLow = 2 { didSet { save() } }
-    @Published var gateHigh = 5 { didSet { save() } }
+    @Published var gateHigh = 12 { didSet { save() } }
 
     @Published var tiltOn = false { didSet { if tiltOn { startMotion() } else { stopMotion() } } }
     /// Quattro effetti: inclinando a sinistra poco e tanto, a destra poco e tanto.
