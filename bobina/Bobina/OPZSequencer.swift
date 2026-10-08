@@ -558,7 +558,8 @@ final class OPZSequencer {
 
             // l'automazione a passi: in un passo con un valore, la manopola va lì (un CC per riga, nel pacchetto del passo)
             if p.autom.indices.contains(curCreate) {
-                for lane in p.autom[curCreate] where lane.values.indices.contains(i) {
+                // mai un guadagno a passi (regola dell'8/10/2026), anche se una riga vecchia l'aveva
+                for lane in p.autom[curCreate] where lane.values.indices.contains(i) && !OPZ.gainCCs.contains(lane.cc) {
                     if let v = lane.values[i] { bytes += OPZ.cc(lane.cc, OPZLane.value(v), channel: lane.track) }
                 }
             }
