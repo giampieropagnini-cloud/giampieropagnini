@@ -157,6 +157,10 @@ enum TX6 {
     static func presetValue(_ i: Int, of n: Int) -> Int { min(127, Int((Double(i) + 0.5) * 128 / Double(n))) }
     static let fx2Places = ["tutto", "tr 1", "tr 2", "tr 3", "tr 4", "tr 5", "tr 6"]
 
+    /// Il valore del cc 9 (canale 9) per un posto di fx2Places. Sul TX-6 vengono prima le tracce 1-6 e
+    /// «tutto il mix» per ultimo (misurato l'8/10/2026: con «tutto» per primo ogni tasto cadeva sul posto dopo).
+    static func fx2PlaceValue(_ index: Int) -> Int { presetValue(index == 0 ? 6 : index - 1, of: 7) }
+
     static func spread(_ i: Int, _ n: Int) -> Int {
         n < 2 ? 0 : Int((Double(i) * 127 / Double(n - 1)).rounded())
     }

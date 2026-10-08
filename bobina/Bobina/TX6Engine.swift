@@ -804,7 +804,7 @@ final class TX6Engine: ObservableObject {
 
     func setFx2Place(_ index: Int) {
         fx2Place = index
-        send(TX6.cc(TX6.ccFx2Place, TX6.spread(index, TX6.fx2Places.count), channel: TX6.fxChannels[1]))
+        send(TX6.cc(TX6.ccFx2Place, TX6.fx2PlaceValue(index), channel: TX6.fxChannels[1]))
     }
 
     // MARK: suonare
