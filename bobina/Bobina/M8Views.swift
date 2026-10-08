@@ -363,6 +363,25 @@ struct M8SuonaView: View {
     }
 }
 
+/// Quale traccia dell'M8 suonano pad e passi: un tasto per traccia.
+/// Sull'M8 la traccia N deve ascoltare il canale N (TRACK INPUT, CHAN).
+struct M8TrackPicker: View {
+    @ObservedObject var player: M8Player
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text("traccia")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(Palette.dim)
+                .fixedSize()
+            ForEach(1...8, id: \.self) { t in
+                M8Chip(text: "\(t)", on: player.channel == t, height: 40) { player.setTrack(t) }
+                    .accessibilityLabel("traccia \(t)")
+            }
+        }
+    }
+}
+
 /// 16 pad, un tasto per pad. Il modo sopra: «tocca» suona un attimo, «tieni» lascia la nota accesa.
 struct M8PadsPanel: View {
     @ObservedObject var player: M8Player
@@ -370,6 +389,7 @@ struct M8PadsPanel: View {
     private let four = Array(repeating: GridItem(.flexible(), spacing: 6), count: 4)
 
     var body: some View {
+        M8TrackPicker(player: player)
         HStack(spacing: 6) {
             M8Chip(text: "tocca", on: !player.holdMode) { player.holdMode = false }
                 .accessibilityLabel("modo tocca")
@@ -398,7 +418,7 @@ struct M8PadsPanel: View {
             M8Chip(text: "lascia tutto") { player.releaseAll() }
             M8Chip(text: "silenzio") { player.engine?.allNotesOff() }
         }
-        M8Label("Suonano la traccia che ascolta il canale \(player.channel) (sull'M8: MIDI Settings, TRACK INPUT).")
+        M8Label("Sull'M8, Project > MIDI > Settings, TRACK INPUT: la traccia N con CHAN N, e INST# lo strumento che suona.")
     }
 }
 
@@ -472,6 +492,9 @@ struct M8PassiEditor: View {
                     .frame(minWidth: 44)
                 SmallKey(text: "+5") { m8.setBPM(m8.bpm + 5) }.accessibilityLabel("tempo più 5")
             }
+
+            // la traccia dell'M8 che suona i passi
+            M8TrackPicker(player: player)
 
             // la tastiera: 12 note, una per tasto
             LazyVGrid(columns: six, spacing: 5) {
@@ -607,7 +630,7 @@ struct M8PadChannelRow: View {
     @ObservedObject var player: M8Player
 
     var body: some View {
-        M8NumberRow(name: "pad e passi", hint: "TRACK INPUT CHAN", value: player.channel, range: 1...16) { player.channel = $0 }
+        M8NumberRow(name: "pad e passi", hint: "canale = traccia", value: player.channel, range: 1...16) { player.channel = $0 }
     }
 }
 

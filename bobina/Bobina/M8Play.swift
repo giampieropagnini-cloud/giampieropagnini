@@ -86,6 +86,18 @@ final class M8Player: ObservableObject {
 
     private var ch: UInt8 { UInt8((channel - 1) & 0x0F) }
 
+    // MARK: traccia
+
+    /// La traccia dell'M8 che suonano pad e passi. Sull'M8 la traccia N ascolta il canale N
+    /// (Project > MIDI > Settings, TRACK INPUT, CHAN): quindi traccia = canale.
+    /// Le note tenute si lasciano prima, sul canale vecchio.
+    func setTrack(_ n: Int) {
+        let n = max(1, min(16, n))
+        guard n != channel else { return }
+        releaseAll()
+        channel = n
+    }
+
     // MARK: pad
 
     static let names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
