@@ -133,26 +133,15 @@ struct TX6FxPanel: View {
     private let three = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let seven = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
 
-    /// I valori che ogni effetto ha davvero, dalle pagine degli effetti della guida ufficiale (8/10/2026):
-    /// uno solo per effetto (il parametro 1), più la risonanza (parametro 2) nel filtro. Nessuno usa il 3.
-    /// Che il parametro 1 sia proprio quel valore viene dalla guida, non è ancora misurato (prova 19).
+    /// I valori continui di ogni effetto, dalle pagine della guida: il filtro ha taglio e risonanza (parametri 1 e 2),
+    /// tremolo e freeze un valore solo. Gli effetti coi preset li scelgono coi loro nomi (TX6.fxPresets).
     static func paramNames(_ index: Int, _ engine: Int?) -> [String] {
-        if index == 0 {
-            switch engine {
-            case 0: return ["1 · drone · light · small · medium · large"]
-            case 1: return ["1 · subtle · medium · strong"]
-            case 2: return ["1 · 1/8 … 3/2 a tempo, warp, mash"]
-            default: return ["1 · tipo o tempo dell'effetto"]
-            }
-        }
-        switch engine {
-        case 0: return ["1 · taglio", "2 · risonanza"]
-        case 1: return ["1 · shape · bend · chip · bit"]
-        case 2: return ["1 · push · drive · blow · dstroy"]
-        case 3: return ["1 · quantità 0-99"]
-        case 4: return ["1 · freeze − … +"]
-        case 5: return ["1 · stop 1 · stop 2 · pong"]
-        default: return ["1 · il valore dell'effetto", "2 · risonanza, solo nel filtro"]
+        let name = engine.flatMap { TX6.fxEngines[index].indices.contains($0) ? TX6.fxEngines[index][$0] : nil }
+        switch name {
+        case "filtro": return ["1 · taglio", "2 · risonanza"]
+        case "tremolo": return ["1 · quantità 0-99"]
+        case "freeze": return ["1 · freeze − … +"]
+        default: return index == 0 ? ["1 · tipo o tempo dell'effetto"] : ["1 · il valore dell'effetto", "2 · risonanza, solo nel filtro"]
         }
     }
 
@@ -173,11 +162,22 @@ struct TX6FxPanel: View {
                         .accessibilityLabel("effetto \(TX6.fxEngines[index][i])")
                 }
             }
-            let names = Self.paramNames(index, tx.fxEngine[index])
-            ForEach(names.indices, id: \.self) { k in
-                TX6KnobRow(name: names[k], value: tx.fxParams[index][k]) { tx.setFxParam(index, k, $0) }
+            if let presets = TX6.fxPresets(index, tx.fxEngine[index]) {
+                TX6Label("\(TX6.fxEngines[index][tx.fxEngine[index] ?? 0]): i preset come sul TX-6")
+                LazyVGrid(columns: three, spacing: 4) {
+                    ForEach(presets.indices, id: \.self) { i in
+                        let v = TX6.presetValue(i, of: presets.count)
+                        TX6Mini(text: presets[i], on: tx.fxParamsKnown && tx.fxParams[index][0] == v, height: 40) { tx.setFxParam(index, 0, v) }
+                            .accessibilityLabel("preset \(presets[i])")
+                    }
+                }
+            } else {
+                let names = Self.paramNames(index, tx.fxEngine[index])
+                ForEach(names.indices, id: \.self) { k in
+                    TX6KnobRow(name: names[k], value: tx.fxParams[index][k]) { tx.setFxParam(index, k, $0) }
+                }
             }
-            TX6Label("Dalla guida: un valore per effetto (1); il filtro ha anche la risonanza (2). Il 3 non serve.")
+            TX6Label("Dalla guida: un valore per effetto; il filtro ha anche la risonanza. Il parametro 3 non serve.")
             if index == 0 {
                 TX6KnobRow(name: "ritorno", value: tx.fxReturn) { tx.setFxReturn($0) }
                 if let show = showSends {

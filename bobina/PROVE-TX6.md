@@ -30,6 +30,7 @@ Le prime quattro si fanno col cavo al **Mac** e l'ascoltatore (`strumenti/ascolt
 | 16 | il ponte verso il TP-7 | TX-6 su CTRL OUT col cavo, TP-7 col bluetooth; Collega → ponte | da fare |
 | 18 | effetti: acceso e spento | Mixer → FX I: mandate alzate, riverbero; «spento», poi «acceso» | da fare: con «spento» deve tacere (cc 82 a 0 e ritorno a 0), con «acceso» tornare |
 | 19 | effetti: cosa fanno i parametri 1, 2, 3 | un effetto alla volta: parametro 1, 2, 3 a 0 e a max, ascoltando | in parte: 8/10/2026 il display del TX-6 non cambia pagina coi parametri (le mandate sì). Dalla guida: un valore per effetto (CHO subtle-strong, REV drone-large, DLY 1/8-mash, TRM 0-99, FRZ −/+, TPE stop1-pong, DST push-dstroy, CRU shape-bit), il filtro due (CUT e RES): il parametro 2 è solo la risonanza del filtro, il 3 nessuno. Da confermare a orecchio |
+| 20 | i nomi degli effetti e dei preset | sul TX-6 shift + FX I (poi FX II): la pagina dell'effetto; in Bobina Mixer → FX I/II, tocca un effetto alla volta, poi i suoi preset | da fare: il display deve dire lo stesso nome (CHO REV DLY · TRM FRZ TPE FLT DST CRU; subtle… large…). Ogni preset manda il centro della sua fetta di 0-127 |
 | 17 | bluetooth | BLE → ACCEPT; Collega → cerca il TX-6 | ✅ 29/9/2026: compare «TX-6 Bluetooth», Bobina lo sceglie da sola per mandare e ascoltare. Il TP-7 resta collegato in bluetooth nello stesso momento |
 
 ## Misure

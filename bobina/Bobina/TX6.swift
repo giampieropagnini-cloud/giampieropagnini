@@ -130,8 +130,29 @@ enum TX6 {
     static let ccFx2Place: UInt8 = 9
 
     /// L'ordine degli effetti è quello del telecomando di psimyn; i 128 valori divisi in parti uguali (da misurare).
-    static let fxEngines = [["riverbero", "chorus", "delay"],
-                            ["filtro", "crush", "distorsione", "tremolo", "freeze", "tape"]]
+    /// Gli effetti nell'ordine della guida (CHO REV DLY · TRM FRZ TPE FLT DST CRU). Che il cc 15 li scelga in
+    /// quest'ordine non è ancora misurato (prova 11): se il display del TX-6 dice un altro nome, si cambia qui.
+    static let fxEngines = [["chorus", "riverbero", "delay"],
+                            ["tremolo", "freeze", "tape", "filtro", "distorsione", "crush"]]
+
+    /// I preset di un effetto, come li scrive il TX-6 (dalle pagine della guida): il parametro 1 li sceglie.
+    /// nil = l'effetto ha valori continui (filtro: taglio e risonanza; tremolo 0-99; freeze − … +).
+    static func fxPresets(_ fx: Int, _ engine: Int?) -> [String]? {
+        guard let e = engine, fxEngines[fx].indices.contains(e) else { return nil }
+        switch fxEngines[fx][e] {
+        case "chorus": return ["subtle", "medium", "strong"]
+        case "riverbero": return ["drone", "light", "small", "medium", "large"]
+        case "delay": return ["1/8", "1/4", "1/2", "2/3", "3/4", "1", "3/2", "warp", "mash"]
+        case "tape": return ["stop 1", "stop 2", "pong"]
+        case "distorsione": return ["push", "drive", "blow", "dstroy"]
+        case "crush": return ["shape", "bend", "chip", "bit"]
+        default: return nil
+        }
+    }
+
+    /// Il valore del parametro 1 per il preset i di n: il centro della sua fetta di 0-127. Così cade giusto sia se
+    /// il TX-6 divide in fette uguali (v · n / 128) sia se arrotonda (v · (n − 1) / 127). Da confermare (prova 19).
+    static func presetValue(_ i: Int, of n: Int) -> Int { min(127, Int((Double(i) + 0.5) * 128 / Double(n))) }
     static let fx2Places = ["tutto", "tr 1", "tr 2", "tr 3", "tr 4", "tr 5", "tr 6"]
 
     static func spread(_ i: Int, _ n: Int) -> Int {

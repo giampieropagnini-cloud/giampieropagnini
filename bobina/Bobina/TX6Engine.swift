@@ -354,8 +354,17 @@ final class TX6Engine: ObservableObject {
     /// FX I spento da Bobina: il ritorno resta a zero (cc 7 canale 8) finché non si riaccende. Così l'effetto
     /// tace anche con le mandate delle tracce alzate (8/10/2026: spegnendolo si sentiva ancora).
     private var fx1Silenced: Bool { fxKnown[0] && !fxOn[0] }
-    @Published private(set) var fxEngine: [Int?] = [nil, nil]
-    @Published private(set) var fxParams = [[64, 64, 64], [64, 64, 64]]
+    /// L'effetto scelto da Bobina e i suoi parametri: restano salvati, così riaprendo si vedono i preset giusti.
+    @Published private(set) var fxEngine: [Int?] = {
+        let saved = UserDefaults.standard.array(forKey: "bobina.tx6.effetti") as? [Int] ?? []
+        return saved.count == 2 ? saved.map { $0 < 0 ? nil : $0 } : [nil, nil]
+    }()
+    @Published private(set) var fxParams: [[Int]] = {
+        let saved = UserDefaults.standard.array(forKey: "bobina.tx6.effetti.parametri") as? [[Int]] ?? []
+        return saved.count == 2 && saved.allSatisfy({ $0.count == 3 }) ? saved : [[64, 64, 64], [64, 64, 64]]
+    }()
+    /// Se Bobina ha già mandato un parametro: prima di allora il 64 di partenza è solo un'ipotesi e nessun preset si accende.
+    private(set) var fxParamsKnown = UserDefaults.standard.array(forKey: "bobina.tx6.effetti.parametri") != nil
     @Published private(set) var fxReturn = 100
     @Published private(set) var fx2Place: Int?
 
@@ -735,6 +744,7 @@ final class TX6Engine: ObservableObject {
 
     func setFxEngine(_ i: Int, _ index: Int) {
         fxEngine[i] = index
+        UserDefaults.standard.set(fxEngine.map { $0 ?? -1 }, forKey: "bobina.tx6.effetti")
         send(TX6.cc(TX6.ccFxEngine, TX6.spread(index, TX6.fxEngines[i].count), channel: TX6.fxChannels[i]))
     }
 
@@ -743,6 +753,8 @@ final class TX6Engine: ObservableObject {
         guard v != fxSent[i][k] else { return }
         fxParams[i][k] = v
         fxSent[i][k] = v
+        fxParamsKnown = true
+        UserDefaults.standard.set(fxParams, forKey: "bobina.tx6.effetti.parametri")
         send(TX6.cc(TX6.ccFxParams[k], v, channel: TX6.fxChannels[i]))
     }
 
