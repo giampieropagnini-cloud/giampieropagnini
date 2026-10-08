@@ -142,7 +142,8 @@ enum TX6 {
         guard let e = engine, fxEngines[fx].indices.contains(e) else { return nil }
         switch fxEngines[fx][e] {
         case "chorus": return ["subtle", "medium", "strong"]
-        case "riverbero": return ["drone", "light", "small", "medium", "large"]
+        // misurato l'8/10/2026: drone è l'ultimo (messo primo, ogni nome cadeva sul preset dopo)
+        case "riverbero": return ["light", "small", "medium", "large", "drone"]
         case "delay": return ["1/8", "1/4", "1/2", "2/3", "3/4", "1", "3/2", "warp", "mash"]
         case "tape": return ["stop 1", "stop 2", "pong"]
         case "distorsione": return ["push", "drive", "blow", "dstroy"]
