@@ -242,15 +242,26 @@ struct NTS1KnobRow: View {
             ProgressView(value: Double(value), total: 127)
                 .tint(NTS1.color)
                 .accessibilityHidden(true)
-            HStack(spacing: 4) {
-                NTS1SmallChip(text: "−") { set(max(0, value - 8)) }
-                    .accessibilityLabel("\(knob.label) meno")
-                ForEach(NTS1KnobRow.jumps, id: \.0) { j in
-                    NTS1SmallChip(text: j.1, on: abs(value - j.0) <= 4) { set(j.0) }
-                        .accessibilityLabel("\(knob.label) \(j.2)")
+            if knob.isGain {
+                // il volume: solo − e + a passi piccoli. Un «max» capito male dal Controllo Vocale
+                // può rompere casse e cuffie (regola di Giampiero, in LEGGIMI)
+                HStack(spacing: 4) {
+                    NTS1SmallChip(text: "− volume", height: 40) { set(max(0, value - 4)) }
+                        .accessibilityLabel("volume meno")
+                    NTS1SmallChip(text: "+ volume", height: 40) { set(min(127, value + 4)) }
+                        .accessibilityLabel("volume più")
                 }
-                NTS1SmallChip(text: "+") { set(min(127, value + 8)) }
-                    .accessibilityLabel("\(knob.label) più")
+            } else {
+                HStack(spacing: 4) {
+                    NTS1SmallChip(text: "−") { set(max(0, value - 8)) }
+                        .accessibilityLabel("\(knob.label) meno")
+                    ForEach(NTS1KnobRow.jumps, id: \.0) { j in
+                        NTS1SmallChip(text: j.1, on: abs(value - j.0) <= 4) { set(j.0) }
+                            .accessibilityLabel("\(knob.label) \(j.2)")
+                    }
+                    NTS1SmallChip(text: "+") { set(min(127, value + 8)) }
+                        .accessibilityLabel("\(knob.label) più")
+                }
             }
         }
     }
@@ -485,7 +496,8 @@ struct NTS1ArpChoices: View {
 struct NTS1WavePanel: View {
     @ObservedObject var player: NTS1Player
 
-    static let targets: [NTS1.Knob] = [.cutoff, .resonance, .oscA, .oscB, .volume, .modA, .delayMix, .reverbMix]
+    /// Niente volume: onde e inclinazione non muovono mai un guadagno.
+    static let targets: [NTS1.Knob] = [.cutoff, .resonance, .oscA, .oscB, .modA, .modB, .delayMix, .reverbMix]
     private let four = Array(repeating: GridItem(.flexible(), spacing: 4), count: 4)
 
     var body: some View {

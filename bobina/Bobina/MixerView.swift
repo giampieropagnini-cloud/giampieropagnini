@@ -18,14 +18,21 @@ struct MixerView: View {
                 TrackPicker(tracks: $engine.driftTracks)
             }
 
-            Card(title: "ingressi", note: "Guadagno dei tre minijack, da 0 a +42 dB. Microfono interno e USB hanno il guadagno fisso.") {
+            Card(title: "ingressi", note: "Guadagno dei tre minijack, da 0 a +42 dB, un dB alla volta: niente scatti grandi, per non rompere casse e cuffie con un comando capito male. Microfono interno e USB hanno il guadagno fisso.") {
                 ForEach(1...3, id: \.self) { i in
-                    let value = Binding<Double>(
-                        get: { Double(engine.gains[i - 1]) },
-                        set: { engine.setGain(i, Int($0.rounded())) }
-                    )
-                    ValueSlider(name: "in \(i)", value: value, range: 0...127,
-                                shown: "+\(Int((Double(engine.gains[i - 1]) / 127 * 42).rounded())) dB")
+                    let db = Int((Double(engine.gains[i - 1]) * 42 / 127).rounded())
+                    HStack(spacing: 10) {
+                        Text("in \(i)")
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(Palette.dim)
+                            .frame(width: 34, alignment: .leading)
+                        Chip(text: "−") { engine.setGain(i, gainValue(db - 1)) }
+                        Text("+\(db) dB")
+                            .font(.system(.body, design: .monospaced))
+                            .frame(minWidth: 70)
+                        Chip(text: "+") { engine.setGain(i, gainValue(db + 1)) }
+                        Spacer()
+                    }
                 }
             }
 
@@ -42,6 +49,11 @@ struct MixerView: View {
             }
         }
     }
+}
+
+/// Da dB (0-42) al valore del cc 9 (0-127).
+private func gainValue(_ db: Int) -> Int {
+    Int((Double(max(0, min(42, db))) * 127 / 42).rounded())
 }
 
 struct TrackRow: View {

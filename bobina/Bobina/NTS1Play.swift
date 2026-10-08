@@ -103,7 +103,7 @@ final class NTS1Player: ObservableObject {
 
     /// L'onda a tempo.
     @Published private(set) var waveOn = false
-    @Published var waveKnob: NTS1.Knob { didSet { save(); push() } }
+    @Published var waveKnob: NTS1.Knob { didSet { if waveKnob.isGain { waveKnob = .cutoff }; save(); push() } }
     @Published var waveShape: NTS1Shape { didSet { save(); push() } }
     /// Quanti quarti dura un giro: 1/4, 1/2, 1, 2, 4, 8, 16.
     @Published var waveBeats: Double { didSet { save(); push() } }
@@ -124,7 +124,7 @@ final class NTS1Player: ObservableObject {
                                                 (2, "ottavi"), (4, "sedicesimi"), (8, "trentaduesimi")]
 
     @Published var tiltOn = false { didSet { tiltOn ? startMotion() : stopMotion() } }
-    @Published var tiltKnob: NTS1.Knob { didSet { save() } }
+    @Published var tiltKnob: NTS1.Knob { didSet { if tiltKnob.isGain { tiltKnob = .cutoff }; save() } }
 
     static let waveLengths: [(Double, String)] = [(0.25, "1/16"), (0.5, "1/8"), (1, "1/4"), (2, "1/2"), (4, "1 battuta"), (8, "2 battute"), (16, "4 battute")]
 
@@ -142,11 +142,14 @@ final class NTS1Player: ObservableObject {
         pick = d.object(forKey: "bobina.nts1.suona.base") as? Int ?? 48
         stepLength = d.object(forKey: "bobina.nts1.passi.lunghezza") as? Int ?? 16
         writeOctave = d.object(forKey: "bobina.nts1.passi.ottava") as? Int ?? 3
-        waveKnob = NTS1.Knob(rawValue: d.string(forKey: "bobina.nts1.onda.manopola") ?? "") ?? .cutoff
+        // un guadagno salvato da prima della regola torna sul taglio
+        let savedWave = NTS1.Knob(rawValue: d.string(forKey: "bobina.nts1.onda.manopola") ?? "") ?? .cutoff
+        waveKnob = savedWave.isGain ? .cutoff : savedWave
         waveShape = NTS1Shape(rawValue: d.integer(forKey: "bobina.nts1.onda.forma")) ?? .sine
         waveBeats = d.object(forKey: "bobina.nts1.onda.quarti") as? Double ?? 4
         waveDepth = d.object(forKey: "bobina.nts1.onda.quanto") as? Int ?? 64
-        tiltKnob = NTS1.Knob(rawValue: d.string(forKey: "bobina.nts1.inclina.manopola") ?? "") ?? .cutoff
+        let savedTilt = NTS1.Knob(rawValue: d.string(forKey: "bobina.nts1.inclina.manopola") ?? "") ?? .cutoff
+        tiltKnob = savedTilt.isGain ? .cutoff : savedTilt
         arpMode = NTS1ArpMode(rawValue: d.integer(forKey: "bobina.nts1.arp.modo")) ?? .up
         arpChord = NTS1ArpChord(rawValue: d.integer(forKey: "bobina.nts1.arp.accordo")) ?? .notes
         arpOctaves = d.object(forKey: "bobina.nts1.arp.ottave") as? Int ?? 1
