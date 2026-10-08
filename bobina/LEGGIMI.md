@@ -72,7 +72,7 @@ Ogni sezione vive su un suo branch `claude/…`. Si installa **sempre** con `zsh
 
 **Dopo ogni cambiamento** (commit o installazione) si avvisano tutte le altre chat di Bobina con SendMessage (ListAgents, nomi con «Bobina»): branch e commit, file comuni toccati, cosa cambia per gli altri, se va unito. Una chat nuova si presenta alle altre appena nasce. È una regola di Giampiero (8/10/2026), scritta anche nel suo CLAUDE.md globale.
 
-**Guadagno, mai a salti** (regola di Giampiero, 8/10/2026): dove c'è un guadagno (gain) niente tasti 0 · ¼ · ½ · ¾ · max e niente onde, passi o inclinazione che lo muovano: solo − e + di un dB alla volta. Un «max» sentito male dal Controllo Vocale può rompere casse e cuffie.
+**Guadagno, mai a salti** (regola di Giampiero, 8/10/2026): dove c'è un guadagno (gain) niente tasti 0 · ¼ · ½ · ¾ · max e niente onde, passi o inclinazione che lo muovano: solo − e + di un dB alla volta. Un «max» sentito male dal Controllo Vocale può rompere casse e cuffie. Vale **solo per il guadagno**: volumi e mandate tengono i tasti 0 · ¼ · ½ · ¾ · max, comodi e non pericolosi, e i Pocket Operator tengono il loro volume 1-16 (Giampiero, 8/10/2026).
 
 ## Installarla sull'iPhone (una volta sola, circa 20 minuti)
 
