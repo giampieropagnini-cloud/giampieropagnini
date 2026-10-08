@@ -133,26 +133,16 @@ struct TX6FxPanel: View {
     private let three = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
     private let seven = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
 
-    /// I valori che ogni effetto ha davvero, dalle pagine degli effetti della guida ufficiale (8/10/2026):
-    /// uno solo per effetto (il parametro 1), più la risonanza (parametro 2) nel filtro. Nessuno usa il 3.
-    /// Che il parametro 1 sia proprio quel valore viene dalla guida, non è ancora misurato (prova 19).
+    /// I valori continui di ogni effetto, dalle pagine della guida: il filtro ha taglio e risonanza (parametri 1 e 2),
+    /// tremolo e freeze un valore solo. Gli effetti coi preset li scelgono coi loro nomi (TX6.fxPresets).
     static func paramNames(_ index: Int, _ engine: Int?) -> [String] {
-        if index == 0 {
-            switch engine {
-            case 0: return ["1 · drone · light · small · medium · large"]
-            case 1: return ["1 · subtle · medium · strong"]
-            case 2: return ["1 · 1/8 … 3/2 a tempo, warp, mash"]
-            default: return ["1 · tipo o tempo dell'effetto"]
-            }
-        }
-        switch engine {
-        case 0: return ["1 · taglio", "2 · risonanza"]
-        case 1: return ["1 · shape · bend · chip · bit"]
-        case 2: return ["1 · push · drive · blow · dstroy"]
-        case 3: return ["1 · quantità 0-99"]
-        case 4: return ["1 · freeze − … +"]
-        case 5: return ["1 · stop 1 · stop 2 · pong"]
-        default: return ["1 · il valore dell'effetto", "2 · risonanza, solo nel filtro"]
+        let name = engine.flatMap { TX6.fxEngines[index].indices.contains($0) ? TX6.fxEngines[index][$0] : nil }
+        switch name {
+        case "filtro": return ["1 · taglio", "2 · risonanza"]
+        // 8/10/2026: col tremolo il cc 12 non muove la barra 0-99 del TX-6. Finché non si sa quale dei tre la
+        // muove, tremolo e freeze li mostrano tutti e tre (prova 23).
+        case "tremolo", "freeze": return ["1 · cc 12", "2 · cc 13", "3 · cc 14"]
+        default: return index == 0 ? ["1 · tipo o tempo dell'effetto"] : ["1 · il valore dell'effetto", "2 · risonanza, solo nel filtro"]
         }
     }
 
@@ -173,11 +163,41 @@ struct TX6FxPanel: View {
                         .accessibilityLabel("effetto \(TX6.fxEngines[index][i])")
                 }
             }
-            let names = Self.paramNames(index, tx.fxEngine[index])
-            ForEach(names.indices, id: \.self) { k in
-                TX6KnobRow(name: names[k], value: tx.fxParams[index][k]) { tx.setFxParam(index, k, $0) }
+            let engineName = tx.fxEngine[index].flatMap { TX6.fxEngines[index].indices.contains($0) ? TX6.fxEngines[index][$0] : nil }
+            let scratchy = index == 1 && (engineName == "tape" || engineName == "freeze")
+            if scratchy, engineName == "tape", let presets = TX6.fxPresets(index, tx.fxEngine[index]) {
+                HStack(spacing: 4) {
+                    ForEach(presets.indices, id: \.self) { i in
+                        let v = TX6.presetValue(i, of: presets.count)
+                        TX6Mini(text: presets[i], on: tx.fxParamsKnown && tx.fxParams[index][0] == v, height: 38) { tx.setFxParam(index, 0, v) }
+                            .accessibilityLabel("preset \(presets[i])")
+                    }
+                }
             }
-            TX6Label("Dalla guida: un valore per effetto (1); il filtro ha anche la risonanza (2). Il 3 non serve.")
+            if scratchy {
+                TX6ScratchPanel()
+            } else if let presets = TX6.fxPresets(index, tx.fxEngine[index]) {
+                TX6Label("\(TX6.fxEngines[index][tx.fxEngine[index] ?? 0]): i preset come sul TX-6")
+                LazyVGrid(columns: three, spacing: 4) {
+                    ForEach(presets.indices, id: \.self) { i in
+                        let v = TX6.presetValue(i, of: presets.count)
+                        TX6Mini(text: presets[i], on: tx.fxParamsKnown && tx.fxParams[index][0] == v, height: 40) { tx.setFxParam(index, 0, v) }
+                            .accessibilityLabel("preset \(presets[i])")
+                    }
+                }
+            } else {
+                let names = Self.paramNames(index, tx.fxEngine[index])
+                ForEach(names.indices, id: \.self) { k in
+                    TX6KnobRow(name: names[k], value: tx.fxParams[index][k]) { tx.setFxParam(index, k, $0) }
+                }
+            }
+            if scratchy {
+                TX6Label("Prova: «tieni FX II» e muovi la rotellina con «parametro 1», poi 2, poi 3: quale fa lo scratch?")
+            } else if engineName == "tremolo" && index == 1 {
+                TX6Label("Tremolo: la barra del TX-6 va da 0 a 99. Prova quale fila (1, 2, 3) la muove.")
+            } else {
+                TX6Label("Dalla guida: un valore per effetto; il filtro ha anche la risonanza. Il parametro 3 non serve.")
+            }
             if index == 0 {
                 TX6KnobRow(name: "ritorno", value: tx.fxReturn) { tx.setFxReturn($0) }
                 if let show = showSends {
@@ -193,6 +213,68 @@ struct TX6FxPanel: View {
                     }
                 }
                 TX6Label("Uno alla volta. Se il mix suona ovattato, di solito è il filtro di FX II rimasto acceso.")
+            }
+        }
+    }
+}
+
+/// Tape e freeze: suonano finché FX II è tenuto, e la rotellina li muove (lo scratch).
+/// «tieni» / «lascia», la rotellina (slider per il QuadStick, − e + per la voce), FX II tenuto per una durata
+/// a tempo, lo scratch automatico, e quale parametro fa da rotellina.
+struct TX6ScratchPanel: View {
+    @EnvironmentObject var tx: TX6Engine
+
+    private let holds: [(String, Double)] = [("1/16", 0.25), ("1/8", 0.5), ("1/4", 1), ("1/2", 2), ("1", 4)]
+    private let scratches: [(String, Double)] = [("1/16", 0.25), ("1/8", 0.5), ("1/4", 1), ("1/2", 2)]
+
+    private func label(_ text: String) -> some View {
+        Text(text)
+            .font(.system(.caption, design: .monospaced))
+            .foregroundStyle(Palette.dim)
+            .lineLimit(1)
+            .fixedSize()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if tx.fxHolding {
+                TX6Mini(text: "lascia", on: true, color: Palette.rec, height: 48) { tx.releaseFx2() }
+                    .accessibilityLabel("lascia FX II")
+            } else {
+                TX6Mini(text: "tieni FX II", height: 48) { tx.holdFx2() }
+                    .accessibilityLabel("tieni FX II")
+            }
+            HStack(spacing: 4) {
+                TX6Mini(text: "−", height: 40) { tx.setWheel(tx.wheel - 8) }
+                    .frame(width: 52)
+                    .accessibilityLabel("rotellina indietro")
+                Slider(value: Binding(get: { tx.wheel }, set: { tx.setWheel($0) }), in: 0...127)
+                    .tint(Palette.accent)
+                    .accessibilityLabel("rotellina")
+                TX6Mini(text: "+", height: 40) { tx.setWheel(tx.wheel + 8) }
+                    .frame(width: 52)
+                    .accessibilityLabel("rotellina avanti")
+            }
+            HStack(spacing: 4) {
+                label("tieni per")
+                ForEach(holds, id: \.0) { h in
+                    TX6Mini(text: h.0) { tx.holdFx2(beats: h.1) }
+                        .accessibilityLabel("tieni FX II per \(h.0 == "1" ? "una battuta" : h.0)")
+                }
+            }
+            HStack(spacing: 4) {
+                label("scratch")
+                ForEach(scratches, id: \.0) { sc in
+                    TX6Mini(text: sc.0) { tx.scratch(every: sc.1) }
+                        .accessibilityLabel("scratch ogni \(sc.0)")
+                }
+            }
+            HStack(spacing: 4) {
+                label("rotellina =")
+                ForEach(0..<3, id: \.self) { k in
+                    TX6Mini(text: "parametro \(k + 1)", on: tx.scratchParam == k, color: Color(white: 0.75)) { tx.scratchParam = k }
+                        .accessibilityLabel("la rotellina è il parametro \(k + 1)")
+                }
             }
         }
     }

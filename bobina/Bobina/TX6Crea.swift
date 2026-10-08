@@ -11,7 +11,8 @@ struct TX6CreaView: View {
     var body: some View {
         TX6Screen(title: "Crea") {
             TX6TempoTop()
-            Text("suona: " + (tx.currentPatternName ?? "—") + (tx.pendingPatternName.map { " · poi \($0), alla battuta" } ?? ""))
+            Text("suona: " + (tx.currentPatternName ?? "—") + (tx.pendingPatternName.map { " · poi \($0), alla battuta" } ?? "")
+                 + (tx.swing > 0.505 ? " · swing \(Int((tx.swing * 100).rounded()))%" : ""))
                 .font(.system(.caption2, design: .monospaced))
                 .foregroundStyle(Palette.dim)
                 .lineLimit(1)
@@ -74,9 +75,16 @@ struct TX6DrumPanel: View {
             }
             if view == 2 {
                 TX6Label("Cambiano solo le tracce 1-4: melodie e tracce 5-6 restano. Col ritmo che gira entrano alla battuta.")
+                if let cur = TX6DrumPreset.all.first(where: { $0.name == (tx.pendingPatternName ?? tx.currentPatternName) }) {
+                    Text("\(cur.ref) · \(cur.bpm) bpm" + (cur.swing > 0.505 ? " · swing \(Int((cur.swing * 100).rounded()))%" : ""))
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.accent)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                }
                 ForEach(TX6DrumPreset.groups, id: \.self) { g in
                     TX6Label(g)
-                    LazyVGrid(columns: four, spacing: 4) {
+                    LazyVGrid(columns: five, spacing: 4) {
                         ForEach(TX6DrumPreset.all.filter { $0.group == g }) { d in
                             TX6Mini(text: d.name, on: tx.currentPatternName == d.name || tx.pendingPatternName == d.name, height: 40) { tx.playDrums(d) }
                                 .accessibilityLabel("batteria \(d.name), \(d.bpm) bpm")
@@ -205,20 +213,15 @@ struct TX6MelodyPanel: View {
                     .accessibilityLabel("melodie scure pronte")
             }
             if showPresets {
-                TX6Label("linee, sulla traccia \(t)")
-                LazyVGrid(columns: three, spacing: 4) {
-                    ForEach(TX6MelodyPreset.dark.filter { !$0.chord }) { m in
-                        TX6Mini(text: m.name, on: picked == m.name, height: 40) { tx.applyMelody(m, from: t); picked = m.name }
-                            .accessibilityLabel("melodia \(m.name)")
-                    }
-                }
-                TX6Label(t <= 4 ? "accordi, sulle tracce \(t)-\(t + 2)" : "accordi: scegli una traccia fino alla 4")
-                LazyVGrid(columns: three, spacing: 4) {
-                    ForEach(TX6MelodyPreset.dark.filter { $0.chord }) { m in
-                        TX6Mini(text: m.name, on: picked == m.name, height: 40) { tx.applyMelody(m, from: t); picked = m.name }
-                            .disabled(t > 4)
-                            .opacity(t > 4 ? 0.4 : 1)
-                            .accessibilityLabel("accordi \(m.name)")
+                ForEach(TX6MelodyPreset.groups, id: \.self) { g in
+                    TX6Label(g == "accordi" ? (t <= 4 ? "accordi, sulle tracce \(t)-\(t + 2)" : "accordi: scegli una traccia fino alla 4") : "\(g), sulla traccia \(t)")
+                    LazyVGrid(columns: three, spacing: 4) {
+                        ForEach(TX6MelodyPreset.all.filter { $0.group == g }) { m in
+                            TX6Mini(text: m.name, on: picked == m.name, height: 40) { tx.applyMelody(m, from: t); picked = m.name }
+                                .disabled(m.chord && t > 4)
+                                .opacity(m.chord && t > 4 ? 0.4 : 1)
+                                .accessibilityLabel("\(g == "accordi" ? "accordi" : "melodia") \(m.name)")
+                        }
                     }
                 }
                 TX6Label("Tocca «pronte» per tornare a scrivere.")
@@ -370,6 +373,15 @@ struct TX6PatternPanel: View {
                 if let m = mine {
                     TX6Mini(text: "salva su \(m.name)") { tx.overwrite(m) }
                     TX6ConfirmMini(text: "togli \(m.name)") { tx.deletePattern(m) }
+                }
+            }
+            HStack(spacing: 4) {
+                Text("swing")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                ForEach([(0.5, "dritto"), (0.54, "54"), (0.58, "58"), (0.62, "62"), (0.66, "66")], id: \.0) { sw in
+                    TX6Mini(text: sw.1, on: abs(tx.swing - sw.0) < 0.005) { tx.swing = sw.0 }
+                        .accessibilityLabel(sw.0 == 0.5 ? "swing dritto" : "swing \(sw.1) per cento")
                 }
             }
             HStack(spacing: 4) {

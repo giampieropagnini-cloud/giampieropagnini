@@ -39,6 +39,8 @@ final class TX6Sequencer {
         var pumpTops: [(track: Int, top: Double)] = []
         /// Il pattern che la pagina crede di suonare.
         var patternID: UUID?
+        /// Lo swing come sulle MPC: 0,5 dritto, 0,66 terzina. I sedicesimi dispari arrivano in ritardo.
+        var swing = 0.5
     }
 
     /// Un pattern pronto a entrare all'inizio della prossima battuta.
@@ -57,6 +59,8 @@ final class TX6Sequencer {
         var soundBytes: [UInt8]
         /// Il tempo del pattern, se cambia anche quello.
         var bpm: Double?
+        /// Lo swing del pattern, se ne ha uno.
+        var swing: Double? = nil
     }
 
     /// Un pattern è entrato (sul filo del sequencer).
@@ -252,16 +256,21 @@ final class TX6Sequencer {
         let horizon = now + io.ticks(ms: lookahead)
         while time(ofBeat: Double(nextSixteenth) / 4) < horizon {
             let n = nextSixteenth
-            let t = max(now, time(ofBeat: Double(n) / 4))
+            // lo swing sposta in avanti i sedicesimi dispari: 0,5 dritto, 0,66 terzina (fino a un ottavo di quarto)
+            let late = n % 2 == 1 ? (min(0.75, max(0.5, p.swing)) - 0.5) * 0.5 : 0
+            let t = max(now, time(ofBeat: Double(n) / 4 + late))
             let prefix = switchIfDue(n % 16, at: t)
             if !prefix.isEmpty || override != nil { p = effective(plan()) }
-            fire(n, at: t, p, prefix: prefix, withClock: p.sendClock)
+            // il clock resta dritto: se il passo è spostato dallo swing, l'impulso parte da solo
+            fire(n, at: t, p, prefix: prefix, withClock: p.sendClock && late == 0)
             nextSixteenth += 1
         }
         if p.sendClock {
-            // un impulso su sei cade insieme a un passo ed è già partito nel suo pacchetto
+            // un impulso su sei cade insieme a un passo ed è già partito nel suo pacchetto, se il passo è dritto
             while time(ofBeat: Double(nextClockTick) / 24) < horizon {
-                if nextClockTick % 6 != 0 {
+                let onStep = nextClockTick % 6 == 0
+                let swungStep = onStep && (nextClockTick / 6) % 2 == 1 && p.swing > 0.5
+                if !onStep || swungStep {
                     io.send(TX6.clock, at: max(now, time(ofBeat: Double(nextClockTick) / 24)))
                 }
                 nextClockTick += 1
@@ -305,6 +314,7 @@ final class TX6Sequencer {
         p.lockBase = o.lockBase
         p.gate = o.gate
         if let b = o.bpm { p.bpm = b }
+        if let s = o.swing { p.swing = s }
         return p
     }
 
