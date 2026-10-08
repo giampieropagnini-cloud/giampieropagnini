@@ -16,6 +16,8 @@ final class M8Sequencer {
         var velocity = 100
         /// Quanto dura la nota, in frazioni di sedicesimo.
         var gate = 0.5
+        /// 8 o 16 passi.
+        var length = 16
     }
 
     private let io: MIDIIO
@@ -148,7 +150,8 @@ final class M8Sequencer {
             let p = plan()
             while line.time(ofBeat: Double(nextSixteenth) / 4) < horizon {
                 let t = line.time(ofBeat: Double(nextSixteenth) / 4)
-                let i = ((nextSixteenth - firstSixteenth) % 16 + 16) % 16
+                let len = max(1, min(16, p.length))
+                let i = ((nextSixteenth - firstSixteenth) % len + len) % len
                 if t >= now, let note = p.steps[i] {
                     let ch = UInt8((p.channel - 1) & 0x0F)
                     let n = UInt8(max(0, min(127, note)))
