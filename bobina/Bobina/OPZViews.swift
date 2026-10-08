@@ -27,6 +27,8 @@ struct OPZTabs: View {
 /// Come Page, con la fascia dell'OP-Z e la striscia del collegamento.
 struct OPZPage<Content: View>: View {
     let title: String
+    /// Senza la fascia col nome: per le schede che devono stare in uno schermo.
+    var compact = false
     @ViewBuilder var content: () -> Content
 
     var body: some View {
@@ -35,8 +37,8 @@ struct OPZPage<Content: View>: View {
         #endif
         NavigationStack {
             ScrollView {
-                VStack(spacing: 12) {
-                    OPZBanner()
+                VStack(spacing: compact ? 8 : 12) {
+                    if !compact { OPZBanner() }
                     OPZStatusStrip()
                     content()
                 }
