@@ -107,6 +107,14 @@ final class OPZEngine: ObservableObject {
 
     /// Ottava alta: l'effetto punch-in agisce su tutte le tracce; bassa: sulla traccia attiva (da provare).
     @Published var punchHigh = false { didSet { save() } }
+    /// La traccia attiva dell'OP-Z scelta da Bobina (nil = non ancora scelta: vale quella scelta sulla macchina).
+    @Published private(set) var activeTrack: Int?
+
+    /// Rende attiva sull'OP-Z una traccia: gli effetti punch-in «sulla traccia» lavorano su quella.
+    func setActiveTrack(_ t: Int) {
+        activeTrack = t
+        send(OPZ.activeTrack(t))
+    }
     /// Gli effetti tenuti adesso (0-11).
     @Published private(set) var punchHeld: Set<Int> = []
 
