@@ -36,6 +36,7 @@ struct OPZCreaView: View {
                     GridChip(text: p.label, on: p == current) { part = p.rawValue }
                         .accessibilityLabel("parte \(p.label)")
                 }
+                OPZSilenceKey()
             }
             if opz.recordLockReminder { OPZRecordLockBanner() }
             switch current {
@@ -113,6 +114,23 @@ struct OPZRecordLockBanner: View {
     }
 }
 
+/// Il tasto rosso «silenzio»: spegne tutte le note rimaste accese, anche quelle lunghe che non finiscono.
+struct OPZSilenceKey: View {
+    @EnvironmentObject var opz: OPZEngine
+
+    var body: some View {
+        Button { opz.silence() } label: {
+            Text("silenzio")
+                .font(.system(.footnote, design: .monospaced).weight(.bold))
+                .frame(maxWidth: .infinity, minHeight: 38)
+                .background(RoundedRectangle(cornerRadius: 8).fill(Palette.rec))
+                .foregroundStyle(Color.white)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("silenzio, spegni tutte le note")
+    }
+}
+
 /// Il riquadro scuro di una parte, senza titolo.
 struct OPZPanel<Content: View>: View {
     @ViewBuilder var content: () -> Content
@@ -166,9 +184,11 @@ struct OPZDrumPanel: View {
     @AppStorage("bobina.opz.crea.batteria.riga") private var lastRow = 1
     /// Le batterie pronte al posto della griglia.
     @AppStorage("bobina.opz.crea.batteria.pronti") private var ready = false
+    /// «svuota tutta la batteria» chiede un secondo tocco entro 4 secondi.
+    @State private var confirmClear = false
     @State private var help = false
 
-    private let eight = Array(repeating: GridItem(.flexible(), spacing: 4), count: 8)
+    private let twelve = Array(repeating: GridItem(.flexible(), spacing: 3), count: 12)
     private let five = Array(repeating: GridItem(.flexible(), spacing: 5), count: 5)
 
     var body: some View {
@@ -178,22 +198,22 @@ struct OPZDrumPanel: View {
         let pg = min(page, pages - 1)
         let row = (1...4).contains(opz.createTrack) ? opz.createTrack : 1
         OPZPanel {
-            HStack(spacing: 5) {
+            HStack(spacing: 4) {
                 OPZChip(text: "griglia", on: !ready, height: 36) { ready = false }
-                OPZChip(text: "batterie pronte", on: ready, height: 36) { ready = true }
+                OPZChip(text: "pronte", on: ready, height: 36) { ready = true }
+                    .accessibilityLabel("batterie pronte")
+                if !ready && pages > 1 {
+                    ForEach(0..<pages, id: \.self) { p in
+                        OPZChip(text: "\(p * 8 + 1)-\(p * 8 + 8)", on: pg == p, height: 36) { page = p }
+                            .accessibilityLabel("passi da \(p * 8 + 1) a \(p * 8 + 8)")
+                    }
+                }
             }
             if ready {
                 OPZPresetList(items: OPZDrumPreset.all.map { ($0.name, "\($0.group) · \($0.bpm)") }) { i in
                     opz.loadDrums(OPZDrumPreset.all[i])
                 }
             } else {
-            if pages > 1 {
-                HStack(spacing: 5) {
-                    ForEach(0..<pages, id: \.self) { p in
-                        OPZChip(text: "passi \(p * 8 + 1)-\(p * 8 + 8)", on: pg == p, height: 34) { page = p }
-                    }
-                }
-            }
             ForEach(1...4, id: \.self) { t in
                 let len = lens[t - 1]
                 HStack(spacing: 4) {
@@ -226,7 +246,7 @@ struct OPZDrumPanel: View {
                     }
                 }
             }
-            OPZLabel("\(OPZ.track(row).short): riempi")
+            OPZLabel("\(OPZ.track(row).short): riempi · suono")
             LazyVGrid(columns: five, spacing: 5) {
                 OPZChip(text: "ogni 4", height: 34) { opz.fillDrum(row, every: 4) }
                 OPZChip(text: "ogni 2", height: 34) { opz.fillDrum(row, every: 2) }
@@ -234,8 +254,7 @@ struct OPZDrumPanel: View {
                 OPZChip(text: "tutti", height: 34) { opz.fillDrum(row, every: 1) }
                 OPZChip(text: "svuota", height: 34) { opz.fillDrum(row, every: 0) }
             }
-            OPZLabel("\(OPZ.track(row).short): suono (lo senti subito)")
-            LazyVGrid(columns: eight, spacing: 4) {
+            LazyVGrid(columns: twelve, spacing: 3) {
                 ForEach(0..<24, id: \.self) { k in
                     OPZChip(text: "\(k + 1)", on: opz.drumPick[row - 1] == OPZ.keyboardF + k, color: OPZ.color(row), height: 34) {
                         opz.setDrumPick(row, OPZ.keyboardF + k)
@@ -248,8 +267,18 @@ struct OPZDrumPanel: View {
                 SmallKey(text: "−") { opz.length -= 1 }.accessibilityLabel("un passo in meno")
                 Text("\(lens[row - 1])").font(.system(.body, design: .monospaced).weight(.bold)).frame(minWidth: 28)
                 SmallKey(text: "+") { opz.length += 1 }.accessibilityLabel("un passo in più")
-                OPZChip(text: "ritmo pronto", height: 34) { opz.starter() }
-                OPZChip(text: help ? "chiudi aiuto" : "cambia kit?", on: help, height: 34) { help.toggle() }
+                OPZChip(text: help ? "chiudi" : "kit?", on: help, height: 34) { help.toggle() }
+                    .accessibilityLabel(help ? "chiudi aiuto" : "come cambio il kit")
+                OPZChip(text: confirmClear ? "sicuro?" : "svuota tutto", on: confirmClear, color: Palette.rec, height: 34) {
+                    if confirmClear {
+                        confirmClear = false
+                        opz.clearDrums()
+                    } else {
+                        confirmClear = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { confirmClear = false }
+                    }
+                }
+                .accessibilityLabel(confirmClear ? "conferma, svuota tutta la batteria" : "svuota tutta la batteria")
             }
             if help { OPZInstrumentHelpRows(track: row) }
             }
@@ -269,6 +298,8 @@ struct OPZNotePanel: View {
     @AppStorage("bobina.opz.crea.note.traccia") private var lastTrack = 5
     /// Le melodie pronte al posto della tastiera.
     @AppStorage("bobina.opz.crea.note.pronti") private var ready = false
+    /// «svuota tutte» chiede un secondo tocco entro 4 secondi.
+    @State private var confirmClear = false
     @State private var help = false
 
     static let names = ["do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "sol#", "la", "la#", "si"]
@@ -387,7 +418,18 @@ struct OPZNotePanel: View {
             if tr == 7 { OPZArpRows() }
             HStack(spacing: 5) {
                 OPZChip(text: "svuota \(OPZ.track(tr).short)", height: 34) { opz.clearTrack(); opz.cursor = 0 }
-                OPZChip(text: help ? "chiudi aiuto" : "cambia strumento?", on: help, height: 34) { help.toggle() }
+                OPZChip(text: confirmClear ? "sicuro?" : "svuota tutte", on: confirmClear, color: Palette.rec, height: 34) {
+                    if confirmClear {
+                        confirmClear = false
+                        opz.clearMelodies()
+                    } else {
+                        confirmClear = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { confirmClear = false }
+                    }
+                }
+                .accessibilityLabel(confirmClear ? "conferma, svuota tutte le melodie" : "svuota tutte le melodie")
+                OPZChip(text: help ? "chiudi" : "strumento?", on: help, height: 34) { help.toggle() }
+                    .accessibilityLabel(help ? "chiudi aiuto" : "come cambio lo strumento")
             }
             if help { OPZInstrumentHelpRows(track: tr) }
             }

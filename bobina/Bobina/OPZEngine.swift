@@ -255,6 +255,8 @@ final class OPZEngine: ObservableObject {
             // il numero mostrato è intero: un bpm che tremola di qualche decimo non deve ridisegnare la pagina
             guard let self = self, let v = n.object as? Double, abs(self.bpm - v) >= 0.5 || self.bpm.rounded() != v.rounded() else { return }
             self.bpm = v
+            // il tempo cambiato da un'altra sezione arriva anche all'OP-Z
+            self.sendTempo()
         }
         refreshPorts()
         startTimer()
@@ -290,8 +292,13 @@ final class OPZEngine: ObservableObject {
         let n = connectedName.lowercased()
         viaBluetooth = n.contains("ble") || n.contains("bluetooth")
         if dest != io.destination || src != io.source {
+            let wasOff = io.destination == 0
             io.use(destination: dest, source: src)
             objectWillChange.send()
+            // appena l'OP-Z si collega: silenzio, così una nota rimasta giù da prima non suona per sempre
+            if wasOff && dest != 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in self?.silence() }
+            }
         }
     }
 
@@ -344,8 +351,42 @@ final class OPZEngine: ObservableObject {
     func setBPM(_ v: Double) {
         let range = sync == .own ? OPZ.tempoRange : 40...200
         bpm = max(range.lowerBound, min(range.upperBound, v))
-        // da fermo l'OP-Z il tempo lo sa solo dal CC 56; mentre suona ci pensa il sequencer (col clock lo segue da sé)
-        if !running { send(OPZ.tempo(min(OPZ.tempoRange.upperBound, bpm))) }
+        // sempre anche il CC 56 (8/10/2026: «Crea e l'OP-Z vanno a due tempi diversi»): se l'OP-Z non segue il clock
+        // (tasto 4 delle impostazioni MIDI spento) almeno il suo tempo è lo stesso. Oltre 127 il CC non arriva.
+        sendTempo()
+    }
+
+    /// Il tempo di Bobina all'OP-Z col CC 56, solo quando cambia il numero intero.
+    private var lastTempoSent: Int?
+    private func sendTempo() {
+        let v = Int(min(OPZ.tempoRange.upperBound, max(OPZ.tempoRange.lowerBound, bpm)).rounded())
+        guard v != lastTempoSent, connected else { return }
+        lastTempoSent = v
+        send(OPZ.tempo(Double(v)))
+    }
+
+    // MARK: silenzio
+
+    /// Spegne tutto quello che può essere rimasto acceso: le note di Crea e quelle tenute, gli effetti tenuti,
+    /// e «tutte le note giù» (CC 123) sulle tracce che suonano. Le note-off sono solo quelle che Bobina usa,
+    /// così il bluetooth non si intasa.
+    func silence() {
+        var bytes: [UInt8] = []
+        // le note tenute a mano (tieni) prima di tutto: possono non essere in nessun pattern
+        for (t, notes) in liveHeld { for n in notes { bytes += OPZ.noteOff(n, channel: t) } }
+        punchHeld.removeAll()
+        fxHeld = []
+        liveHeld = [:]
+        for t in 1...8 {
+            var notes = Set<Int>()
+            for pat in patterns { for cell in pat[t - 1] { notes.formUnion(cell) } }
+            if t <= 4 { notes.insert(drumPick[t - 1]) }
+            for n in notes.sorted() { bytes += OPZ.noteOff(n, channel: t) }
+        }
+        bytes += (OPZ.punchF..<(OPZ.punchF + 24)).flatMap { OPZ.noteOff($0, channel: 13) }
+        bytes += OPZ.allNotesOff()
+        send(bytes)
+        logText("silenzio")
     }
 
     func setSwing(_ v: Int) {
@@ -539,6 +580,23 @@ final class OPZEngine: ObservableObject {
         if cell.contains(p) { cell.removeAll { $0 == p } } else if cell.count < 3 { cell.append(p) }
         steps[track - 1][i] = cell
         createTrack = track
+    }
+
+    /// Svuota tutta la batteria (tracce 1-4) del pattern che scrivi.
+    func clearDrums() {
+        var st = steps
+        for r in 0..<4 { st[r] = Array(repeating: [], count: 32) }
+        steps = st
+        logText("batteria svuotata")
+    }
+
+    /// Svuota tutte le melodie (tracce 5-8: bass, lead, arp, chord) del pattern che scrivi.
+    func clearMelodies() {
+        var st = steps
+        for t in 4..<8 { st[t] = Array(repeating: [], count: 32) }
+        steps = st
+        cursor = 0
+        logText("melodie svuotate")
     }
 
     /// Batteria: il suono di una riga (la senti subito).

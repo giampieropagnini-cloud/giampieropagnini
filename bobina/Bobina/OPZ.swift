@@ -146,6 +146,9 @@ enum OPZ {
 
     static func swing(_ value: Int) -> [UInt8] { cc(57, value, channel: 1) }
 
+    /// «Tutte le note giù» (CC 123) sulle tracce che suonano: 1-8 e perform (13).
+    static func allNotesOff() -> [UInt8] { (Array(1...8) + [13]).flatMap { cc(123, 0, channel: $0) } }
+
     // MARK: per il monitor
 
     static func describe(_ m: [UInt8]) -> String {

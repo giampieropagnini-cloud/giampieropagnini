@@ -26,11 +26,12 @@ struct OPZLiveView: View {
         let current = OPZLivePart(rawValue: part) ?? .mutes
         OPZPage(title: "Live", compact: true) {
             OPZLiveTop()
-            HStack(spacing: 4) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 3), spacing: 5) {
                 ForEach(OPZLivePart.allCases) { p in
-                    OPZChip(text: p.label, on: p == current, height: 40) { part = p.rawValue }
+                    OPZChip(text: p.label, on: p == current, height: 38) { part = p.rawValue }
                         .accessibilityLabel("parte \(p.label)")
                 }
+                OPZSilenceKey()
             }
             switch current {
             case .mutes: OPZLiveMutes()

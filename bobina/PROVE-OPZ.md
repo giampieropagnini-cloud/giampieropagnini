@@ -45,3 +45,4 @@ Da provare ancora: «scrivi una battuta sull'OP-Z» col record lock, clock di Bo
 Cose nuove: Crea in uno schermo (griglia e cursore), sequenze pronte, automazione, Live in uno schermo
 (manopole ed effetti), progetti. Con Ele: TRACK + numero sceglie la traccia, 4 battute, gruppi di muti.
 Tempo: insieme a TX-6/PO, «da solo» (CC 56), swing (CC 57), canzone a pattern, poliritmi (CC 60), muto solo audio (CC 54).
+- 8/10: Crea → batteria a griglia: va. Batterie e melodie pronte: vanno.
