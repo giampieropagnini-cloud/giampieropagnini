@@ -54,6 +54,9 @@ final class M8Player: ObservableObject {
         pick = d.object(forKey: "bobina.m8.suona.base") as? Int ?? 48
         stepLength = d.object(forKey: "bobina.m8.suona.lunghezza") as? Int ?? 16
         writeOctave = d.object(forKey: "bobina.m8.suona.ottava") as? Int ?? 3
+        if let p = d.array(forKey: "bobina.m8.suona.strumenti") as? [Int], p.count == 16 {
+            programs = p.map { $0 < 0 ? nil : $0 }
+        }
     }
 
     func attach(_ e: M8Engine) {
@@ -97,6 +100,25 @@ final class M8Player: ObservableObject {
         releaseAll()
         channel = n
     }
+
+    // MARK: strumento
+
+    /// Lo strumento mandato a ogni canale col Program Change (nil = non ancora mandato da Bobina).
+    /// Sull'M8 la traccia lo prende solo con PG CHANGE acceso (MIDI Settings, TRACK INPUT).
+    @Published private(set) var programs: [Int?] = Array(repeating: nil, count: 16)
+
+    var program: Int? { programs[channel - 1] }
+
+    /// Strumento − e +: manda il Program Change sul canale della traccia scelta.
+    func stepProgram(_ d: Int) {
+        let p = max(0, min(127, (program ?? (d > 0 ? -1 : 1)) + d))
+        programs[channel - 1] = p
+        UserDefaults.standard.set(programs.map { $0 ?? -1 }, forKey: "bobina.m8.suona.strumenti")
+        send([0xC0 | ch, UInt8(p)])
+    }
+
+    /// Il numero come lo scrive l'M8: due cifre esadecimali (00-7F).
+    static func hex(_ n: Int?) -> String { n.map { String(format: "%02X", $0) } ?? "--" }
 
     // MARK: pad
 

@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - le quattro schermate dell'M8
 
-/// Tasti, Suona, Passi, Collega: ognuna sta in uno schermo. Riapre l'ultima scheda usata.
+/// Tasti, Suona, Passi, Manopole, Collega: ognuna sta in uno schermo. Riapre l'ultima scheda usata.
 /// La barra in basso è viola come le frecce dell'M8.
 struct M8Tabs: View {
     @AppStorage("bobina.m8.scheda") private var tab = 0
@@ -15,6 +15,8 @@ struct M8Tabs: View {
                 .tabItem { Label("Suona", systemImage: "pianokeys") }.tag(2)
             M8PassiView()
                 .tabItem { Label("Passi", systemImage: "square.grid.4x3.fill") }.tag(3)
+            M8ManopoleView()
+                .tabItem { Label("Manopole", systemImage: "dial.medium") }.tag(4)
             M8CollegaView()
                 .tabItem { Label("Collega", systemImage: "cable.connector") }.tag(1)
         }
@@ -179,7 +181,7 @@ struct M8KnobRow: View {
 // MARK: - Tasti
 
 /// Il telecomando in uno schermo: tempo, la faccia dell'M8, live mode e silenzio, poi una parte per volta
-/// (muta e solo, oppure la manopola).
+/// (muta e solo, oppure le manopole).
 struct M8TastiView: View {
     @EnvironmentObject var m8: M8Engine
     @AppStorage("bobina.m8.tasti.parte") private var part = 0
@@ -199,13 +201,13 @@ struct M8TastiView: View {
             HStack(spacing: 6) {
                 M8Chip(text: "muta e solo", on: part == 0, height: 36) { part = 0 }
                     .accessibilityLabel("parte muta e solo")
-                M8Chip(text: "manopola", on: part == 1, height: 36) { part = 1 }
-                    .accessibilityLabel("parte manopola")
+                M8Chip(text: "manopole", on: part == 1, height: 36) { part = 1 }
+                    .accessibilityLabel("parte manopole")
             }
             M8Panel {
                 if part == 1 {
-                    M8KnobRow(name: "cue vol · CC \(m8.knobCC)", value: m8.knob) { m8.setKnob($0) }
-                    M8Label("Sull'M8: Project > MIDI Mapping, tieni OPTION sul parametro e tocca qui.")
+                    M8KnobPicker(knobs: m8.knobs)
+                    M8KnobValueRow(knobs: m8.knobs, live: m8.knobs.live)
                 } else {
                     M8TracksRows()
                 }
@@ -363,20 +365,40 @@ struct M8SuonaView: View {
     }
 }
 
-/// Quale traccia dell'M8 suonano pad e passi: un tasto per traccia.
-/// Sull'M8 la traccia N deve ascoltare il canale N (TRACK INPUT, CHAN).
+/// Quale traccia dell'M8 suonano pad e passi (un tasto per traccia), e il suo strumento.
+/// Sull'M8 la traccia N deve ascoltare il canale N (TRACK INPUT, CHAN); per lo strumento serve PG CHANGE acceso.
 struct M8TrackPicker: View {
     @ObservedObject var player: M8Player
 
     var body: some View {
-        HStack(spacing: 4) {
-            Text("traccia")
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(Palette.dim)
-                .fixedSize()
-            ForEach(1...8, id: \.self) { t in
-                M8Chip(text: "\(t)", on: player.channel == t, height: 40) { player.setTrack(t) }
-                    .accessibilityLabel("traccia \(t)")
+        VStack(spacing: 6) {
+            HStack(spacing: 4) {
+                Text("traccia")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                    .fixedSize()
+                ForEach(1...8, id: \.self) { t in
+                    M8Chip(text: "\(t)", on: player.channel == t, height: 40) { player.setTrack(t) }
+                        .accessibilityLabel("traccia \(t)")
+                }
+            }
+            // lo strumento della traccia, col Program Change (sull'M8: PG CHANGE acceso in TRACK INPUT)
+            HStack(spacing: 6) {
+                Text("strumento")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                    .fixedSize()
+                M8Chip(text: "−", height: 38) { player.stepProgram(-1) }
+                    .accessibilityLabel("strumento meno")
+                Text(M8Player.hex(player.program))
+                    .font(.system(.title3, design: .monospaced).weight(.bold))
+                    .frame(minWidth: 44)
+                M8Chip(text: "+", height: 38) { player.stepProgram(1) }
+                    .accessibilityLabel("strumento più")
+                Text("PG CHANGE")
+                    .font(.system(.caption2, design: .monospaced))
+                    .foregroundStyle(Palette.dim)
+                    .fixedSize()
             }
         }
     }
@@ -583,7 +605,7 @@ struct M8CursorGrid: View {
 
 // MARK: - Collega
 
-/// Tutto in uno schermo: porta, microfono, firmware, canali.
+/// Tutto in uno schermo: porta, microfono, firmware, canali. I CC delle manopole stanno in Manopole › imposta.
 struct M8CollegaView: View {
     @EnvironmentObject var m8: M8Engine
 
@@ -618,7 +640,6 @@ struct M8CollegaView: View {
                 M8Label("canali · sull'M8: Project > MIDI > Settings")
                 M8NumberRow(name: "tasti", hint: "CONTROL MAP CHAN", value: m8.channel, range: 1...16) { m8.channel = $0 }
                 M8PadChannelRow(player: m8.player)
-                M8NumberRow(name: "CC manopola", hint: "MIDI Mapping", value: m8.knobCC, range: 0...127) { m8.knobCC = $0 }
                 M8Label("Per «M8 a tempo»: SYNC IN = CLOCK+TRANSP.")
             }
         }
@@ -680,5 +701,260 @@ struct M8MicPanel: View {
                 Text(p).font(.system(.caption, design: .monospaced)).foregroundStyle(Palette.rec)
             }
         }
+    }
+}
+
+// MARK: - Manopole
+
+/// Le 8 manopole in uno schermo: in cima il tempo e quale manopola, poi una parte per volta
+/// (valore a mano, onda a tempo, passi, imposta). Tutte le parti lavorano sulla manopola scelta.
+struct M8ManopoleView: View {
+    @EnvironmentObject var m8: M8Engine
+    @AppStorage("bobina.m8.manopole.parte") private var part = 0
+
+    private let parts = ["valore", "onda", "passi", "imposta"]
+
+    var body: some View {
+        M8Page(title: "Manopole") {
+            M8TempoLine()
+            M8KnobPicker(knobs: m8.knobs)
+            HStack(spacing: 6) {
+                ForEach(parts.indices, id: \.self) { i in
+                    M8Chip(text: parts[i], on: part == i, height: 36) { part = i }
+                        .accessibilityLabel("parte \(parts[i])")
+                }
+            }
+            M8Panel {
+                switch part {
+                case 1: M8WavePanel(knobs: m8.knobs)
+                case 2: M8KnobStepsPanel(knobs: m8.knobs, player: m8.player)
+                case 3: M8KnobSetupPanel(knobs: m8.knobs)
+                default: M8KnobValueRow(knobs: m8.knobs, live: m8.knobs.live)
+                }
+            }
+        }
+    }
+}
+
+/// Le 8 manopole in due file: numero e nome; ∿ = si muove con l'onda, ▦ = coi passi.
+struct M8KnobPicker: View {
+    @ObservedObject var knobs: M8Knobs
+
+    private let four = Array(repeating: GridItem(.flexible(), spacing: 5), count: 4)
+
+    var body: some View {
+        LazyVGrid(columns: four, spacing: 5) {
+            ForEach(0..<8, id: \.self) { i in
+                let k = knobs.knobs[i]
+                let mark = k.motion == .wave ? " ∿" : k.motion == .steps ? " ▦" : ""
+                M8Chip(text: "\(i + 1) \(k.name)\(mark)", on: knobs.selected == i, height: 38) { knobs.selected = i }
+                    .accessibilityLabel("manopola \(i + 1), \(k.name)")
+            }
+        }
+    }
+}
+
+/// Il valore a mano della manopola scelta: − · 0 · ¼ · ½ · ¾ · max · +. Toccarla ferma l'onda o i passi.
+struct M8KnobValueRow: View {
+    @ObservedObject var knobs: M8Knobs
+    @ObservedObject var live: M8KnobLive
+
+    var body: some View {
+        let i = knobs.selected
+        let k = knobs.knobs[i]
+        M8KnobRow(name: k.name, value: live.values[i]) { knobs.set(i, $0) }
+        ProgressView(value: Double(live.values[i]), total: 127)
+            .tint(M8.color)
+            .accessibilityHidden(true)
+        HStack(spacing: 6) {
+            M8Label(k.motion == .wave ? "CC \(k.cc) · si muove con l'onda «\(k.shape.label)»" : k.motion == .steps ? "CC \(k.cc) · si muove coi passi" : "CC \(k.cc) · ferma")
+            Spacer()
+            if k.motion != .none {
+                M8Chip(text: "fermala", height: 34) { knobs.toggle(k.motion) }
+                    .frame(maxWidth: 100)
+                    .accessibilityLabel("ferma la manopola")
+            }
+        }
+    }
+}
+
+/// L'onda a tempo sulla manopola scelta: forma, quanto dura un giro, da dove a dove.
+struct M8WavePanel: View {
+    @ObservedObject var knobs: M8Knobs
+
+    private let four = Array(repeating: GridItem(.flexible(), spacing: 5), count: 4)
+
+    var body: some View {
+        let i = knobs.selected
+        let k = knobs.knobs[i]
+        let on = k.motion == .wave
+        M8Chip(text: on ? "onda accesa su \(k.name)" : "accendi l'onda su \(k.name)", on: on, height: 46) { knobs.toggle(.wave) }
+            .accessibilityLabel(on ? "spegni l'onda" : "accendi l'onda")
+        LazyVGrid(columns: four, spacing: 5) {
+            ForEach(M8Shape.allCases) { sh in
+                M8Chip(text: sh.label, on: k.shape == sh, height: 36) { knobs.knobs[i].shape = sh }
+                    .accessibilityLabel("forma \(sh.label)")
+            }
+        }
+        M8Label("un giro dura (battute)")
+        HStack(spacing: 4) {
+            ForEach(M8Knobs.lengths.indices, id: \.self) { j in
+                let l = M8Knobs.lengths[j]
+                M8Chip(text: l.1, on: k.beats == l.0, height: 36) { knobs.knobs[i].beats = l.0 }
+                    .accessibilityLabel("giro \(l.1)")
+            }
+        }
+        M8RangeRow(name: "da", value: k.low) { knobs.knobs[i].low = $0 }
+        M8RangeRow(name: "a", value: k.high) { knobs.knobs[i].high = $0 }
+        M8KnobLiveBar(live: knobs.live, index: i)
+    }
+}
+
+/// «da» o «a» dell'onda: i salti e − / + di 8.
+struct M8RangeRow: View {
+    let name: String
+    let value: Int
+    let set: (Int) -> Void
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(name)
+                .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                .frame(width: 22, alignment: .leading)
+            M8Chip(text: "−", height: 36) { set(max(0, value - 8)) }
+                .accessibilityLabel("\(name) meno")
+            ForEach(M8Knobs.jumps.indices, id: \.self) { j in
+                let jump = M8Knobs.jumps[j]
+                M8Chip(text: jump.1, on: abs(value - jump.0) <= 4, height: 36) { set(jump.0) }
+                    .accessibilityLabel("\(name) \(jump.2)")
+            }
+            M8Chip(text: "+", height: 36) { set(min(127, value + 8)) }
+                .accessibilityLabel("\(name) più")
+            Text("\(value)")
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(M8.color)
+                .frame(width: 30, alignment: .trailing)
+        }
+    }
+}
+
+/// Il valore che la manopola ha adesso: guarda solo `live`.
+struct M8KnobLiveBar: View {
+    @ObservedObject var live: M8KnobLive
+    let index: Int
+
+    var body: some View {
+        HStack {
+            ProgressView(value: Double(live.values[index]), total: 127).tint(M8.color)
+            Text("\(live.values[index])")
+                .font(.system(.caption, design: .monospaced))
+                .frame(width: 36, alignment: .trailing)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// L'automazione a passi della manopola scelta, con la scrittura in fila: un tocco = un valore nel passo
+/// del cursore, e il cursore va avanti. Gli stessi 8 o 16 passi delle note.
+struct M8KnobStepsPanel: View {
+    @ObservedObject var knobs: M8Knobs
+    @ObservedObject var player: M8Player
+    @State private var confirmClear = false
+
+    var body: some View {
+        let i = knobs.selected
+        let k = knobs.knobs[i]
+        let len = player.stepLength
+        let on = k.motion == .steps
+        M8Chip(text: on ? "passi accesi su \(k.name)" : "accendi i passi su \(k.name)", on: on, height: 46) { knobs.toggle(.steps) }
+            .accessibilityLabel(on ? "spegni i passi della manopola" : "accendi i passi della manopola")
+        M8KnobStepGrid(knobs: knobs, live: knobs.live, length: len)
+        HStack(spacing: 4) {
+            ForEach(M8Knobs.jumps.indices, id: \.self) { j in
+                let jump = M8Knobs.jumps[j]
+                M8Chip(text: jump.1, height: 42) { knobs.writeStep(jump.0, length: len) }
+                    .accessibilityLabel("scrivi \(jump.2)")
+            }
+            M8Chip(text: "vuoto", height: 42) { knobs.writeStep(nil, length: len) }
+                .accessibilityLabel("passo vuoto")
+            M8Chip(text: "indietro", height: 42) { knobs.backStep(length: len) }
+                .accessibilityLabel("passo indietro")
+        }
+        HStack(spacing: 6) {
+            M8Label("\(len) passi, come in Passi")
+            Spacer()
+            M8Chip(text: confirmClear ? "sicuro? svuota" : "svuota", on: confirmClear, color: Palette.rec, height: 36) {
+                if confirmClear {
+                    confirmClear = false
+                    knobs.clearSteps()
+                } else {
+                    confirmClear = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 4) { confirmClear = false }
+                }
+            }
+            .frame(maxWidth: 150)
+            .accessibilityLabel(confirmClear ? "conferma svuota la manopola" : "svuota i passi della manopola")
+        }
+    }
+}
+
+/// I 16 passi della manopola: il valore di ogni passo, il cursore col bordo bianco, quello che suona arancio.
+struct M8KnobStepGrid: View {
+    @ObservedObject var knobs: M8Knobs
+    @ObservedObject var live: M8KnobLive
+    let length: Int
+
+    private let eight = Array(repeating: GridItem(.flexible(), spacing: 4), count: 8)
+
+    var body: some View {
+        let steps = knobs.knobs[knobs.selected].steps
+        LazyVGrid(columns: eight, spacing: 5) {
+            ForEach(0..<16, id: \.self) { i in
+                let v = steps[i]
+                let now = live.step == i
+                let here = knobs.cursor == i
+                Button { knobs.cursor = i } label: {
+                    VStack(spacing: 0) {
+                        Text("\(i + 1)").font(.system(.caption2, design: .monospaced))
+                        Text(v.map { "\($0)" } ?? "·")
+                            .font(.system(.caption, design: .monospaced).weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .background(RoundedRectangle(cornerRadius: 7).fill(now ? Palette.accent : v != nil ? M8.color : Color(white: 0.18)))
+                    .overlay(RoundedRectangle(cornerRadius: 7).stroke(here ? Color.white : Color.clear, lineWidth: 3))
+                    .foregroundStyle(now || v != nil ? Color.black : Color.white)
+                    .opacity(i < length ? 1 : 0.3)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("passo \(i + 1)")
+                .accessibilityAddTraits(here ? .isSelected : [])
+            }
+        }
+    }
+}
+
+/// Nome e CC della manopola scelta, e il collegamento al parametro dell'M8 fatto da Bobina.
+struct M8KnobSetupPanel: View {
+    @EnvironmentObject var m8: M8Engine
+    @ObservedObject var knobs: M8Knobs
+
+    private let four = Array(repeating: GridItem(.flexible(), spacing: 5), count: 4)
+
+    var body: some View {
+        let i = knobs.selected
+        let k = knobs.knobs[i]
+        M8Label("nome della manopola \(i + 1)")
+        LazyVGrid(columns: four, spacing: 5) {
+            ForEach(M8Knobs.names, id: \.self) { n in
+                M8Chip(text: n, on: k.name == n, height: 34) { knobs.knobs[i].name = n }
+                    .accessibilityLabel("nome \(n)")
+            }
+        }
+        M8NumberRow(name: "CC", hint: "sul canale \(m8.channel)", value: k.cc, range: 0...127) { knobs.knobs[i].cc = $0 }
+        M8Chip(text: "collega al parametro dell'M8", on: true, height: 46) { knobs.learn() }
+            .accessibilityLabel("collega al parametro")
+        M8Label("Prima sull'M8 porta il cursore sul parametro (con le frecce in Tasti). Bobina tiene OPTION e muove il CC: l'M8 li collega.")
     }
 }
