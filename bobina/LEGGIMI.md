@@ -72,6 +72,8 @@ Ogni sezione vive su un suo branch `claude/…`. Si installa **sempre** con `zsh
 
 **Dopo ogni cambiamento** (commit o installazione) si avvisano tutte le altre chat di Bobina con SendMessage (ListAgents, nomi con «Bobina»): branch e commit, file comuni toccati, cosa cambia per gli altri, se va unito. Una chat nuova si presenta alle altre appena nasce. È una regola di Giampiero (8/10/2026), scritta anche nel suo CLAUDE.md globale.
 
+**Guadagno, mai a salti** (regola di Giampiero, 8/10/2026): dove c'è un guadagno (gain) niente tasti 0 · ¼ · ½ · ¾ · max e niente onde, passi o inclinazione che lo muovano: solo − e + di un dB alla volta. Un «max» sentito male dal Controllo Vocale può rompere casse e cuffie.
+
 ## Installarla sull'iPhone (una volta sola, circa 20 minuti)
 
 Serve: un Mac con **Xcode** (gratis dal Mac App Store, versione 16 o successiva), l'iPhone con iOS 17 o successivo, il cavo per collegarlo al Mac.

@@ -398,7 +398,8 @@ final class TX6Engine: ObservableObject {
     /// Passi con manopola: a ogni passo un valore diverso per un parametro di una traccia.
     @Published var lockOn = false { didSet { if !lockOn && oldValue && pulsing { restoreLock() } } }
     @Published var lockTrack = 1 { didSet { save() } }
-    @Published var lockParam = TX6.Param.freq { didSet { save() } }
+    /// Mai il guadagno: un valore a passi lo farebbe saltare (vedi stepGain).
+    @Published var lockParam = TX6.Param.freq { didSet { if lockParam == .gain { lockParam = .freq }; save() } }
     @Published var locks: [Int?] = Array(repeating: nil, count: 16) { didSet { save() } }
 
     /// Melodia a passi: per ogni traccia sedici passi, ognuno una nota (0 = do … 12 = do sopra) o niente.
@@ -421,7 +422,13 @@ final class TX6Engine: ObservableObject {
     @Published var pumpRelease = 0.6
     @Published var pumpTracks: Set<Int> = [1] { didSet { save() } }
 
-    @Published var waves: [TX6Wave] = [TX6Wave(), TX6Wave(tracks: [2], param: .pan, shape: .triangle, beats: 8, depth: 40)] { didSet { save() } }
+    @Published var waves: [TX6Wave] = [TX6Wave(), TX6Wave(tracks: [2], param: .pan, shape: .triangle, beats: 8, depth: 40)] {
+        didSet {
+            // mai il guadagno: un'onda lo farebbe salire e scendere da solo
+            for i in waves.indices where waves[i].param == .gain { waves[i].param = .filter }
+            save()
+        }
+    }
 
     @Published var driftOn = false { didSet { if !driftOn { resetDrift() } } }
     @Published var driftAmount = 0.5
@@ -429,7 +436,7 @@ final class TX6Engine: ObservableObject {
     @Published var driftPan = false
 
     @Published var tiltOn = false { didSet { if tiltOn { startMotion() } else { stopMotion() } } }
-    @Published var tiltParam = TX6.Param.filter
+    @Published var tiltParam = TX6.Param.filter { didSet { if tiltParam == .gain { tiltParam = .filter } } }
     @Published var tiltTracks: Set<Int> = [1]
 
     @Published var scenes: [TX6Scene] = [] { didSet { save() } }
@@ -531,25 +538,59 @@ final class TX6Engine: ObservableObject {
     /// Una nota rimasta accesa sul TX-6 si sente così: una cassa che suona anche alta come un tom, un'onda che
     /// non si spegne più. Succede se Bobina si chiude (o si reinstalla) mentre una nota è giù: lo spegnimento
     /// non parte mai. Qui si mandano tutti, a gruppi di otto ogni 10 ms, per non intasare il bluetooth.
+    /// Ogni «silenzio» nuovo ferma gli spegnimenti di quello prima, così non si accumulano.
+    private var silenceRun = 0
+
+    /// Spegne le note rimaste accese sul TX-6. Prima, in un pacchetto, quelle che restano appese di solito
+    /// (i pad e le note delle melodie); poi tutte le altre piano, due ogni 15 ms (circa 5 secondi).
+    /// 8/10/2026: mandarne 768 in un secondo intasava il bluetooth e dopo il TX-6 non suonava più.
     func allNotesOff() {
         guard io.destination != 0 else { return }
-        var chunks: [[UInt8]] = []
-        for ch in 1...6 {
-            var chunk: [UInt8] = []
-            for n in 0...127 {
-                chunk += TX6.noteOff(n, channel: ch)
-                if chunk.count >= 24 { chunks.append(chunk); chunk = [] }
+        silenceRun += 1
+        let run = silenceRun
+        var first: [UInt8] = []
+        var done = Set<Int>()
+        for t in 1...6 {
+            var notes: Set<Int> = [padBase]
+            for k in melodies[t - 1].compactMap({ $0 }) { notes.insert(melodyNote(t, k)) }
+            for n in notes where (0...127).contains(n) {
+                first += TX6.noteOff(n, channel: t)
+                done.insert(t << 8 | n)
             }
-            if !chunk.isEmpty { chunks.append(chunk) }
         }
-        for (i, c) in chunks.enumerated() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.01) { [weak self] in self?.io.send(c) }
+        io.send(first)
+        // il TX-6 suona da do0 (12) in su: sotto non c'è niente da spegnere
+        var rest: [[UInt8]] = []
+        var chunk: [UInt8] = []
+        for t in 1...6 {
+            for n in 12...127 where !done.contains(t << 8 | n) {
+                chunk += TX6.noteOff(n, channel: t)
+                if chunk.count >= 6 { rest.append(chunk); chunk = [] }
+            }
+        }
+        if !chunk.isEmpty { rest.append(chunk) }
+        for (i, c) in rest.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05 + Double(i) * 0.015) { [weak self] in
+                guard let self = self, self.silenceRun == run, self.io.destination != 0 else { return }
+                self.io.send(c)
+            }
         }
         held.removeAll()
         heldKeys.removeAll()
         sequencer.melodyOffNow()
         logText("silenzio: tutte le note spente")
-        trace("TX-6: silenzio, \(chunks.count) pacchetti di spegnimento")
+        trace("TX-6: silenzio, \(rest.count + 1) pacchetti di spegnimento in \(String(format: "%.1f", 0.05 + Double(rest.count) * 0.015)) s")
+    }
+
+    // MARK: guadagno
+
+    /// Il guadagno (cc 9, da 0 a +42 dB) si muove solo di un dB alla volta, mai a salti: un «max» sentito male
+    /// dal Controllo Vocale porterebbe una traccia a +42 dB e può rompere le casse (regola di Giampiero, 8/10/2026).
+    func gainDB(_ track: Int) -> Int { Int((Double(value(track, .gain)) / 127 * 42).rounded()) }
+
+    func stepGain(_ track: Int, by d: Int) {
+        let db = max(0, min(42, gainDB(track) + d))
+        set(track, .gain, Int((Double(db) * 127 / 42).rounded()))
     }
 
     // MARK: invio
@@ -954,11 +995,13 @@ final class TX6Engine: ObservableObject {
                 bytes += TX6.cc(param.cc, pat.sounds[t - 1][k], channel: t)
             }
         }
-        let lockBase = TX6Pattern.soundParams.firstIndex(of: pat.lockParam).map { pat.sounds[pat.lockTrack - 1][$0] }
-            ?? values[pat.lockTrack - 1][pat.lockParam.rawValue]
+        // mai il guadagno a passi, neanche da un pattern salvato prima
+        let lockParam = pat.lockParam == .gain ? TX6.Param.freq : pat.lockParam
+        let lockBase = TX6Pattern.soundParams.firstIndex(of: lockParam).map { pat.sounds[pat.lockTrack - 1][$0] }
+            ?? values[pat.lockTrack - 1][lockParam.rawValue]
         return TX6Sequencer.Part(id: pat.id, beats: pat.beats, melodies: pat.melodies, melodyOctaves: pat.melodyOctaves,
                                  melodyLength: pat.melodyLength, locks: pat.locks, lockTrack: pat.lockTrack,
-                                 lockCC: pat.lockParam.cc, lockBase: lockBase, gate: pat.gate,
+                                 lockCC: lockParam.cc, lockBase: lockBase, gate: pat.gate,
                                  soundBytes: bytes, bpm: pat.bpm)
     }
 

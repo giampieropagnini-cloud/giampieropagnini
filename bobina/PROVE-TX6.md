@@ -29,7 +29,7 @@ Le prime quattro si fanno col cavo al **Mac** e l'ascoltatore (`strumenti/ascolt
 | 15 | pompa, onda, scena che sfuma | Ritmo e Mixer, con musica che entra nel TX-6 | da fare |
 | 16 | il ponte verso il TP-7 | TX-6 su CTRL OUT col cavo, TP-7 col bluetooth; Collega → ponte | da fare |
 | 18 | effetti: acceso e spento | Mixer → FX I: mandate alzate, riverbero; «spento», poi «acceso» | da fare: con «spento» deve tacere (cc 82 a 0 e ritorno a 0), con «acceso» tornare |
-| 19 | effetti: cosa fanno i parametri 1, 2, 3 | un effetto alla volta: parametro 1, 2, 3 a 0 e a max, guardando il display | da fare: per la guida quasi ogni effetto ha un valore solo (il preset o la quantità) |
+| 19 | effetti: cosa fanno i parametri 1, 2, 3 | un effetto alla volta: parametro 1, 2, 3 a 0 e a max, ascoltando | in parte: 8/10/2026 il display del TX-6 non cambia pagina coi parametri (le mandate sì). Dalla guida: un valore per effetto (CHO subtle-strong, REV drone-large, DLY 1/8-mash, TRM 0-99, FRZ −/+, TPE stop1-pong, DST push-dstroy, CRU shape-bit), il filtro due (CUT e RES): il parametro 2 è solo la risonanza del filtro, il 3 nessuno. Da confermare a orecchio |
 | 17 | bluetooth | BLE → ACCEPT; Collega → cerca il TX-6 | ✅ 29/9/2026: compare «TX-6 Bluetooth», Bobina lo sceglie da sola per mandare e ascoltare. Il TP-7 resta collegato in bluetooth nello stesso momento |
 
 ## Misure
@@ -49,3 +49,5 @@ Le prime quattro si fanno col cavo al **Mac** e l'ascoltatore (`strumenti/ascolt
 - 6/10/2026: la cassa che suonava anche alta come un tom e le onde che non si spegnevano erano note rimaste accese sul TX-6 (Bobina chiusa o reinstallata a nota giù). Dopo lo spegnimento automatico al collegamento e il tasto «silenzio»: «adesso funziona».
 - 1/10/2026, iOS 27: «cerca il TX-6» faceva chiudere l'app (statusBarHeightForOrientation dà NaN dentro il pannello di Apple). Riparato con IOS27.swift.
 - 8/10/2026: spegnendo gli effetti da Bobina Giampiero li sentiva ancora, finché non metteva a zero le mandate delle tracce; il parametro 2 «non si capisce cosa fa». Dalla guida: i tasti FX accendono e spengono, cc 82 0-63 spento e 64-127 acceso; quasi ogni effetto ha un valore solo (select cambia preset o quantità, premuto passa al valore dopo se c'è). Bobina partiva credendo gli effetti spenti senza saperlo: ora «acceso» e «spento» sono due tasti che mandano sempre, e FX I spento mette anche il ritorno a zero. Da provare (prova 18).
+- 8/10/2026: «silenzio» toccato per sbaglio col bluetooth, poi il TX-6 non suonava più. Mandava 768 spegnimenti in un secondo. Ora prima i pad e le note delle melodie in un pacchetto, poi le altre due ogni 15 ms (circa 5 secondi).
+- 8/10/2026, regola di Giampiero: il guadagno solo ±1 dB, mai salti né «max» (casse in pericolo se il Controllo Vocale sente male). Tolto anche dai passi con manopola, dalle onde, dall'inclinazione; la prova dei comandi lo manda col valore che ha già.

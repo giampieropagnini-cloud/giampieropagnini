@@ -309,7 +309,7 @@ struct TX6LockPanel: View {
                 }
             }
             LazyVGrid(columns: five, spacing: 4) {
-                ForEach(TX6.Param.allCases.filter { $0.continuous }) { p in
+                ForEach(TX6.Param.movable) { p in
                     TX6Mini(text: p.name, on: tx.lockParam == p, color: Color(white: 0.75)) { tx.lockParam = p }
                         .accessibilityLabel("parametro \(p.name)")
                 }
