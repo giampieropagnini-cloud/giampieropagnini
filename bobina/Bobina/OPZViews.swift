@@ -101,7 +101,11 @@ struct OPZTransport: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Button { opz.toggleRun() } label: {
+            Button {
+                // Suona e Ritmo sono l'OP-Z da solo: il ▶ di qui non fa suonare i passi di Crea
+                if !opz.running { opz.createOn = false }
+                opz.toggleRun()
+            } label: {
                 Text(opz.running ? "■ ferma" : "▶ suona")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
                     .frame(maxWidth: .infinity, minHeight: 56)

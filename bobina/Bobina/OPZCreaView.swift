@@ -75,7 +75,20 @@ struct OPZCreaTop: View {
                     .foregroundStyle(Color.black)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(!opz.running ? "suona" : !opz.createOn ? "fai suonare anche Crea" : "ferma")
+            .accessibilityLabel(!opz.running ? "suona" : !opz.createOn ? "fai suonare anche Crea" : "ferma tutto")
+            // mentre suona tutto: spegne solo Crea, l'OP-Z continua col suo pattern (8/10/2026)
+            if opz.running && opz.createOn {
+                Button { opz.createOn = false } label: {
+                    Text("solo\nOP-Z")
+                        .font(.system(.footnote, design: .monospaced).weight(.bold))
+                        .multilineTextAlignment(.center)
+                        .frame(width: 64, height: 50)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(OPZ.tint))
+                        .foregroundStyle(Color.black)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("spegni Crea, suona solo l'OP-Z")
+            }
             SmallKey(text: "−5") { opz.setBPM(opz.bpm - 5) }.accessibilityLabel("tempo meno 5")
             VStack(spacing: 0) {
                 Text("\(Int(opz.bpm.rounded()))")
