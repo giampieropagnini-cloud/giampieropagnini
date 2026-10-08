@@ -40,6 +40,14 @@ Quello che si sa dell'adattatore è in `PO-RICERCA.md`, le prove con le macchine
 
 Quello che si sa dell'OP-Z è in `OPZ-RICERCA.md`, le prove in `PROVE-OPZ.md`.
 
+### Sezione M8 (Dirtywave M8)
+
+- **Tasti**: gli 8 tasti dell'M8 come sulla macchina, ognuno diviso in due (sopra un tocco, sotto «tieni»); **live mode** in un tocco (shift + sinistra, dal Song); **a tempo con Bobina** (start e clock sulla stessa battuta di TX-6, PO, OP-Z, NTS-1); **muta 1-8 e solo 1-8**; una manopola su un CC (cue vol).
+- **Suona**: sedici pad (sopra suona, sotto «tieni») sul canale di una traccia, **16 passi** a tempo, l'**inclinazione** su un CC, **silenzio**.
+- **Collega**: la porta (col cavo USB-C, l'M8 non ha il bluetooth), il **microfono** (con l'M8 attaccato l'iPhone prenderebbe il suo ingresso come microfono e il Controllo Vocale non sentirebbe più: Bobina tiene un microfono USB vero, es. il CM-15 sull'hub, se no quello dell'iPhone), il **firmware** letto dall'M8 (lo schermo dell'M8 dentro Bobina chiede il firmware 6).
+
+Quello che si sa dell'M8 è in `M8-RICERCA.md`. Provato col vero il 5/10/2026: tasti, live mode, muta e solo, pad, passi, M8 e OP-Z sulla stessa battuta.
+
 ### Sezione NTS-1 (Korg NTS-1 digital kit mkII)
 
 - **Suono**: tutte le manopole dell'NTS-1 con un nome: oscillatore, filtro, inviluppo, mod, delay, reverb, volume, e i tasti dei tipi (saw, lp2, chorus, hall…). Quando giri una manopola sull'NTS-1, il valore si muove anche in Bobina.
@@ -121,6 +129,16 @@ Tieni **shift** e premi **select** per il menu, poi:
 - Gli **effetti punch-in** via MIDI sono note 5-28 sul canale 13 e lavorano sul sequencer dell'OP-Z (non sulle note di Crea). La traccia attiva si sceglie col CC 102, ma via MIDI non sposta gli effetti (misurato l'8/10/2026).
 - **Lo stop MIDI non spegne il record lock**: dopo «scrivi sull'OP-Z» Ele preme REC.
 - Lo strumento di una traccia si cambia solo sulla macchina: TRACK + i tasti della fila di sopra (strumento) o di sotto (suono).
+
+## Preparare l'M8
+
+Sull'M8, **Project → MIDI → Settings**:
+- **CONTROL MAP CHAN = 10** (o lo stesso numero di Bobina → M8 → Collega → canali): i tasti, muta e solo, le manopole.
+- **TRACK INPUT**: la traccia da suonare coi pad e coi passi sul canale di Bobina → M8 → Suona (di serie 1).
+- **SYNC IN = CLOCK+TRANSP.** per «a tempo con Bobina».
+- Le manopole (cue vol, inclinazione): **Project → MIDI Mapping**, sul parametro tieni OPTION e muovi il CC da Bobina.
+
+Col cavo all'iPhone, insieme a un microfono USB (es. TE CM-15) su un hub USB-C, così il Controllo Vocale continua a sentire.
 
 ## Preparare l'NTS-1
 
