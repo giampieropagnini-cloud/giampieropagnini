@@ -130,30 +130,23 @@ struct OPZLivePunch: View {
     private let four = Array(repeating: GridItem(.flexible(), spacing: 5), count: 4)
 
     var body: some View {
-        let eight = Array(repeating: GridItem(.flexible(), spacing: 4), count: 8)
-        let t = opz.activeTrack
-        let group = t.map { $0 <= 4 ? "la batteria" : "i synth" } ?? "il gruppo"
+        // 8/10/2026: via MIDI la scelta della traccia (CC 102) non sposta gli effetti: «solo la traccia» resta sulla
+        // traccia attiva di prima e «tutto il gruppo» resta sulla batteria. Restano le due cose che funzionano.
         OPZPanel {
-            OPZLabel("1 · su quale traccia (diventa la traccia attiva dell'OP-Z)")
-            LazyVGrid(columns: eight, spacing: 4) {
-                ForEach(OPZ.tracks.prefix(8)) { tr in
-                    OPZChip(text: tr.short, on: t == tr.number, color: OPZ.color(tr.number), height: 38) { opz.setActiveTrack(tr.number) }
-                        .accessibilityLabel("effetti su \(tr.name)")
-                }
-            }
             HStack(spacing: 5) {
-                OPZChip(text: t.map { "solo \(OPZ.track($0).short)" } ?? "solo la traccia", on: !opz.punchHigh, height: 38) { opz.punchHigh = false }
-                    .accessibilityLabel("effetto solo sulla traccia scelta")
-                OPZChip(text: "tutto \(group)", on: opz.punchHigh, height: 38) { opz.punchHigh = true }
-                    .accessibilityLabel("effetto su tutto il gruppo, batteria o synth")
-                OPZChip(text: "lascia tutti", height: 38) { opz.punchReleaseAll() }
+                OPZChip(text: "su tutto il gruppo", on: opz.punchHigh, height: 40) { opz.punchHigh = true }
+                    .accessibilityLabel("effetti su tutto il gruppo")
+                OPZChip(text: "solo traccia attiva", on: !opz.punchHigh, height: 40) { opz.punchHigh = false }
+                    .accessibilityLabel("effetti solo sulla traccia attiva dell'OP-Z")
             }
-            OPZLabel("2 · l'effetto: sopra mezzo secondo, sotto resta finché non tocchi «lascia»")
+            OPZLabel("sopra: mezzo secondo · sotto: resta finché non tocchi «lascia»")
             LazyVGrid(columns: four, spacing: 6) {
                 ForEach(OPZ.punchIn.indices, id: \.self) { i in
                     OPZPunchKey(index: i, name: OPZ.punchIn[i], held: opz.punchHeld.contains(i))
                 }
             }
+            OPZChip(text: "lascia tutti gli effetti", height: 40) { opz.punchReleaseAll() }
+            OPZLabel("la traccia attiva la sceglie Ele sull'OP-Z: TRACK + il numero")
         }
     }
 }
