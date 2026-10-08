@@ -157,16 +157,26 @@ struct TX6FxPanel: View {
                 TX6Mini(text: "spegni FX I e II", height: 40) { tx.allFxOff() }
                     .accessibilityLabel("spegni tutti e due gli effetti")
             }
-            if index == 1 {
-                TX6FxHits()
-            }
             LazyVGrid(columns: three, spacing: 4) {
                 ForEach(TX6.fxEngines[index].indices, id: \.self) { i in
                     TX6Mini(text: TX6.fxEngines[index][i], on: tx.fxEngine[index] == i, color: Color(white: 0.75), height: 38) { tx.setFxEngine(index, i) }
                         .accessibilityLabel("effetto \(TX6.fxEngines[index][i])")
                 }
             }
-            if let presets = TX6.fxPresets(index, tx.fxEngine[index]) {
+            let engineName = tx.fxEngine[index].flatMap { TX6.fxEngines[index].indices.contains($0) ? TX6.fxEngines[index][$0] : nil }
+            let scratchy = index == 1 && (engineName == "tape" || engineName == "freeze")
+            if scratchy, engineName == "tape", let presets = TX6.fxPresets(index, tx.fxEngine[index]) {
+                HStack(spacing: 4) {
+                    ForEach(presets.indices, id: \.self) { i in
+                        let v = TX6.presetValue(i, of: presets.count)
+                        TX6Mini(text: presets[i], on: tx.fxParamsKnown && tx.fxParams[index][0] == v, height: 38) { tx.setFxParam(index, 0, v) }
+                            .accessibilityLabel("preset \(presets[i])")
+                    }
+                }
+            }
+            if scratchy {
+                TX6ScratchPanel()
+            } else if let presets = TX6.fxPresets(index, tx.fxEngine[index]) {
                 TX6Label("\(TX6.fxEngines[index][tx.fxEngine[index] ?? 0]): i preset come sul TX-6")
                 LazyVGrid(columns: three, spacing: 4) {
                     ForEach(presets.indices, id: \.self) { i in
@@ -181,8 +191,10 @@ struct TX6FxPanel: View {
                     TX6KnobRow(name: names[k], value: tx.fxParams[index][k]) { tx.setFxParam(index, k, $0) }
                 }
             }
-            if let e = tx.fxEngine[index], index == 1, ["tremolo", "freeze"].contains(TX6.fxEngines[1][e]) {
-                TX6Label("Prova: sul TX-6 shift + FX II, poi tocca «max» su 1, 2 e 3. Quale muove la barra?")
+            if scratchy {
+                TX6Label("Prova: «tieni FX II» e muovi la rotellina con «parametro 1», poi 2, poi 3: quale fa lo scratch?")
+            } else if engineName == "tremolo" && index == 1 {
+                TX6Label("Tremolo: la barra del TX-6 va da 0 a 99. Prova quale fila (1, 2, 3) la muove.")
             } else {
                 TX6Label("Dalla guida: un valore per effetto; il filtro ha anche la risonanza. Il parametro 3 non serve.")
             }
@@ -206,29 +218,64 @@ struct TX6FxPanel: View {
     }
 }
 
-/// Freeze e tape stop a colpi: sopra «tocca» (una battuta, poi si spegne da solo), sotto «tieni» / «lascia».
-/// Ogni tasto mette da solo l'effetto giusto in FX II; il tape usa il preset scelto (stop 1, stop 2, pong).
-struct TX6FxHits: View {
+/// Tape e freeze: suonano finché FX II è tenuto, e la rotellina li muove (lo scratch).
+/// «tieni» / «lascia», la rotellina (slider per il QuadStick, − e + per la voce), FX II tenuto per una durata
+/// a tempo, lo scratch automatico, e quale parametro fa da rotellina.
+struct TX6ScratchPanel: View {
     @EnvironmentObject var tx: TX6Engine
 
-    private func key(_ engine: String, _ label: String) -> some View {
-        VStack(spacing: 3) {
-            TX6Mini(text: "\(label) · 1 battuta", color: Palette.accent, height: 46) { tx.hitFx2(engine) }
-                .accessibilityLabel("\(label) per una battuta")
-            if tx.fxHeld == engine {
-                TX6Mini(text: "lascia", on: true, color: Palette.rec, height: 34) { tx.releaseFx2() }
-                    .accessibilityLabel("lascia \(label)")
-            } else {
-                TX6Mini(text: "tieni", height: 34) { tx.holdFx2(engine) }
-                    .accessibilityLabel("tieni \(label)")
-            }
-        }
+    private let holds: [(String, Double)] = [("1/16", 0.25), ("1/8", 0.5), ("1/4", 1), ("1/2", 2), ("1", 4)]
+    private let scratches: [(String, Double)] = [("1/16", 0.25), ("1/8", 0.5), ("1/4", 1), ("1/2", 2)]
+
+    private func label(_ text: String) -> some View {
+        Text(text)
+            .font(.system(.caption, design: .monospaced))
+            .foregroundStyle(Palette.dim)
+            .lineLimit(1)
+            .fixedSize()
     }
 
     var body: some View {
-        HStack(spacing: 6) {
-            key("freeze", "freeze")
-            key("tape", "tape stop")
+        VStack(alignment: .leading, spacing: 6) {
+            if tx.fxHolding {
+                TX6Mini(text: "lascia", on: true, color: Palette.rec, height: 48) { tx.releaseFx2() }
+                    .accessibilityLabel("lascia FX II")
+            } else {
+                TX6Mini(text: "tieni FX II", height: 48) { tx.holdFx2() }
+                    .accessibilityLabel("tieni FX II")
+            }
+            HStack(spacing: 4) {
+                TX6Mini(text: "−", height: 40) { tx.setWheel(tx.wheel - 8) }
+                    .frame(width: 52)
+                    .accessibilityLabel("rotellina indietro")
+                Slider(value: Binding(get: { tx.wheel }, set: { tx.setWheel($0) }), in: 0...127)
+                    .tint(Palette.accent)
+                    .accessibilityLabel("rotellina")
+                TX6Mini(text: "+", height: 40) { tx.setWheel(tx.wheel + 8) }
+                    .frame(width: 52)
+                    .accessibilityLabel("rotellina avanti")
+            }
+            HStack(spacing: 4) {
+                label("tieni per")
+                ForEach(holds, id: \.0) { h in
+                    TX6Mini(text: h.0) { tx.holdFx2(beats: h.1) }
+                        .accessibilityLabel("tieni FX II per \(h.0 == "1" ? "una battuta" : h.0)")
+                }
+            }
+            HStack(spacing: 4) {
+                label("scratch")
+                ForEach(scratches, id: \.0) { sc in
+                    TX6Mini(text: sc.0) { tx.scratch(every: sc.1) }
+                        .accessibilityLabel("scratch ogni \(sc.0)")
+                }
+            }
+            HStack(spacing: 4) {
+                label("rotellina =")
+                ForEach(0..<3, id: \.self) { k in
+                    TX6Mini(text: "parametro \(k + 1)", on: tx.scratchParam == k, color: Color(white: 0.75)) { tx.scratchParam = k }
+                        .accessibilityLabel("la rotellina è il parametro \(k + 1)")
+                }
+            }
         }
     }
 }

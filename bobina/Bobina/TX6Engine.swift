@@ -736,38 +736,97 @@ final class TX6Engine: ObservableObject {
         send(bytes)
     }
 
-    // MARK: colpi di FX II
+    // MARK: tape e freeze (FX II tenuto, rotellina)
 
-    /// Freeze e tape stop si suonano a colpi: il tasto sceglie l'effetto in FX II e lo accende.
-    /// «tocca» lo spegne da solo dopo una battuta; «tieni» lo lascia acceso finché non si lascia.
-    @Published private(set) var fxHeld: String?
+    /// Tape e freeze suonano solo finché FX II è tenuto acceso, e intanto la rotellina (select) li muove:
+    /// è lo scratch (misurato da Giampiero l'8/10/2026). Qui «tieni»/«lascia», la rotellina (slider, − e +),
+    /// FX II tenuto per una durata a tempo, e lo scratch che porta la rotellina avanti e indietro da solo.
+    @Published private(set) var fxHolding = false
+    /// Dove sta la rotellina, da 0 a 127.
+    @Published private(set) var wheel = 64.0
+    /// Quale parametro di FX II fa da rotellina (0 = cc 12, 1 = cc 13, 2 = cc 14): da misurare (prova 24).
+    @Published var scratchParam = UserDefaults.standard.integer(forKey: "bobina.tx6.scratch.parametro") {
+        didSet { UserDefaults.standard.set(scratchParam, forKey: "bobina.tx6.scratch.parametro") }
+    }
     private var fxHitID = 0
+    private var scratchTimer: DispatchSourceTimer?
 
-    func hitFx2(_ engine: String, bars: Double = 1) {
-        guard let e = TX6.fxEngines[1].firstIndex(of: engine) else { return }
-        if fxEngine[1] != e { setFxEngine(1, e) }
+    /// La rotellina manda il suo parametro senza salvarlo a ogni passo (lo scratch ne manda 40 al secondo).
+    private func sendWheel(_ v: Int) {
+        let v = max(0, min(127, v))
+        let k = max(0, min(2, scratchParam))
+        guard v != fxSent[1][k] else { return }
+        fxSent[1][k] = v
+        send(TX6.cc(TX6.ccFxParams[k], v, channel: TX6.fxChannels[1]), quiet: true)
+    }
+
+    func setWheel(_ v: Double) {
+        wheel = max(0, min(127, v))
+        sendWheel(Int(wheel.rounded()))
+    }
+
+    func holdFx2() {
+        stopScratch()
+        fxHitID += 1
         setFx(1, on: true)
-        fxHeld = nil
+        fxHolding = true
+    }
+
+    func releaseFx2() {
+        stopScratch()
+        fxHitID += 1
+        fxHolding = false
+        setFx(1, on: false)
+    }
+
+    /// Tiene FX II per tanti quarti, al tempo di Bobina, poi lascia.
+    func holdFx2(beats: Double) {
+        stopScratch()
         fxHitID += 1
         let id = fxHitID
-        DispatchQueue.main.asyncAfter(deadline: .now() + 60 / max(40, bpm) * 4 * bars) { [weak self] in
+        setFx(1, on: true)
+        fxHolding = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60 / max(40, bpm) * beats) { [weak self] in
             guard let self = self, self.fxHitID == id else { return }
             self.setFx(1, on: false)
         }
     }
 
-    func holdFx2(_ engine: String) {
-        guard let e = TX6.fxEngines[1].firstIndex(of: engine) else { return }
-        if fxEngine[1] != e { setFxEngine(1, e) }
+    /// Scratch: tiene FX II per una battuta e porta la rotellina avanti e indietro da 0 a 127, un giro ogni
+    /// `every` quarti; alla fine lascia FX II e rimette la rotellina dov'era.
+    func scratch(every: Double) {
+        stopScratch()
         fxHitID += 1
+        let id = fxHitID
         setFx(1, on: true)
-        fxHeld = engine
+        fxHolding = false
+        let quarter = 60 / max(40, bpm)
+        let total = quarter * 4
+        let period = quarter * every
+        let base = wheel
+        let start = ProcessInfo.processInfo.systemUptime
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now(), repeating: .milliseconds(25))
+        timer.setEventHandler { [weak self] in
+            guard let self = self, self.fxHitID == id else { return }
+            let e = ProcessInfo.processInfo.systemUptime - start
+            if e >= total {
+                self.stopScratch()
+                self.setFx(1, on: false)
+                self.sendWheel(Int(base.rounded()))
+                return
+            }
+            let ph = (e / period).truncatingRemainder(dividingBy: 1)
+            let tri = ph < 0.5 ? ph * 2 : 2 - ph * 2
+            self.sendWheel(Int((tri * 127).rounded()))
+        }
+        scratchTimer = timer
+        timer.resume()
     }
 
-    func releaseFx2() {
-        fxHitID += 1
-        fxHeld = nil
-        setFx(1, on: false)
+    private func stopScratch() {
+        scratchTimer?.cancel()
+        scratchTimer = nil
     }
 
     /// Un tocco: FX I e FX II spenti.
