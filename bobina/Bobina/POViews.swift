@@ -240,7 +240,7 @@ struct POTastiView: View {
 
             Card(title: "in un tocco", note: "La combinazione la fa Bobina: tiene il tasto, preme il numero, lascia.") {
                 HStack(spacing: 6) {
-                    ForEach(PO.Shortcut.allCases, id: \.rawValue) { s in
+                    ForEach([PO.Shortcut.pattern, .sound], id: \.rawValue) { s in
                         GridChip(text: s.name, on: shortcut == s) { shortcut = s }
                     }
                 }
@@ -248,6 +248,18 @@ struct POTastiView: View {
                     ForEach(1...16, id: \.self) { n in
                         GridChip(text: "\(shortcut.name) \(n)") { po.combo(shortcut, n) }
                     }
+                }
+            }
+
+            // regola di Giampiero (8/10/2026): niente salti di volume, un «16» sentito male dal Controllo Vocale
+            // rompe cuffie e casse. Solo − e +, un gradino alla volta.
+            Card(title: "volume", note: "Un gradino alla volta (bpm + tasto). Bobina non sa a che volume è il PO: parte da quello che ha mandato l'ultima volta. Con le cuffie non andare oltre 5.") {
+                HStack(spacing: 10) {
+                    SmallKey(text: "−") { po.volumeStep(-1) }
+                    Text(po.volume.map { "volume \($0)" } ?? "volume ?")
+                        .font(.system(.title3, design: .monospaced))
+                        .frame(minWidth: 120)
+                    SmallKey(text: "+") { po.volumeStep(1) }
                 }
             }
 
