@@ -736,6 +736,40 @@ final class TX6Engine: ObservableObject {
         send(bytes)
     }
 
+    // MARK: colpi di FX II
+
+    /// Freeze e tape stop si suonano a colpi: il tasto sceglie l'effetto in FX II e lo accende.
+    /// «tocca» lo spegne da solo dopo una battuta; «tieni» lo lascia acceso finché non si lascia.
+    @Published private(set) var fxHeld: String?
+    private var fxHitID = 0
+
+    func hitFx2(_ engine: String, bars: Double = 1) {
+        guard let e = TX6.fxEngines[1].firstIndex(of: engine) else { return }
+        if fxEngine[1] != e { setFxEngine(1, e) }
+        setFx(1, on: true)
+        fxHeld = nil
+        fxHitID += 1
+        let id = fxHitID
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60 / max(40, bpm) * 4 * bars) { [weak self] in
+            guard let self = self, self.fxHitID == id else { return }
+            self.setFx(1, on: false)
+        }
+    }
+
+    func holdFx2(_ engine: String) {
+        guard let e = TX6.fxEngines[1].firstIndex(of: engine) else { return }
+        if fxEngine[1] != e { setFxEngine(1, e) }
+        fxHitID += 1
+        setFx(1, on: true)
+        fxHeld = engine
+    }
+
+    func releaseFx2() {
+        fxHitID += 1
+        fxHeld = nil
+        setFx(1, on: false)
+    }
+
     /// Un tocco: FX I e FX II spenti.
     func allFxOff() {
         setFx(0, on: false)

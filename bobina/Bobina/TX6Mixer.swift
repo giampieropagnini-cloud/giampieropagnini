@@ -156,6 +156,9 @@ struct TX6FxPanel: View {
                 TX6Mini(text: "spegni FX I e II", height: 40) { tx.allFxOff() }
                     .accessibilityLabel("spegni tutti e due gli effetti")
             }
+            if index == 1 {
+                TX6FxHits()
+            }
             LazyVGrid(columns: three, spacing: 4) {
                 ForEach(TX6.fxEngines[index].indices, id: \.self) { i in
                     TX6Mini(text: TX6.fxEngines[index][i], on: tx.fxEngine[index] == i, color: Color(white: 0.75), height: 38) { tx.setFxEngine(index, i) }
@@ -194,6 +197,33 @@ struct TX6FxPanel: View {
                 }
                 TX6Label("Uno alla volta. Se il mix suona ovattato, di solito è il filtro di FX II rimasto acceso.")
             }
+        }
+    }
+}
+
+/// Freeze e tape stop a colpi: sopra «tocca» (una battuta, poi si spegne da solo), sotto «tieni» / «lascia».
+/// Ogni tasto mette da solo l'effetto giusto in FX II; il tape usa il preset scelto (stop 1, stop 2, pong).
+struct TX6FxHits: View {
+    @EnvironmentObject var tx: TX6Engine
+
+    private func key(_ engine: String, _ label: String) -> some View {
+        VStack(spacing: 3) {
+            TX6Mini(text: "\(label) · 1 battuta", color: Palette.accent, height: 46) { tx.hitFx2(engine) }
+                .accessibilityLabel("\(label) per una battuta")
+            if tx.fxHeld == engine {
+                TX6Mini(text: "lascia", on: true, color: Palette.rec, height: 34) { tx.releaseFx2() }
+                    .accessibilityLabel("lascia \(label)")
+            } else {
+                TX6Mini(text: "tieni", height: 34) { tx.holdFx2(engine) }
+                    .accessibilityLabel("tieni \(label)")
+            }
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            key("freeze", "freeze")
+            key("tape", "tape stop")
         }
     }
 }
