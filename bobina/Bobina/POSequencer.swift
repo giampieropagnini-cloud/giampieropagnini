@@ -223,7 +223,8 @@ final class POSequencer {
                 // resterebbe giù. Si lasciano adesso (lezione dell'OP-Z, 9/10/2026)
                 let keys = offsAt.values.flatMap { $0 }
                 offsAt.removeAll()
-                if !keys.isEmpty { send(keys.flatMap { PO.noteOff($0, channel: p.channel) }, at: 0) }
+                // dopo i passi già consegnati con la loro marca temporale, se no il tasto si riabbasserebbe dopo
+                if !keys.isEmpty { send(keys.flatMap { PO.noteOff($0, channel: p.channel) }, at: now + io.ticks(ms: lookahead + max(0, p.leadMs) + 40)) }
             }
             nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
         }
