@@ -464,11 +464,15 @@ struct NTS1ArpChoices: View {
                     .accessibilityLabel("accordo \(c.label)")
             }
         }
-        NTS1Label("ottave · una nota ogni…")
-        LazyVGrid(columns: four, spacing: 4) {
+        NTS1Label("ottave")
+        // due griglie: 1 e 2 ottave hanno gli stessi id di «quarti» (1.0) e «ottavi» (2.0) e nella stessa griglia sparirebbero
+        HStack(spacing: 4) {
             ForEach(1...3, id: \.self) { o in
                 NTS1SmallChip(text: o == 1 ? "1 ottava" : "\(o) ottave", on: player.arpOctaves == o) { player.arpOctaves = o }
             }
+        }
+        NTS1Label("una nota ogni…")
+        LazyVGrid(columns: four, spacing: 4) {
             ForEach(NTS1Player.arpSpeeds, id: \.0) { d in
                 NTS1SmallChip(text: d.1, on: player.arpDiv == d.0) { player.arpDiv = d.0 }
                     .accessibilityLabel("velocità \(d.1)")
