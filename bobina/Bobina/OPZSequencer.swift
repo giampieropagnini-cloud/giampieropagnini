@@ -321,8 +321,10 @@ final class OPZSequencer {
             // la griglia si è spostata (cambio di tempo, il TX-6 è ripartito): si riparte dal battito giusto
             let t = line.time(ofBeat: Double(nextBeat))
             if running && (t + io.ticks(ms: 30) < now || t > now + io.ticks(ms: line.beatMs + lookahead)) {
+                let oldSixteenth = nextSixteenth
                 nextBeat = Int(line.beat(at: now).rounded(.up))
                 nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
+                shiftPending(by: nextSixteenth - oldSixteenth)
             }
             nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
             // da solo l'OP-Z non sente il clock: il tempo nuovo glielo si dice
@@ -401,6 +403,19 @@ final class OPZSequencer {
             }
         }
         onBeat?(bar, quarter, t)
+    }
+
+    /// La griglia è saltata (avanti o indietro, per esempio seguendo il TX-6 che riparte): tutto quello che
+    /// aspettava un sedicesimo preciso si sposta con lei. Se no le note-off aspetterebbero un passo che non arriva
+    /// più (note appese) e il giro per scrivere sull'OP-Z non finirebbe mai (idea dalle chat TX-6 e M8, 8/10/2026).
+    private func shiftPending(by delta: Int) {
+        guard delta != 0 else { return }
+        offsAt = Dictionary(uniqueKeysWithValues: offsAt.map { ($0.key + delta, $0.value) })
+        onsAt = Dictionary(uniqueKeysWithValues: onsAt.map { ($0.key + delta, $0.value) })
+        heldUntil = heldUntil.mapValues { $0 + delta }
+        fxSince = fxSince.mapValues { $0 + delta }
+        if let s0 = onceStart { onceStart = s0 + delta }
+        nextSixteenthStart += delta
     }
 
     // MARK: un sedicesimo di Crea
