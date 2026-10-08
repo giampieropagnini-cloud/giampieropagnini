@@ -76,7 +76,7 @@ struct TX6DrumPanel: View {
                 TX6Label("Cambiano solo le tracce 1-4: melodie e tracce 5-6 restano. Col ritmo che gira entrano alla battuta.")
                 ForEach(TX6DrumPreset.groups, id: \.self) { g in
                     TX6Label(g)
-                    LazyVGrid(columns: four, spacing: 4) {
+                    LazyVGrid(columns: five, spacing: 4) {
                         ForEach(TX6DrumPreset.all.filter { $0.group == g }) { d in
                             TX6Mini(text: d.name, on: tx.currentPatternName == d.name || tx.pendingPatternName == d.name, height: 40) { tx.playDrums(d) }
                                 .accessibilityLabel("batteria \(d.name), \(d.bpm) bpm")
@@ -205,20 +205,15 @@ struct TX6MelodyPanel: View {
                     .accessibilityLabel("melodie scure pronte")
             }
             if showPresets {
-                TX6Label("linee, sulla traccia \(t)")
-                LazyVGrid(columns: three, spacing: 4) {
-                    ForEach(TX6MelodyPreset.dark.filter { !$0.chord }) { m in
-                        TX6Mini(text: m.name, on: picked == m.name, height: 40) { tx.applyMelody(m, from: t); picked = m.name }
-                            .accessibilityLabel("melodia \(m.name)")
-                    }
-                }
-                TX6Label(t <= 4 ? "accordi, sulle tracce \(t)-\(t + 2)" : "accordi: scegli una traccia fino alla 4")
-                LazyVGrid(columns: three, spacing: 4) {
-                    ForEach(TX6MelodyPreset.dark.filter { $0.chord }) { m in
-                        TX6Mini(text: m.name, on: picked == m.name, height: 40) { tx.applyMelody(m, from: t); picked = m.name }
-                            .disabled(t > 4)
-                            .opacity(t > 4 ? 0.4 : 1)
-                            .accessibilityLabel("accordi \(m.name)")
+                ForEach(TX6MelodyPreset.groups, id: \.self) { g in
+                    TX6Label(g == "accordi" ? (t <= 4 ? "accordi, sulle tracce \(t)-\(t + 2)" : "accordi: scegli una traccia fino alla 4") : "\(g), sulla traccia \(t)")
+                    LazyVGrid(columns: three, spacing: 4) {
+                        ForEach(TX6MelodyPreset.all.filter { $0.group == g }) { m in
+                            TX6Mini(text: m.name, on: picked == m.name, height: 40) { tx.applyMelody(m, from: t); picked = m.name }
+                                .disabled(m.chord && t > 4)
+                                .opacity(m.chord && t > 4 ? 0.4 : 1)
+                                .accessibilityLabel("\(g == "accordi" ? "accordi" : "melodia") \(m.name)")
+                        }
                     }
                 }
                 TX6Label("Tocca «pronte» per tornare a scrivere.")

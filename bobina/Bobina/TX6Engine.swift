@@ -170,6 +170,8 @@ struct TX6Preset: Codable, Identifiable, Equatable {
 struct TX6MelodyPreset: Identifiable {
     var id: String { name }
     let name: String
+    /// «bassi», «melodie» o «accordi».
+    let group: String
     let chord: Bool
     let voices: [[Int?]]
     let octaves: [Int]
@@ -178,72 +180,75 @@ struct TX6MelodyPreset: Identifiable {
     /// Il preset di suono da mettere sulle tracce usate.
     let sound: String
 
+    static let groups = ["bassi", "melodie", "accordi"]
+
     private static func line(_ notes: [(Int, Int)]) -> [Int?] {
         var r = [Int?](repeating: nil, count: 16)
         for (step, semi) in notes { r[step] = semi }
         return r
     }
 
-    private static func lineP(_ name: String, oct: Int, len: Int, sound: String, _ notes: [(Int, Int)]) -> TX6MelodyPreset {
-        TX6MelodyPreset(name: name, chord: false, voices: [line(notes)], octaves: [oct], length: len, sound: sound)
+    private static func lineP(_ name: String, _ group: String, oct: Int, len: Int, sound: String, _ notes: [(Int, Int)]) -> TX6MelodyPreset {
+        TX6MelodyPreset(name: name, group: group, chord: false, voices: [line(notes)], octaves: [oct], length: len, sound: sound)
     }
+
+    /// Sedici note di fila, una per passo.
+    private static func run(_ notes: [Int]) -> [(Int, Int)] { Array(zip(0..<16, notes)) }
 
     /// Accordi di quattro quarti: per ogni quarto le tre note (basso, medio, alto).
     private static func chords(_ name: String, octaves: [Int] = [2, 3, 4], sound: String = "tappeto largo", _ seq: [(Int, Int, Int)]) -> TX6MelodyPreset {
         let steps = [0, 4, 8, 12]
         let voices = (0..<3).map { v in line(seq.enumerated().map { (steps[$0.offset], [$0.element.0, $0.element.1, $0.element.2][v]) }) }
-        return TX6MelodyPreset(name: name, chord: true, voices: voices, octaves: octaves, length: 4, sound: sound)
+        return TX6MelodyPreset(name: name, group: "accordi", chord: true, voices: voices, octaves: octaves, length: 4, sound: sound)
     }
 
-    /// Scure, da film: seconde minori, tritoni, scale frigia e diminuita, accordi minori che scendono.
-    static let dark: [TX6MelodyPreset] = [
-        lineP("squalo", oct: 2, len: 1, sound: "basso pieno",
-              [(0, 0), (2, 1), (4, 0), (6, 1), (8, 0), (9, 1), (10, 0), (11, 1), (12, 0), (13, 1), (14, 0), (15, 1)]),
-        lineP("pedale martellato", oct: 1, len: 1, sound: "sub",
-              (0..<16).map { ($0, $0 == 12 || $0 == 13 ? 1 : 0) }),
-        lineP("lamento", oct: 2, len: 4, sound: "basso pieno",
-              [(0, 12), (3, 11), (6, 10), (8, 9), (11, 8), (14, 7)]),
-        lineP("tritono", oct: 2, len: 2, sound: "basso quadro",
-              [(0, 0), (4, 6), (8, 0), (12, 6), (14, 7), (15, 6)]),
-        lineP("frigio", oct: 3, len: 2, sound: "lead sega",
-              [(0, 0), (2, 1), (4, 0), (6, 3), (8, 1), (11, 0), (12, 1), (14, 0)]),
-        lineP("diminuito", oct: 3, len: 2, sound: "pluck",
-              [(0, 0), (2, 3), (4, 6), (6, 9), (8, 12), (10, 9), (12, 6), (14, 3)]),
-        lineP("orologio", oct: 4, len: 1, sound: "pluck",
-              [(0, 7), (2, 7), (4, 7), (6, 7), (8, 7), (10, 7), (12, 8), (14, 7)]),
-        // trip hop: do minore, lento, con la seconda (re) che resta sospesa
-        lineP("mezzanotte", oct: 2, len: 2, sound: "basso pieno",
-              [(0, 0), (3, 0), (6, 3), (8, 5), (10, 3), (14, 2)]),
-        // horror: un carillon in minore col si (la sensibile) che non si risolve
-        lineP("carillon", oct: 5, len: 1, sound: "pluck",
-              [(0, 12), (2, 7), (4, 8), (6, 7), (8, 3), (10, 2), (12, 3), (14, 11)]),
-        // horror: tritoni che a metà battuta salgono di un semitono
-        lineP("sirena", oct: 4, len: 2, sound: "lead sega",
-              [(0, 0), (2, 6), (4, 0), (6, 6), (8, 1), (10, 7), (12, 1), (14, 7)]),
-        // dark: un cuore basso, due colpi, e la seconda minore che stringe
-        lineP("battito", oct: 1, len: 1, sound: "sub",
-              [(0, 0), (1, 0), (6, 1), (8, 0), (9, 0), (14, 1)]),
-        // cinema: l'arpeggio minore che va al sesto grado (lab), da titoli di testa
-        lineP("titoli", oct: 3, len: 2, sound: "lead quadro",
-              [(0, 0), (2, 3), (4, 7), (6, 3), (8, 0), (10, 3), (12, 8), (14, 7)]),
-        // cinema: archi in sedicesimi, l'inseguimento
-        lineP("ostinato", oct: 3, len: 1, sound: "pluck",
-              Array(zip(0..<16, [0, 3, 7, 3, 0, 3, 8, 3, 0, 3, 7, 3, 0, 2, 3, 2]))),
-        // do minore, la bemolle, mi bemolle, si bemolle: il giro epico e scuro dei film
-        chords("epico minore", [(0, 3, 7), (8, 0, 3), (3, 7, 10), (10, 2, 5)]),
-        // il re resta appeso sopra accordi che cambiano: do minore con la nona, la bemolle con l'undicesima
-        // aumentata, fa minore con la sesta, sol con la nona bemolle
-        chords("attesa", [(0, 3, 2), (8, 0, 2), (5, 8, 2), (7, 11, 8)]),
-        // accordi minori che scendono di un semitono alla volta
-        chords("discesa", [(0, 3, 7), (11, 2, 6), (10, 1, 5), (9, 0, 4)]),
-        // tre note vicine che stridono, poi lo stesso grappolo un tritono più su
-        chords("grappolo", octaves: [3, 3, 3], [(0, 1, 2), (0, 1, 2), (6, 7, 8), (6, 7, 8)]),
-        // trip hop: do minore con la settima, fa minore, la bemolle, sol (la cadenza della minore armonica)
-        chords("noir", [(0, 3, 10), (5, 8, 0), (8, 0, 3), (7, 11, 2)]),
-        // cinema: le stesse quattro tappe all'organo, aperte
-        chords("cattedrale", sound: "organo", [(0, 7, 3), (8, 3, 0), (5, 0, 8), (7, 2, 11)]),
-        // horror: accordi eccedenti e diminuiti che scivolano di un semitono
-        chords("incubo", [(0, 4, 8), (1, 5, 9), (0, 3, 6), (11, 2, 5)]),
+    /// Venti melodie scure da film, semplici e fatte per stare insieme (rifatte l'8/10/2026, Giampiero: «dark
+    /// cinematico, non cose strane, che si possano agganciare»). Tutte in do minore e quasi tutte sullo stesso
+    /// giro, un accordo per quarto: do minore · la bemolle · fa minore · sol (0 3 7 · 8 0 3 · 5 8 0 · 7 11 2).
+    /// Basso, accordi e melodia si possono suonare insieme; e ognuna finisce sul sol, che porta al do della
+    /// battuta dopo: messe una dopo l'altra si legano.
+    static let all: [TX6MelodyPreset] = [
+        // bassi, sulle radici del giro
+        lineP("pulsazione", "bassi", oct: 2, len: 1, sound: "basso pieno",
+              [(0, 0), (2, 0), (4, 8), (6, 8), (8, 5), (10, 5), (12, 7), (14, 7)]),
+        lineP("radici", "bassi", oct: 1, len: 4, sound: "sub",
+              [(0, 0), (4, 8), (8, 5), (12, 7)]),
+        lineP("quinte", "bassi", oct: 2, len: 1, sound: "basso quadro",
+              [(0, 0), (2, 7), (4, 8), (6, 3), (8, 5), (10, 0), (12, 7), (14, 2)]),
+        // il galoppo dei film d'azione: lungo-corto-corto su ogni radice
+        lineP("galoppo", "bassi", oct: 2, len: 1, sound: "basso pieno",
+              [(0, 0), (2, 0), (3, 0), (4, 8), (6, 8), (7, 8), (8, 5), (10, 5), (11, 5), (12, 7), (14, 7), (15, 7)]),
+        lineP("pedale", "bassi", oct: 1, len: 2, sound: "sub",
+              [(0, 0), (2, 0), (4, 0), (6, 0), (8, 0), (10, 0), (12, 0), (14, 7)]),
+        // melodie
+        lineP("arpeggio", "melodie", oct: 3, len: 1, sound: "pluck",
+              run([0, 3, 7, 3, 8, 12, 8, 3, 5, 8, 12, 8, 7, 11, 2, 11])),
+        lineP("ostinato", "melodie", oct: 3, len: 1, sound: "pluck",
+              run([0, 7, 0, 7, 8, 3, 8, 3, 5, 12, 5, 12, 7, 2, 7, 2])),
+        // il sesto bemolle che scende sul quinto: il sospiro scuro dei film
+        lineP("sospiro", "melodie", oct: 4, len: 4, sound: "lead quadro",
+              [(0, 7), (4, 8), (8, 8), (12, 7)]),
+        lineP("campana", "melodie", oct: 5, len: 2, sound: "pluck",
+              [(0, 7), (4, 3), (8, 0), (12, 2), (14, 11)]),
+        lineP("tema", "melodie", oct: 4, len: 2, sound: "lead sega",
+              [(0, 7), (2, 3), (4, 8), (6, 12), (8, 5), (10, 8), (12, 11), (14, 7)]),
+        lineP("eco", "melodie", oct: 4, len: 2, sound: "pluck",
+              [(0, 12), (2, 7), (4, 12), (6, 8), (8, 12), (10, 5), (12, 11), (14, 7)]),
+        lineP("orologio", "melodie", oct: 4, len: 1, sound: "pluck",
+              [(0, 7), (2, 7), (4, 8), (6, 8), (8, 8), (10, 8), (12, 7), (14, 7)]),
+        lineP("cuore", "melodie", oct: 3, len: 1, sound: "pluck",
+              [(0, 0), (1, 0), (4, 0), (5, 0), (8, 0), (9, 0), (12, 11), (13, 11)]),
+        lineP("sospeso", "melodie", oct: 4, len: 4, sound: "tappeto largo",
+              [(0, 12), (8, 12), (12, 11)]),
+        lineP("discesa", "melodie", oct: 4, len: 2, sound: "flauto",
+              [(0, 12), (2, 10), (4, 8), (6, 7), (8, 5), (10, 3), (12, 2), (14, 11)]),
+        // accordi, sulle tracce scelte e le due dopo
+        chords("tensione", [(0, 3, 7), (8, 0, 3), (5, 8, 0), (7, 11, 2)]),
+        chords("epico", [(0, 3, 7), (8, 0, 3), (3, 7, 10), (7, 11, 2)]),
+        // il basso che scende do-sib-lab-sol, il lamento
+        chords("lamento", [(12, 3, 7), (10, 3, 7), (8, 0, 3), (7, 11, 2)]),
+        chords("attesa", [(0, 3, 7), (5, 8, 0), (0, 3, 7), (7, 11, 2)]),
+        chords("cattedrale", sound: "organo", [(0, 3, 7), (8, 0, 3), (10, 2, 5), (7, 11, 2)]),
     ]
 }
 
