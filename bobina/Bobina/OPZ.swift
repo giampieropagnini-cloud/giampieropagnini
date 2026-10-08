@@ -84,6 +84,12 @@ enum OPZ {
         Param(cc: 18, name: "stile nota"),
     ]
 
+    /// Le manopole che sono un guadagno (il volume della traccia). Regola di Giampiero (8/10/2026): mai a salti,
+    /// niente min/metà/max, niente passi né onde che le muovano; solo − e + di un passo piccolo alla volta.
+    /// Un «max» sentito male dal Controllo Vocale può rompere casse e cuffie.
+    /// Anche le mandate agli effetti (13, 14), come nell'M8: una mandata al massimo può far esplodere il riverbero.
+    static let gainCCs: Set<Int> = [13, 14, 16]
+
     /// Sull'arp le quattro manopole dell'lfo comandano l'arpeggio.
     static func paramName(_ p: Param, track: Int) -> String {
         guard track == 7 else { return p.name }
