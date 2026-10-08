@@ -108,7 +108,10 @@ enum NTS1 {
         }
 
         /// Un guadagno: solo − e + a passi piccoli, mai salti, onde o inclinazione.
-        var isGain: Bool { self == .volume }
+        /// L'NTS-1 non ne ha: il volume tiene i salti (Giampiero: «non è pericoloso, ed è comodo»).
+        var isGain: Bool { false }
+        /// Onda e inclinazione non lo muovono.
+        var steadyOnly: Bool { self == .volume }
 
         static func byCC(_ cc: Int) -> Knob? { allCases.first { $0.cc == cc } }
     }
