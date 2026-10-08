@@ -42,9 +42,12 @@ Quello che si sa dell'OP-Z è in `OPZ-RICERCA.md`, le prove in `PROVE-OPZ.md`.
 
 ### Sezione M8 (Dirtywave M8)
 
-- **Tasti**: gli 8 tasti dell'M8 come sulla macchina, ognuno diviso in due (sopra un tocco, sotto «tieni»); **live mode** in un tocco (shift + sinistra, dal Song); **a tempo con Bobina** (start e clock sulla stessa battuta di TX-6, PO, OP-Z, NTS-1); **muta 1-8 e solo 1-8**; una manopola su un CC (cue vol).
-- **Suona**: sedici pad (sopra suona, sotto «tieni») sul canale di una traccia, **16 passi** a tempo, l'**inclinazione** su un CC, **silenzio**.
-- **Collega**: la porta (col cavo USB-C, l'M8 non ha il bluetooth), il **microfono** (con l'M8 attaccato l'iPhone prenderebbe il suo ingresso come microfono e il Controllo Vocale non sentirebbe più: Bobina tiene un microfono USB vero, es. il CM-15 sull'hub, se no quello dell'iPhone), il **firmware** letto dall'M8 (lo schermo dell'M8 dentro Bobina chiede il firmware 6).
+Ogni scheda sta in uno schermo.
+- **Tasti**: gli 8 tasti dell'M8 come sulla macchina, ognuno diviso in due (sopra un tocco, sotto «tieni»); **M8 a tempo** (start e clock sulla stessa battuta di TX-6, PO, OP-Z, NTS-1) e bpm; **live mode** in un tocco (shift + sinistra, dal Song); **silenzio**; poi **muta e solo 1-8** oppure le **manopole**.
+- **Suona**: **traccia 1-8** (traccia N = canale N) e **strumento −/+** (Program Change), sedici pad a tasto unico (modo tocca o tieni), **inclinazione** su un CC.
+- **Passi**: 8 o 16 passi a tempo con la **scrittura in fila** (un tocco = una nota nel passo del cursore), pausa, indietro, copia 1-8 su 9-16.
+- **Manopole**: 8 manopole, ognuna un CC che sull'M8 si collega a un parametro qualsiasi (forma dell'onda, cutoff, res, mandate, volumi…). Per ognuna: **valore** a salti (0 · ¼ · ½ · ¾ · max), **onda a tempo** (onda, triangolo, sale, scende, cancello, pompa, a caso; giro da 1/16 a 4 battute; da… a…), **passi** (automazione a passi con la scrittura in fila), **imposta** (nome, CC, e «collega al parametro dell'M8»: Bobina tiene OPTION e muove il CC).
+- **Collega**: la porta (col cavo USB-C, l'M8 non ha il bluetooth), il **microfono** (con l'M8 attaccato l'iPhone prenderebbe il suo ingresso come microfono e il Controllo Vocale non sentirebbe più: Bobina tiene un microfono USB vero, es. il CM-15 sull'hub, se no quello dell'iPhone), il **firmware** letto dall'M8 (lo schermo dell'M8 dentro Bobina chiede il firmware 6), i canali.
 
 Quello che si sa dell'M8 è in `M8-RICERCA.md`. Provato col vero il 5/10/2026: tasti, live mode, muta e solo, pad, passi, M8 e OP-Z sulla stessa battuta.
 
@@ -134,9 +137,9 @@ Tieni **shift** e premi **select** per il menu, poi:
 
 Sull'M8, **Project → MIDI → Settings**:
 - **CONTROL MAP CHAN = 10** (o lo stesso numero di Bobina → M8 → Collega → canali): i tasti, muta e solo, le manopole.
-- **TRACK INPUT**: la traccia da suonare coi pad e coi passi sul canale di Bobina → M8 → Suona (di serie 1).
+- **TRACK INPUT**: traccia 1 = CHAN 1, traccia 2 = CHAN 2 … traccia 8 = CHAN 8 (così «traccia N» in Bobina suona la traccia N); **INST#** = lo strumento di ogni traccia; **PG CHANGE** acceso per cambiarlo da Bobina.
 - **SYNC IN = CLOCK+TRANSP.** per «a tempo con Bobina».
-- Le manopole (cue vol, inclinazione): **Project → MIDI Mapping**, sul parametro tieni OPTION e muovi il CC da Bobina.
+- Le manopole e l'inclinazione: cursore sul parametro, poi in Bobina **Manopole → imposta → collega al parametro dell'M8** (oppure a mano: Project → MIDI Mapping, tieni OPTION e muovi il CC).
 
 Col cavo all'iPhone, insieme a un microfono USB (es. TE CM-15) su un hub USB-C, così il Controllo Vocale continua a sentire.
 
