@@ -75,6 +75,13 @@ struct TX6DrumPanel: View {
             }
             if view == 2 {
                 TX6Label("Cambiano solo le tracce 1-4: melodie e tracce 5-6 restano. Col ritmo che gira entrano alla battuta.")
+                if let cur = TX6DrumPreset.all.first(where: { $0.name == (tx.pendingPatternName ?? tx.currentPatternName) }) {
+                    Text("\(cur.ref) · \(cur.bpm) bpm" + (cur.swing > 0.505 ? " · swing \(Int((cur.swing * 100).rounded()))%" : ""))
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.accent)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                }
                 ForEach(TX6DrumPreset.groups, id: \.self) { g in
                     TX6Label(g)
                     LazyVGrid(columns: five, spacing: 4) {
