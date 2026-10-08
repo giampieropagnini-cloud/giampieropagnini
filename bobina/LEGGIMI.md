@@ -14,11 +14,13 @@ Il tasto «passa a…» in alto a destra di ogni pagina passa da una sezione all
 
 ### Sezione TX-6
 
-- **Mixer**: volume e muto delle sei tracce; ogni traccia si apre con tutto il resto (pan, guadagno, filtro, EQ, compressore, mandate, synth). Il generale (main, aux, cue, manopole del TX-6 spente), le scene a b c della macchina, e le **scene che sfumano**: quante ne vuoi, e il passaggio dall'una all'altra in 1-16 battute.
-- **Effetti**: FX I (riverbero, chorus, delay) con le mandate delle tracce e il ritorno, FX II (filtro, crush, distorsione, tremolo, freeze, tape) su una traccia o su tutto, le mandate aux.
-- **Suona**: **pattern e stili** (sette stili pronti, house, techno, hip hop, reggaeton, drum'n'bass, electro, ambient, e i tuoi pattern salvati: il cambio entra all'inizio della battuta), **i sei strumenti** (suono e barre di ogni traccia), una tastiera (una traccia, o accordi sulle sei tracce), sei pad (do-la sul canale 7), la **batteria a passi**, la **melodia a passi** e i **passi con manopola**. Il ritmo gira su un filo suo: scorrere lo schermo non lo rallenta.
-- **Ritmo**: il tempo in tre modi (di Bobina, Bobina lo dà al TX-6, Bobina segue il TX-6), start/stop e tempo del TX-6, la **pompa** (il sidechain che il TX-6 non ha), il **cancello**, due **onde** (gli LFO che mancano), la **deriva** di volumi e pan, e il filtro **col corpo** inclinando il telefono.
-- **Collega**: cavo o bluetooth, lo specchio di fader e manopole in CTRL OUT, il **ponte** (il TX-6 in CTRL OUT comanda la sezione TP-7), il monitor e tutte le tabelle MIDI del TX-6.
+Cinque schede, ognuna in uno schermo (8/10/2026): in cima a ogni scheda una fila di parti, una alla volta, niente slider (ogni manopola ha − · 0 · ¼ · ½ · ¾ · max · +) e niente menu.
+
+- **Mixer**: *tracce* (le sei tracce in colonna come sul TX-6: scegli cosa regolare, volume, guadagno, compressore, EQ, pan, filtro, mandate; muto e solo; in cima a ogni colonna si apre la traccia intera), *FX I* (riverbero, chorus, delay, ritorno), *FX II* (filtro, crush, distorsione, tremolo, freeze, tape, su una traccia o su tutto), *generale* (main, aux, cue, manopole del TX-6 spente), *scene* (a b c della macchina e le **scene che sfumano** in 1-16 battute).
+- **Crea**: in cima suona/ferma e il tempo; *batteria* (sei righe, suoni e preset pronti della riga), *melodia* **scritta in fila** (ogni nota toccata riempie il passo del cursore; melodie scure pronte), *manopola* (passi con manopola, scritti in fila), *pattern* (sette stili pronti e i tuoi; il cambio entra all'inizio della battuta). Il ritmo gira su un filo suo: scorrere lo schermo non lo rallenta.
+- **Suona**: *suona* (tastiera su una traccia o accordi sulle sei, e i sei pad sul canale della traccia), *strumenti* (suono e manopole di ogni traccia, preset pronti e tuoi), *campioni* (campioni e loop del TX-6).
+- **Ritmo**: in cima il tempo in tre modi (di Bobina, Bobina lo dà al TX-6, Bobina segue il TX-6) e start/stop e tempo del TX-6; poi *pompa* (il sidechain che il TX-6 non ha), *cancello*, *onde* (gli LFO che mancano), *deriva* di volumi e pan, *corpo* (un parametro inclinando il telefono).
+- **Collega**: *collega* (cavo o bluetooth, a chi parla Bobina, il **ponte** verso il TP-7, le tabelle MIDI), *specchio* di fader e manopole in CTRL OUT, *monitor*, *prova* dei comandi.
 
 ### Sezione Pocket Operator
 
