@@ -130,10 +130,11 @@ enum TX6 {
     static let ccFx2Place: UInt8 = 9
 
     /// L'ordine degli effetti è quello del telecomando di psimyn; i 128 valori divisi in parti uguali (da misurare).
-    /// Gli effetti nell'ordine della guida (CHO REV DLY · TRM FRZ TPE FLT DST CRU). Che il cc 15 li scelga in
-    /// quest'ordine non è ancora misurato (prova 11): se il display del TX-6 dice un altro nome, si cambia qui.
-    static let fxEngines = [["chorus", "riverbero", "delay"],
-                            ["tremolo", "freeze", "tape", "filtro", "distorsione", "crush"]]
+    /// Gli effetti nell'ordine in cui li sceglie il cc 15. FX I misurato l'8/10/2026: 0 riverbero, 64 chorus,
+    /// 127 delay (con l'ordine della guida, chorus e riverbero erano scambiati). FX II: stesso ordine della
+    /// tabella MIDI, da confermare (prova 20).
+    static let fxEngines = [["riverbero", "chorus", "delay"],
+                            ["filtro", "crush", "distorsione", "tremolo", "freeze", "tape"]]
 
     /// I preset di un effetto, come li scrive il TX-6 (dalle pagine della guida): il parametro 1 li sceglie.
     /// nil = l'effetto ha valori continui (filtro: taglio e risonanza; tremolo 0-99; freeze − … +).
