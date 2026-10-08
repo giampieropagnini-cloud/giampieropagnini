@@ -393,6 +393,9 @@ struct OPZArpRows: View {
                     OPZChip(text: st.name, on: opz.arpStyle == st, height: 32) { opz.arpStyle = st }
                         .accessibilityLabel("figura \(st.name)")
                 }
+            }
+            // le ottave fuori dalla griglia delle figure: con gli stessi numeri si pesterebbero
+            HStack(spacing: 4) {
                 ForEach(1...3, id: \.self) { o in
                     OPZChip(text: o == 1 ? "1 ottava" : "\(o) ottave", on: opz.arpOctaves == o, height: 32) { opz.arpOctaves = o }
                 }
