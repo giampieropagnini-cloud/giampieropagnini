@@ -198,11 +198,11 @@ final class M8Sequencer {
         }
 
         // le onde: un punto ogni 1/16 di battito, mandato solo se il valore cambia
-        if knobsOn && knobs.contains(where: { $0.motion == .wave }) {
+        if knobsOn && knobs.contains(where: { $0.motion == .wave && !$0.isGain }) {
             while line.time(ofBeat: Double(nextWave) / Double(waveRate)) < horizon {
                 let t = line.time(ofBeat: Double(nextWave) / Double(waveRate))
                 let beat = Double(nextWave) / Double(waveRate)
-                for (k, knob) in knobs.enumerated() where k < 8 && knob.motion == .wave {
+                for (k, knob) in knobs.enumerated() where k < 8 && knob.motion == .wave && !knob.isGain {
                     let length = max(0.25, knob.beats)
                     let turns = beat / length
                     let turn = Int(turns.rounded(.down))
@@ -239,7 +239,7 @@ final class M8Sequencer {
             }
             var autoStep: Int?
             if knobsOn {
-                for (k, knob) in knobs.enumerated() where k < 8 && knob.motion == .steps {
+                for (k, knob) in knobs.enumerated() where k < 8 && knob.motion == .steps && !knob.isGain {
                     autoStep = i
                     if let v = knob.steps[i] {
                         knobValues[k] = v

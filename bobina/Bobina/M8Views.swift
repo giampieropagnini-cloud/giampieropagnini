@@ -458,7 +458,7 @@ struct M8TiltPanel: View {
             Text("\(player.tiltCC)").font(.system(.title3, design: .monospaced)).frame(minWidth: 40)
             SmallKey(text: "+") { player.tiltCC = min(127, player.tiltCC + 1) }.accessibilityLabel("CC inclinazione più")
         }
-        M8Label("Sull'M8: Project > MIDI Mapping, tieni OPTION sul parametro e inclina il telefono.")
+        M8Label("Sull'M8: Project > MIDI Mapping, tieni OPTION sul parametro e inclina il telefono. Mai su un volume.")
     }
 }
 
@@ -762,7 +762,11 @@ struct M8KnobValueRow: View {
     var body: some View {
         let i = knobs.selected
         let k = knobs.knobs[i]
-        M8KnobRow(name: k.name, value: live.values[i]) { knobs.set(i, $0) }
+        if k.isGain {
+            M8GainRow(name: k.name, value: live.values[i]) { knobs.set(i, $0) }
+        } else {
+            M8KnobRow(name: k.name, value: live.values[i]) { knobs.set(i, $0) }
+        }
         ProgressView(value: Double(live.values[i]), total: 127)
             .tint(M8.color)
             .accessibilityHidden(true)
@@ -778,6 +782,43 @@ struct M8KnobValueRow: View {
     }
 }
 
+/// Un guadagno: solo − e + di un passo piccolo (regola di Giampiero: niente salti, niente «max»).
+struct M8GainRow: View {
+    let name: String
+    let value: Int
+    let set: (Int) -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(name).font(.system(.footnote, design: .monospaced).weight(.semibold))
+            Spacer()
+            M8Chip(text: "−", height: 44) { set(max(0, value - M8Knobs.gainStep)) }
+                .frame(maxWidth: 70)
+                .accessibilityLabel("\(name) meno")
+            Text("\(value)")
+                .font(.system(.title3, design: .monospaced).weight(.bold))
+                .foregroundStyle(M8.color)
+                .frame(minWidth: 48)
+            M8Chip(text: "+", height: 44) { set(min(127, value + M8Knobs.gainStep)) }
+                .frame(maxWidth: 70)
+                .accessibilityLabel("\(name) più")
+        }
+        M8Label("È un volume: solo − e +, a passi piccoli, per proteggere casse e cuffie.")
+    }
+}
+
+/// Su un guadagno niente onde né passi: lo dice al posto dei controlli.
+struct M8GainNotice: View {
+    let name: String
+
+    var body: some View {
+        Text("«\(name)» è un volume: niente onde né passi, solo − e + in «valore». Così un comando capito male non lo porta mai al massimo.")
+            .font(.system(.footnote, design: .monospaced))
+            .foregroundStyle(Palette.dim)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 /// L'onda a tempo sulla manopola scelta: forma, quanto dura un giro, da dove a dove.
 struct M8WavePanel: View {
     @ObservedObject var knobs: M8Knobs
@@ -788,6 +829,9 @@ struct M8WavePanel: View {
         let i = knobs.selected
         let k = knobs.knobs[i]
         let on = k.motion == .wave
+        if k.isGain {
+            M8GainNotice(name: k.name)
+        } else {
         M8Chip(text: on ? "onda accesa su \(k.name)" : "accendi l'onda su \(k.name)", on: on, height: 46) { knobs.toggle(.wave) }
             .accessibilityLabel(on ? "spegni l'onda" : "accendi l'onda")
         LazyVGrid(columns: four, spacing: 5) {
@@ -807,6 +851,7 @@ struct M8WavePanel: View {
         M8RangeRow(name: "da", value: k.low) { knobs.knobs[i].low = $0 }
         M8RangeRow(name: "a", value: k.high) { knobs.knobs[i].high = $0 }
         M8KnobLiveBar(live: knobs.live, index: i)
+        }
     }
 }
 
@@ -866,6 +911,9 @@ struct M8KnobStepsPanel: View {
         let k = knobs.knobs[i]
         let len = player.stepLength
         let on = k.motion == .steps
+        if k.isGain {
+            M8GainNotice(name: k.name)
+        } else {
         M8Chip(text: on ? "passi accesi su \(k.name)" : "accendi i passi su \(k.name)", on: on, height: 46) { knobs.toggle(.steps) }
             .accessibilityLabel(on ? "spegni i passi della manopola" : "accendi i passi della manopola")
         M8KnobStepGrid(knobs: knobs, live: knobs.live, length: len)
@@ -894,6 +942,7 @@ struct M8KnobStepsPanel: View {
             }
             .frame(maxWidth: 150)
             .accessibilityLabel(confirmClear ? "conferma svuota la manopola" : "svuota i passi della manopola")
+        }
         }
     }
 }
@@ -948,7 +997,7 @@ struct M8KnobSetupPanel: View {
         M8Label("nome della manopola \(i + 1)")
         LazyVGrid(columns: four, spacing: 5) {
             ForEach(M8Knobs.names, id: \.self) { n in
-                M8Chip(text: n, on: k.name == n, height: 34) { knobs.knobs[i].name = n }
+                M8Chip(text: n, on: k.name == n, height: 34) { knobs.rename(i, n) }
                     .accessibilityLabel("nome \(n)")
             }
         }

@@ -21,7 +21,9 @@ cd "$(dirname "$0")/../.."
 
 IPHONE=00008160-000679C22E400036
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-DD="${BOBINA_DD:-$HOME/Library/Developer/Xcode/DerivedData/bobina-installa}"
+# una cartella di build per worktree: due chat che installano insieme non si bloccano sul database di Xcode
+# («database is locked», segnalato dalla chat del TP-7 l'8/10/2026)
+DD="${BOBINA_DD:-$HOME/Library/Developer/Xcode/DerivedData/bobina-installa-$(basename "$PWD")}"
 
 if [[ -n "$(git status --porcelain -- bobina)" ]]; then
   echo "Ci sono modifiche non salvate in bobina/: fai prima il commit." >&2
