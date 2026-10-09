@@ -93,7 +93,12 @@ struct TX6Pattern: Codable, Identifiable, Equatable {
         }
         let empty = [Bool](repeating: false, count: 16)
         let silent = [Int?](repeating: nil, count: 16)
-        let sounds = [4, 5, 6, 7, bassSound, leadSound].map { [TX6.soundValue($0), 64, 64, 64] }
+        // suono, frequenza, lunghezza, detune. Dal 9/10/2026 la batteria suona sul canale 7 alla frequenza della
+        // traccia: una cassa a 64 è un tom. Cassa, rullante, battimani e charleston come i preset «cassa house»,
+        // «rullante secco», «battimani», «chiuso»; basso e melodia suonano le note, la frequenza vale solo per i pad.
+        let drums = [[4, 40, 60], [5, 64, 35], [6, 64, 50], [7, 80, 15]]
+        let sounds = drums.map { [TX6.soundValue($0[0]), $0[1], $0[2], 64] }
+            + [[TX6.soundValue(bassSound), 38, 64, 64], [TX6.soundValue(leadSound), 62, 64, 64]]
         return TX6Pattern(name: name,
                           beats: [row(kick), row(snare), row(clap), row(hat), empty, empty],
                           melodies: [silent, silent, silent, silent, line(bass), line(lead)],
@@ -418,8 +423,11 @@ final class TX6Engine: ObservableObject {
     @Published private(set) var currentPatternID: UUID?
     @Published private(set) var currentPatternName: String?
     @Published private(set) var pendingPatternName: String?
-    /// Cambiando pattern cambia anche il tempo.
-    @Published var patternTempo = true
+    /// Cambiando pronta o pattern cambia anche il tempo. Di serie no, e resta salvato (9/10/2026, Giampiero: col TX-6
+    /// a tempo con gli altri apparecchi una pronta non deve cambiare il bpm di tutti; se lo vuole mette la spunta).
+    @Published var patternTempo: Bool = UserDefaults.standard.bool(forKey: "bobina.tx6.pronte.tempo") {
+        didSet { UserDefaults.standard.set(patternTempo, forKey: "bobina.tx6.pronte.tempo") }
+    }
     @Published var morphBars: Double = 2
 
     // MARK: quello che arriva dal TX-6 in CTRL OUT
@@ -963,10 +971,15 @@ final class TX6Engine: ObservableObject {
     /// Una batteria pronta: cambia solo le tracce 1-4 (passi e suoni), il resto di quello che suona resta.
     /// Entra come un pattern: se il ritmo gira all'inizio della battuta, se no subito.
     func playDrums(_ d: TX6DrumPreset) {
+        // i passi con manopola su una traccia della batteria cambierebbero il suono del preset a ogni passo
+        // (sul telefono, 9/10/2026: frequenza del rullante a 0, ¼, ½, max)
+        if lockOn && lockTrack <= 4 { lockOn = false }
         var pat = capture(name: d.name)
         var extra: [UInt8] = []
         for r in 0..<4 {
             pat.beats[r] = d.steps(r)
+            // una melodia rimasta su una traccia della batteria farebbe suonare cassa e rullante a note a caso
+            pat.melodies[r] = Array(repeating: nil, count: 16)
             guard let p = TX6Preset.builtIn.first(where: { $0.name == d.sounds[r] }) else { continue }
             pat.sounds[r] = [TX6.soundValue(p.sound), p.freq, p.length, p.detune]
             // filtro e compressore del preset non stanno nel pattern: partono insieme ai suoni
@@ -986,7 +999,8 @@ final class TX6Engine: ObservableObject {
         if pulsing { sequencer.cancelPending() }
         pendingPatternName = nil
         send(extra, quiet: true)
-        adopt(pat, sendSounds: true)
+        // i suoni solo delle tracce 1-4: quelli di basso e melodia restano come sono sul TX-6
+        adopt(pat, sendSounds: true, tracks: 1...4)
     }
 
     func cancelPendingPattern() {
@@ -1053,6 +1067,12 @@ final class TX6Engine: ObservableObject {
             melodyOctaves[t - 1] = part.octave
             melodyGates[t - 1] = part.gate
             if let p = TX6Preset.builtIn.first(where: { $0.name == part.sound }) { apply(p, to: t) }
+            // un colpo di batteria sulla traccia (canale 7) taglierebbe le note tenute di basso e melodia
+            beats[t - 1] = Array(repeating: false, count: 16)
+        }
+        // le melodie rimaste sulle tracce della batteria suonerebbero cassa e rullante a note a caso
+        for t in 1...4 where isDrumSound(t) && melodies[t - 1].contains(where: { $0 != nil }) {
+            melodies[t - 1] = Array(repeating: nil, count: 16)
         }
         melodyCursor = 0
         melodyOn = true
@@ -1120,7 +1140,10 @@ final class TX6Engine: ObservableObject {
         adopt(pat, sendSounds: false)
     }
 
-    private func adopt(_ pat: TX6Pattern, sendSounds: Bool) {
+    /// La traccia ha uno dei quattro suoni di batteria (KICK, SNARE, CLAP, HIHAT).
+    func isDrumSound(_ t: Int) -> Bool { (4...7).contains(TX6.soundIndex(values[t - 1][TX6.Param.sound.rawValue])) }
+
+    private func adopt(_ pat: TX6Pattern, sendSounds: Bool, tracks: ClosedRange<Int> = 1...6) {
         beats = pat.beats
         if melodies != pat.melodies { hiddenBars.removeAll() }
         melodies = pat.melodies
@@ -1131,7 +1154,7 @@ final class TX6Engine: ObservableObject {
         lockParam = pat.lockParam
         gate = pat.gate
         var bytes: [UInt8] = []
-        for t in 1...6 {
+        for t in tracks {
             for (k, param) in TX6Pattern.soundParams.enumerated() {
                 let v = pat.sounds[t - 1][k]
                 values[t - 1][param.rawValue] = v

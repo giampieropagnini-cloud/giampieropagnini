@@ -49,9 +49,11 @@ enum TX6SelfTest {
         check("Velluto: il basso parte dal re (re2) e la melodia dal la (la4)",
               v[0].steps[0].map { 12 * (v[0].octave + 1) + $0 } == 38 && v[1].steps[2].map { 12 * (v[1].octave + 1) + $0 } == 69)
 
+        let tempoPrima = tx.patternTempo
         step(0.2) {
             trace("prova INIZIO")
             tx.clockMode = .own
+            tx.patternTempo = true
             tx.bpm = 120
             if !tx.running {
                 tx.beatsOn = true
@@ -67,6 +69,17 @@ enum TX6SelfTest {
                 check("bpm della batteria pronta", abs(tx.bpm - Double(ny.bpm)) < 0.01)
                 check("swing della batteria pronta", abs(p.swing - ny.swing) < 0.001)
             }
+        }
+        // con la spunta «anche il tempo» tolta (di serie) il bpm resta quello di prima
+        step(0.1) {
+            tx.patternTempo = false
+            tx.bpm = 120
+            tx.playDrums(TX6DrumPreset.all.first { $0.name == "Teardrop" }!)
+        }
+        step(0.3) { check("senza la spunta il tempo resta 120", abs(tx.bpm - 120) < 0.01) }
+        step(0.1) {
+            tx.patternTempo = true
+            tx.playDrums(ny)
         }
         step(0.3) { tx.beats[0][0] = false }
         step(0.3) { plan { p in check("una cella tolta arriva al sequencer", p.beats[0][0] == false) } }
@@ -115,7 +128,34 @@ enum TX6SelfTest {
         step(0.3) { plan { p in check("batteria pronta dopo uno stile appena entrato", (0..<4).allSatisfy { p.beats[$0] == row(ny.rows[$0]) }) } }
         step(0.1) { tx.clearDrums() }
         step(0.3) { plan { p in check("e poi svuota arriva lo stesso", p.beats.allSatisfy { $0.allSatisfy { !$0 } }) } }
-        step(0.1) { if tx.running { tx.toggleRun() } }
+        // uno stile, poi una batteria pronta: la cassa dello stile non è più un tom (canale 7, frequenza 40)
+        step(0.1) {
+            tx.melodies[0] = (0..<16).map { $0 % 4 == 0 ? 0 : nil }
+            tx.lockTrack = 2
+            tx.lockParam = .freq
+            tx.locks[0] = 0
+            tx.lockOn = true
+            tx.play(TX6Pattern.styles[0])
+        }
+        step(3.3) {
+            check("stile: la cassa a frequenza 40, non 64", tx.value(1, .freq) == 40 && tx.isDrumSound(1))
+            tx.playDrums(ny)
+        }
+        step(0.3) {
+            plan { p in
+                check("batteria pronta: niente melodie sulle tracce 1-4", (0..<4).allSatisfy { p.melodies[$0].allSatisfy { $0 == nil } })
+                check("batteria pronta: spenti i passi con manopola sul rullante", p.lockOn == false)
+            }
+        }
+        step(0.1) {
+            tx.beats[4] = Array(repeating: true, count: 16)
+            tx.applyMelody(TX6MelodyPreset.all.first { $0.name == "Velluto" }!)
+        }
+        step(0.3) { plan { p in check("melodia pronta: niente colpi di batteria sulle tracce 5 e 6", !p.beats[4].contains(true) && !p.beats[5].contains(true)) } }
+        step(0.1) {
+            if tx.running { tx.toggleRun() }
+            tx.patternTempo = tempoPrima
+        }
         go(0)
     }
 }

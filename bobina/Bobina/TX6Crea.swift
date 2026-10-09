@@ -86,7 +86,15 @@ struct TX6DrumPanel: View {
                     .accessibilityLabel("batterie pronte")
             }
             if view == 2 {
-                TX6Label("Cambiano solo le tracce 1-4 (melodie e tracce 5-6 restano) ed entrano subito, anche col ritmo che gira.")
+                HStack(spacing: 4) {
+                    TX6Label("Cambiano solo le tracce 1-4 ed entrano subito, anche col ritmo che gira.")
+                    // di serie il tempo resta: col TX-6 a tempo con gli altri apparecchi non cambia il bpm di tutti
+                    TX6Mini(text: tx.patternTempo ? "anche il tempo: sì" : "anche il tempo: no", on: tx.patternTempo, height: 40) {
+                        tx.patternTempo.toggle()
+                    }
+                    .frame(width: 120)
+                    .accessibilityLabel(tx.patternTempo ? "le pronte cambiano anche il tempo" : "le pronte lasciano il tempo com'è")
+                }
                 if let cur = TX6DrumPreset.all.first(where: { $0.name == (tx.pendingPatternName ?? tx.currentPatternName) }) {
                     Text("\(cur.ref) · \(cur.bpm) bpm" + (cur.swing > 0.505 ? " · swing \(Int((cur.swing * 100).rounded()))%" : ""))
                         .font(.system(.caption, design: .monospaced))
@@ -427,8 +435,8 @@ struct TX6PatternPanel: View {
                 }
             }
             HStack(spacing: 4) {
-                TX6Mini(text: tx.patternTempo ? "cambia anche il tempo" : "il tempo resta", on: tx.patternTempo) { tx.patternTempo.toggle() }
-                    .accessibilityLabel(tx.patternTempo ? "cambiando pattern cambia anche il tempo" : "cambiando pattern il tempo resta")
+                TX6Mini(text: tx.patternTempo ? "anche il tempo: sì" : "anche il tempo: no", on: tx.patternTempo) { tx.patternTempo.toggle() }
+                    .accessibilityLabel(tx.patternTempo ? "cambiando pattern o pronta cambia anche il tempo" : "cambiando pattern o pronta il tempo resta")
                 TX6ConfirmMini(text: "cancella tutto") { tx.clearSequence() }
             }
         }
