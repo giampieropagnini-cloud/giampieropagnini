@@ -71,9 +71,6 @@ struct TX6StatusStrip: View {
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(Palette.accent)
             }
-            if tx.connected {
-                Chip(text: "silenzio") { tx.allNotesOff() }
-            }
         }
         .padding(.top, 6)
         if tx.strayClock && tx.clockMode != .follow {

@@ -576,9 +576,9 @@ final class TX6Engine: ObservableObject {
     /// Una nota rimasta accesa sul TX-6 si sente così: una cassa che suona anche alta come un tom, un'onda che
     /// non si spegne più. Succede se Bobina si chiude (o si reinstalla) mentre una nota è giù: lo spegnimento
     /// non parte mai. Qui si mandano tutti, a gruppi di otto ogni 10 ms, per non intasare il bluetooth.
-    /// Spegne le note rimaste accese sul TX-6: solo quelle che Bobina ha suonato davvero dall'ultimo silenzio
-    /// (TX6PlayedNotes), più i pad e le note delle melodie, e il «tutte le note spente» standard (cc 123) su ogni
-    /// traccia. Di solito un pacchetto o due. 8/10/2026: mandarne centinaia, anche piano, a volte bloccava il TX-6.
+    /// Spegne le note rimaste accese sul TX-6, da solo, quando Bobina si collega: solo quelle che Bobina ha suonato
+    /// davvero (TX6PlayedNotes, salvato anche dopo una chiusura brusca), più i colpi e le note delle melodie.
+    /// Di solito un pacchetto o due. Il tasto «silenzio» non c'è più: toccato per sbaglio bloccava il TX-6 (9/10/2026).
     func allNotesOff() {
         guard io.destination != 0 else { return }
         var notes = Set<Int>()
@@ -589,7 +589,8 @@ final class TX6Engine: ObservableObject {
         }
         var bytes: [UInt8] = []
         for k in notes.sorted() { bytes += TX6.noteOff(k & 0x7F, channel: k >> 8) }
-        for t in 1...7 { bytes += TX6.cc(123, 0, channel: t) }
+        // niente cc 123 («tutte le note spente»): non è nella tabella del TX-6, e con lui il TX-6 si bloccava
+        // (9/10/2026). Il tasto «silenzio» è tolto; questo spegnimento parte solo da solo, al collegamento.
         // a pacchetti piccoli, uno ogni 20 ms
         let chunks = stride(from: 0, to: bytes.count, by: 24).map { Array(bytes[$0..<min(bytes.count, $0 + 24)]) }
         for (i, c) in chunks.enumerated() {
