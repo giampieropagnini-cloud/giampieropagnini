@@ -72,26 +72,47 @@ struct OPZBanner: View {
     }
 }
 
+/// La riga del collegamento in cima a ogni scheda. Un tocco apre il pannello bluetooth di Apple, da qualsiasi
+/// scheda (come TX-6 e PO, 9/10/2026): niente giro fino a Collega.
 struct OPZStatusStrip: View {
     @EnvironmentObject var opz: OPZEngine
+    @State private var showBluetooth = false
 
     var body: some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(opz.connected ? Color.green : Palette.rec)
-                .frame(width: 8, height: 8)
-            Text(opz.connected ? "collegato a \(opz.connectedName)" : "OP-Z non collegato · vai su Collega")
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(Palette.dim)
-                .lineLimit(1)
-            Spacer()
-            if opz.running || opz.othersRunning {
-                Text("\(Int(opz.bpm.rounded())) bpm")
+        Button { showBluetooth = true } label: {
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(opz.connected ? Color.green : Palette.rec)
+                    .frame(width: 8, height: 8)
+                Text(opz.connected ? "collegato a \(opz.connectedName)" : "OP-Z non collegato · tocca qui per collegarlo")
                     .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.accent)
+                    .foregroundStyle(opz.connected ? Palette.dim : Palette.rec)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Spacer()
+                if opz.running || opz.othersRunning {
+                    Text("\(Int(opz.bpm.rounded())) bpm")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.accent)
+                }
             }
+            .padding(.vertical, 8)
+            .contentShape(Rectangle())
         }
-        .padding(.top, 6)
+        .buttonStyle(.plain)
+        .accessibilityLabel(opz.connected ? "OP-Z collegato, tocca per il bluetooth" : "collega l'OP-Z")
+        .sheet(isPresented: $showBluetooth) {
+            VStack(spacing: 0) {
+                HStack {
+                    Text("MIDI bluetooth").font(.headline)
+                    Spacer()
+                    Button("fine") { showBluetooth = false }
+                }
+                .padding()
+                BluetoothMIDIPicker()
+            }
+            .onDisappear { opz.refreshPorts() }
+        }
     }
 }
 
