@@ -126,6 +126,7 @@ final class M8Engine: ObservableObject {
     /// Il bpm di Bobina, intero: si ridisegna solo quando cambia il numero.
     @Published private(set) var bpm = Int(BobinaClock.shared.bpm.rounded())
     private var bpmObserver: NSObjectProtocol?
+    private var backgroundObserver: NSObjectProtocol?
 
     @Published var destinations: [MIDIPort] = []
     @Published var destinationID: MIDIUniqueID? {
@@ -162,6 +163,9 @@ final class M8Engine: ObservableObject {
         channel = d.object(forKey: "bobina.m8.canale") as? Int ?? 10
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, _ in self?.received(bytes) }
+        backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.pauseForBackground()
+        }
         bpmObserver = NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
             guard let self = self, let v = n.object as? Double, Int(v.rounded()) != self.bpm else { return }
             self.bpm = Int(v.rounded())
@@ -272,6 +276,17 @@ final class M8Engine: ObservableObject {
         send(keys)
         io.send(notes)
         trace("M8: silenzio")
+    }
+
+    /// iOS sospende Bobina pochi secondi dopo che esci (la lezione del TX-6): il clock si fermerebbe a metà
+    /// e i tasti o le note tenuti resterebbero giù sull'M8 (per esempio shift). Prima di uscire: stop pulito,
+    /// passi fermi, tasti e note lasciati. Le manopole restano dove sono.
+    private func pauseForBackground() {
+        if running { toggleRun() }
+        if player.stepsOn { player.toggleSteps() }
+        releaseAll()
+        player.releaseAll()
+        trace("M8: Bobina esce, stop pulito")
     }
 
     // MARK: tempo
