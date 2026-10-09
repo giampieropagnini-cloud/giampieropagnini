@@ -208,10 +208,19 @@ final class POEngine: ObservableObject {
             guard let self = self, let v = n.object as? Double, abs(self.bpm - v) >= 0.5 || self.bpm.rounded() != v.rounded() else { return }
             self.bpm = v
         }
+        // in secondo piano (Giampiero detta dal telefono) iOS sospende Bobina a metà nota: prima si lascia tutto
+        backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+            guard let self = self, self.connected else { return }
+            let task = UIApplication.shared.beginBackgroundTask(withName: "bobina.po.silenzio")
+            self.held.removeAll()
+            self.sequencer.releaseForBackground()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { UIApplication.shared.endBackgroundTask(task) }
+        }
         startTimer()
     }
 
     private var bpmObserver: NSObjectProtocol?
+    private var backgroundObserver: NSObjectProtocol?
 
     /// Tolto dal banco: niente più timer né notifiche.
     func shutdown() {
@@ -219,6 +228,7 @@ final class POEngine: ObservableObject {
         timer = nil
         stopMotion()
         if let o = bpmObserver { NotificationCenter.default.removeObserver(o) }
+        if let o = backgroundObserver { NotificationCenter.default.removeObserver(o) }
         io.use(destination: 0, source: 0)
     }
 
