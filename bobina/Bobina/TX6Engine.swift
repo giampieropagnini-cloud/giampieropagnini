@@ -481,6 +481,14 @@ final class TX6Engine: ObservableObject {
             self.bpm = v
         }
         refreshPorts()
+        // uscendo da Bobina (per dettare un messaggio) iOS la ferma: prima si spengono le note, poi al ritorno
+        // il ritmo riparte a tempo dalla griglia di adesso
+        NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.wentToBackground()
+        }
+        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.cameBack()
+        }
         startTimer()
     }
 
@@ -1254,6 +1262,27 @@ final class TX6Engine: ObservableObject {
         bpm = max(40, min(300, (60 / (gaps.reduce(0, +) / Double(gaps.count))).rounded()))
     }
 
+    /// Il ritmo girava quando Bobina è andata in secondo piano: al ritorno riparte da solo.
+    private var resumeAfterBackground = false
+
+    private func wentToBackground() {
+        guard running || clockMode == .follow else { return }
+        let task = UIApplication.shared.beginBackgroundTask(withName: "tx6 note spente")
+        sequencer.suspend()
+        resumeAfterBackground = running
+        trace("TX-6: Bobina in secondo piano, note spente e ritmo in pausa")
+        UIApplication.shared.endBackgroundTask(task)
+    }
+
+    private func cameBack() {
+        guard resumeAfterBackground else { return }
+        resumeAfterBackground = false
+        guard running, clockMode != .follow else { return }
+        sequencer.update(makePlan())
+        sequencer.start(at: io.now() + io.ticks(ms: 30))
+        trace("TX-6: Bobina di nuovo davanti, il ritmo riparte")
+    }
+
     func toggleRun() {
         if running {
             running = false
@@ -1266,6 +1295,12 @@ final class TX6Engine: ObservableObject {
                 guard let self = self, !self.running else { return }
                 if self.beatsOn && self.lockOn { self.restoreLock() }
                 if self.pumpOn { self.restorePump() }
+                // il salvagente: fermando si spengono tutte le note suonate dal collegamento, a gruppi piccoli. Una nota
+                // rimasta accesa (il «synth fisso») si toglie col ■, senza spegnere il TX-6 (9/10/2026)
+                let notes = TX6PlayedNotes.shared.takeAll()
+                if !notes.isEmpty, self.io.destination != 0 {
+                    self.sequencer.sendPaced(notes.map { TX6.noteOff($0.note, channel: $0.channel) })
+                }
             }
         } else {
             guard clockMode != .follow else { return }

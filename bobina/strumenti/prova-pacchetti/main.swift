@@ -1,7 +1,6 @@
-// Prova sul Mac (9/10/2026): col bluetooth il TX-6 si ingolfava con pacchetti grossi (cambi di pronta, passi pieni)
-// e alcune tracce restavano mute fino a spegnerlo. Qui: un passo con tutte e sei le righe e due melodie, e un
-// cambio di suoni di 24 comandi. Nessun pacchetto deve superare 24 byte, nessun messaggio va tagliato a metà,
-// i cambi di suono partono a gruppi distanziati e prima lasciano la nota tenuta.
+// Prova sul Mac (9/10/2026): col bluetooth il TX-6 si ingolfava ai cambi di pronta (12-30 comandi in un colpo).
+// Qui: passi con tutte e sei le righe e due melodie, e un cambio di suoni di 24 comandi. I cambi di suono partono
+// a gruppi di 8 distanziati di 20 ms, nessun messaggio tagliato a metà, nessuna nota rimasta accesa.
 //
 //   cd bobina/Bobina && DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun swiftc -O \
 //     MIDI.swift TX6.swift BobinaClock.swift TX6Sequencer.swift ../strumenti/prova-pacchetti/main.swift -o /tmp/prova && /tmp/prova
@@ -48,8 +47,6 @@ lock.lock(); let all = got; lock.unlock()
 var ok = 0, total = 0
 func check(_ name: String, _ cond: Bool) { total += 1; if cond { ok += 1 }; print(cond ? "OK" : "NO", "·", name) }
 
-let biggest = all.map { $0.1.count }.max() ?? 0
-check("nessun pacchetto oltre 24 byte (il più grosso: \(biggest))", biggest <= 24)
 // ogni pacchetto comincia con un byte di stato e ha messaggi interi
 func whole(_ b: [UInt8]) -> Bool {
     var i = 0

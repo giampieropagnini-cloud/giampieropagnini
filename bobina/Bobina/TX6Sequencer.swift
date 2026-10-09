@@ -123,7 +123,8 @@ final class TX6Sequencer {
     /// Le note delle melodie ancora giù, una per traccia (una traccia del TX-6 suona una nota alla volta):
     /// la nota e il passo in cui va spenta. Una nota nuova sulla stessa traccia spegne prima quella di prima,
     /// così uno spegnimento in ritardo non taglia mai la nota dopo (anche con durate lunghe e note fitte).
-    private var melodyHeld: [Int: (note: Int, until: Int)] = [:]
+    /// `at` è l'istante della nota accesa (può essere fino a 150 ms avanti): lo spegnimento non deve mai partire prima.
+    private var melodyHeld: [Int: (note: Int, until: Int, at: MIDITimeStamp)] = [:]
     /// Lo start va nel pacchetto del primo passo, prima del clock e delle note.
     private var startPending = false
     private var clockCount = 0
@@ -193,21 +194,43 @@ final class TX6Sequencer {
     /// Quanto dopo lo stop arriva l'ultimo messaggio già preparato (per chi deve rimettere a posto dopo).
     static let tailMs = 150.0 + 40
 
+    /// Bobina va in secondo piano (per esempio per dettare un messaggio): iOS la ferma dopo pochi secondi, a metà
+    /// nota, e la nota tenuta restava a suonare sul TX-6 per sempre («si blocca e suona una traccia sola»,
+    /// 9/10/2026). Qui, subito e prima di tornare: si spengono le note giù e si smette di mandare passi.
+    /// Come lo stop, ma senza stop al TX-6 e aspettando che sia fatto (iOS può fermare l'app appena dopo).
+    func suspend() {
+        queue.sync {
+            if running {
+                running = false
+                timer?.cancel()
+                timer = nil
+                BobinaClock.shared.leave(.tx6)
+            }
+            // anche seguendo il TX-6 (lì i passi li dà il suo clock): le note giù si spengono comunque
+            let after = io.now() + io.ticks(ms: lookahead + 40)
+            releaseGate(plan(), at: after)
+            flushOffs(at: after)
+        }
+    }
+
+    /// Per le prove sul Mac: il filo del sequencer resta fermo per tanti millisecondi, come un'app sospesa.
+    func blockForTest(_ ms: Double) { queue.async { Thread.sleep(forTimeInterval: ms / 1000) } }
+
     /// I cambi di suono delle pronte (sei comandi per traccia): col bluetooth, tutti insieme in un pacchetto, il TX-6
     /// si ingolfava, perdeva comandi e alcune tracce restavano mute fino a spegnerlo (9/10/2026; come il vecchio
     /// «silenzio»). Qui prima si lasciano le note tenute delle tracce che cambiano suono, poi i comandi partono a
     /// gruppi di otto (24 byte) ogni 20 ms, come lo spegnimento al collegamento che non ha mai bloccato niente.
     func sendPaced(_ messages: [[UInt8]], releasing tracks: Set<Int> = []) {
         queue.async { [self] in
-            var offs: [UInt8] = []
-            for tr in tracks.sorted() {
-                if let h = melodyHeld.removeValue(forKey: tr) { offs += TX6.noteOff(h.note, channel: tr) }
-            }
             let start = io.now()
             var k = 0
-            if !offs.isEmpty {
-                io.send(offs, at: start)
-                k = 1
+            for tr in tracks.sorted() {
+                // la nota può non essere ancora partita (preparata fino a 150 ms avanti): lo spegnimento va dopo di lei,
+                // se no la nota partiva dopo e restava accesa per sempre (il «synth fisso», 9/10/2026)
+                if let h = melodyHeld.removeValue(forKey: tr) {
+                    io.send(TX6.noteOff(h.note, channel: tr), at: max(start, h.at))
+                    k = 1
+                }
             }
             for i in stride(from: 0, to: messages.count, by: Self.chunkMessages) {
                 let chunk = messages[i..<min(messages.count, i + Self.chunkMessages)].flatMap { $0 }
@@ -220,31 +243,6 @@ final class TX6Sequencer {
     /// Quanti messaggi per pacchetto e ogni quanto, per non ingolfare il bluetooth del TX-6.
     static let chunkMessages = 8
     static let chunkGapMs = 20.0
-
-    /// Il pacchetto di un passo, spezzato se è grosso (più di 24 byte): il resto parte 3 ms dopo, che non si sente.
-    /// I messaggi non si tagliano a metà: 1 byte i tempi reali, 2 i program change, 3 tutti gli altri.
-    private func out(_ bytes: [UInt8], at t: MIDITimeStamp) {
-        guard bytes.count > 24 else {
-            if !bytes.isEmpty { io.send(bytes, at: t) }
-            return
-        }
-        var chunk: [UInt8] = []
-        var n = 0
-        var i = 0
-        while i < bytes.count {
-            let st = bytes[i]
-            let len = st >= 0xF8 ? 1 : (0xC0...0xDF).contains(st) ? 2 : st >= 0x80 ? 3 : 1
-            let msg = Array(bytes[i..<min(bytes.count, i + len)])
-            if chunk.count + msg.count > 24 {
-                io.send(chunk, at: t + io.ticks(ms: 3 * Double(n)))
-                n += 1
-                chunk = []
-            }
-            chunk += msg
-            i += len
-        }
-        if !chunk.isEmpty { io.send(chunk, at: t + io.ticks(ms: 3 * Double(n))) }
-    }
 
     /// Il pattern entra all'inizio della prossima battuta.
     func queuePattern(_ part: Part) { queue.async { [self] in pending = part } }
@@ -290,7 +288,9 @@ final class TX6Sequencer {
                 BobinaClock.shared.leave(.tx6)
             case 0xF8:
                 followClock(stamp)
-                if clockCount % 6 == 0 {
+                // un clock vecchio (arrivato in coda dopo una sospensione) conta ma non suona: niente raffica
+                let stale = io.now() > stamp &+ io.ticks(ms: 250)
+                if clockCount % 6 == 0 && !stale {
                     let n = clockCount / 6
                     let t = io.now()
                     let prefix = switchIfDue(n % 16, at: t)
@@ -365,6 +365,13 @@ final class TX6Sequencer {
                 nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
                 nextClockTick = nextSixteenth * 6
             }
+        }
+        // il filo è stato fermo (app sospesa, telefono bloccato): i passi persi non si mandano tutti insieme, era una
+        // raffica di centinaia di note che ingolfava il bluetooth del TX-6. Si riparte dal passo di adesso.
+        if now > time(ofBeat: Double(nextSixteenth) / 4) &+ io.ticks(ms: 250) {
+            flushOffs()
+            nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
+            nextClockTick = nextSixteenth * 6
         }
         let horizon = now + io.ticks(ms: lookahead)
         while time(ofBeat: Double(nextSixteenth) / 4) < horizon {
@@ -493,7 +500,7 @@ final class TX6Sequencer {
                 }
                 now += TX6.noteOn(note, channel: tr)
                 TX6PlayedNotes.shared.add(tr, note)
-                melodyHeld[tr] = (note, n + max(1, gate))
+                melodyHeld[tr] = (note, n + max(1, gate), t)
             }
         }
 
@@ -521,7 +528,9 @@ final class TX6Sequencer {
             }
         }
 
-        out(now, at: t)
+        // un pacchetto solo per passo: spezzarlo non serve (CoreMIDI riunisce i pezzi con lo stesso istante) e coi pezzi
+        // sfasati di 3 ms uno spegnimento poteva arrivare prima della sua nota (9/10/2026)
+        if !now.isEmpty { io.send(now, at: t) }
         onStep?(n, t, hit)
     }
 
