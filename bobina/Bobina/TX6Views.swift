@@ -57,21 +57,33 @@ struct TX6StatusStrip: View {
     @EnvironmentObject var tx: TX6Engine
 
     var body: some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(tx.connected ? Color.green : Palette.rec)
-                .frame(width: 8, height: 8)
-            Text(tx.connected ? "collegato a \(tx.connectedName)" : "TX-6 non collegato · vai su Collega")
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(Palette.dim)
-                .lineLimit(1)
-            Spacer()
-            if tx.pulsing {
-                Text("\(Int(tx.bpm.rounded())) bpm")
+        // non collegato: un tocco qui cerca il TX-6 col bluetooth e lo collega, senza menu (9/10/2026)
+        Button {
+            if !tx.connected { tx.reconnectBluetooth() }
+        } label: {
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(tx.connected ? Color.green : Palette.rec)
+                    .frame(width: 8, height: 8)
+                Text(tx.connected ? "collegato a \(tx.connectedName)" : (tx.bluetoothState ?? "TX-6 non collegato · tocca qui per il bluetooth"))
                     .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.accent)
+                    .foregroundStyle(tx.connected ? Palette.dim : Color.white)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                Spacer()
+                if tx.pulsing {
+                    Text("\(Int(tx.bpm.rounded())) bpm")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.accent)
+                }
             }
+            .padding(.vertical, tx.connected ? 0 : 6)
+            .padding(.horizontal, tx.connected ? 0 : 8)
+            .background(RoundedRectangle(cornerRadius: 8).fill(tx.connected ? Color.clear : Color(white: 0.16)))
         }
+        .buttonStyle(.plain)
+        .disabled(tx.connected)
+        .accessibilityLabel(tx.connected ? "collegato a \(tx.connectedName)" : "collega il TX-6 col bluetooth")
         .padding(.top, 6)
         if tx.strayClock && tx.clockMode != .follow {
             Text("Il TX-6 manda il suo tempo (32 messaggi al secondo) e intasa il bluetooth: i comandi di Bobina si perdono. Sul TX-6: shift + select → CLOCK → OUT off.")

@@ -193,6 +193,59 @@ final class TX6Sequencer {
     /// Quanto dopo lo stop arriva l'ultimo messaggio già preparato (per chi deve rimettere a posto dopo).
     static let tailMs = 150.0 + 40
 
+    /// I cambi di suono delle pronte (sei comandi per traccia): col bluetooth, tutti insieme in un pacchetto, il TX-6
+    /// si ingolfava, perdeva comandi e alcune tracce restavano mute fino a spegnerlo (9/10/2026; come il vecchio
+    /// «silenzio»). Qui prima si lasciano le note tenute delle tracce che cambiano suono, poi i comandi partono a
+    /// gruppi di otto (24 byte) ogni 20 ms, come lo spegnimento al collegamento che non ha mai bloccato niente.
+    func sendPaced(_ messages: [[UInt8]], releasing tracks: Set<Int> = []) {
+        queue.async { [self] in
+            var offs: [UInt8] = []
+            for tr in tracks.sorted() {
+                if let h = melodyHeld.removeValue(forKey: tr) { offs += TX6.noteOff(h.note, channel: tr) }
+            }
+            let start = io.now()
+            var k = 0
+            if !offs.isEmpty {
+                io.send(offs, at: start)
+                k = 1
+            }
+            for i in stride(from: 0, to: messages.count, by: Self.chunkMessages) {
+                let chunk = messages[i..<min(messages.count, i + Self.chunkMessages)].flatMap { $0 }
+                io.send(chunk, at: start + io.ticks(ms: Self.chunkGapMs * Double(k)))
+                k += 1
+            }
+        }
+    }
+
+    /// Quanti messaggi per pacchetto e ogni quanto, per non ingolfare il bluetooth del TX-6.
+    static let chunkMessages = 8
+    static let chunkGapMs = 20.0
+
+    /// Il pacchetto di un passo, spezzato se è grosso (più di 24 byte): il resto parte 3 ms dopo, che non si sente.
+    /// I messaggi non si tagliano a metà: 1 byte i tempi reali, 2 i program change, 3 tutti gli altri.
+    private func out(_ bytes: [UInt8], at t: MIDITimeStamp) {
+        guard bytes.count > 24 else {
+            if !bytes.isEmpty { io.send(bytes, at: t) }
+            return
+        }
+        var chunk: [UInt8] = []
+        var n = 0
+        var i = 0
+        while i < bytes.count {
+            let st = bytes[i]
+            let len = st >= 0xF8 ? 1 : (0xC0...0xDF).contains(st) ? 2 : st >= 0x80 ? 3 : 1
+            let msg = Array(bytes[i..<min(bytes.count, i + len)])
+            if chunk.count + msg.count > 24 {
+                io.send(chunk, at: t + io.ticks(ms: 3 * Double(n)))
+                n += 1
+                chunk = []
+            }
+            chunk += msg
+            i += len
+        }
+        if !chunk.isEmpty { io.send(chunk, at: t + io.ticks(ms: 3 * Double(n))) }
+    }
+
     /// Il pattern entra all'inizio della prossima battuta.
     func queuePattern(_ part: Part) { queue.async { [self] in pending = part } }
     func cancelPending() { queue.async { [self] in pending = nil } }
@@ -468,7 +521,7 @@ final class TX6Sequencer {
             }
         }
 
-        if !now.isEmpty { io.send(now, at: t) }
+        out(now, at: t)
         onStep?(n, t, hit)
     }
 

@@ -280,6 +280,25 @@ final class TX6Engine: ObservableObject {
     /// Col bluetooth ogni pacchetto costa: Bobina ne manda meno.
     private(set) var viaBluetooth = false
 
+    /// Il bluetooth senza menu: un tocco in cima alla pagina, e da solo quando il TX-6 si spegne e si riaccende.
+    let bluetooth = TX6Bluetooth()
+    /// Cosa sta facendo il bluetooth, da mostrare in cima (nil = niente).
+    @Published var bluetoothState: String?
+    /// L'ultima volta era collegato col bluetooth: all'avvio lo si ricollega da solo.
+    private var lastWasBluetooth: Bool {
+        get { UserDefaults.standard.bool(forKey: "bobina.tx6.bluetooth.ultimo") }
+        set { UserDefaults.standard.set(newValue, forKey: "bobina.tx6.bluetooth.ultimo") }
+    }
+
+    /// Cerca il TX-6 col bluetooth e lo collega, senza il pannello di Apple.
+    func reconnectBluetooth(seconds: Double = 30) {
+        guard !connected else {
+            bluetoothState = nil
+            return
+        }
+        bluetooth.connect(for: seconds)
+    }
+
     // MARK: il mixer come lo ricorda Bobina
 
     @Published private(set) var values: [[Int]] = Array(repeating: TX6.Param.allCases.map { $0.initial }, count: 6)
@@ -466,6 +485,11 @@ final class TX6Engine: ObservableObject {
         for t in 0..<6 { if let v = sentSounds[t] { values[t][TX6.Param.sound.rawValue] = v } }
         load()
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
+        bluetooth.onState = { [weak self] in self?.bluetoothState = $0 }
+        bluetooth.isRegistered = { [weak self] in
+            self?.refreshPorts()
+            return self?.connected ?? false
+        }
         io.onReceive = { [weak self] bytes, stamp in self?.received(bytes, stamp) }
         let seq = sequencer
         io.onRealtime = { status, stamp in seq.realtime(status, stamp) }
@@ -481,6 +505,10 @@ final class TX6Engine: ObservableObject {
             self.bpm = v
         }
         refreshPorts()
+        // l'ultima volta era col bluetooth: lo si ricollega da solo, senza passare dal pannello
+        if !connected && lastWasBluetooth {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in self?.reconnectBluetooth(seconds: 20) }
+        }
         startTimer()
     }
 
@@ -502,7 +530,16 @@ final class TX6Engine: ObservableObject {
     private func applyPorts() {
         let dest = destinations.first(where: { $0.id == destinationID })?.ref ?? 0
         let src = sources.first(where: { $0.id == sourceID })?.ref ?? 0
+        let wasBluetooth = viaBluetooth && io.destination != 0
         viaBluetooth = connectedName.lowercased().contains("bluetooth")
+        if dest != 0 {
+            lastWasBluetooth = viaBluetooth
+            bluetoothState = nil
+        }
+        // il TX-6 col bluetooth è sparito (spento per sbloccarlo): lo si cerca da solo per un minuto
+        if dest == 0 && wasBluetooth {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in self?.reconnectBluetooth(seconds: 60) }
+        }
         if dest != io.destination || src != io.source {
             let fresh = dest != 0 && dest != io.destination
             io.use(destination: dest, source: src)
@@ -976,18 +1013,21 @@ final class TX6Engine: ObservableObject {
         // (sul telefono, 9/10/2026: frequenza del rullante a 0, ¼, ½, max)
         if lockOn && lockTrack <= 4 { lockOn = false }
         var pat = capture(name: d.name)
-        var extra: [UInt8] = []
+        var extra: [[UInt8]] = []
         for r in 0..<4 {
             pat.beats[r] = d.steps(r)
             // una melodia rimasta su una traccia della batteria farebbe suonare cassa e rullante a note a caso
             pat.melodies[r] = Array(repeating: nil, count: 16)
             let p = d.kit[r]
             pat.sounds[r] = [TX6.soundValue(p.sound), p.freq, p.length, p.detune]
-            // filtro e compressore del preset non stanno nel pattern: partono insieme ai suoni
+            // il suono, poi filtro e compressore (che non stanno nel pattern): tutti a gruppi piccoli, traccia per traccia
+            for (k, param) in TX6Pattern.soundParams.enumerated() {
+                extra.append(TX6.cc(param.cc, pat.sounds[r][k], channel: r + 1))
+            }
             for (param, v) in [(TX6.Param.filter, p.filter), (.comp, p.comp)] {
                 values[r][param.rawValue] = v
                 let out = output(r + 1, param, io.now())
-                extra += TX6.cc(param.cc, out, channel: r + 1)
+                extra.append(TX6.cc(param.cc, out, channel: r + 1))
                 lastSent[r][param.rawValue] = out
             }
         }
@@ -999,9 +1039,9 @@ final class TX6Engine: ObservableObject {
         // modifiche fatte intanto sulla griglia (8/10/2026, «se voglio svuotare non si svuota»)
         if pulsing { sequencer.cancelPending() }
         pendingPatternName = nil
-        send(extra, quiet: true)
-        // i suoni solo delle tracce 1-4: quelli di basso e melodia restano come sono sul TX-6
-        adopt(pat, sendSounds: true, tracks: 1...4)
+        if io.destination != 0 { sequencer.sendPaced(extra) }
+        // i suoni solo delle tracce 1-4 (già mandati qui sopra): quelli di basso e melodia restano come sono sul TX-6
+        adopt(pat, sendSounds: false, tracks: 1...4)
     }
 
     func cancelPendingPattern() {
@@ -1084,14 +1124,15 @@ final class TX6Engine: ObservableObject {
     func apply(_ preset: TX6Preset, to track: Int) {
         let pairs: [(TX6.Param, Int)] = [(.sound, TX6.soundValue(preset.sound)), (.freq, preset.freq), (.length, preset.length),
                                          (.detune, preset.detune), (.filter, preset.filter), (.comp, preset.comp)]
-        var bytes: [UInt8] = []
+        var messages: [[UInt8]] = []
         for (p, v) in pairs {
             values[track - 1][p.rawValue] = v
             let out = output(track, p, io.now())
-            bytes += TX6.cc(p.cc, out, channel: track)
+            messages.append(TX6.cc(p.cc, out, channel: track))
             lastSent[track - 1][p.rawValue] = out
         }
-        send(bytes, quiet: true)
+        // prima si lascia la nota tenuta della traccia, poi i comandi a gruppi piccoli (col bluetooth il TX-6 si ingolfava)
+        if io.destination != 0 { sequencer.sendPaced(messages, releasing: [track]) }
         rememberSound(track, TX6.soundValue(preset.sound))
         logText("traccia \(track): preset «\(preset.name)»")
     }
@@ -1154,17 +1195,17 @@ final class TX6Engine: ObservableObject {
         lockTrack = pat.lockTrack
         lockParam = pat.lockParam
         gate = pat.gate
-        var bytes: [UInt8] = []
+        var messages: [[UInt8]] = []
         for t in tracks {
             for (k, param) in TX6Pattern.soundParams.enumerated() {
                 let v = pat.sounds[t - 1][k]
                 values[t - 1][param.rawValue] = v
                 if param == .sound { rememberSound(t, v) }
                 lastSent[t - 1][param.rawValue] = v
-                bytes += TX6.cc(param.cc, v, channel: t)
+                messages.append(TX6.cc(param.cc, v, channel: t))
             }
         }
-        if sendSounds { send(bytes, quiet: true) }
+        if sendSounds && io.destination != 0 { sequencer.sendPaced(messages, releasing: Set(tracks)) }
         if patternTempo && clockMode != .follow { bpm = pat.bpm }
         if let sw = pat.swing { swing = sw }
         currentPatternID = pat.id
