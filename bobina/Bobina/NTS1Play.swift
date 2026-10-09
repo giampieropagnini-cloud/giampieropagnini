@@ -378,6 +378,15 @@ final class NTS1Player: ObservableObject {
         if !stepsOn { live.step = nil }
     }
 
+    /// Tutto fermo: passi, arpeggio, onda, inclinazione, note tenute.
+    func stopAll() {
+        if stepsOn { toggleSteps() }
+        if arpOn { toggleArp() }
+        if waveOn { toggleWave() }
+        if tiltOn { tiltOn = false }
+        releaseAll()
+    }
+
     // MARK: arpeggio di Bobina
 
     func toggleArp() {
