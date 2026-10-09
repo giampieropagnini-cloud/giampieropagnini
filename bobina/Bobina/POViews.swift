@@ -148,13 +148,34 @@ struct POPage<Content: View>: View {
 
 struct POStatusStrip: View {
     @EnvironmentObject var po: POEngine
+    @EnvironmentObject var bank: POBank
+    @State private var showBluetooth = false
 
     var body: some View {
+        // un tocco sulla striscia apre il pannello bluetooth: dopo ogni reinstallazione gli adattatori vanno ricollegati
+        Button { showBluetooth = true } label: { strip }
+            .buttonStyle(.plain)
+            .accessibilityLabel(po.connected ? "\(po.title) collegato, tocca per il bluetooth" : "\(po.title) non collegato, tocca per collegare")
+            .sheet(isPresented: $showBluetooth) {
+                VStack(spacing: 0) {
+                    HStack {
+                        Text("MIDI bluetooth").font(.headline)
+                        Spacer()
+                        Button("fine") { showBluetooth = false }
+                    }
+                    .padding()
+                    BluetoothMIDIPicker()
+                }
+                .onDisappear { for u in bank.units { u.refreshPorts() } }
+            }
+    }
+
+    private var strip: some View {
         HStack(spacing: 8) {
             Circle()
                 .fill(po.connected ? Color.green : Palette.rec)
                 .frame(width: 8, height: 8)
-            Text(po.connected ? (po.destinations.first { $0.id == po.destinationID }.map { po.portName($0) } ?? po.connectedName) : "\(po.title): adattatore non collegato · vai su Collega")
+            Text(po.connected ? (po.destinations.first { $0.id == po.destinationID }.map { po.portName($0) } ?? po.connectedName) : "\(po.title): non collegato · tocca qui")
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(Palette.dim)
                 .lineLimit(1)
