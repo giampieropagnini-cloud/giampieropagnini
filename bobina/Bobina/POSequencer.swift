@@ -188,6 +188,32 @@ final class POSequencer {
         }
     }
 
+    /// I rilasci in coda sono contati coi passi: dopo un salto (della griglia, o di Bobina sospesa) quei passi non
+    /// arrivano più e il tasto resterebbe giù (lezione dell'OP-Z). Si lasciano dopo i passi già consegnati con la loro
+    /// marca temporale, se no il tasto si riabbasserebbe dopo.
+    private func dropQueuedReleases(_ p: Plan, at now: MIDITimeStamp) {
+        let keys = offsAt.values.flatMap { $0 }
+        offsAt.removeAll()
+        if !keys.isEmpty { send(keys.flatMap { PO.noteOff($0, channel: p.channel) }, at: now + io.ticks(ms: lookahead + max(0, p.leadMs) + 40)) }
+    }
+
+    /// Bobina va in secondo piano e iOS sta per sospenderla: tutti i tasti su adesso e dopo l'ultimo passo consegnato,
+    /// effetto e cancello compresi. Aspetta che sia fatto: chi chiama tiene viva l'app con un background task.
+    func releaseForBackground() {
+        queue.sync {
+            let p = plan()
+            var bytes: [UInt8] = []
+            for k in offsAt.values.flatMap({ $0 }) { bytes += PO.noteOff(k, channel: p.channel) }
+            offsAt.removeAll()
+            bytes += releaseFx(p)
+            if gateClosed == true && p.gateByMute { bytes += (1...4).flatMap { PO.noteOff(.number($0), channel: p.channel) } }
+            gateClosed = nil
+            if !bytes.isEmpty { send(bytes, at: 0) }
+            let after = io.now() + io.ticks(ms: lookahead + max(0, p.leadMs) + 40)
+            send(PO.Key.allCases.flatMap { PO.noteOff($0, channel: p.channel) }, at: after)
+        }
+    }
+
     // MARK: l'orologio
 
     private func startTimer() {
@@ -219,13 +245,17 @@ final class POSequencer {
             let t = line.time(ofBeat: Double(nextSixteenth) / 4)
             if running && (t + io.ticks(ms: 30) < now || t > now + io.ticks(ms: line.beatMs * 4 + lookahead)) {
                 nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
-                // i rilasci in coda erano contati coi passi vecchi: col salto non arriverebbero più, e il tasto
-                // resterebbe giù. Si lasciano adesso (lezione dell'OP-Z, 9/10/2026)
-                let keys = offsAt.values.flatMap { $0 }
-                offsAt.removeAll()
-                // dopo i passi già consegnati con la loro marca temporale, se no il tasto si riabbasserebbe dopo
-                if !keys.isEmpty { send(keys.flatMap { PO.noteOff($0, channel: p.channel) }, at: now + io.ticks(ms: lookahead + max(0, p.leadMs) + 40)) }
+                dropQueuedReleases(p, at: now)
             }
+            nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
+        }
+        // Bobina sospesa da iOS (in secondo piano): al ritorno i passi persi non partono tutti insieme in una raffica,
+        // si riparte dal passo di adesso (lezione del TX-6, 9/10/2026)
+        if running && line.time(ofBeat: Double(nextSixteenth) / 4) + io.ticks(ms: 250) < now {
+            dropQueuedReleases(p, at: now)
+            nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
+        }
+        if line.time(ofBeat: Double(nextClockTick) / 24) + io.ticks(ms: 250) < now {
             nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
         }
         let horizon = now + io.ticks(ms: lookahead + max(0, p.leadMs))
