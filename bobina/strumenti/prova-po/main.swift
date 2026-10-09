@@ -76,8 +76,8 @@ while Date() < end {
 }
 po.stop(); tx.stop(sendStop: false)
 run(0.3)
-// traccia 2: dal 54f5618 la batteria del TX-6 suona sul canale della traccia (0x91), non più sul 7
-let txSteps = ons(take("tx6"), status: 0x91).map { $0.0 }
+// la batteria del TX-6 suona sul canale 7 (0x96): da dde538a ci è tornata, solo lì la frequenza cambia l'altezza
+let txSteps = ons(take("tx6"), status: 0x96).map { $0.0 }
 let poPkts = take("po")
 let poSteps = poPkts.filter { noteOns($0.1).contains(68) }.map { $0.0 }
 let offsets = poSteps.map { p in txSteps.map { t in abs(ms(p &- t) * (p >= t ? 1 : -1)) }.min() ?? -1 }
