@@ -185,6 +185,8 @@ final class Engine: ObservableObject {
     private var gateState: Bool?
     /// L'istante dell'ultimo passo già consegnato a CoreMIDI.
     private var lastFiredAt: MIDITimeStamp = 0
+    /// Il ritmo andava quando Bobina è finita in secondo piano: riparte al ritorno.
+    private var resumeRunOnReturn = false
     private var clockStamps: [MIDITimeStamp] = []
     private var clockTimeout: DispatchWorkItem?
     private let motion = CMMotionManager()
@@ -196,6 +198,18 @@ final class Engine: ObservableObject {
         // (trovata dalla sessione TX-6). Chiamarla due volte non fa danni.
         IOS27.install()
         load()
+        // iOS sospende l'app in secondo piano dopo pochi secondi: il ritmo si ferma pulito (coda buttata,
+        // muti rilasciati) e riparte al ritorno. Il nastro mosso dalla leva continua: la musica non si ferma.
+        NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+            guard let self = self, self.running else { return }
+            self.resumeRunOnReturn = true
+            self.toggleRun()
+        }
+        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            guard let self = self, self.resumeRunOnReturn else { return }
+            self.resumeRunOnReturn = false
+            if !self.running { self.toggleRun() }
+        }
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, stamp in self?.received(bytes, stamp) }
         refreshPorts()
