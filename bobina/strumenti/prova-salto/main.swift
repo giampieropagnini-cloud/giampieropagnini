@@ -40,7 +40,7 @@ plan.beats[0] = Array(repeating: true, count: 16)
 plan.melodyOn = true
 // otto note diverse per battuta: una nota appesa resta accesa fino alla battuta dopo (2 s), e si vede
 plan.melodies[1] = (0..<16).map { $0 % 2 == 0 ? [0, 2, 3, 5, 7, 8, 10, 12][$0 / 2] : nil }
-plan.melodyLength = 2
+plan.melodyGates = Array(repeating: 2, count: 6)
 seq.update(plan)
 seq.start(at: io.now() + io.ticks(ms: 30))
 // lascia andare 60 passi, così il prossimo passo del TX-6 è lontano dal battito 0

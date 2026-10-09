@@ -34,7 +34,7 @@ RunLoop.main.run(until: Date().addingTimeInterval(1.3))   // a metà della secon
 var beatsB = Array(repeating: Array(repeating: false, count: 16), count: 6)
 beatsB[1] = (0..<16).map { $0 % 8 == 0 }         // B: traccia 2 (nota 62) ogni metà battuta
 let partB = TX6Sequencer.Part(id: UUID(), beats: beatsB, melodies: plan.melodies, melodyOctaves: plan.melodyOctaves,
-                              melodyLength: 1, locks: plan.locks, lockTrack: 1, lockCC: 89, lockBase: 64,
+                              melodyGates: Array(repeating: 1, count: 6), locks: plan.locks, lockTrack: 1, lockCC: 89, lockBase: 64,
                               gate: plan.gate, soundBytes: [0xB1, 0x03, 0x46], bpm: 100)
 seq.queuePattern(partB)
 RunLoop.main.run(until: Date().addingTimeInterval(3.5))

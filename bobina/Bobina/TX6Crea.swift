@@ -30,6 +30,11 @@ struct TX6CreaView: View {
             let prova = UserDefaults.standard.bool(forKey: "bobina.prova.crea")
             trace("Crea aperta, prova automatica: \(prova ? "sì" : "no")")
             if prova { TX6SelfTest.run(tx) }
+            // per le fotografie: `-bobina.prova.melodia Velluto` carica quella melodia pronta (vale solo per quel lancio)
+            if let name = UserDefaults.standard.string(forKey: "bobina.prova.melodia"),
+               let m = TX6MelodyPreset.all.first(where: { $0.name == name }) {
+                tx.applyMelody(m)
+            }
         }
         #endif
     }
@@ -81,7 +86,7 @@ struct TX6DrumPanel: View {
                     .accessibilityLabel("batterie pronte")
             }
             if view == 2 {
-                TX6Label("Cambiano solo le tracce 1-4: melodie e tracce 5-6 restano. Col ritmo che gira entrano alla battuta.")
+                TX6Label("Cambiano solo le tracce 1-4 (melodie e tracce 5-6 restano) ed entrano subito, anche col ritmo che gira.")
                 if let cur = TX6DrumPreset.all.first(where: { $0.name == (tx.pendingPatternName ?? tx.currentPatternName) }) {
                     Text("\(cur.ref) · \(cur.bpm) bpm" + (cur.swing > 0.505 ? " · swing \(Int((cur.swing * 100).rounded()))%" : ""))
                         .font(.system(.caption, design: .monospaced))
@@ -198,50 +203,71 @@ struct TX6DrumPanel: View {
 // MARK: - melodia
 
 /// La melodia scritta in fila, come NTS-1 e M8: ogni nota toccata va nel passo del cursore e il cursore va avanti.
-/// Toccando un passo il cursore va lì; «pausa» lascia un passo vuoto.
+/// Toccando un passo il cursore va lì; «pausa» lascia un passo vuoto. Ogni traccia ha una battuta o due,
+/// e la sua durata delle note («tenuta» = fino alla nota dopo, come sull'OP-Z).
 struct TX6MelodyPanel: View {
     @EnvironmentObject var tx: TX6Engine
     @ObservedObject var live: TX6Live
     @AppStorage("bobina.tx6.crea.melodia.traccia") private var track = 1
     @AppStorage("bobina.tx6.crea.melodia.pronte") private var showPresets = false
+    /// L'ultima melodia pronta scelta: resta accesa, e sopra si legge a cosa somiglia.
+    @AppStorage("bobina.tx6.crea.melodia.scelta") private var picked = ""
 
+    /// I tasti: l'ottava della traccia, dal do al do sopra.
     static let names = ["do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "sol#", "la", "la#", "si", "do↑"]
     private static let black: Set<Int> = [1, 3, 6, 8, 10]
+    /// Le durate: in sedicesimi, 0 = tenuta fino alla nota dopo.
+    static let gates: [(Int, String)] = [(1, "1/16"), (2, "1/8"), (4, "1/4"), (8, "1/2"), (0, "tenuta")]
     private let seven = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
-    /// L'ultima nota toccata: «ogni 4» la mette sui passi 1, 5, 9, 13.
+    private let five = Array(repeating: GridItem(.flexible(), spacing: 4), count: 5)
+    /// L'ultima nota toccata: «ogni 4» la mette su un passo ogni quattro.
     @State private var lastNote = 0
-    /// L'ultima melodia pronta scelta, per vederla accesa.
-    @State private var picked: String?
-    private let three = Array(repeating: GridItem(.flexible(), spacing: 4), count: 3)
+
+    /// Il nome di una nota della melodia: nell'ottava della traccia, con ↑ sopra e ↓ sotto (14 = re↑, −3 = la↓).
+    static func noteName(_ k: Int) -> String {
+        let pc = ((k % 12) + 12) % 12
+        let o = k >= 0 ? k / 12 : -((-k + 11) / 12)
+        let base = ["do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "sol#", "la", "la#", "si"][pc]
+        return base + String(repeating: o > 0 ? "↑" : "↓", count: abs(o))
+    }
 
     var body: some View {
         let t = min(6, max(1, track))
+        let mel = tx.melodies[t - 1]
+        let count = max(1, mel.count)
         TX6Box {
             HStack(spacing: 4) {
                 ForEach(1...6, id: \.self) { n in
-                    TX6Mini(text: "\(n) \(tx.soundName(n))", on: t == n) { track = n }
+                    TX6Mini(text: "\(n) \(tx.soundName(n))", on: t == n) { track = n; showPresets = false }
                         .accessibilityLabel("traccia \(n)")
                 }
                 TX6Mini(text: "pronte", on: showPresets, color: Color(white: 0.75)) { showPresets.toggle() }
                     .accessibilityLabel("melodie scure pronte")
             }
             if showPresets {
+                TX6Label("Basso sulla traccia 5 e melodia sulla 6, due battute. Tutte in re minore: si cambiano a tempo senza stonare.")
+                if let cur = TX6MelodyPreset.all.first(where: { $0.name == picked }) {
+                    Text("\(cur.name): \(cur.ref)")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.accent)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 ForEach(TX6MelodyPreset.groups, id: \.self) { g in
-                    TX6Label(g == "accordi" ? (t <= 4 ? "accordi, sulle tracce \(t)-\(t + 2)" : "accordi: scegli una traccia fino alla 4") : "\(g), sulla traccia \(t)")
-                    LazyVGrid(columns: three, spacing: 4) {
+                    TX6Label(g)
+                    LazyVGrid(columns: five, spacing: 4) {
                         ForEach(TX6MelodyPreset.all.filter { $0.group == g }) { m in
                             TX6Mini(text: m.name, on: picked == m.name, height: 40) {
-                                tx.applyMelody(m, from: t)
+                                tx.applyMelody(m)
                                 picked = m.name
+                                track = 6
                                 showPresets = false
                             }
-                                .disabled(m.chord && t > 4)
-                                .opacity(m.chord && t > 4 ? 0.4 : 1)
-                                .accessibilityLabel("\(g == "accordi" ? "accordi" : "melodia") \(m.name)")
+                            .accessibilityLabel("melodia \(m.name)")
                         }
                     }
                 }
-                TX6Label("Toccandone una la senti e torni a vedere le note.")
             } else {
                 LazyVGrid(columns: seven, spacing: 4) {
                     ForEach(0..<13, id: \.self) { k in
@@ -271,39 +297,37 @@ struct TX6MelodyPanel: View {
                         .frame(minWidth: 48)
                     TX6Mini(text: "ott +") { tx.melodyOctaves[t - 1] = min(7, tx.melodyOctaves[t - 1] + 1) }
                         .accessibilityLabel("ottava più")
-                    TX6Mini(text: "indietro") { tx.melodyBack() }
+                    TX6Mini(text: "indietro") { tx.melodyBack(t) }
                     TX6Mini(text: "\(Self.names[lastNote]) ogni 4") {
-                        for i in stride(from: 0, to: 16, by: 4) { tx.melodies[t - 1][i] = lastNote }
+                        for i in stride(from: 0, to: count, by: 4) { tx.melodies[t - 1][i] = lastNote }
                         tx.melodyOn = true
                     }
                     .accessibilityLabel("nota su ogni 4")
                 }
-            }
-            if !showPresets {
-            TX6CursorGrid(live: live, pulsing: tx.pulsing, cursor: tx.melodyCursor,
-                          label: { tx.melodies[t - 1][$0].map { Self.names[$0] } ?? "·" },
-                          filled: { tx.melodies[t - 1][$0] != nil },
-                          select: { tx.selectMelodyStep(t, $0) })
-            HStack(spacing: 4) {
-                Text("dura")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.dim)
-                ForEach([(1, "1/16"), (2, "1/8"), (4, "1/4")], id: \.0) { l in
-                    TX6Mini(text: l.1, on: tx.melodyLength == l.0) { tx.melodyLength = l.0 }
-                        .accessibilityLabel("ogni nota dura \(l.1)")
+                TX6CursorGrid(live: live, pulsing: tx.pulsing, cursor: tx.melodyCursor % count,
+                              label: { mel.indices.contains($0) ? (mel[$0].map { Self.noteName($0) } ?? "·") : "·" },
+                              filled: { mel.indices.contains($0) && mel[$0] != nil },
+                              select: { tx.selectMelodyStep(t, $0) },
+                              count: count)
+                HStack(spacing: 4) {
+                    Text("dura")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                    ForEach(Self.gates, id: \.0) { g in
+                        TX6Mini(text: g.1, on: tx.melodyGates[t - 1] == g.0) { tx.melodyGates[t - 1] = g.0 }
+                            .accessibilityLabel(g.0 == 0 ? "traccia \(t), note tenute fino alla nota dopo" : "traccia \(t), ogni nota dura \(g.1)")
+                    }
                 }
-            }
-            HStack(spacing: 4) {
-                TX6Mini(text: tx.melodyOn ? "melodia accesa" : "melodia spenta", on: tx.melodyOn) { tx.melodyOn.toggle() }
-                    .accessibilityLabel(tx.melodyOn ? "spegni le melodie" : "accendi le melodie")
-                TX6ConfirmMini(text: "svuota traccia \(t)") {
-                    tx.melodies[t - 1] = Array(repeating: nil, count: 16)
-                    tx.melodyCursor = 0
+                HStack(spacing: 4) {
+                    TX6Mini(text: tx.melodyOn ? "melodia accesa" : "melodia spenta", on: tx.melodyOn) { tx.melodyOn.toggle() }
+                        .accessibilityLabel(tx.melodyOn ? "spegni le melodie" : "accendi le melodie")
+                    TX6Mini(text: "2 battute", on: count > 16) { tx.setMelodyBars(t, count > 16 ? 1 : 2) }
+                        .accessibilityLabel(count > 16 ? "traccia \(t) torna a una battuta" : "traccia \(t) a due battute")
+                    TX6ConfirmMini(text: "svuota traccia \(t)") { tx.clearMelody(t) }
+                        .accessibilityLabel("svuota la melodia della traccia \(t)")
+                    TX6ConfirmMini(text: "svuota tutto") { tx.clearMelodies() }
+                        .accessibilityLabel("svuota tutte le melodie")
                 }
-                .accessibilityLabel("svuota la melodia della traccia \(t)")
-                TX6ConfirmMini(text: "svuota tutto") { tx.clearMelodies() }
-                    .accessibilityLabel("svuota tutte le melodie")
-            }
             }
         }
     }

@@ -25,7 +25,7 @@ var plan = TX6Sequencer.Plan()
 plan.bpm = 120
 plan.melodyOn = true
 plan.melodies[0] = Array(repeating: 7, count: 16)
-plan.melodyLength = 1
+plan.melodyGates = Array(repeating: 1, count: 6)
 plan.beatsOn = true
 plan.beats[1] = Array(repeating: true, count: 16)
 seq.update(plan)

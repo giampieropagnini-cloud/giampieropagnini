@@ -56,9 +56,11 @@ final class TX6Sequencer {
         var lockBase = 64
         var locks: [Int?] = Array(repeating: nil, count: 16)
         var melodyOn = false
+        /// Per ogni traccia 16 passi (una battuta) o 32 (due): ognuna gira sulla sua lunghezza.
         var melodies: [[Int?]] = Array(repeating: Array(repeating: nil, count: 16), count: 6)
         var melodyOctaves: [Int] = Array(repeating: 4, count: 6)
-        var melodyLength = 1
+        /// Quanti sedicesimi resta giù ogni nota, per traccia: 0 = tenuta fino alla nota dopo.
+        var melodyGates: [Int] = Array(repeating: 1, count: 6)
         var gateOn = false
         var gate: [Bool] = Array(repeating: true, count: 16)
         var gateTracks: [Int] = []
@@ -82,7 +84,7 @@ final class TX6Sequencer {
         var beats: [[Bool]]
         var melodies: [[Int?]]
         var melodyOctaves: [Int]
-        var melodyLength: Int
+        var melodyGates: [Int]
         var locks: [Int?]
         var lockTrack: Int
         var lockCC: UInt8
@@ -99,7 +101,7 @@ final class TX6Sequencer {
     /// Un pattern è entrato (sul filo del sequencer).
     var onSwitched: ((UUID) -> Void)?
 
-    /// Un passo è partito (sul filo del sequencer): il numero, l'istante, i pad che hanno suonato.
+    /// Un passo è partito (sul filo del sequencer): il numero (contato da quando è partito), l'istante, i pad che hanno suonato.
     var onStep: ((Int, MIDITimeStamp, Set<Int>) -> Void)?
 
     private let io: MIDIIO
@@ -118,6 +120,10 @@ final class TX6Sequencer {
     private var lockSent: Int?
     /// Le note da spegnere, per numero di passo (contato da quando è partito): vanno nel pacchetto di quel passo.
     private var offsAt: [Int: [UInt8]] = [:]
+    /// Le note delle melodie ancora giù, una per traccia (una traccia del TX-6 suona una nota alla volta):
+    /// la nota e il passo in cui va spenta. Una nota nuova sulla stessa traccia spegne prima quella di prima,
+    /// così uno spegnimento in ritardo non taglia mai la nota dopo (anche con durate lunghe e note fitte).
+    private var melodyHeld: [Int: (note: Int, until: Int)] = [:]
     /// Lo start va nel pacchetto del primo passo, prima del clock e delle note.
     private var startPending = false
     private var clockCount = 0
@@ -161,6 +167,7 @@ final class TX6Sequencer {
             gateState = nil
             lockSent = nil
             offsAt.removeAll()
+            melodyHeld.removeAll()
             startPending = p.sendClock
             running = true
             startTimer()
@@ -362,7 +369,7 @@ final class TX6Sequencer {
         p.beats = o.beats
         p.melodies = o.melodies
         p.melodyOctaves = o.melodyOctaves
-        p.melodyLength = o.melodyLength
+        p.melodyGates = o.melodyGates
         p.locks = o.locks
         p.lockTrack = o.lockTrack
         p.lockCC = o.lockCC
@@ -384,6 +391,11 @@ final class TX6Sequencer {
         if startPending { now += TX6.start; startPending = false }
         if withClock { now += TX6.clock }
         now += offsAt.removeValue(forKey: n) ?? []
+        // le note delle melodie che finiscono qui (anche se intanto la melodia è stata spenta)
+        for (tr, h) in melodyHeld where h.until <= n {
+            now += TX6.noteOff(h.note, channel: tr)
+            melodyHeld[tr] = nil
+        }
         // 0xFE (active sensing) è solo un segnaposto per «è entrato un pattern senza suoni»: non si manda
         if prefix != [0xFE] { now += prefix }
         var hit: Set<Int> = []
@@ -409,11 +421,26 @@ final class TX6Sequencer {
 
         if p.melodyOn {
             for tr in 1...6 {
-                guard let semi = p.melodies[tr - 1][i] else { continue }
-                let note = 12 * (p.melodyOctaves[tr - 1] + 1) + semi
+                // ogni traccia gira sulla sua lunghezza: una battuta o due
+                let mel = p.melodies[tr - 1]
+                let len = mel.count
+                guard len > 0 else { continue }
+                let k = ((n % len) + len) % len
+                guard let semi = mel[k] else { continue }
+                let note = max(0, min(127, 12 * (p.melodyOctaves[tr - 1] + 1) + semi))
+                // quanti passi resta giù: fisso, o (tenuta) fino al prossimo passo pieno della traccia.
+                // Lo spegnimento va nel pacchetto di quel passo, prima della nota nuova: il legato non si interrompe.
+                var gate = p.melodyGates.indices.contains(tr - 1) ? p.melodyGates[tr - 1] : 1
+                if gate <= 0 {
+                    gate = len
+                    for d in 1...len where mel[(k + d) % len] != nil { gate = d; break }
+                }
+                if let h = melodyHeld[tr] {
+                    now += TX6.noteOff(h.note, channel: tr)
+                }
                 now += TX6.noteOn(note, channel: tr)
                 TX6PlayedNotes.shared.add(tr, note)
-                offsAt[n + max(1, p.melodyLength), default: []] += TX6.noteOff(note, channel: tr)
+                melodyHeld[tr] = (note, n + max(1, gate))
             }
         }
 
@@ -442,7 +469,7 @@ final class TX6Sequencer {
         }
 
         if !now.isEmpty { io.send(now, at: t) }
-        onStep?(i, t, hit)
+        onStep?(n, t, hit)
     }
 
     private func releaseGate(_ p: Plan, at time: MIDITimeStamp = 0) {
@@ -460,7 +487,9 @@ final class TX6Sequencer {
     /// già preparate, quindi di serie a 190 ms da adesso.
     private func flushOffs(at time: MIDITimeStamp? = nil) {
         let bytes = offsAt.keys.sorted().flatMap { offsAt[$0] ?? [] }
+            + melodyHeld.keys.sorted().flatMap { TX6.noteOff(melodyHeld[$0]!.note, channel: $0) }
         offsAt.removeAll()
+        melodyHeld.removeAll()
         if !bytes.isEmpty { io.send(bytes, at: time ?? io.now() + io.ticks(ms: lookahead + 40)) }
     }
 }
