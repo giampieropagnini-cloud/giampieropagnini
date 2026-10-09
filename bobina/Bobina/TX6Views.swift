@@ -55,17 +55,20 @@ struct TX6Tabs: View {
 
 struct TX6StatusStrip: View {
     @EnvironmentObject var tx: TX6Engine
+    @State private var showBluetooth = false
 
     var body: some View {
-        // non collegato: un tocco qui cerca il TX-6 col bluetooth e lo collega, senza menu (9/10/2026)
+        // non collegato: un tocco qui apre subito il pannello bluetooth, senza passare da Collega (9/10/2026).
+        // Il collegamento da solo con CoreBluetooth (MIDIBluetoothDriverActivateAllConnections) sul telefono si
+        // collegava ma CoreMIDI non lo vedeva, e teneva occupato il TX-6: tolto, resta il pannello di Apple.
         Button {
-            if !tx.connected { tx.reconnectBluetooth() }
+            if !tx.connected { showBluetooth = true }
         } label: {
             HStack(spacing: 8) {
                 Circle()
                     .fill(tx.connected ? Color.green : Palette.rec)
                     .frame(width: 8, height: 8)
-                Text(tx.connected ? "collegato a \(tx.connectedName)" : (tx.bluetoothState ?? "TX-6 non collegato · tocca qui per il bluetooth"))
+                Text(tx.connected ? "collegato a \(tx.connectedName)" : "TX-6 non collegato · tocca qui per il bluetooth")
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(tx.connected ? Palette.dim : Color.white)
                     .lineLimit(2)
@@ -85,6 +88,22 @@ struct TX6StatusStrip: View {
         .disabled(tx.connected)
         .accessibilityLabel(tx.connected ? "collegato a \(tx.connectedName)" : "collega il TX-6 col bluetooth")
         .padding(.top, 6)
+        .sheet(isPresented: $showBluetooth) {
+            VStack(spacing: 0) {
+                HStack {
+                    Text("MIDI bluetooth").font(.headline)
+                    Spacer()
+                    Button("fine") {
+                        showBluetooth = false
+                        tx.refreshPorts()
+                    }
+                }
+                .padding()
+                BluetoothMIDIPicker()
+            }
+        }
+        // collegato il TX-6, il pannello si chiude da solo
+        .onChange(of: tx.connected) { _, now in if now { showBluetooth = false } }
         if tx.strayClock && tx.clockMode != .follow {
             Text("Il TX-6 manda il suo tempo (32 messaggi al secondo) e intasa il bluetooth: i comandi di Bobina si perdono. Sul TX-6: shift + select → CLOCK → OUT off.")
                 .font(.system(.caption, design: .monospaced))

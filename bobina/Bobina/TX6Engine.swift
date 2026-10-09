@@ -280,25 +280,6 @@ final class TX6Engine: ObservableObject {
     /// Col bluetooth ogni pacchetto costa: Bobina ne manda meno.
     private(set) var viaBluetooth = false
 
-    /// Il bluetooth senza menu: un tocco in cima alla pagina, e da solo quando il TX-6 si spegne e si riaccende.
-    let bluetooth = TX6Bluetooth()
-    /// Cosa sta facendo il bluetooth, da mostrare in cima (nil = niente).
-    @Published var bluetoothState: String?
-    /// L'ultima volta era collegato col bluetooth: all'avvio lo si ricollega da solo.
-    private var lastWasBluetooth: Bool {
-        get { UserDefaults.standard.bool(forKey: "bobina.tx6.bluetooth.ultimo") }
-        set { UserDefaults.standard.set(newValue, forKey: "bobina.tx6.bluetooth.ultimo") }
-    }
-
-    /// Cerca il TX-6 col bluetooth e lo collega, senza il pannello di Apple.
-    func reconnectBluetooth(seconds: Double = 30) {
-        guard !connected else {
-            bluetoothState = nil
-            return
-        }
-        bluetooth.connect(for: seconds)
-    }
-
     // MARK: il mixer come lo ricorda Bobina
 
     @Published private(set) var values: [[Int]] = Array(repeating: TX6.Param.allCases.map { $0.initial }, count: 6)
@@ -485,11 +466,6 @@ final class TX6Engine: ObservableObject {
         for t in 0..<6 { if let v = sentSounds[t] { values[t][TX6.Param.sound.rawValue] = v } }
         load()
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
-        bluetooth.onState = { [weak self] in self?.bluetoothState = $0 }
-        bluetooth.isRegistered = { [weak self] in
-            self?.refreshPorts()
-            return self?.connected ?? false
-        }
         io.onReceive = { [weak self] bytes, stamp in self?.received(bytes, stamp) }
         let seq = sequencer
         io.onRealtime = { status, stamp in seq.realtime(status, stamp) }
@@ -505,10 +481,6 @@ final class TX6Engine: ObservableObject {
             self.bpm = v
         }
         refreshPorts()
-        // l'ultima volta era col bluetooth: lo si ricollega da solo, senza passare dal pannello
-        if !connected && lastWasBluetooth {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in self?.reconnectBluetooth(seconds: 20) }
-        }
         startTimer()
     }
 
@@ -530,16 +502,7 @@ final class TX6Engine: ObservableObject {
     private func applyPorts() {
         let dest = destinations.first(where: { $0.id == destinationID })?.ref ?? 0
         let src = sources.first(where: { $0.id == sourceID })?.ref ?? 0
-        let wasBluetooth = viaBluetooth && io.destination != 0
         viaBluetooth = connectedName.lowercased().contains("bluetooth")
-        if dest != 0 {
-            lastWasBluetooth = viaBluetooth
-            bluetoothState = nil
-        }
-        // il TX-6 col bluetooth è sparito (spento per sbloccarlo): lo si cerca da solo per un minuto
-        if dest == 0 && wasBluetooth {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in self?.reconnectBluetooth(seconds: 60) }
-        }
         if dest != io.destination || src != io.source {
             let fresh = dest != 0 && dest != io.destination
             io.use(destination: dest, source: src)

@@ -233,14 +233,8 @@ struct TX6ConnectPanel: View {
 
     var body: some View {
         TX6Box {
-            HStack(spacing: 4) {
-                TX6Mini(text: "collega col bluetooth", height: 46) { tx.reconnectBluetooth() }
-                    .accessibilityLabel("collega il TX-6 col bluetooth da solo")
-                TX6Mini(text: "pannello di Apple", height: 46) { showBluetooth = true }
-                    .accessibilityLabel("apri il pannello bluetooth di Apple")
-            }
-            if let st = tx.bluetoothState { TX6Label(st) }
-            TX6Label("Col cavo USB-C compare da solo. Col bluetooth: sul TX-6 shift + select → BLE → ACCEPT; poi Bobina lo collega da sola (anche dopo averlo spento e riacceso), o con «collega col bluetooth».")
+            TX6Mini(text: "cerca il TX-6 col bluetooth", height: 46) { showBluetooth = true }
+            TX6Label("Col cavo USB-C compare da solo. Col bluetooth: sul TX-6 shift + select → BLE → ACCEPT, poi «cerca» (o tocca la riga in cima a ogni pagina).")
             TX6Label("manda a")
             LazyVGrid(columns: two, spacing: 4) {
                 TX6Mini(text: "nessuno", on: tx.destinationID == nil) { tx.destinationID = nil }
