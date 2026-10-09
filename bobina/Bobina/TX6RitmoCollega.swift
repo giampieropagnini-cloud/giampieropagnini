@@ -234,7 +234,7 @@ struct TX6ConnectPanel: View {
     var body: some View {
         TX6Box {
             TX6Mini(text: "cerca il TX-6 col bluetooth", height: 46) { showBluetooth = true }
-            TX6Label("Col cavo USB-C compare da solo. Col bluetooth: sul TX-6 shift + select → BLE → ACCEPT, poi «cerca».")
+            TX6Label("Col cavo USB-C compare da solo. Col bluetooth: sul TX-6 shift + select → BLE → ACCEPT, poi «cerca» (o tocca la riga in cima a ogni pagina).")
             TX6Label("manda a")
             LazyVGrid(columns: two, spacing: 4) {
                 TX6Mini(text: "nessuno", on: tx.destinationID == nil) { tx.destinationID = nil }

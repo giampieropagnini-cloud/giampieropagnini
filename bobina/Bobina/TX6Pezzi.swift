@@ -186,13 +186,16 @@ struct TX6CursorGrid: View {
     let label: (Int) -> String
     let filled: (Int) -> Bool
     let select: (Int) -> Void
+    /// 16 passi (una battuta) o 32 (due battute, quattro file più basse).
+    var count = 16
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 8)
 
     var body: some View {
+        let now = count > 16 ? live.bar * 16 + live.step : live.step
         LazyVGrid(columns: columns, spacing: 4) {
-            ForEach(0..<16, id: \.self) { i in
-                let playing = pulsing && live.step == i
+            ForEach(0..<count, id: \.self) { i in
+                let playing = pulsing && now == i
                 Button { select(i) } label: {
                     VStack(spacing: 1) {
                         Text("\(i + 1)")
@@ -204,8 +207,9 @@ struct TX6CursorGrid: View {
                             .minimumScaleFactor(0.6)
                             .foregroundStyle(playing ? Color.black : Color.white)
                     }
-                    .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(RoundedRectangle(cornerRadius: 7).fill(playing ? Palette.accent : Color(white: filled(i) ? 0.30 : 0.16)))
+                    .frame(maxWidth: .infinity, minHeight: count > 16 ? 36 : 44)
+                    // la seconda battuta un filo più chiara, così si vede dove comincia
+                    .background(RoundedRectangle(cornerRadius: 7).fill(playing ? Palette.accent : Color(white: (filled(i) ? 0.30 : 0.16) + (i >= 16 ? 0.05 : 0))))
                     .overlay(RoundedRectangle(cornerRadius: 7).stroke(cursor == i ? Color.white : Color.clear, lineWidth: 3))
                 }
                 .buttonStyle(.plain)

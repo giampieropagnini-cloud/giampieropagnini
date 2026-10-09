@@ -34,14 +34,14 @@ RunLoop.main.run(until: Date().addingTimeInterval(1.3))   // a metà della secon
 var beatsB = Array(repeating: Array(repeating: false, count: 16), count: 6)
 beatsB[1] = (0..<16).map { $0 % 8 == 0 }         // B: traccia 2 (nota 62) ogni metà battuta
 let partB = TX6Sequencer.Part(id: UUID(), beats: beatsB, melodies: plan.melodies, melodyOctaves: plan.melodyOctaves,
-                              melodyLength: 1, locks: plan.locks, lockTrack: 1, lockCC: 89, lockBase: 64,
+                              melodyGates: Array(repeating: 1, count: 6), locks: plan.locks, lockTrack: 1, lockCC: 89, lockBase: 64,
                               gate: plan.gate, soundBytes: [0xB1, 0x03, 0x46], bpm: 100)
 seq.queuePattern(partB)
 RunLoop.main.run(until: Date().addingTimeInterval(3.5))
 seq.stop(sendStop: false)
 RunLoop.main.run(until: Date().addingTimeInterval(0.2))
 lock.lock(); let all = got; lock.unlock()
-for (t, b) in all where b.contains { (0x90...0x95).contains($0) } || b.contains(0xB1) {
+for (t, b) in all where b.contains { (0x90...0x96).contains($0) } || b.contains(0xB1) {
     print(String(format: "%8.1f ms", io.ms(ticks: t &- start)), b.map { String(format: "%02x", $0) }.joined(separator: " "))
 }
 print(switchedAt ?? "nessun cambio")

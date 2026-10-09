@@ -219,6 +219,12 @@ final class POSequencer {
             let t = line.time(ofBeat: Double(nextSixteenth) / 4)
             if running && (t + io.ticks(ms: 30) < now || t > now + io.ticks(ms: line.beatMs * 4 + lookahead)) {
                 nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
+                // i rilasci in coda erano contati coi passi vecchi: col salto non arriverebbero più, e il tasto
+                // resterebbe giù. Si lasciano adesso (lezione dell'OP-Z, 9/10/2026)
+                let keys = offsAt.values.flatMap { $0 }
+                offsAt.removeAll()
+                // dopo i passi già consegnati con la loro marca temporale, se no il tasto si riabbasserebbe dopo
+                if !keys.isEmpty { send(keys.flatMap { PO.noteOff($0, channel: p.channel) }, at: now + io.ticks(ms: lookahead + max(0, p.leadMs) + 40)) }
             }
             nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
         }
