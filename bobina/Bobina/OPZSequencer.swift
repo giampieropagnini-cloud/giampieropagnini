@@ -315,6 +315,18 @@ final class OPZSequencer {
     private func tick() {
         let p = plan()
         let now = io.now()
+        // tornati da una sospensione di iOS (Bobina in secondo piano): niente raffica dei passi persi.
+        // Si riparte dal passo di adesso, e le note rimaste accese da prima si spengono (lezione del TX-6, 9/10/2026).
+        if running && line.time(ofBeat: Double(nextSixteenth) / 4) &+ io.ticks(ms: 250) < now {
+            let old = nextSixteenth
+            nextBeat = Int(line.beat(at: now).rounded(.up))
+            nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
+            nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
+            shiftPending(by: nextSixteenth - old)
+            let offs = heldUntil.keys.flatMap { OPZ.noteOff($0 % 128, channel: $0 / 128) }
+            heldUntil.removeAll()
+            if !offs.isEmpty { io.send(offs, at: now &+ io.ticks(ms: 20)) }
+        }
         let fresh = BobinaClock.shared.snapshot()
         if fresh.generation != line.generation {
             line = fresh
@@ -403,6 +415,18 @@ final class OPZSequencer {
             }
         }
         onBeat?(bar, quarter, t)
+    }
+
+    /// Bobina va in secondo piano e iOS sta per sospenderla: le note tenute si spengono, dopo quelle già in coda
+    /// (se no restano accese finché Bobina non torna). Il ritmo riprende da solo al ritorno.
+    func releaseForBackground() {
+        queue.async { [self] in
+            let offs = offsAt.values.flatMap { $0 } + heldUntil.keys.flatMap { OPZ.noteOff($0 % 128, channel: $0 / 128) }
+            offsAt.removeAll()
+            heldUntil.removeAll()
+            onsAt.removeAll()
+            io.send(offs + OPZ.allNotesOff(), at: io.now() &+ io.ticks(ms: lookahead + 40))
+        }
     }
 
     /// La griglia è saltata (avanti o indietro, per esempio seguendo il TX-6 che riparte): tutto quello che

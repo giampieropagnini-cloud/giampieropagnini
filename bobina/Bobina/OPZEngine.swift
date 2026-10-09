@@ -201,6 +201,7 @@ final class OPZEngine: ObservableObject {
 
     private var timer: DispatchSourceTimer?
     private var bpmObserver: NSObjectProtocol?
+    private var backgroundObserver: NSObjectProtocol?
     private var loading = false
     private var taps: [Date] = []
 
@@ -266,6 +267,20 @@ final class OPZEngine: ObservableObject {
         }
         sequencer.onSent = { [weak self] bytes in
             DispatchQueue.main.async { self?.note(bytes, incoming: false) }
+        }
+        // in secondo piano (per esempio mentre Giampiero detta un messaggio) iOS sospende Bobina dopo pochi secondi:
+        // prima si spengono le note tenute, comprese quelle tenute a mano
+        backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+            guard let self = self else { return }
+            if self.running { self.sequencer.releaseForBackground() }
+            if !self.liveHeld.isEmpty || !self.punchHeld.isEmpty {
+                var bytes: [UInt8] = []
+                for (t, notes) in self.liveHeld { for n in notes { bytes += OPZ.noteOff(n, channel: t) } }
+                bytes += self.punchHeld.flatMap { OPZ.noteOff(OPZ.punchF + $0, channel: 13) + OPZ.noteOff(OPZ.punchF + $0 + 12, channel: 13) }
+                self.liveHeld = [:]
+                self.punchHeld.removeAll()
+                self.io.send(bytes, at: self.ms(200))
+            }
         }
         bpmObserver = NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
             // il numero mostrato è intero: un bpm che tremola di qualche decimo non deve ridisegnare la pagina
