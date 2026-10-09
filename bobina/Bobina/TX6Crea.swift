@@ -30,10 +30,14 @@ struct TX6CreaView: View {
             let prova = UserDefaults.standard.bool(forKey: "bobina.prova.crea")
             trace("Crea aperta, prova automatica: \(prova ? "sì" : "no")")
             if prova { TX6SelfTest.run(tx) }
-            // per le fotografie: `-bobina.prova.melodia Velluto` carica quella melodia pronta (vale solo per quel lancio)
+            // per le fotografie: `-bobina.prova.melodia Velluto` o `-bobina.prova.batteria Teardrop` carica quella pronta (solo per quel lancio)
             if let name = UserDefaults.standard.string(forKey: "bobina.prova.melodia"),
                let m = TX6MelodyPreset.all.first(where: { $0.name == name }) {
                 tx.applyMelody(m)
+            }
+            if let name = UserDefaults.standard.string(forKey: "bobina.prova.batteria"),
+               let d = TX6DrumPreset.all.first(where: { $0.name == name }) {
+                tx.playDrums(d)
             }
         }
         #endif
@@ -96,11 +100,21 @@ struct TX6DrumPanel: View {
                     .accessibilityLabel(tx.patternTempo ? "le pronte cambiano anche il tempo" : "le pronte lasciano il tempo com'è")
                 }
                 if let cur = TX6DrumPreset.all.first(where: { $0.name == (tx.pendingPatternName ?? tx.currentPatternName) }) {
-                    Text("\(cur.ref) · \(cur.bpm) bpm" + (cur.swing > 0.505 ? " · swing \(Int((cur.swing * 100).rounded()))%" : ""))
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(Palette.accent)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.8)
+                    HStack(spacing: 4) {
+                        Text("\(cur.ref) · \(cur.bpm) bpm" + (cur.swing > 0.505 ? " · swing \(Int((cur.swing * 100).rounded()))%" : ""))
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(Palette.accent)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        // il tempo del disco con un tocco: senza la spunta il tempo resta, ma ogni batteria suona
+                        // meglio al suo (Teardrop a 120 invece di 77 suonava male, 9/10/2026)
+                        if tx.clockMode != .follow && abs(tx.bpm - Double(cur.bpm)) > 0.5 {
+                            TX6Mini(text: "metti \(cur.bpm) bpm", height: 40) { tx.bpm = Double(cur.bpm) }
+                                .frame(width: 120)
+                                .accessibilityLabel("metti il tempo del disco, \(cur.bpm) bpm")
+                        }
+                    }
                 }
                 ForEach(TX6DrumPreset.groups, id: \.self) { g in
                     TX6Label(g)

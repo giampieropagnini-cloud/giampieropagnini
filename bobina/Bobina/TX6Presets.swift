@@ -8,22 +8,25 @@ import Foundation
 // sullo swing dei breakbeat): «documentato» o «ricostruito» è scritto accanto. Il TX-6 suona una batteria
 // sintetizzata, non i breakbeat campionati dei dischi: ritmo, tempo, swing e accordatura sì, il suono identico no.
 //
-// 9/10/2026, Giampiero: «fanno cagare… a volte fai degli snare che non c'entrano e cose super fastidiose». Ogni riga
-// suona ora con uno dei quattro motori di batteria (cassa, rullante, battimani, charleston), accordato nella sua zona:
-// niente bip di legno e campanaccio, niente tamburello acuto in sedicesimi, niente rullanti accordati come tom.
+// 9/10/2026, sera, Giampiero: «le ultime file non suonano, hai usato quasi sempre lo stesso sound design; devono
+// avere sempre quattro strumenti: un kick, uno snare, un hi-hat almeno, e per l'elettronica e la dance un clap».
+// Quindi ogni batteria ha il suo kit (i suoni sono scritti qui, non presi dai preset di suono) e sempre:
+// riga 1 cassa (KICK), riga 2 rullante (SNARE), riga 3 il quarto strumento (battimani in elettronica e dance;
+// aperto, piatto, tom o battimani nel trip hop e nell'hip hop), riga 4 charleston (HIHAT). Nessuna riga vuota.
+// Charleston senza filtro: col filtro abbassato (56) in Teardrop le righe 3 e 4 non si sentivano.
+// Solo i quattro motori di batteria: niente bip di onde corte, niente tamburello acuto in sedicesimi.
 //
-// Una riga di 16 caratteri per traccia, «x» = colpo, «.» = niente. Le righe sono le tracce 1-4 del TX-6: cassa,
-// rullante, percussione, charleston. I suoni sono i preset di suono (TX6Preset.builtIn) per nome; le tracce 5 e 6
-// (basso e melodia) non si toccano. Lo swing è quello delle MPC: 0,5 dritto, 0,66 terzina.
+// Una riga di 16 caratteri per traccia, «x» = colpo, «.» = niente. Le tracce 5 e 6 (basso e melodia) non si
+// toccano. Lo swing è quello delle MPC: 0,5 dritto, 0,66 terzina.
 
 struct TX6DrumPreset: Identifiable {
     let name: String
     let group: String
     let bpm: Int
-    /// cassa, rullante, percussione, charleston: 16 caratteri ciascuna.
+    /// cassa, rullante, quarto strumento, charleston: 16 caratteri ciascuna.
     let rows: [String]
-    /// Il preset di suono di ogni riga.
-    let sounds: [String]
+    /// I suoni delle quattro righe, fatti per questa batteria.
+    let kit: [TX6Preset]
     /// Lo swing come sulle MPC (0,5 dritto, 0,66 terzina).
     var swing: Double = 0.5
     /// Da dove viene: artista, disco, anno.
@@ -40,110 +43,127 @@ struct TX6DrumPreset: Identifiable {
         // documentato: drumstheword.com e Songsterr (a mano); il break è Smokey Brooks «Spin It Jig»
         TX6DrumPreset(name: "Sour Times", group: "trip hop", bpm: 92,
                       rows: ["x.xx...xx..x...x", "....x.......x...", "..........x.....", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa trip hop", "rullante trip hop", "aperto morbido", "charleston polvere"],
+                      kit: [.kick(34, 58, comp: 40, flt: 60), .snare(62, 50), .open(74, 65), .hat(82, 20)],
                       swing: 0.54, ref: "Portishead · Sour Times (1994)"),
-        // documentato: Songsterr a mano; il giro è Isaac Hayes «Ike's Rap II»
+        // documentato: Songsterr a mano; il giro è Isaac Hayes «Ike's Rap II». Cassa lunga e rullante grosso, aperto in fondo alla battuta
         TX6DrumPreset(name: "Glory Box", group: "trip hop", bpm: 60,
-                      rows: ["x......xx.......", "....x.......x...", "................", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa trip hop", "rullante pieno", "aperto morbido", "charleston polvere"],
+                      rows: ["x......xx.......", "....x.......x...", "..............x.", "x.x.x.x.x.x.x.x."],
+                      kit: [.kick(29, 95, comp: 30), .snare(55, 85, comp: 55), .open(70, 85), .hat(78, 24)],
                       swing: 0.64, ref: "Portishead · Glory Box (1994)"),
-        // documentato: Songsterr a mano e il file MIDI di BitMidi coincidono; sul 2 e sul 4 il colpo sul cerchio
+        // documentato: Songsterr a mano e il file MIDI di BitMidi coincidono; sul 2 e sul 4 un rullante corto, quasi un colpo sul cerchio
         TX6DrumPreset(name: "Teardrop", group: "trip hop", bpm: 77,
                       rows: ["xx.x....xx.x....", "....x.......x...", "..x.......x.....", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa trip hop", "cerchio", "aperto morbido", "charleston polvere"],
+                      kit: [.kick(31, 70, comp: 45, flt: 60), .snare(68, 28, comp: 30), .open(76, 55), .hat(84, 18)],
                       swing: 0.5, ref: "Massive Attack · Teardrop (1998)"),
-        // documentato: Songsterr (rivisto da un moderatore); a metà tempo, rullante sul 3
+        // documentato: Songsterr (rivisto da un moderatore); a metà tempo, rullante sul 3, un piatto sull'1
         TX6DrumPreset(name: "Angel", group: "trip hop", bpm: 107,
-                      rows: ["x..............x", "........x.......", "..........x.....", "x.x.x.x.x...x.x."],
-                      sounds: ["cassa g-funk", "rullante pieno", "aperto morbido", "charleston polvere"],
+                      rows: ["x..............x", "........x.......", "x...............", "x.x.x.x.x...x.x."],
+                      kit: [.kick(33, 85, comp: 70), .snare(53, 90, comp: 65), .crash(62, 120), .hat(80, 22)],
                       swing: 0.5, ref: "Massive Attack · Angel (1998)"),
-        // ricostruito; lo swing 1,6:1 del break è misurato (Frane 2017). Il tamburello in sedicesimi è tolto: sul TX-6 era fastidioso
+        // ricostruito; lo swing 1,6:1 del break è misurato (Frane 2017). Un tom basso sulle «a», al posto del tamburello
         TX6DrumPreset(name: "Aftermath", group: "trip hop", bpm: 81,
-                      rows: ["x.....x.x.....x.", "....x.......x...", "..............x.", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa trip hop", "rullante trip hop", "aperto morbido", "charleston polvere"],
+                      rows: ["x.....x.x.....x.", "....x.......x...", "...x.........x..", "x.x.x.x.x.x.x.x."],
+                      kit: [.kick(36, 55, flt: 60), .snare(60, 62), .tom(52, 40), .hat(76, 26)],
                       swing: 0.61, ref: "Tricky · Aftermath (1995)"),
 
         // HIP HOP
         // documentato: drummingtips.com e Songsterr; il rullante in più sul 3e (passo 10) è la firma di Premier
         TX6DrumPreset(name: "NY State", group: "hip hop", bpm: 84,
                       rows: ["x.x.......x.....", "....x....x..x...", "..........x.....", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa boom bap", "rullante boom bap", "aperto morbido", "charleston secco"],
+                      kit: [.kick(38, 48, comp: 70), .snare(58, 48, comp: 50), .open(74, 60), .hat(86, 16)],
                       swing: 0.57, ref: "Nas · N.Y. State of Mind (1994, DJ Premier)"),
-        // documentato: trascrizione di Dean McCormick; due casse subito dopo ogni rullante
+        // documentato: trascrizione di Dean McCormick; due casse subito dopo ogni rullante, aperto sul 2e e sul 4e
         TX6DrumPreset(name: "Mass Appeal", group: "hip hop", bpm: 96,
-                      rows: ["x.....xx..x...xx", "....x.......x...", "................", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa boom bap", "rullante boom bap", "aperto morbido", "charleston secco"],
+                      rows: ["x.....xx..x...xx", "....x.......x...", "......x.......x.", "x.x.x.x.x.x.x.x."],
+                      kit: [.kick(41, 40, comp: 80), .snare(64, 40, comp: 60), .open(72, 50), .hat(82, 18)],
                       swing: 0.54, ref: "Gang Starr · Mass Appeal (1994, DJ Premier)"),
-        // documentato: trascrizione a mano di 4 battute; il ride dei «e» qui è un charleston aperto morbido
+        // documentato: trascrizione a mano di 4 battute; chiuso sui battiti, aperto sui «e»
         TX6DrumPreset(name: "The World", group: "hip hop", bpm: 87,
                       rows: ["x.x.....x.x.....", "....x.......x...", "..x...x...x...x.", "x...x...x...x..."],
-                      sounds: ["cassa boom bap", "rullante pieno", "aperto morbido", "charleston secco"],
+                      kit: [.kick(34, 65, comp: 60), .snare(60, 55, comp: 50), .open(70, 45), .hat(84, 20)],
                       swing: 0.58, ref: "Nas · The World Is Yours (1994, Pete Rock)"),
-        // documentato: trascrizione a mano del 2011; charleston aperto sul 2a
+        // documentato: trascrizione a mano del 2011; cassa lunga del G-funk, aperto sul 2a
         TX6DrumPreset(name: "Gin & Juice", group: "hip hop", bpm: 95,
                       rows: ["x.........x.....", "....x.......x...", ".......x........", "x.x.x.x.x.x.x.x."],
-                      sounds: ["cassa g-funk", "rullante pieno", "aperto", "chiuso"],
+                      kit: [.kick(31, 90, comp: 40), .snare(57, 65, comp: 55), .open(76, 70), .hat(80, 20)],
                       swing: 0.55, ref: "Snoop Doggy Dogg · Gin and Juice (1993, Dr. Dre)"),
-        // documentato: due trascrizioni a mano e un MIDI coincidono; battimani e rullante insieme sul 2 e sul 4, come nel G-funk
+        // documentato: due trascrizioni a mano e un MIDI coincidono; rullante e battimani insieme sul 2 e sul 4, come nel G-funk
         TX6DrumPreset(name: "G Thang", group: "hip hop", bpm: 95,
                       rows: ["x.....x.x.....x.", "....x.......x...", "....x.......x...", "x.x.x.x.x.x.x.x."],
-                      sounds: ["808 lunga", "battimani", "rullante pieno", "chiuso"],
+                      kit: [.kick(28, 105, comp: 30), .snare(59, 55, comp: 50), .clap(64, 60), .hat(86, 16)],
                       swing: 0.55, ref: "Dr. Dre & Snoop Dogg · Nuthin' but a 'G' Thang (1992)"),
 
         // ELETTRONICA
-        // documentato: Attack Magazine e MusicRadar; 909 spinta, aperto sui controtempi
+        // documentato: Attack Magazine e MusicRadar; 909 spinta, battimani sul 2 e sul 4, colpi di rullante in fondo alla battuta, aperto sui controtempi
         TX6DrumPreset(name: "The Bells", group: "elettronica", bpm: 137,
-                      rows: ["x...x...x...x...", "....x.......x...", "..x...x...x...x.", ".x.x.x.x.x.x.x.x"],
-                      sounds: ["cassa 909", "battimani", "aperto 909", "chiuso 909"],
+                      rows: ["x...x...x...x...", "...........x..x.", "....x.......x...", "..x...x...x...x."],
+                      kit: [.kick(40, 55, comp: 80), .snare(66, 28), .clap(64, 45, comp: 40), .open(78, 50)],
                       swing: 0.5, ref: "Jeff Mills · The Bells (1997), techno di Detroit"),
-        // documentato: Pocket Operations; la cassa 1·7·11·14 dell'electro. Il campanaccio della 808 è tolto: sul TX-6 era un bip
+        // documentato: Pocket Operations; la cassa 1·7·11·14 dell'electro, rullante e battimani della 808 insieme
         TX6DrumPreset(name: "Planet Rock", group: "elettronica", bpm: 127,
                       rows: ["x.....x...x..x..", "....x.......x...", "....x.......x...", "x.xxx.xxx.xxxxxx"],
-                      sounds: ["808 lunga", "battimani", "rullante secco", "chiuso"],
+                      kit: [.kick(27, 100, comp: 30), .snare(62, 42), .clap(66, 50), .hat(84, 14)],
                       swing: 0.5, ref: "Afrika Bambaataa · Planet Rock (1982), electro"),
-        // documentato: Native Instruments, ogni passo scritto; lo shaker è un charleston scuro e corto
+        // documentato: Native Instruments; cassa profonda, battimani lunghi, rullante che rotola in fondo alla battuta
         TX6DrumPreset(name: "Afterlife", group: "elettronica", bpm: 122,
-                      rows: ["x...x...x...x...", "....x.......x...", "..x...x...x...x.", "...xxx....x.xxx."],
-                      sounds: ["cassa techno", "battimani lunghi", "aperto morbido", "charleston polvere"],
+                      rows: ["x...x...x...x...", "..............xx", "....x.......x...", "..x...x...x...x."],
+                      kit: [.kick(34, 80, comp: 80, flt: 60), .snare(60, 35, comp: 30), .clap(60, 85), .open(72, 60)],
                       swing: 0.5, ref: "Tale Of Us / Afterlife, techno melodica"),
-        // documentato: Native Instruments (Adam Beyer, Charlotte de Witte, Amelie Lens)
+        // documentato: Native Instruments (Adam Beyer, Charlotte de Witte, Amelie Lens); charleston fitti fra le casse
         TX6DrumPreset(name: "Peak time", group: "elettronica", bpm: 135,
-                      rows: ["x...x...x...x...", "....x.......x...", "..x...x...x...x.", "xx..xx..xx..xx.."],
-                      sounds: ["cassa techno", "battimani", "aperto 909", "chiuso 909"],
+                      rows: ["x...x...x...x...", ".x.....x..x.....", "....x.......x...", ".xxx.xxx.xxx.xxx"],
+                      kit: [.kick(36, 72, comp: 90), .snare(68, 26), .clap(66, 40, comp: 50), .hat(80, 16)],
                       swing: 0.5, ref: "Amelie Lens / Charlotte de Witte, techno di oggi"),
         // documentato: Attack Magazine «Sub-Zero Minimal Techno»; lo swing fa il groove
         TX6DrumPreset(name: "Minimal", group: "elettronica", bpm: 127,
-                      rows: ["x...x...x...x...", "....x.......x...", "...x..x..x......", "..x...xx..x...x."],
-                      sounds: ["cassa 909", "rullante secco", "cerchio", "chiuso 909"],
+                      rows: ["x...x...x...x...", "...x..x..x......", "....x.......x...", "..x...xx..x...x."],
+                      kit: [.kick(42, 42, comp: 60), .snare(70, 24, comp: 20), .clap(68, 35), .hat(80, 16)],
                       swing: 0.6, ref: "Richie Hawtin / Plastikman, minimal"),
 
         // DANCE
-        // documentato: Pocket Operations «Deep House»; il disco è fatto con 909 e Juno-60
+        // documentato: Pocket Operations «Deep House»; 909 morbida, rullante e battimani insieme, aperto sui controtempi
         TX6DrumPreset(name: "Deep house", group: "dance", bpm: 120,
-                      rows: ["x...x...x...x...", "....x.......x...", "..x...x...x...x.", ".x.....x.x......"],
-                      sounds: ["cassa house", "battimani", "aperto 909", "chiuso"],
+                      rows: ["x...x...x...x...", "....x.......x...", "....x.......x...", "..x...x...x...x."],
+                      kit: [.kick(39, 62, flt: 60), .snare(62, 35, comp: 30), .clap(60, 60), .open(74, 55)],
                       swing: 0.54, ref: "Larry Heard (Mr. Fingers) · Can You Feel It (1986)"),
-        // documentato: Attack Magazine «80s Chicago House»; il colpo sul cerchio fa il «jack»
-        TX6DrumPreset(name: "Chicago", group: "dance", bpm: 120,
-                      rows: ["x...x...x...x.x.", "....x.......x..x", ".x.....x..x..x..", "xxxxxxxxxxxxxxxx"],
-                      sounds: ["cassa house", "battimani", "cerchio", "charleston secco"],
+        // documentato: Attack Magazine «80s Chicago House»; charleston in sedicesimi e il rullante in più sul 4a
+        TX6DrumPreset(name: "Chicago", group: "dance", bpm: 122,
+                      rows: ["x...x...x...x.x.", "....x.......x..x", "....x.......x...", "xxxxxxxxxxxxxxxx"],
+                      kit: [.kick(40, 58, comp: 60), .snare(64, 40, comp: 50), .clap(66, 48), .hat(78, 12)],
                       swing: 0.54, ref: "Frankie Knuckles · Your Love, house di Chicago"),
-        // documentato: Attack Magazine «Raw French House» (il beat di Homework); swing forte
+        // documentato: Attack Magazine «Raw French House» (il beat di Homework); cassa filtrata e compressa, swing forte
         TX6DrumPreset(name: "French", group: "dance", bpm: 124,
-                      rows: ["x...x...x...x...", "....x.......x...", "..x...x...x...x.", "xx.xxx.xxx.xxx.x"],
-                      sounds: ["cassa 909", "battimani", "aperto 909", "charleston secco"],
+                      rows: ["x...x...x...x...", "....x.......x...", "....x.......x...", "..x...x...x...x."],
+                      kit: [.kick(37, 66, comp: 70, flt: 56), .snare(60, 50, comp: 60), .clap(62, 55, comp: 40), .open(76, 55)],
                       swing: 0.62, ref: "Daft Punk · Homework (1997), French house"),
-        // documentato: Attack Magazine (Classmatic «Catuca»); la tech house dei club di oggi
+        // documentato: Attack Magazine (Classmatic «Catuca»); cassa lunga e bassa, charleston fitti senza aperti
         TX6DrumPreset(name: "Tech house", group: "dance", bpm: 125,
-                      rows: ["x...x...x...x...", "....x.......x..x", "..x...x...x...x.", "xx.x.x.xxx.xxx.x"],
-                      sounds: ["808 lunga", "battimani", "aperto 909", "chiuso 909"],
+                      rows: ["x...x...x...x...", "....x.......x..x", "....x.......x...", "xx.x.x.xxx.xxx.x"],
+                      kit: [.kick(30, 90), .snare(66, 30), .clap(64, 50, comp: 40), .hat(82, 14)],
                       swing: 0.5, ref: "Classmatic / Fisher, tech house"),
         // documentato: Pocket Operations «UK Garage»; il 2-step vuole lo swing in terzina
         TX6DrumPreset(name: "UK garage", group: "dance", bpm: 132,
-                      rows: ["x.........x.....", "....x.......x...", ".x.....x.....x..", "..xx..x...x...xx"],
-                      sounds: ["cassa house", "battimani", "cerchio", "chiuso"],
+                      rows: ["x.........x.....", "....x.......x...", "....x.......x...", "..xx..x...x...xx"],
+                      kit: [.kick(41, 45, comp: 60), .snare(66, 38), .clap(64, 40), .hat(82, 16)],
                       swing: 0.66, ref: "MJ Cole / Artful Dodger, UK garage 2-step"),
     ]
+}
+
+/// I suoni per i kit delle batterie pronte: frequenza (come le note: 36 ≈ do2, 64 ≈ mi4), lunghezza, compressore,
+/// filtro (64 = spento). Detune sempre a 64.
+extension TX6Preset {
+    private static func drum(_ name: String, _ sound: Int, _ f: Int, _ l: Int, _ comp: Int, _ flt: Int) -> TX6Preset {
+        TX6Preset(name: name, group: "pronte", sound: sound, freq: f, length: l, detune: 64, filter: flt, comp: comp)
+    }
+    static func kick(_ f: Int, _ l: Int, comp: Int = 50, flt: Int = 64) -> TX6Preset { drum("cassa", 4, f, l, comp, flt) }
+    /// Una cassa accordata alta è un tom.
+    static func tom(_ f: Int, _ l: Int, comp: Int = 30, flt: Int = 64) -> TX6Preset { drum("tom", 4, f, l, comp, flt) }
+    static func snare(_ f: Int, _ l: Int, comp: Int = 40, flt: Int = 64) -> TX6Preset { drum("rullante", 5, f, l, comp, flt) }
+    static func clap(_ f: Int, _ l: Int, comp: Int = 30, flt: Int = 64) -> TX6Preset { drum("battimani", 6, f, l, comp, flt) }
+    static func hat(_ f: Int, _ l: Int, comp: Int = 0, flt: Int = 64) -> TX6Preset { drum("charleston", 7, f, l, comp, flt) }
+    static func open(_ f: Int, _ l: Int, comp: Int = 0, flt: Int = 64) -> TX6Preset { drum("aperto", 7, f, l, comp, flt) }
+    /// Un charleston lunghissimo e basso fa da piatto.
+    static func crash(_ f: Int, _ l: Int, comp: Int = 0, flt: Int = 64) -> TX6Preset { drum("piatto", 7, f, l, comp, flt) }
 }
 
 // MARK: - Le melodie pronte di Crea (rifatte il 9/10/2026, prendendo il metodo dalla sezione OP-Z)

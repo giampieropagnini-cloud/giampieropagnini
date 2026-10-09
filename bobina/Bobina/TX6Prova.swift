@@ -40,11 +40,14 @@ enum TX6SelfTest {
 
         // i preset pronti: ogni suono che nominano esiste, ogni melodia ha due battute e note nel registro giusto
         let names = Set(TX6Preset.builtIn.map(\.name))
-        check("20 batterie pronte, ogni suono esiste", TX6DrumPreset.all.count == 20 && TX6DrumPreset.all.allSatisfy { $0.sounds.allSatisfy(names.contains) })
+        check("20 batterie pronte, ognuna col suo kit", TX6DrumPreset.all.count == 20 && Set(TX6DrumPreset.all.map { $0.kit.map { [$0.sound, $0.freq, $0.length, $0.filter, $0.comp] } }).count == 20)
+        check("ogni batteria: cassa, rullante, quarto strumento, charleston, e ogni riga suona", TX6DrumPreset.all.allSatisfy { d in
+            d.kit.count == 4 && d.kit[0].sound == 4 && d.kit[1].sound == 5 && d.kit[3].sound == 7 && d.rows.allSatisfy { $0.contains("x") } })
+        check("elettronica e dance: il quarto strumento è il battimani", TX6DrumPreset.all.filter { ["elettronica", "dance"].contains($0.group) }.allSatisfy { $0.kit[2].sound == 6 })
+        check("nessun charleston col filtro abbassato", TX6DrumPreset.all.allSatisfy { $0.kit.allSatisfy { $0.sound != 7 || $0.filter >= 64 } })
         check("20 melodie pronte, ogni suono esiste", TX6MelodyPreset.all.count == 20 && TX6MelodyPreset.all.allSatisfy { $0.sounds.allSatisfy(names.contains) })
         check("ogni melodia pronta: basso e melodia di 32 passi", TX6MelodyPreset.all.allSatisfy { $0.parts.allSatisfy { $0.steps.count == 32 && $0.steps.contains { $0 != nil } } })
-        check("le batterie pronte usano solo i motori di batteria", TX6DrumPreset.all.allSatisfy { d in
-            d.sounds.allSatisfy { n in TX6Preset.builtIn.first { $0.name == n }.map { (4...7).contains($0.sound) } ?? false } })
+        check("le batterie pronte usano solo i motori di batteria", TX6DrumPreset.all.allSatisfy { $0.kit.allSatisfy { (4...7).contains($0.sound) } })
         let v = velluto.parts
         check("Velluto: il basso parte dal re (re2) e la melodia dal la (la4)",
               v[0].steps[0].map { 12 * (v[0].octave + 1) + $0 } == 38 && v[1].steps[2].map { 12 * (v[1].octave + 1) + $0 } == 69)

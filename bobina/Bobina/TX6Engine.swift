@@ -166,11 +166,12 @@ struct TX6Preset: Codable, Identifiable, Equatable {
         p("charleston", "aperto", 7, freq: 76, len: 80),
         p("charleston", "shaker", 7, freq: 100, len: 30, flt: 84),
         p("charleston", "piatto", 7, freq: 60, len: 120),
-        p("charleston", "charleston polvere", 7, freq: 72, len: 12, flt: 56),
+        // senza filtro: col filtro abbassato i charleston sul TX-6 non si sentivano (9/10/2026)
+        p("charleston", "charleston polvere", 7, freq: 72, len: 14),
         p("charleston", "charleston secco", 7, freq: 76, len: 8),
         p("charleston", "chiuso 909", 7, freq: 82, len: 12),
         p("charleston", "aperto 909", 7, freq: 78, len: 65),
-        p("charleston", "aperto morbido", 7, freq: 72, len: 55, flt: 56),
+        p("charleston", "aperto morbido", 7, freq: 72, len: 55),
         p("charleston", "ride", 7, freq: 84, len: 40, flt: 60),
         p("percussioni", "tom basso", 0, freq: 36, len: 50),
         p("percussioni", "tom alto", 0, freq: 52, len: 40),
@@ -980,7 +981,7 @@ final class TX6Engine: ObservableObject {
             pat.beats[r] = d.steps(r)
             // una melodia rimasta su una traccia della batteria farebbe suonare cassa e rullante a note a caso
             pat.melodies[r] = Array(repeating: nil, count: 16)
-            guard let p = TX6Preset.builtIn.first(where: { $0.name == d.sounds[r] }) else { continue }
+            let p = d.kit[r]
             pat.sounds[r] = [TX6.soundValue(p.sound), p.freq, p.length, p.detune]
             // filtro e compressore del preset non stanno nel pattern: partono insieme ai suoni
             for (param, v) in [(TX6.Param.filter, p.filter), (.comp, p.comp)] {
