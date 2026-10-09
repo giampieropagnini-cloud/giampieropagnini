@@ -1,5 +1,6 @@
 import Foundation
 import CoreMIDI
+import UIKit
 
 /// Il suono che c'è adesso sull'NTS-1: manopole e scelte. Sta a parte dal motore perché quando giri una
 /// manopola sull'NTS-1 arrivano decine di CC al secondo: si raccolgono e la scheda Suono si ridisegna
@@ -127,6 +128,7 @@ final class NTS1Engine: ObservableObject {
     @Published private(set) var withSequence = false
     @Published private(set) var bpm = Int(BobinaClock.shared.bpm.rounded())
     private var bpmObserver: NSObjectProtocol?
+    private var backgroundObserver: NSObjectProtocol?
 
     private var saveNext = false
     private var refreshPending = false
@@ -137,6 +139,10 @@ final class NTS1Engine: ObservableObject {
         saved = NTS1Engine.readSaved()
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, _ in self?.received(bytes) }
+        // iOS sospende Bobina in secondo piano dopo pochi secondi: prima si ferma tutto, pulito
+        backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.pauseForBackground()
+        }
         bpmObserver = NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
             guard let self = self, let v = n.object as? Double, Int(v.rounded()) != self.bpm else { return }
             self.bpm = Int(v.rounded())
@@ -371,6 +377,12 @@ final class NTS1Engine: ObservableObject {
         running = true
         withSequence = true
         sequencer.setTransport(true, start: true)
+    }
+
+    /// Uscendo da Bobina: tempo, passi, arpeggio, onda e inclinazione fermi, note tenute lasciate.
+    func pauseForBackground() {
+        stopRun()
+        player.stopAll()
     }
 
     func stopRun() {
