@@ -183,7 +183,7 @@ struct TX6DrumPanel: View {
                 LazyVGrid(columns: five, spacing: 4) {
                     ForEach(Self.soundOrder, id: \.self) { i in
                         TX6Mini(text: TX6.sounds[i], on: tx.sentSounds[row - 1].map { TX6.soundIndex($0) } == i) {
-                            tx.set(row, .sound, TX6.soundValue(i))
+                            tx.setSound(row, i)
                             let r = row
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { tx.hitPad(r) }
                         }

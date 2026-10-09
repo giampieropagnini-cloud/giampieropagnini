@@ -363,7 +363,7 @@ struct TX6TrackView: View {
                     if part == 3 {
                         LazyVGrid(columns: five, spacing: 4) {
                             ForEach(TX6DrumPanel.soundOrder, id: \.self) { i in
-                                TX6Mini(text: TX6.sounds[i], on: TX6.soundIndex(tx.value(t, .sound)) == i) { tx.set(t, .sound, TX6.soundValue(i)) }
+                                TX6Mini(text: TX6.sounds[i], on: TX6.soundIndex(tx.value(t, .sound)) == i) { tx.setSound(t, i) }
                                     .accessibilityLabel("suono \(TX6.sounds[i])")
                             }
                         }

@@ -34,7 +34,7 @@ seq.stop(sendStop: false)
 RunLoop.main.run(until: Date().addingTimeInterval(0.4))
 lock.lock(); let all = got; lock.unlock()
 
-// istanti delle note della traccia 1 (0x90) e degli impulsi di clock (0xF8), in ms dalla prima nota
+// istanti dei colpi della traccia 1 (sul canale 7: 0x96) e degli impulsi di clock (0xF8), in ms dalla prima nota
 var notes: [Double] = []
 var clocks: [Double] = []
 for (t, b) in all {
@@ -42,7 +42,7 @@ for (t, b) in all {
     while k < b.count {
         let st = b[k]
         if st == 0xF8 || st == 0xFA || st == 0xFC { if st == 0xF8 { clocks.append(io.ms(ticks: t)) }; k += 1; continue }
-        if st == 0x90 && k + 2 < b.count && b[k + 2] > 0 { notes.append(io.ms(ticks: t)) }
+        if st == 0x96 && k + 2 < b.count && b[k + 2] > 0 { notes.append(io.ms(ticks: t)) }
         k += 3
     }
 }

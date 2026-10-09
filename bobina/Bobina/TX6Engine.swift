@@ -584,12 +584,12 @@ final class TX6Engine: ObservableObject {
         var notes = Set<Int>()
         for (ch, n) in TX6PlayedNotes.shared.takeAll() { notes.insert(ch << 8 | n) }
         for t in 1...6 {
-            notes.insert(t << 8 | padBase)
+            notes.insert(TX6.masterChannel << 8 | TX6.drumNote(t))
             for k in melodies[t - 1].compactMap({ $0 }) { notes.insert(t << 8 | max(0, min(127, melodyNote(t, k)))) }
         }
         var bytes: [UInt8] = []
         for k in notes.sorted() { bytes += TX6.noteOff(k & 0x7F, channel: k >> 8) }
-        for t in 1...6 { bytes += TX6.cc(123, 0, channel: t) }
+        for t in 1...7 { bytes += TX6.cc(123, 0, channel: t) }
         // a pacchetti piccoli, uno ogni 20 ms
         let chunks = stride(from: 0, to: bytes.count, by: 24).map { Array(bytes[$0..<min(bytes.count, $0 + 24)]) }
         for (i, c) in chunks.enumerated() {
@@ -603,6 +603,13 @@ final class TX6Engine: ObservableObject {
         sequencer.melodyOffNow()
         logText("silenzio: \(notes.count) note spente")
         trace("TX-6: silenzio, \(notes.count) note in \(chunks.count) pacchetti")
+    }
+
+    /// Sceglie il suono di una traccia. Una cassa (KICK) con la frequenza ancora a metà (64) suonerebbe come un tom
+    /// sul canale 7: la frequenza scende a 36, poi si regola con la leva.
+    func setSound(_ track: Int, _ index: Int) {
+        set(track, .sound, TX6.soundValue(index))
+        if TX6.sounds[index] == "KICK" && value(track, .freq) == 64 { set(track, .freq, 36) }
     }
 
     // MARK: guadagno
@@ -911,11 +918,12 @@ final class TX6Engine: ObservableObject {
     /// suonano le tracce sempre alla stessa altezza (le casse sembravano tom), il canale della traccia invece
     /// segue la nota, come la tastiera.
     func hitPad(_ track: Int, at time: MIDITimeStamp = 0, fromUser: Bool = true) {
-        let n = padBase
-        send(TX6.noteOn(n, channel: track), at: time, quiet: !fromUser)
-        TX6PlayedNotes.shared.add(track, n)
+        // sul canale 7, alla frequenza della traccia (vedi TX6.drumNote)
+        let n = TX6.drumNote(track)
+        send(TX6.noteOn(n, channel: TX6.masterChannel), at: time, quiet: !fromUser)
+        TX6PlayedNotes.shared.add(TX6.masterChannel, n)
         let off = (time == 0 ? io.now() : time) + io.ticks(ms: 40)
-        send(TX6.noteOff(n, channel: track), at: off, quiet: true)
+        send(TX6.noteOff(n, channel: TX6.masterChannel), at: off, quiet: true)
         if fromUser { haptic.impactOccurred() }
         flash([track], at: time)
     }

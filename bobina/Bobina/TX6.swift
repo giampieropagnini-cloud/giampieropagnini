@@ -220,6 +220,13 @@ enum TX6 {
         [0xB0 | UInt8((channel - 1) & 0x0F), number & 0x7F, UInt8(max(0, min(127, value)))]
     }
 
+    /// I colpi di batteria e i pad: sul canale 7 le note do re mi fa sol la fanno suonare le tracce 1-6 alla loro
+    /// frequenza (cc 89), come dice la tabella MIDI ufficiale («channel 7 · c…a · track 1-6 · parameter»). Sui
+    /// canali 1-6 invece l'altezza la decide la nota e la frequenza non conta: per questo la leva della frequenza
+    /// non cambiava il suono (9/10/2026). Il 6/10 la cassa sul canale 7 suonava come un tom perché la sua
+    /// frequenza era rimasta a 64: i preset di cassa la mettono fra 22 e 48.
+    static func drumNote(_ track: Int) -> Int { 60 + [0, 2, 4, 5, 7, 9][max(0, min(5, track - 1))] }
+
     static func noteOn(_ note: Int, channel: Int, velocity: Int = 100) -> [UInt8] {
         [0x90 | UInt8((channel - 1) & 0x0F), UInt8(max(0, min(127, note))), UInt8(max(1, min(127, velocity)))]
     }

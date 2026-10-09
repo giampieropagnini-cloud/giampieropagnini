@@ -398,11 +398,11 @@ final class TX6Sequencer {
                 }
             }
             for tr in 1...6 where p.beats[tr - 1][i] {
-                // sul canale della traccia, come la tastiera: lì la nota cambia davvero l'altezza
-                let note = p.padBase
-                now += TX6.noteOn(note, channel: tr)
-                TX6PlayedNotes.shared.add(tr, note)
-                offsAt[n + 1, default: []] += TX6.noteOff(note, channel: tr)
+                // sul canale 7: la traccia suona alla sua frequenza, e la leva della frequenza si sente
+                let note = TX6.drumNote(tr)
+                now += TX6.noteOn(note, channel: TX6.masterChannel)
+                TX6PlayedNotes.shared.add(TX6.masterChannel, note)
+                offsAt[n + 1, default: []] += TX6.noteOff(note, channel: TX6.masterChannel)
                 hit.insert(tr)
             }
         }

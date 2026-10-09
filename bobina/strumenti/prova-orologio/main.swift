@@ -47,10 +47,10 @@ BobinaClock.shared.leave(.po)
 run(0.3)
 
 lock.lock(); let all = got; got.removeAll(); lock.unlock()
-let steps = all.filter { $0.1.contains { (0x90...0x95).contains($0) } }.map { $0.0 }
+let steps = all.filter { $0.1.contains { (0x90...0x96).contains($0) } }.map { $0.0 }
 let barStarts = all.filter { pkt in
     // il primo passo della battuta ha due note on (tracce 1 e 2)
-    pkt.1.enumerated().filter { (0x90...0x95).contains($0.element) }.count == 2
+    pkt.1.enumerated().filter { (0x90...0x96).contains($0.element) }.count == 2
 }.map { $0.0 }
 let nearest = barStarts.map { t in t > joinTime ? io.ms(ticks: t - joinTime) : io.ms(ticks: joinTime - t) }.min() ?? -1
 print(String(format: "1. l'altra sezione entra al battito %.0f: il più vicino inizio di battuta del TX-6 è a %.3f ms", first, nearest))

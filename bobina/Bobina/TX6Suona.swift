@@ -73,15 +73,7 @@ struct TX6PlayPanel: View {
                     .accessibilityLabel("pad traccia \(t)")
                 }
             }
-            HStack(spacing: 4) {
-                Text("pad a")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(Palette.dim)
-                ForEach([24, 36, 48, 60, 72], id: \.self) { b in
-                    TX6Mini(text: "do\(b / 12 - 1)", on: tx.padBase == b) { tx.padBase = b }
-                        .accessibilityLabel("pad all'ottava do\(b / 12 - 1)")
-                }
-            }
+            TX6Label("Pad e batteria suonano ogni traccia alla sua frequenza: si accorda in strumenti → frequenza.")
         }
     }
 }
@@ -145,7 +137,7 @@ struct TX6InstrumentPanel: View {
                 LazyVGrid(columns: five, spacing: 4) {
                     ForEach(TX6DrumPanel.soundOrder, id: \.self) { i in
                         TX6Mini(text: TX6.sounds[i], on: TX6.soundIndex(tx.value(t, .sound)) == i) {
-                            tx.set(t, .sound, TX6.soundValue(i))
+                            tx.setSound(t, i)
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { tx.hitPad(t) }
                         }
                         .accessibilityLabel("suono \(TX6.sounds[i])")
