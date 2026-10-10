@@ -15,6 +15,17 @@ struct PlaydateTabs: View {
                     PlaydateBanner()
                     PlaydateStatusStrip()
 
+                    Card(title: "le note di Crea",
+                         note: "Bobina suona la traccia scelta del TX-6 anche sul Playdate, a tempo. Per sentirla solo sul Playdate metti quella traccia su «suono MIDI» (Crea → batteria → riga 6). Prima della prova lunga del TX-6 rimetti la pronta di melodia.") {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 56), spacing: 8)], alignment: .leading, spacing: 8) {
+                            Chip(text: "spento", on: link.creaTrack == 0, color: Playdate.color) { link.creaTrack = 0 }
+                            ForEach(1...6, id: \.self) { t in
+                                Chip(text: "\(t)", on: link.creaTrack == t, color: Playdate.color) { link.creaTrack = t }
+                                    .accessibilityLabel("traccia \(t) al Playdate")
+                            }
+                        }
+                    }
+
                     Card(title: "da quale macchina",
                          note: "Le note che questa macchina manda a Bobina vanno anche al Playdate. Sul TX-6: una traccia col suono MIDI.") {
                         LazyVGrid(columns: grid, alignment: .leading, spacing: 8) {
@@ -23,7 +34,7 @@ struct PlaydateTabs: View {
                                 Chip(text: name, on: link.sourceName == name, color: Playdate.color) { link.sourceName = name }
                             }
                         }
-                        if !link.sourceName.isEmpty && !link.sources.contains(link.sourceName) {
+                        if !link.sourceName.isEmpty && !link.sources.contains(where: { $0 == link.sourceName || (PlaydateLink.family(of: $0) != nil && PlaydateLink.family(of: $0) == PlaydateLink.family(of: link.sourceName)) }) {
                             Text("\(link.sourceName) adesso non è collegato: appena torna, Bobina lo riascolta.")
                                 .font(.footnote)
                                 .foregroundStyle(Palette.dim)

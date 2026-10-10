@@ -515,6 +515,14 @@ final class TX6Engine: ObservableObject {
             let fresh = dest != 0 && dest != io.destination
             io.use(destination: dest, source: src)
             objectWillChange.send()
+            #if DEBUG
+            // nel registro: se il driver vuole i messaggi in anticipo (0 = CoreMIDI li tiene e li consegna all'istante giusto)
+            if fresh {
+                var advance: Int32 = -1
+                MIDIObjectGetIntegerProperty(dest, kMIDIPropertyAdvanceScheduleTimeMuSec, &advance)
+                trace("TX-6: \(connectedName), anticipo chiesto dal driver \(advance) µs, bluetooth \(viaBluetooth ? "sì" : "no")")
+            }
+            #endif
             // appena collegato: spegne le note rimaste accese da prima (un'app chiusa a metà nota non manda lo spegnimento)
             if fresh { DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in self?.allNotesOff() } }
         }
@@ -539,12 +547,21 @@ final class TX6Engine: ObservableObject {
         for k in notes.sorted() { bytes += TX6.noteOff(k & 0x7F, channel: k >> 8) }
         // niente cc 123 («tutte le note spente»): non è nella tabella del TX-6, e con lui il TX-6 si bloccava
         // (9/10/2026). Il tasto «silenzio» è tolto; questo spegnimento parte solo da solo, al collegamento.
-        // a pacchetti piccoli, uno ogni 20 ms
-        let chunks = stride(from: 0, to: bytes.count, by: 24).map { Array(bytes[$0..<min(bytes.count, $0 + 24)]) }
-        for (i, c) in chunks.enumerated() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.02) { [weak self] in
-                guard let self = self, self.io.destination != 0 else { return }
-                self.io.send(c)
+        let chunks: [[UInt8]]
+        if viaBluetooth {
+            // col bluetooth un canale per gruppo, uno ogni 25 ms, dopo le note già preparate (TX6Wire): il 10/10/2026
+            // tre pacchetti di otto canali mescolati, partiti appena collegato col ritmo acceso, l'avevano piantato subito
+            chunks = TX6Wire.groups(bytes, max: TX6Sequencer.chunkMessages).map { $0.bytes }
+            sequencer.update(makePlan())
+            sequencer.sendPaced(TX6Wire.messages(bytes))
+        } else {
+            // a pacchetti piccoli, uno ogni 20 ms
+            chunks = stride(from: 0, to: bytes.count, by: 24).map { Array(bytes[$0..<min(bytes.count, $0 + 24)]) }
+            for (i, c) in chunks.enumerated() {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.02) { [weak self] in
+                    guard let self = self, self.io.destination != 0 else { return }
+                    self.io.send(c)
+                }
             }
         }
         held.removeAll()
@@ -1341,6 +1358,8 @@ final class TX6Engine: ObservableObject {
         p.pumpRelease = pumpRelease
         p.patternID = currentPatternID
         p.swing = swing
+        p.bluetooth = viaBluetooth
+        p.oneShot = (1...6).map { isDrumSound($0) }
         // il cancello vince sulla pompa: le tracce del cancello non pompano
         p.pumpTops = pumpTracks.sorted().filter { !(gateOn && gateTracks.contains($0)) }.map { tr in
             (track: tr, top: silenced(tr) ? 0 : Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))

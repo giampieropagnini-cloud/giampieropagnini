@@ -520,6 +520,27 @@ final class OPZEngine: ObservableObject {
         send(OPZ.cc(cc, v, channel: track))
     }
 
+    /// Lo slider di una manopola (per il QuadStick): il valore si vede subito, il CC parte al massimo ogni 30 ms
+    /// (il bluetooth non si intasa) e l'ultimo valore parte sempre.
+    private var slideLast: [Int: Date] = [:]
+    private var slidePending: [Int: DispatchWorkItem] = [:]
+
+    func slide(_ cc: Int, _ v: Int, track: Int) {
+        let v = max(0, min(127, v))
+        values[track - 1][cc - 1] = v
+        let key = track * 128 + cc
+        slidePending[key]?.cancel()
+        let wait = 0.03 - Date().timeIntervalSince(slideLast[key] ?? .distantPast)
+        let work = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.slideLast[key] = Date()
+            self.slidePending[key] = nil
+            self.io.send(OPZ.cc(cc, self.values[track - 1][cc - 1], channel: track))
+        }
+        slidePending[key] = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + max(0, wait), execute: work)
+    }
+
     /// Un passo su o giù coi CC relativi: l'OP-Z parte dal valore che ha davvero.
     /// Un passo relativo dell'OP-Z è minuscolo (6/10/2026: con un messaggio solo «non vedo cambiamenti»):
     /// ogni tocco ne manda 8, in un pacchetto solo.
@@ -670,6 +691,8 @@ final class OPZEngine: ObservableObject {
     /// L'ultima sequenza pronta caricata, per mostrarla accesa.
     @Published private(set) var presetName: String?
     @Published private(set) var canUndoPreset = false
+    /// Il tempo del disco dell'ultima sequenza pronta caricata: «metti N bpm» lo mette con un tocco.
+    @Published private(set) var presetBPM: Int?
 
     private struct PresetUndo {
         var steps: [[[Int]]]
@@ -713,6 +736,7 @@ final class OPZEngine: ObservableObject {
         gates[createPattern - 1] = g
         if presetTempo { setBPM(Double(p.bpm)) }
         presetName = p.name
+        presetBPM = p.bpm
         logText("batteria pronta: \(p.name)")
     }
 
@@ -745,6 +769,7 @@ final class OPZEngine: ObservableObject {
         }
         if presetTempo { setBPM(Double(p.bpm)) }
         presetName = p.name
+        presetBPM = p.bpm
         logText("melodia pronta: \(p.name)")
     }
 
@@ -897,7 +922,7 @@ final class OPZEngine: ObservableObject {
 
     /// Volume di una traccia: 4 passi del CC relativo (CC 47) in un pacchetto solo.
     func volumeNudge(_ track: Int, up: Bool) {
-        gainNudge(16, up: up, track: track)
+        send((0..<4).flatMap { _ in OPZ.cc(16 + 31, up ? 1 : 127, channel: track) })
     }
 
     /// Un guadagno (il volume) si muove solo a passi piccoli: 2 passi relativi per tocco, mai un valore assoluto.

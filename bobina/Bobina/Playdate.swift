@@ -80,6 +80,11 @@ final class PlaydateLink: ObservableObject {
     @Published var clockOn: Bool {
         didSet { UserDefaults.standard.set(clockOn, forKey: Keys.clock); updateFilter() }
     }
+    /// Le note che Crea manda al TX-6 su questa traccia (canale 1-6) suonano anche sul Playdate. 0 = spento.
+    /// Arrivano da TX6Sequencer.noteTap, con l'istante giusto: non dipendono da cosa il TX-6 rimanda fuori.
+    @Published var creaTrack: Int {
+        didSet { UserDefaults.standard.set(creaTrack, forKey: Keys.crea); updateFilter(); updateTap() }
+    }
     /// La tastiera degli amici (pagina /amici del ponte) può suonare le macchine collegate a Bobina.
     @Published var friendsOn: Bool {
         didSet {
@@ -96,6 +101,7 @@ final class PlaydateLink: ObservableObject {
         static let notes = "bobina.playdate.note"
         static let clock = "bobina.playdate.tempo"
         static let friends = "bobina.playdate.amici"
+        static let crea = "bobina.playdate.crea"
     }
 
     /// Quello che leggono i fili di CoreMIDI e del tempo, copiato sotto lock dal main thread.
@@ -104,6 +110,7 @@ final class PlaydateLink: ObservableObject {
         var clock = false
         var channel = 0
         var friends = false
+        var crea = 0
     }
 
     private let lock = NSLock()
@@ -136,6 +143,7 @@ final class PlaydateLink: ObservableObject {
         clockOn = d.object(forKey: Keys.clock) as? Bool ?? false
         // spento di serie: la regola di Giampiero è «se lo voglio fare metto la spunta»
         friendsOn = d.object(forKey: Keys.friends) as? Bool ?? false
+        creaTrack = d.object(forKey: Keys.crea) as? Int ?? 0
         updateFilter()
 
         MIDIClientCreateWithBlock("Bobina Playdate" as CFString, &client) { [weak self] note in
@@ -149,6 +157,8 @@ final class PlaydateLink: ObservableObject {
         MIDIOutputPortCreate(client, "Playdate uscita" as CFString, &outPort)
         refreshSources()
         setTarget(host)
+
+        updateTap()
 
         let tempo = Thread { [weak self] in self?.clockLoop() }
         tempo.qualityOfService = .userInteractive
@@ -194,17 +204,39 @@ final class PlaydateLink: ObservableObject {
         attachSources()
     }
 
+    /// Ascolta la macchina scelta col cavo o col bluetooth: col cavo il TX-6 si chiama «TX-6», col bluetooth
+    /// «TX-6 Bluetooth» (chat del TX-6, 10/10/2026). Se ci sono tutti e due si ascolta solo il cavo, se no ogni
+    /// nota arriverebbe due volte.
     private func attachSources() {
         for s in attached { MIDIPortDisconnectSource(inPort, s) }
         attached = []
         guard !sourceName.isEmpty else { return }
+        let wanted = PlaydateLink.family(of: sourceName)
+        var matches: [(MIDIEndpointRef, String)] = []
         for i in 0..<MIDIGetNumberOfSources() {
             let s = MIDIGetSource(i)
-            if name(of: s) == sourceName, MIDIPortConnectSource(inPort, s, nil) == noErr {
-                attached.append(s)
-            }
+            let n = name(of: s)
+            if n == sourceName || (wanted != nil && PlaydateLink.family(of: n) == wanted) { matches.append((s, n)) }
         }
-        trace("playdate: ascolto \(sourceName) (\(attached.count))")
+        let cable = matches.filter { !$0.1.lowercased().contains("bluetooth") }
+        if let pick = (cable.first ?? matches.first), MIDIPortConnectSource(inPort, pick.0, nil) == noErr {
+            attached = [pick.0]
+            trace("playdate: ascolto \(pick.1)")
+        } else {
+            trace("playdate: \(sourceName) non collegato")
+        }
+    }
+
+    /// La macchina, qualunque sia il filo: stessi nomi delle loro sezioni.
+    static func family(of name: String) -> String? {
+        let p = MIDIPort(id: 0, ref: 0, name: name)
+        if p.looksLikeTX6 { return "tx6" }
+        if p.looksLikeOPZ { return "opz" }
+        if p.looksLikeNTS1 { return "nts1" }
+        if p.looksLikeM8 { return "m8" }
+        if p.looksLikeTP7 { return "tp7" }
+        if p.looksLikePO { return "po" }
+        return nil
     }
 
     private func name(of endpoint: MIDIEndpointRef) -> String {
@@ -217,7 +249,7 @@ final class PlaydateLink: ObservableObject {
 
     private func updateFilter() {
         lock.lock()
-        filter = Filter(notes: notesOn, clock: clockOn, channel: channel, friends: friendsOn)
+        filter = Filter(notes: notesOn, clock: clockOn, channel: channel, friends: friendsOn, crea: creaTrack)
         lock.unlock()
     }
 
@@ -273,6 +305,39 @@ final class PlaydateLink: ObservableObject {
             if on {
                 self.sentNotes += 1
                 self.lastNote = note
+            }
+        }
+    }
+
+    /// Le note di Crea dal filo del sequencer del TX-6 (aggancio della chat del TX-6, b75239f). Agganciato solo con
+    /// una traccia scelta: spento, `noteTap` resta nil e il sequencer non se ne accorge.
+    private func updateTap() {
+        TX6Sequencer.noteTap = creaTrack == 0 ? nil : { [weak self] channel, note, velocity, at in
+            self?.creaNote(channel, note, velocity, at)
+        }
+    }
+
+    /// Filo del sequencer del TX-6: la nota arriva fino a 150 ms prima che suoni, si manda al ponte nell'istante giusto.
+    private func creaNote(_ channel: Int, _ note: Int, _ velocity: Int, _ at: MIDITimeStamp) {
+        let f = currentFilter
+        guard f.crea != 0, channel == f.crea, (0...127).contains(note) else { return }
+        let now = mach_absolute_time()
+        let wait = at > now ? min(0.3, BobinaClock.ms(at - now) / 1000) : 0
+        let ch = UInt8(max(1, min(16, channel)) - 1)
+        let n = UInt8(note)
+        let on = velocity > 0
+        let bytes: [UInt8] = on ? [0x90 | ch, n, UInt8(max(1, min(127, velocity)))] : [0x80 | ch, n, 0]
+        queue.asyncAfter(deadline: .now() + wait) { [weak self] in
+            guard let self = self else { return }
+            self.sendOnQueue(bytes)
+            self.lock.lock()
+            if on { self.held = n } else if self.held == n { self.held = nil }
+            self.lock.unlock()
+            if on {
+                DispatchQueue.main.async {
+                    self.sentNotes += 1
+                    self.lastNote = n
+                }
             }
         }
     }
