@@ -24,6 +24,10 @@ final class PlaydateLink: ObservableObject {
     @Published private(set) var sources: [String] = []
     @Published private(set) var sentNotes = 0
     @Published private(set) var lastNote: UInt8?
+    /// Le macchine a cui Bobina può parlare: il ponte le mostra sulla tastiera degli amici.
+    @Published private(set) var destinations: [String] = []
+    @Published private(set) var friendNotes = 0
+    @Published private(set) var lastFriend = ""
 
     @Published var host: String {
         didSet { UserDefaults.standard.set(host, forKey: Keys.host); setTarget(host) }
@@ -43,6 +47,14 @@ final class PlaydateLink: ObservableObject {
     @Published var clockOn: Bool {
         didSet { UserDefaults.standard.set(clockOn, forKey: Keys.clock); updateFilter() }
     }
+    /// La tastiera degli amici (pagina /amici del ponte) può suonare le macchine collegate a Bobina.
+    @Published var friendsOn: Bool {
+        didSet {
+            UserDefaults.standard.set(friendsOn, forKey: Keys.friends)
+            updateFilter()
+            if !friendsOn { queue.async { [weak self] in self?.releaseFriends() } }
+        }
+    }
 
     private enum Keys {
         static let host = "bobina.playdate.ponte"
@@ -50,6 +62,7 @@ final class PlaydateLink: ObservableObject {
         static let channel = "bobina.playdate.canale"
         static let notes = "bobina.playdate.note"
         static let clock = "bobina.playdate.tempo"
+        static let friends = "bobina.playdate.amici"
     }
 
     /// Quello che leggono i fili di CoreMIDI e del tempo, copiato sotto lock dal main thread.
@@ -57,19 +70,24 @@ final class PlaydateLink: ObservableObject {
         var notes = true
         var clock = true
         var channel = 0
+        var friends = true
     }
 
     private let lock = NSLock()
     private var filter = Filter()
     private var held: UInt8?  // la nota accesa sul Playdate, da spegnere se Bobina va in secondo piano
+    private var machineList: [String] = []  // copia di `destinations` per il filo della rete, sotto lock
 
     private let queue = DispatchQueue(label: "bobina.playdate", qos: .userInteractive)
     private var conn: NWConnection?  // solo su `queue`
     private var ready = false  // solo su `queue`
     private var target = ""  // solo su `queue`
+    private var envelope: [UInt8]?  // busta SysEx in arrivo dal ponte, solo su `queue`
+    private var friendHeld: [String: Set<UInt16>] = [:]  // note degli amici ancora giù: macchina → canale·nota, solo su `queue`
 
     private var client = MIDIClientRef()
     private var inPort = MIDIPortRef()
+    private var outPort = MIDIPortRef()
     private var attached: [MIDIEndpointRef] = []
     private var status: UInt8 = 0  // running status, solo sul filo di CoreMIDI
     private var data: [UInt8] = []
@@ -81,6 +99,7 @@ final class PlaydateLink: ObservableObject {
         channel = d.object(forKey: Keys.channel) as? Int ?? 0
         notesOn = d.object(forKey: Keys.notes) as? Bool ?? true
         clockOn = d.object(forKey: Keys.clock) as? Bool ?? true
+        friendsOn = d.object(forKey: Keys.friends) as? Bool ?? true
         updateFilter()
 
         MIDIClientCreateWithBlock("Bobina Playdate" as CFString, &client) { [weak self] note in
@@ -91,6 +110,7 @@ final class PlaydateLink: ObservableObject {
         MIDIInputPortCreateWithBlock(client, "Playdate ingresso" as CFString, &inPort) { [weak self] list, _ in
             self?.read(list)
         }
+        MIDIOutputPortCreate(client, "Playdate uscita" as CFString, &outPort)
         refreshSources()
         setTarget(host)
 
@@ -119,6 +139,18 @@ final class PlaydateLink: ObservableObject {
             if !names.contains(n) { names.append(n) }
         }
         sources = names
+        var outs: [String] = []
+        for i in 0..<MIDIGetNumberOfDestinations() {
+            let n = name(of: MIDIGetDestination(i))
+            if !outs.contains(n) { outs.append(n) }
+        }
+        if outs != destinations {
+            destinations = outs
+            lock.lock()
+            machineList = outs
+            lock.unlock()
+            queue.async { [weak self] in self?.sendMachineList() }
+        }
         // la prima volta, se c'è il TX-6, si ascolta lui
         if UserDefaults.standard.string(forKey: Keys.source) == nil, let tx6 = names.first(where: { $0.uppercased().contains("TX-6") }) {
             sourceName = tx6
@@ -149,7 +181,7 @@ final class PlaydateLink: ObservableObject {
 
     private func updateFilter() {
         lock.lock()
-        filter = Filter(notes: notesOn, clock: clockOn, channel: channel)
+        filter = Filter(notes: notesOn, clock: clockOn, channel: channel, friends: friendsOn)
         lock.unlock()
     }
 
@@ -289,6 +321,7 @@ final class PlaydateLink: ObservableObject {
             case .ready:
                 self.ready = true
                 self.publish(true)
+                self.sendMachineList()
                 self.receive(c)
             case .failed, .waiting:
                 self.retry(c)
@@ -302,16 +335,99 @@ final class PlaydateLink: ObservableObject {
         c.start(queue: queue)
     }
 
-    /// Quello che arriva dal ponte per ora si butta (domani: la tastiera degli amici). Serve a sapere se ha chiuso.
+    /// Dal ponte arrivano solo buste SysEx F0 7D <json> F7: {"d": "TX-6", "m": [144, 60, 100]} è una nota
+    /// della tastiera degli amici per quella macchina.
     private func receive(_ c: NWConnection) {
-        c.receive(minimumIncompleteLength: 1, maximumLength: 4096) { [weak self, weak c] _, _, done, error in
+        c.receive(minimumIncompleteLength: 1, maximumLength: 4096) { [weak self, weak c] data, _, done, error in
             guard let self = self, let c = c, c === self.conn else { return }
+            if let data = data {
+                for b in data {
+                    if var part = self.envelope {
+                        if b == 0xF7 {
+                            self.envelope = nil
+                            self.openEnvelope(part)
+                        } else if b >= 0x80 {
+                            self.envelope = nil
+                        } else {
+                            part.append(b)
+                            self.envelope = part
+                        }
+                    } else if b == 0xF0 {
+                        self.envelope = []
+                    }
+                }
+            }
             if done || error != nil { self.retry(c) } else { self.receive(c) }
+        }
+    }
+
+    /// Solo su `queue`.
+    private func openEnvelope(_ part: [UInt8]) {
+        guard part.first == 0x7D, currentFilter.friends,
+              let obj = try? JSONSerialization.jsonObject(with: Data(part.dropFirst())) as? [String: Any],
+              let machine = obj["d"] as? String, let m = obj["m"] as? [Int], m.count == 3 else { return }
+        let bytes = m.map { UInt8(clamping: $0) }
+        let kind = bytes[0] & 0xF0
+        guard kind == 0x80 || kind == 0x90 else { return }
+        midiSend(bytes, to: machine)
+        let key = UInt16(bytes[0] & 0x0F) << 8 | UInt16(bytes[1])
+        if kind == 0x90 && bytes[2] > 0 {
+            friendHeld[machine, default: []].insert(key)
+            let label = "\(machine) · \(PlaydateTabs.noteName(bytes[1]))"
+            DispatchQueue.main.async {
+                self.friendNotes += 1
+                self.lastFriend = label
+            }
+        } else {
+            friendHeld[machine]?.remove(key)
+        }
+    }
+
+    /// Solo su `queue`: il ponte è sparito o gli amici sono stati spenti, le loro note tenute si spengono.
+    private func releaseFriends() {
+        for (machine, keys) in friendHeld {
+            for k in keys { midiSend([0x80 | UInt8(k >> 8), UInt8(k & 0xFF), 0], to: machine) }
+        }
+        friendHeld = [:]
+    }
+
+    /// Solo su `queue`: al ponte la lista delle macchine, per la tastiera degli amici.
+    private func sendMachineList() {
+        lock.lock()
+        let list = machineList
+        lock.unlock()
+        guard let json = try? JSONSerialization.data(withJSONObject: ["macchine": list]),
+              let text = String(data: json, encoding: .utf8) else { return }
+        // dentro una SysEx stanno solo byte sotto 0x80: le lettere accentate diventano \uXXXX
+        var ascii = ""
+        for u in text.unicodeScalars {
+            if u.value < 0x80 { ascii.unicodeScalars.append(u) } else {
+                for unit in String(u).utf16 { ascii += String(format: "\\u%04x", unit) }
+            }
+        }
+        sendOnQueue([0xF0, 0x7D] + Array(ascii.utf8) + [0xF7])
+    }
+
+    /// Manda un messaggio a tutte le destinazioni CoreMIDI con quel nome (il TX-6 col cavo o col bluetooth).
+    private func midiSend(_ bytes: [UInt8], to machine: String) {
+        var buffer = [UInt8](repeating: 0, count: 256)
+        buffer.withUnsafeMutableBytes { raw in
+            let list = raw.baseAddress!.assumingMemoryBound(to: MIDIPacketList.self)
+            let first = MIDIPacketListInit(list)
+            bytes.withUnsafeBufferPointer { b in
+                _ = MIDIPacketListAdd(list, 256, first, 0, b.count, b.baseAddress!)
+            }
+            for i in 0..<MIDIGetNumberOfDestinations() {
+                let d = MIDIGetDestination(i)
+                if name(of: d) == machine { MIDISend(outPort, d, list) }
+            }
         }
     }
 
     /// Solo su `queue`: il ponte non risponde (Mac spento, fuori casa): si riprova ogni 2 secondi.
     private func retry(_ c: NWConnection) {
+        releaseFriends()
+        envelope = nil
         ready = false
         publish(false)
         c.cancel()

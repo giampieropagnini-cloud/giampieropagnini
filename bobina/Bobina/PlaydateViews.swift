@@ -57,6 +57,18 @@ struct PlaydateTabs: View {
                             .foregroundStyle(Palette.dim)
                     }
 
+                    Card(title: "tastiera degli amici",
+                         note: "Un amico sul Wi-Fi di casa inquadra il codice QR in fondo alla pagina del Playdate: gli si apre una tastiera. Le note per le macchine passano da qui, quindi Bobina deve restare aperta.") {
+                        Chip(text: link.friendsOn ? "gli amici suonano le macchine: sì" : "gli amici suonano le macchine: no",
+                             on: link.friendsOn, color: Playdate.color) { link.friendsOn.toggle() }
+                        Text(link.friendNotes == 0 ? "nessuna nota dagli amici" : "note dagli amici: \(link.friendNotes) · ultima: \(link.lastFriend)")
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(Palette.dim)
+                        Text(link.destinations.isEmpty ? "nessuna macchina collegata a Bobina" : "sulla tastiera: Playdate, " + link.destinations.joined(separator: ", "))
+                            .font(.footnote)
+                            .foregroundStyle(Palette.dim)
+                    }
+
                     Card(title: "dov'è il ponte") {
                         LazyVGrid(columns: grid, alignment: .leading, spacing: 8) {
                             ForEach(Playdate.hosts, id: \.1) { h in
