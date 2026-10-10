@@ -186,6 +186,13 @@ final class M8Sequencer {
             // Entro una battuta invece è l'attesa normale della battuta dopo, e si tiene (la lezione del TX-6).
             if notesFrom > nextSixteenth + 16 { notesFrom = nextSixteenth }
         }
+        // di ritorno dal secondo piano (iOS sospende Bobina): i punti persi non si recuperano, niente raffica.
+        // Si riparte da adesso, come se la griglia fosse saltata.
+        if line.time(ofBeat: Double(nextSixteenth) / 4) + io.ticks(ms: 300) < now {
+            nextClockTick = Int((line.beat(at: now) * 24).rounded(.up))
+            nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
+            nextWave = Int((line.beat(at: now) * Double(waveRate)).rounded(.up))
+        }
         let horizon = now + io.ticks(ms: lookahead)
         let (p, knobs, kch) = plan()
 

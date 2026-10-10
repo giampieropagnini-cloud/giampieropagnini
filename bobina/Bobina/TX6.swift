@@ -225,7 +225,12 @@ enum TX6 {
     /// canali 1-6 invece l'altezza la decide la nota e la frequenza non conta: per questo la leva della frequenza
     /// non cambiava il suono (9/10/2026). Il 6/10 la cassa sul canale 7 suonava come un tom perché la sua
     /// frequenza era rimasta a 64: i preset di cassa la mettono fra 22 e 48.
-    static func drumNote(_ track: Int) -> Int { 60 + [0, 2, 4, 5, 7, 9][max(0, min(5, track - 1))] }
+    ///
+    /// Nell'ottava più bassa (do1-la1, 24-33) e non più in quella centrale (60-69): lì suonano le melodie sui canali
+    /// 5 e 6, e il TX-6 sembra confondere gli spegnimenti di note con lo stesso numero su canali diversi. Con batteria
+    /// e melodia insieme si piantava dopo una ventina di secondi (registro del 9/10/2026: sola batteria e sola melodia
+    /// reggono); come la «cassa doppia» del 6/10. Sul canale 7 l'ottava non cambia il suono (provato il 6/10 a do2).
+    static func drumNote(_ track: Int) -> Int { 24 + [0, 2, 4, 5, 7, 9][max(0, min(5, track - 1))] }
 
     static func noteOn(_ note: Int, channel: Int, velocity: Int = 100) -> [UInt8] {
         [0x90 | UInt8((channel - 1) & 0x0F), UInt8(max(0, min(127, note))), UInt8(max(1, min(127, velocity)))]

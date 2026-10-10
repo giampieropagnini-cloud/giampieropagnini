@@ -369,6 +369,9 @@ final class TX6Sequencer {
         // il filo è stato fermo (app sospesa, telefono bloccato): i passi persi non si mandano tutti insieme, era una
         // raffica di centinaia di note che ingolfava il bluetooth del TX-6. Si riparte dal passo di adesso.
         if now > time(ofBeat: Double(nextSixteenth) / 4) &+ io.ticks(ms: 250) {
+            #if DEBUG
+            trace("TX-6 ritmo: il filo era fermo, salto al passo di adesso")
+            #endif
             flushOffs()
             nextSixteenth = Int((line.beat(at: now) * 4).rounded(.up))
             nextClockTick = nextSixteenth * 6
@@ -531,6 +534,11 @@ final class TX6Sequencer {
         // un pacchetto solo per passo: spezzarlo non serve (CoreMIDI riunisce i pezzi con lo stesso istante) e coi pezzi
         // sfasati di 3 ms uno spegnimento poteva arrivare prima della sua nota (9/10/2026)
         if !now.isEmpty { io.send(now, at: t) }
+        #if DEBUG
+        // nel registro [diagnosi]: quanti byte al secondo partono verso il TX-6, e le note tenute in quel momento
+        Diagnostics.shared.count("tx6 byte", now.count)
+        if n % 64 == 0 { trace("TX-6 ritmo: passo \(n), note tenute \(melodyHeld.count), spegnimenti in coda \(offsAt.count)") }
+        #endif
         onStep?(n, t, hit)
     }
 
