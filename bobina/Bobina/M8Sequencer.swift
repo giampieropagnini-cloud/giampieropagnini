@@ -76,6 +76,16 @@ final class M8Sequencer {
         }
     }
 
+    /// Un valore messo a mano (già mandato all'M8): da qui riparte una manopola che poi si muove da sola,
+    /// e non si rimanda uguale.
+    func setKnobValue(_ k: Int, _ v: Int) {
+        queue.async { [self] in
+            guard k >= 0 && k < 8 else { return }
+            knobValues[k] = v
+            knobSent[k] = v
+        }
+    }
+
     private func plan() -> (Plan, [M8Knob], Int) {
         lock.lock()
         defer { lock.unlock() }

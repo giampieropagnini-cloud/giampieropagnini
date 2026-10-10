@@ -138,7 +138,11 @@ final class M8Knobs: ObservableObject {
         e.sequencer.onKnobs = { [weak self] values, step in
             DispatchQueue.main.async {
                 guard let self = self else { return }
-                if self.live.values != values { self.live.values = values }
+                // dal sequencer si prendono solo le manopole che muove lui (onda o passi): quelle ferme le
+                // decidi tu, e un valore messo a mano non deve tornare indietro al sedicesimo dopo
+                var v = self.live.values
+                for k in 0..<min(8, values.count, self.knobs.count) where self.knobs[k].motion != .none { v[k] = values[k] }
+                if self.live.values != v { self.live.values = v }
                 if self.live.step != step { self.live.step = step }
             }
         }
@@ -174,12 +178,32 @@ final class M8Knobs: ObservableObject {
         let v = max(0, min(127, v))
         // se si muoveva, il sequencer ha già consegnato a CoreMIDI fino a 150 ms di onda: il valore a mano
         // parte dopo quelli, se no arriverebbe prima e verrebbe coperto (la lezione dell'OP-Z)
-        let wasMoving = knobs[i].motion != .none
-        if wasMoving { knobs[i].motion = .none }
+        if knobs[i].motion != .none {
+            knobs[i].motion = .none
+            notBefore[i] = e.io.now() + e.io.ticks(ms: 170)
+        }
         live.values[i] = v
         saveValues()
-        e.io.send(M8.cc(knobs[i].cc, v, channel: e.channel), at: wasMoving ? e.io.now() + e.io.ticks(ms: 170) : 0)
+        send(i, v)
         trace("→ M8 cc \(knobs[i].cc) = \(v) (\(knobs[i].name))")
+    }
+
+    /// Per ogni manopola, l'istante prima del quale un valore a mano non parte (vedi `send`).
+    private var notBefore: [MIDITimeStamp] = Array(repeating: 0, count: 8)
+
+    /// Il CC di una manopola. Appena fermata un'onda, i valori a mano partono dopo quelli già in coda e
+    /// in fila fra loro: lo slider ne manda decine al secondo, e se gli ultimi partissero subito il primo,
+    /// ritardato, arriverebbe dopo di loro e l'M8 resterebbe sul valore di quando l'hai toccato.
+    private func send(_ i: Int, _ v: Int) {
+        guard let e = engine else { return }
+        var at: MIDITimeStamp = 0
+        if notBefore[i] > e.io.now() {
+            at = notBefore[i]
+            notBefore[i] += e.io.ticks(ms: 1)
+        }
+        e.io.send(M8.cc(knobs[i].cc, v, channel: e.channel), at: at)
+        // anche il sequencer lo sa: se la manopola poi parte coi passi, riparte da qui
+        e.sequencer.setKnobValue(i, v)
     }
 
     /// Accende o spegne un modo di muoversi (onda o passi) per la manopola scelta.
@@ -212,9 +236,9 @@ final class M8Knobs: ObservableObject {
     /// Scrittura in fila: il valore va nel passo del cursore (e si sente), il cursore va avanti.
     func writeStep(_ v: Int?, length: Int) {
         knobs[selected].steps[cursor] = v
-        if let v = v, let e = engine {
+        if let v = v {
             live.values[selected] = v
-            e.io.send(M8.cc(knobs[selected].cc, v, channel: e.channel))
+            send(selected, v)
         }
         cursor = (cursor + 1) % max(1, length)
     }
