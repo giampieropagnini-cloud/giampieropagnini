@@ -72,7 +72,8 @@ final class M8Mic: ObservableObject {
             active = true
             // un microfono USB vero (es. il CM-15 sull'hub) vince su quello dell'iPhone; l'M8 mai
             let inputs = session.availableInputs ?? []
-            let wanted = inputs.first(where: { $0.portType == .usbAudio && !M8Mic.isM8($0) })
+            // un microfono USB vero, non l'ingresso di una macchina: col cavo anche TX-6, TP-7, OP-Z… sono schede audio
+            let wanted = inputs.first(where: { $0.portType == .usbAudio && !M8Mic.isMachine($0) })
                 ?? inputs.first(where: { $0.portType == .builtInMic })
             if let mic = wanted, session.currentRoute.inputs.first?.uid != mic.uid {
                 try session.setPreferredInput(mic)
@@ -85,6 +86,13 @@ final class M8Mic: ObservableObject {
             trace("M8 microfono: errore \(error)")
         }
         refreshName()
+    }
+
+    /// L'ingresso audio di una macchina di Bobina (mai un microfono per il Controllo Vocale).
+    static func isMachine(_ p: AVAudioSessionPortDescription) -> Bool {
+        let n = p.portName.lowercased()
+        let machines = ["m8", "dirtywave", "tx-6", "tx6", "tp-7", "tp7", "op-z", "opz", "nts-1", "nts1", "pocket", "playdate"]
+        return p.portType == .usbAudio && machines.contains { n.contains($0) }
     }
 
     static func isM8(_ p: AVAudioSessionPortDescription) -> Bool {
