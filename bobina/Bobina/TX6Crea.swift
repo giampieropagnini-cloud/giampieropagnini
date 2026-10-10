@@ -350,6 +350,18 @@ struct TX6MelodyPanel: View {
                     TX6ConfirmMini(text: "svuota tutto") { tx.clearMelodies() }
                         .accessibilityLabel("svuota tutte le melodie")
                 }
+                // il Playdate al posto del synth: le note di questa traccia vanno solo al Playdate, il TX-6 non le suona
+                // e il suo ingresso (col Playdate dentro) passa da solo. Se il Playdate non risponde, suonano sul TX-6.
+                HStack(spacing: 4) {
+                    let onPlaydate = tx.toPlaydate.contains(t)
+                    TX6Mini(text: onPlaydate ? "traccia \(t) al Playdate: sì" : "traccia \(t) al Playdate: no", on: onPlaydate) {
+                        if onPlaydate { tx.toPlaydate.remove(t) } else { tx.toPlaydate.insert(t) }
+                    }
+                    .accessibilityLabel(onPlaydate ? "traccia \(t) torna al TX-6" : "traccia \(t) al Playdate")
+                }
+                if tx.toPlaydate.contains(t) {
+                    TX6Label("Le note della traccia \(t) suonano solo sul Playdate: il synth del TX-6 tace e nel suo ingresso \(t) passa il Playdate. Se il Playdate non risponde, suonano sul TX-6.")
+                }
             }
         }
     }

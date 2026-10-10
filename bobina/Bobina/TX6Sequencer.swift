@@ -80,6 +80,10 @@ final class TX6Sequencer {
         var bluetooth = false
         /// Per ogni traccia: suona un motore di batteria (cassa, rullante, battimani, charleston), che si spegne da solo.
         var oneShot: [Bool] = Array(repeating: false, count: 6)
+        /// Le tracce della melodia che suonano sul Playdate invece che sul TX-6 (Crea → melodia, «traccia al Playdate»):
+        /// le loro note vanno solo a `noteTap`, se il Playdate è pronto. Il TX-6 non le riceve e il synth tace, così il
+        /// suo ingresso (col Playdate dentro) passa da solo.
+        var toPlaydate: Set<Int> = []
     }
 
     /// Un pattern pronto a entrare all'inizio della prossima battuta.
@@ -128,7 +132,8 @@ final class TX6Sequencer {
     /// la nota e il passo in cui va spenta. Una nota nuova sulla stessa traccia spegne prima quella di prima,
     /// così uno spegnimento in ritardo non taglia mai la nota dopo (anche con durate lunghe e note fitte).
     /// `at` è l'istante della nota accesa (può essere fino a 150 ms avanti): lo spegnimento non deve mai partire prima.
-    private var melodyHeld: [Int: (note: Int, until: Int, at: MIDITimeStamp)] = [:]
+    /// `toTX6` è falso per le note mandate solo al Playdate: lo spegnimento va dove è andata la nota.
+    private var melodyHeld: [Int: (note: Int, until: Int, at: MIDITimeStamp, toTX6: Bool)] = [:]
     /// Lo start va nel pacchetto del primo passo, prima del clock e delle note.
     private var startPending = false
     private var clockCount = 0
@@ -242,6 +247,7 @@ final class TX6Sequencer {
                 // di così: la nota dopo della traccia (che non lo contiene più) arriverebbe prima. Col bluetooth ognuno
                 // al suo istante, a 1 ms dall'altro, così CoreMIDI non li riunisce in un pacchetto.
                 if let h = melodyHeld.removeValue(forKey: tr) {
+                    guard h.toTX6 else { Self.tapOnly(tr, h.note, 0, max(start, h.at)); continue }
                     let at = max(start, h.at) + io.ticks(ms: p.bluetooth ? Double(released) : 0)
                     deliver(TX6.noteOff(h.note, channel: tr), at: at)
                     lastOutAt = max(lastOutAt, at)
@@ -287,6 +293,19 @@ final class TX6Sequencer {
     }
     private static let tapLock = NSLock()
     private static var storedTap: ((Int, Int, Int, MIDITimeStamp) -> Void)?
+
+    /// Il Playdate ascolta davvero (ponte collegato e `noteTap` agganciato): lo mette la sezione Playdate. Solo allora le
+    /// tracce in `Plan.toPlaydate` lasciano il TX-6; se il ponte cade, al passo dopo tornano a suonare sul TX-6.
+    static var playdateReady: Bool {
+        get { tapLock.lock(); defer { tapLock.unlock() }; return storedReady }
+        set { tapLock.lock(); storedReady = newValue; tapLock.unlock() }
+    }
+    private static var storedReady = false
+
+    /// Una nota solo per chi ascolta, senza passare dal TX-6.
+    private static func tapOnly(_ channel: Int, _ note: Int, _ velocity: Int, _ at: MIDITimeStamp) {
+        noteTap?(channel, note, velocity, at == 0 ? mach_absolute_time() : at)
+    }
 
     /// Consegna a CoreMIDI, e le note anche a `noteTap` se qualcuno ascolta.
     private func deliver(_ bytes: [UInt8], at time: MIDITimeStamp) {
@@ -534,7 +553,7 @@ final class TX6Sequencer {
         now += offsAt.removeValue(forKey: n) ?? []
         // le note delle melodie che finiscono qui (anche se intanto la melodia è stata spenta)
         for (tr, h) in melodyHeld where h.until <= n {
-            now += TX6.noteOff(h.note, channel: tr)
+            if h.toTX6 { now += TX6.noteOff(h.note, channel: tr) } else { Self.tapOnly(tr, h.note, 0, t) }
             melodyHeld[tr] = nil
         }
         // 0xFE (active sensing) è solo un segnaposto per «è entrato un pattern senza suoni»: non si manda
@@ -581,11 +600,17 @@ final class TX6Sequencer {
                     for d in 1...len where mel[(k + d) % len] != nil { gate = d; break }
                 }
                 if let h = melodyHeld[tr] {
-                    now += TX6.noteOff(h.note, channel: tr)
+                    if h.toTX6 { now += TX6.noteOff(h.note, channel: tr) } else { Self.tapOnly(tr, h.note, 0, t) }
                 }
-                now += TX6.noteOn(note, channel: tr)
-                TX6PlayedNotes.shared.add(tr, note)
-                melodyHeld[tr] = (note, n + max(1, gate), t)
+                // «traccia al Playdate»: la nota va solo al Playdate, se ascolta; se no suona sul TX-6 come sempre
+                if p.toPlaydate.contains(tr) && Self.playdateReady && Self.noteTap != nil {
+                    Self.tapOnly(tr, note, 100, t)
+                    melodyHeld[tr] = (note, n + max(1, gate), t, false)
+                } else {
+                    now += TX6.noteOn(note, channel: tr)
+                    TX6PlayedNotes.shared.add(tr, note)
+                    melodyHeld[tr] = (note, n + max(1, gate), t, true)
+                }
             }
         }
 
@@ -618,7 +643,9 @@ final class TX6Sequencer {
         // per canale (TX6Wire): dentro il gruppo lo spegnimento resta prima della nota nuova, e la nota tenuta segna
         // l'istante vero del suo gruppo, così nessuno spegnimento più tardi può precederla.
         if !now.isEmpty {
-            for (tr, at) in out(now, at: t, p) where melodyHeld[tr]?.at == t { melodyHeld[tr]?.at = at }
+            for (tr, at) in out(now, at: t, p) where melodyHeld[tr]?.at == t && melodyHeld[tr]?.toTX6 == true {
+                melodyHeld[tr]?.at = at
+            }
         }
         #if DEBUG
         // nel registro [diagnosi]: quanti byte al secondo partono verso il TX-6, e le note tenute in quel momento
@@ -642,11 +669,15 @@ final class TX6Sequencer {
     /// Manda tutti gli spegnimenti in attesa. Mentre il ritmo gira (o subito dopo lo stop) vanno dopo le note
     /// già preparate, quindi di serie a 190 ms da adesso (o dopo l'ultimo gruppo, col bluetooth).
     private func flushOffs(at time: MIDITimeStamp? = nil) {
-        let bytes = offsAt.keys.sorted().flatMap { offsAt[$0] ?? [] }
-            + melodyHeld.keys.sorted().flatMap { TX6.noteOff(melodyHeld[$0]!.note, channel: $0) }
+        let when = time ?? afterPrepared()
+        var bytes = offsAt.keys.sorted().flatMap { offsAt[$0] ?? [] }
+        for tr in melodyHeld.keys.sorted() {
+            guard let h = melodyHeld[tr] else { continue }
+            if h.toTX6 { bytes += TX6.noteOff(h.note, channel: tr) } else { Self.tapOnly(tr, h.note, 0, when) }
+        }
         offsAt.removeAll()
         melodyHeld.removeAll()
-        if !bytes.isEmpty { out(bytes, at: time ?? afterPrepared(), plan()) }
+        if !bytes.isEmpty { out(bytes, at: when, plan()) }
     }
 }
 
