@@ -763,9 +763,13 @@ struct M8KnobValueRow: View {
         let i = knobs.selected
         let k = knobs.knobs[i]
         M8KnobRow(name: k.name, value: live.values[i]) { knobs.set(i, $0) }
-        ProgressView(value: Double(live.values[i]), total: 127)
+        // lo slider per il QuadStick, come nelle altre sezioni: si trascina, − e + e i salti restano sopra
+        Slider(value: Binding(get: { Double(live.values[i]) }, set: { v in
+            let n = Int(v.rounded())
+            if n != live.values[i] { knobs.set(i, n) }
+        }), in: 0...127)
             .tint(M8.color)
-            .accessibilityHidden(true)
+            .accessibilityLabel("\(k.name), slider")
         HStack(spacing: 6) {
             M8Label(k.motion == .wave ? "CC \(k.cc) · si muove con l'onda «\(k.shape.label)»" : k.motion == .steps ? "CC \(k.cc) · si muove coi passi" : "CC \(k.cc) · ferma")
             Spacer()
