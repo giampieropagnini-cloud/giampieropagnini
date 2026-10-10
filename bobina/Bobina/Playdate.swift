@@ -17,6 +17,28 @@ enum Playdate {
     static let remote = "http://Opens-Mac-mini.local:8790"
 }
 
+/// Le macchine che la tastiera degli amici può suonare: poche e semplici, quelle dove una nota è solo una nota
+/// (Giampiero, 10/10/2026). Fuori, su consiglio delle loro chat: TP-7 (le note sono salti ai segni e in «segna» li
+/// spostano), Pocket Operator (76-82 sono tasti funzione: si cancella un pattern), M8 (sul canale dei tasti le note
+/// premono shift e muti), TX-6 (a metà della caccia al «synth fisso»), Analogue Pocket (capisce solo il clock).
+struct FriendRule {
+    var channels: ClosedRange<Int> = 1...16
+    /// Una riga per l'amico, sotto il nome della macchina. "" = niente da dire.
+    var hint = ""
+
+    static func of(_ name: String) -> FriendRule? {
+        let p = MIDIPort(id: 0, ref: 0, name: name)
+        if p.looksLikeNTS1 { return FriendRule() }
+        // 9-16 sono le tracce di controllo (nastro, effetti, luci): lì una nota non è una nota
+        if p.looksLikeOPZ { return FriendRule(channels: 1...8, hint: "canale = traccia dell'OP-Z: 1-4 batteria, 5-8 synth") }
+        return nil
+    }
+
+    func allows(_ bytes: [UInt8]) -> Bool {
+        channels.contains(Int(bytes[0] & 0x0F) + 1)
+    }
+}
+
 /// Il filo fra Bobina e il ponte del Playdate. Ha un client CoreMIDI tutto suo: ascolta la macchina scelta senza
 /// toccare la sua sezione (CoreMIDI consegna a tutti quelli che ascoltano, non si ruba niente a nessuno).
 final class PlaydateLink: ObservableObject {
@@ -68,15 +90,16 @@ final class PlaydateLink: ObservableObject {
     /// Quello che leggono i fili di CoreMIDI e del tempo, copiato sotto lock dal main thread.
     private struct Filter {
         var notes = true
-        var clock = true
+        var clock = false
         var channel = 0
-        var friends = true
+        var friends = false
     }
 
     private let lock = NSLock()
     private var filter = Filter()
     private var held: UInt8?  // la nota accesa sul Playdate, da spegnere se Bobina va in secondo piano
     private var machineList: [String] = []  // copia di `destinations` per il filo della rete, sotto lock
+    private var linkUp = false  // il ponte risponde, sotto lock: senza ponte il filo del tempo dorme
 
     private let queue = DispatchQueue(label: "bobina.playdate", qos: .userInteractive)
     private var conn: NWConnection?  // solo su `queue`
@@ -98,8 +121,10 @@ final class PlaydateLink: ObservableObject {
         sourceName = d.string(forKey: Keys.source) ?? ""
         channel = d.object(forKey: Keys.channel) as? Int ?? 0
         notesOn = d.object(forKey: Keys.notes) as? Bool ?? true
-        clockOn = d.object(forKey: Keys.clock) as? Bool ?? true
-        friendsOn = d.object(forKey: Keys.friends) as? Bool ?? true
+        // spento di serie anche il tempo: un filo in più che gira accanto al ritmo di Bobina si accende solo con la spunta
+        clockOn = d.object(forKey: Keys.clock) as? Bool ?? false
+        // spento di serie: la regola di Giampiero è «se lo voglio fare metto la spunta»
+        friendsOn = d.object(forKey: Keys.friends) as? Bool ?? false
         updateFilter()
 
         MIDIClientCreateWithBlock("Bobina Playdate" as CFString, &client) { [weak self] note in
@@ -142,7 +167,7 @@ final class PlaydateLink: ObservableObject {
         var outs: [String] = []
         for i in 0..<MIDIGetNumberOfDestinations() {
             let n = name(of: MIDIGetDestination(i))
-            if !outs.contains(n) { outs.append(n) }
+            if !outs.contains(n), FriendRule.of(n) != nil { outs.append(n) }
         }
         if outs != destinations {
             destinations = outs
@@ -266,7 +291,10 @@ final class PlaydateLink: ObservableObject {
         var running = false
         while true {
             let line = BobinaClock.shared.snapshot()
-            let on = currentFilter.clock && line.running
+            lock.lock()
+            let up = linkUp
+            lock.unlock()
+            let on = currentFilter.clock && line.running && up
             if on {
                 let beat = line.beat(at: mach_absolute_time())
                 if beat >= 0 {
@@ -289,8 +317,15 @@ final class PlaydateLink: ObservableObject {
                 running = false
                 last = nil
             }
-            // spento: un'occhiata ogni 50 ms basta, acceso: ogni millisecondo per stare a tempo
-            usleep(on || running ? 1000 : 50_000)
+            // spento: un'occhiata ogni 100 ms basta; acceso: si dorme fino al prossimo clock (al massimo 5 ms)
+            if on || running {
+                let next = line.time(ofBeat: (Double(last ?? 0) + 1) / 24)
+                let now = mach_absolute_time()
+                let waitMs = next > now ? BobinaClock.ms(next - now) : 0
+                usleep(useconds_t(max(0.5, min(5, waitMs)) * 1000))
+            } else {
+                usleep(100_000)
+            }
         }
     }
 
@@ -368,7 +403,7 @@ final class PlaydateLink: ObservableObject {
               let machine = obj["d"] as? String, let m = obj["m"] as? [Int], m.count == 3 else { return }
         let bytes = m.map { UInt8(clamping: $0) }
         let kind = bytes[0] & 0xF0
-        guard kind == 0x80 || kind == 0x90 else { return }
+        guard kind == 0x80 || kind == 0x90, let rule = FriendRule.of(machine), rule.allows(bytes) else { return }
         midiSend(bytes, to: machine)
         let key = UInt16(bytes[0] & 0x0F) << 8 | UInt16(bytes[1])
         if kind == 0x90 && bytes[2] > 0 {
@@ -385,8 +420,14 @@ final class PlaydateLink: ObservableObject {
 
     /// Solo su `queue`: il ponte è sparito o gli amici sono stati spenti, le loro note tenute si spengono.
     private func releaseFriends() {
+        var delay = 0.0
         for (machine, keys) in friendHeld {
-            for k in keys { midiSend([0x80 | UInt8(k >> 8), UInt8(k & 0xFF), 0], to: machine) }
+            for k in keys {
+                let off: [UInt8] = [0x80 | UInt8(k >> 8), UInt8(k & 0xFF), 0]
+                // col bluetooth mai raffiche: uno ogni 3 ms, meno di 8 ogni 20 ms (la regola del TX-6)
+                queue.asyncAfter(deadline: .now() + delay) { [weak self] in self?.midiSend(off, to: machine) }
+                delay += 0.003
+            }
         }
         friendHeld = [:]
     }
@@ -396,7 +437,9 @@ final class PlaydateLink: ObservableObject {
         lock.lock()
         let list = machineList
         lock.unlock()
-        guard let json = try? JSONSerialization.data(withJSONObject: ["macchine": list]),
+        var hints: [String: String] = [:]
+        for n in list { if let h = FriendRule.of(n)?.hint, !h.isEmpty { hints[n] = h } }
+        guard let json = try? JSONSerialization.data(withJSONObject: ["macchine": list, "regole": hints] as [String: Any]),
               let text = String(data: json, encoding: .utf8) else { return }
         // dentro una SysEx stanno solo byte sotto 0x80: le lettere accentate diventano \uXXXX
         var ascii = ""
@@ -438,6 +481,9 @@ final class PlaydateLink: ObservableObject {
     }
 
     private func publish(_ value: Bool) {
+        lock.lock()
+        linkUp = value
+        lock.unlock()
         DispatchQueue.main.async {
             if self.connected != value { self.connected = value }
         }
