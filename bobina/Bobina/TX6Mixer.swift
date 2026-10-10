@@ -219,7 +219,7 @@ struct TX6FxPanel: View {
 }
 
 /// Tape e freeze: suonano finché FX II è tenuto, e la rotellina li muove (lo scratch).
-/// «tieni» / «lascia», la rotellina (slider per il QuadStick, − e + per la voce), FX II tenuto per una durata
+/// «tieni» / «lascia», la rotellina (barra per il QuadStick, − e + per la voce), FX II tenuto per una durata
 /// a tempo, lo scratch automatico, e quale parametro fa da rotellina.
 struct TX6ScratchPanel: View {
     @EnvironmentObject var tx: TX6Engine
@@ -248,8 +248,7 @@ struct TX6ScratchPanel: View {
                 TX6Mini(text: "−", height: 40) { tx.setWheel(tx.wheel - 8) }
                     .frame(width: 52)
                     .accessibilityLabel("rotellina indietro")
-                Slider(value: Binding(get: { tx.wheel }, set: { tx.setWheel($0) }), in: 0...127)
-                    .tint(Palette.accent)
+                TX6DragBar(value: tx.wheel) { tx.setWheel($0) }
                     .accessibilityLabel("rotellina")
                 TX6Mini(text: "+", height: 40) { tx.setWheel(tx.wheel + 8) }
                     .frame(width: 52)

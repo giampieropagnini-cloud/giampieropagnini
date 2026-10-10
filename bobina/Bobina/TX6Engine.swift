@@ -731,7 +731,7 @@ final class TX6Engine: ObservableObject {
     // MARK: tape e freeze (FX II tenuto, rotellina)
 
     /// Tape e freeze suonano solo finché FX II è tenuto acceso, e intanto la rotellina (select) li muove:
-    /// è lo scratch (misurato da Giampiero l'8/10/2026). Qui «tieni»/«lascia», la rotellina (slider, − e +),
+    /// è lo scratch (misurato da Giampiero l'8/10/2026). Qui «tieni»/«lascia», la rotellina (barra, − e +),
     /// FX II tenuto per una durata a tempo, e lo scratch che porta la rotellina avanti e indietro da solo.
     @Published private(set) var fxHolding = false
     /// Dove sta la rotellina, da 0 a 127.
@@ -742,6 +742,9 @@ final class TX6Engine: ObservableObject {
     }
     private var fxHitID = 0
     private var scratchTimer: DispatchSourceTimer?
+    /// Col bluetooth: quando è partito l'ultimo valore della barra, e se il prossimo è già in attesa.
+    private var wheelSentAt: TimeInterval = 0
+    private var wheelPending = false
 
     /// La rotellina manda il suo parametro senza salvarlo a ogni passo (lo scratch ne manda 40 al secondo).
     private func sendWheel(_ v: Int) {
@@ -754,7 +757,22 @@ final class TX6Engine: ObservableObject {
 
     func setWheel(_ v: Double) {
         wheel = max(0, min(127, v))
-        sendWheel(Int(wheel.rounded()))
+        guard viaBluetooth else { sendWheel(Int(wheel.rounded())); return }
+        // col bluetooth al massimo un valore ogni 25 ms, come lo scratch: trascinata, la barra ne chiederebbe uno a
+        // ogni fotogramma (fino a 120 al secondo), troppi per il bluetooth del TX-6. Parte sempre l'ultimo.
+        let wait = wheelSentAt + TX6Wire.pacedGapMs / 1000 - ProcessInfo.processInfo.systemUptime
+        if wait <= 0 {
+            wheelSentAt = ProcessInfo.processInfo.systemUptime
+            sendWheel(Int(wheel.rounded()))
+        } else if !wheelPending {
+            wheelPending = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + wait) { [weak self] in
+                guard let self = self else { return }
+                self.wheelPending = false
+                self.wheelSentAt = ProcessInfo.processInfo.systemUptime
+                self.sendWheel(Int(self.wheel.rounded()))
+            }
+        }
     }
 
     func holdFx2() {
