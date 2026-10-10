@@ -243,7 +243,7 @@ final class TX6Sequencer {
                 // al suo istante, a 1 ms dall'altro, così CoreMIDI non li riunisce in un pacchetto.
                 if let h = melodyHeld.removeValue(forKey: tr) {
                     let at = max(start, h.at) + io.ticks(ms: p.bluetooth ? Double(released) : 0)
-                    io.send(TX6.noteOff(h.note, channel: tr), at: at)
+                    deliver(TX6.noteOff(h.note, channel: tr), at: at)
                     lastOutAt = max(lastOutAt, at)
                     lastOff = max(lastOff, at)
                     released += 1
@@ -257,7 +257,7 @@ final class TX6Sequencer {
                 }
             var at = released == 0 ? start : (p.bluetooth ? max(start, lastOff) + gap : start + gap)
             for c in chunks {
-                io.send(c, at: at)
+                deliver(c, at: at)
                 lastOutAt = max(lastOutAt, at)
                 at += gap
             }
@@ -278,13 +278,33 @@ final class TX6Sequencer {
         lastOutAt &+ io.ticks(ms: p.bluetooth ? TX6Wire.gapMs : 2)
     }
 
+    /// Per chi vuole sentire le note che il sequencer manda al TX-6 (la sezione Playdate, 10/10/2026): canale (1-16),
+    /// nota, velocità (0 = spenta) e istante CoreMIDI. Chiamato sul filo del sequencer quando la nota è consegnata, fino
+    /// a 150 ms prima che suoni: chi ascolta usa l'istante. Nil di serie: il TX-6 non se ne accorge.
+    static var noteTap: ((_ channel: Int, _ note: Int, _ velocity: Int, _ at: MIDITimeStamp) -> Void)? {
+        get { tapLock.lock(); defer { tapLock.unlock() }; return storedTap }
+        set { tapLock.lock(); storedTap = newValue; tapLock.unlock() }
+    }
+    private static let tapLock = NSLock()
+    private static var storedTap: ((Int, Int, Int, MIDITimeStamp) -> Void)?
+
+    /// Consegna a CoreMIDI, e le note anche a `noteTap` se qualcuno ascolta.
+    private func deliver(_ bytes: [UInt8], at time: MIDITimeStamp) {
+        io.send(bytes, at: time)
+        guard let tap = Self.noteTap else { return }
+        let at = time == 0 ? io.now() : time
+        for m in TX6Wire.messages(bytes) where m.count == 3 && (m[0] & 0xF0 == 0x80 || m[0] & 0xF0 == 0x90) {
+            tap(Int(m[0] & 0x0F) + 1, Int(m[1]), m[0] & 0xF0 == 0x80 ? 0 : Int(m[2]), at)
+        }
+    }
+
     /// Manda al TX-6. Col cavo tutto in un pacchetto, come sempre; col bluetooth un gruppo per canale,
     /// a `TX6Wire.gapMs` uno dall'altro. Restituisce l'istante in cui partono le note di ogni canale.
     @discardableResult
     private func out(_ bytes: [UInt8], at time: MIDITimeStamp, _ p: Plan) -> [Int: MIDITimeStamp] {
         let base = time == 0 ? io.now() : time
         guard p.bluetooth else {
-            io.send(bytes, at: time)
+            deliver(bytes, at: time)
             lastOutAt = max(lastOutAt, base)
             return [:]
         }
@@ -292,7 +312,7 @@ final class TX6Sequencer {
         let groups = TX6Wire.groups(bytes)
         for (k, g) in groups.enumerated() {
             let at = base + io.ticks(ms: TX6Wire.gapMs * Double(k))
-            io.send(g.bytes, at: at)
+            deliver(g.bytes, at: at)
             if !g.isCC { noteTimes[g.channel] = at }
             lastOutAt = max(lastOutAt, at)
         }

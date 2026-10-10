@@ -88,6 +88,11 @@ func check(_ ok: Bool, _ yes: String, _ no: String) {
     if !ok { failures += 1 }
 }
 
+// l'aggancio per il Playdate: deve sentire tutte le note che partono
+let tapLock = NSLock()
+var tapped = 0
+TX6Sequencer.noteTap = { _, _, _, _ in tapLock.lock(); tapped += 1; tapLock.unlock() }
+
 // col bluetooth
 let bt = run(bluetooth: true, seconds: 20)
 let events = bt.enumerated().sorted { ($0.element.t, $0.offset) < ($1.element.t, $1.offset) }.map { $0.element }
@@ -126,6 +131,15 @@ check(lockLate == 0, "il cambio del rullante arriva prima dei colpi", "\(lockLat
 check(monoErrors == 0, "basso e melodia mai due note insieme", "due note insieme \(monoErrors) volte")
 check(stuck == 0, "nessuna nota accesa alla fine", "note rimaste accese: \(on)")
 print("spegnimenti senza nota accesa (innocui, dopo i salti e il salvagente): \(orphanOffs)")
+func isNote(_ m: [UInt8]) -> Bool {
+    guard m.count == 3 else { return false }
+    let kind = m[0] & 0xF0
+    return kind == 0x80 || kind == 0x90
+}
+let sentNotes = bt.flatMap { TX6Wire.messages($0.bytes) }.filter(isNote).count
+tapLock.lock(); let heard = tapped; tapLock.unlock()
+check(heard == sentNotes, "l'aggancio del Playdate sente tutte le note (\(heard))", "l'aggancio ne sente \(heard) su \(sentNotes)")
+TX6Sequencer.noteTap = nil
 
 // col cavo: un pacchetto per passo e gli spegnimenti della batteria, come prima
 let usb = run(bluetooth: false, seconds: 4)
