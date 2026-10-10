@@ -240,8 +240,7 @@ struct NTS1KnobRow: View {
                     .foregroundStyle(NTS1.color)
             }
             // lo slider è per il QuadStick; col Controllo Vocale servono i tasti sotto
-            Slider(value: Binding(get: { Double(value) }, set: { set(Int($0.rounded())) }), in: 0...127)
-                .tint(NTS1.color)
+            NTS1DragBar(value: value, set: set)
                 .accessibilityLabel(knob.label)
             if knob.isGain {
                 // il volume: solo − e + a passi piccoli. Un «max» capito male dal Controllo Vocale
@@ -540,8 +539,7 @@ struct NTS1KnobRowPlain: View {
             Spacer()
             Text("\(value)").font(.system(.footnote, design: .monospaced)).foregroundStyle(NTS1.color)
         }
-        Slider(value: Binding(get: { Double(value) }, set: { set(Int($0.rounded())) }), in: 0...127)
-            .tint(NTS1.color)
+        NTS1DragBar(value: value, set: set)
             .accessibilityLabel(name)
         HStack(spacing: 4) {
             NTS1SmallChip(text: "−") { set(max(0, value - 8)) }.accessibilityLabel("\(name) meno")
@@ -891,6 +889,46 @@ struct NTS1PresetsCard: View {
                         .accessibilityLabel("sequenza \(p.name)")
                     }
                 }
+            }
+        }
+    }
+}
+
+/// Una barra da trascinare, fatta per il QuadStick (copia della TX6DragBar, 10/10/2026): un clic in un punto qualsiasi
+/// porta il pallino lì, e tenendo premuto lo si trascina. Lo slider di Apple si muove solo prendendo il pallino.
+struct NTS1DragBar: View {
+    let value: Int
+    let set: (Int) -> Void
+
+    private let knob: CGFloat = 28
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let f = CGFloat(max(0, min(127, value))) / 127
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color(white: 0.25)).frame(height: 10)
+                Capsule().fill(NTS1.color).frame(width: knob / 2 + (w - knob) * f, height: 10)
+                Circle().fill(Color.white).frame(width: knob, height: knob).offset(x: (w - knob) * f)
+            }
+            .frame(width: w, height: geo.size.height)
+            .contentShape(Rectangle())
+            // da 0 punti: il clic conta subito, e la pagina non scorre quando si parte dalla barra
+            .gesture(DragGesture(minimumDistance: 0).onChanged { g in
+                let x = max(0, min(1, (g.location.x - knob / 2) / max(1, w - knob)))
+                let v = Int((Double(x) * 127).rounded())
+                // solo quando il numero cambia: niente messaggi uguali all'NTS-1
+                if v != value { set(v) }
+            })
+        }
+        .frame(height: 44)
+        .accessibilityElement(children: .ignore)
+        .accessibilityValue("\(value)")
+        .accessibilityAdjustableAction { d in
+            switch d {
+            case .increment: set(min(127, value + 8))
+            case .decrement: set(max(0, value - 8))
+            @unknown default: break
             }
         }
     }
