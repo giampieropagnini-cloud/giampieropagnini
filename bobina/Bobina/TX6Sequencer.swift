@@ -76,6 +76,10 @@ final class TX6Sequencer {
         var patternID: UUID?
         /// Lo swing come sulle MPC: 0,5 dritto, 0,66 terzina. I sedicesimi dispari arrivano in ritardo.
         var swing = 0.5
+        /// Il TX-6 è collegato col bluetooth: ogni passo parte a gruppi, un canale per volta (TX6Wire).
+        var bluetooth = false
+        /// Per ogni traccia: suona un motore di batteria (cassa, rullante, battimani, charleston), che si spegne da solo.
+        var oneShot: [Bool] = Array(repeating: false, count: 6)
     }
 
     /// Un pattern pronto a entrare all'inizio della prossima battuta.
@@ -137,6 +141,9 @@ final class TX6Sequencer {
     /// (per esempio una batteria pronta), il pattern entrato non vale più.
     private var overrideFrom: UUID?
     private let lookahead = 150.0
+    /// L'istante più avanti fra quelli già consegnati a CoreMIDI: gli spegnimenti partono sempre dopo
+    /// (col bluetooth i gruppi di un passo arrivano fino a qualche decina di ms dopo il passo).
+    private var lastOutAt: MIDITimeStamp = 0
 
     init(io: MIDIIO) {
         self.io = io
@@ -185,9 +192,9 @@ final class TX6Sequencer {
             if sendStop { io.send(TX6.stop) }
             // i passi già consegnati a CoreMIDI col loro istante (fino a 150 ms avanti) arrivano dopo lo stop:
             // gli spegnimenti e i muti del cancello vanno mandati dopo di loro, se no le note restano appese
-            let after = io.now() + io.ticks(ms: lookahead + 40)
+            let after = afterPrepared()
             releaseGate(plan(), at: after)
-            flushOffs(at: after)
+            flushOffs(at: plan().bluetooth ? afterPrepared() : after)
         }
     }
 
@@ -207,9 +214,9 @@ final class TX6Sequencer {
                 BobinaClock.shared.leave(.tx6)
             }
             // anche seguendo il TX-6 (lì i passi li dà il suo clock): le note giù si spengono comunque
-            let after = io.now() + io.ticks(ms: lookahead + 40)
+            let after = afterPrepared()
             releaseGate(plan(), at: after)
-            flushOffs(at: after)
+            flushOffs(at: plan().bluetooth ? afterPrepared() : after)
         }
     }
 
@@ -222,20 +229,37 @@ final class TX6Sequencer {
     /// gruppi di otto (24 byte) ogni 20 ms, come lo spegnimento al collegamento che non ha mai bloccato niente.
     func sendPaced(_ messages: [[UInt8]], releasing tracks: Set<Int> = []) {
         queue.async { [self] in
-            let start = io.now()
-            var k = 0
+            let p = plan()
+            var start = io.now()
+            // gli spegnimenti (il salvagente del ■, lo spegnimento al collegamento) vanno dopo l'ultima nota già preparata
+            if messages.contains(where: { ($0.first ?? 0) & 0xF0 == 0x80 }) { start = max(start, afterLast(p)) }
+            let gap = io.ticks(ms: p.bluetooth ? TX6Wire.pacedGapMs : Self.chunkGapMs)
+            var lastOff: MIDITimeStamp = 0
+            var released = 0
             for tr in tracks.sorted() {
                 // la nota può non essere ancora partita (preparata fino a 150 ms avanti): lo spegnimento va dopo di lei,
-                // se no la nota partiva dopo e restava accesa per sempre (il «synth fisso», 9/10/2026)
+                // se no la nota partiva dopo e restava accesa per sempre (il «synth fisso», 9/10/2026). Mai più tardi
+                // di così: la nota dopo della traccia (che non lo contiene più) arriverebbe prima. Col bluetooth ognuno
+                // al suo istante, a 1 ms dall'altro, così CoreMIDI non li riunisce in un pacchetto.
                 if let h = melodyHeld.removeValue(forKey: tr) {
-                    io.send(TX6.noteOff(h.note, channel: tr), at: max(start, h.at))
-                    k = 1
+                    let at = max(start, h.at) + io.ticks(ms: p.bluetooth ? Double(released) : 0)
+                    deliver(TX6.noteOff(h.note, channel: tr), at: at)
+                    lastOutAt = max(lastOutAt, at)
+                    lastOff = max(lastOff, at)
+                    released += 1
                 }
             }
-            for i in stride(from: 0, to: messages.count, by: Self.chunkMessages) {
-                let chunk = messages[i..<min(messages.count, i + Self.chunkMessages)].flatMap { $0 }
-                io.send(chunk, at: start + io.ticks(ms: Self.chunkGapMs * Double(k)))
-                k += 1
+            // col bluetooth: un canale per gruppo, al massimo otto comandi, uno ogni 25 ms (TX6Wire)
+            let chunks: [[UInt8]] = p.bluetooth
+                ? TX6Wire.groups(messages.flatMap { $0 }, max: Self.chunkMessages).map { $0.bytes }
+                : stride(from: 0, to: messages.count, by: Self.chunkMessages).map {
+                    messages[$0..<min(messages.count, $0 + Self.chunkMessages)].flatMap { $0 }
+                }
+            var at = released == 0 ? start : (p.bluetooth ? max(start, lastOff) + gap : start + gap)
+            for c in chunks {
+                deliver(c, at: at)
+                lastOutAt = max(lastOutAt, at)
+                at += gap
             }
         }
     }
@@ -243,6 +267,60 @@ final class TX6Sequencer {
     /// Quanti messaggi per pacchetto e ogni quanto, per non ingolfare il bluetooth del TX-6.
     static let chunkMessages = 8
     static let chunkGapMs = 20.0
+
+    /// Fra quanto partono gli spegnimenti dopo uno stop: dopo i passi già preparati (150 ms) e dopo l'ultimo gruppo.
+    private func afterPrepared() -> MIDITimeStamp {
+        max(io.now() + io.ticks(ms: lookahead + 40), afterLast(plan()))
+    }
+
+    /// Subito dopo l'ultima cosa consegnata: col bluetooth un intervallo intero dopo, così non viaggiano insieme.
+    private func afterLast(_ p: Plan) -> MIDITimeStamp {
+        lastOutAt &+ io.ticks(ms: p.bluetooth ? TX6Wire.gapMs : 2)
+    }
+
+    /// Per chi vuole sentire le note che il sequencer manda al TX-6 (la sezione Playdate, 10/10/2026): canale (1-16),
+    /// nota, velocità (0 = spenta) e istante CoreMIDI. Chiamato sul filo del sequencer quando la nota è consegnata, fino
+    /// a 150 ms prima che suoni: chi ascolta usa l'istante. Nil di serie: il TX-6 non se ne accorge.
+    static var noteTap: ((_ channel: Int, _ note: Int, _ velocity: Int, _ at: MIDITimeStamp) -> Void)? {
+        get { tapLock.lock(); defer { tapLock.unlock() }; return storedTap }
+        set { tapLock.lock(); storedTap = newValue; tapLock.unlock() }
+    }
+    private static let tapLock = NSLock()
+    private static var storedTap: ((Int, Int, Int, MIDITimeStamp) -> Void)?
+
+    /// Consegna a CoreMIDI, e le note anche a `noteTap` se qualcuno ascolta.
+    private func deliver(_ bytes: [UInt8], at time: MIDITimeStamp) {
+        io.send(bytes, at: time)
+        guard let tap = Self.noteTap else { return }
+        let at = time == 0 ? io.now() : time
+        for m in TX6Wire.messages(bytes) where m.count == 3 && (m[0] & 0xF0 == 0x80 || m[0] & 0xF0 == 0x90) {
+            tap(Int(m[0] & 0x0F) + 1, Int(m[1]), m[0] & 0xF0 == 0x80 ? 0 : Int(m[2]), at)
+        }
+    }
+
+    /// Manda al TX-6. Col cavo tutto in un pacchetto, come sempre; col bluetooth un gruppo per canale,
+    /// a `TX6Wire.gapMs` uno dall'altro. Restituisce l'istante in cui partono le note di ogni canale.
+    @discardableResult
+    private func out(_ bytes: [UInt8], at time: MIDITimeStamp, _ p: Plan) -> [Int: MIDITimeStamp] {
+        let base = time == 0 ? io.now() : time
+        guard p.bluetooth else {
+            deliver(bytes, at: time)
+            lastOutAt = max(lastOutAt, base)
+            return [:]
+        }
+        var noteTimes: [Int: MIDITimeStamp] = [:]
+        let groups = TX6Wire.groups(bytes)
+        for (k, g) in groups.enumerated() {
+            let at = base + io.ticks(ms: TX6Wire.gapMs * Double(k))
+            deliver(g.bytes, at: at)
+            if !g.isCC { noteTimes[g.channel] = at }
+            lastOutAt = max(lastOutAt, at)
+        }
+        #if DEBUG
+        Diagnostics.shared.count("tx6 gruppi", groups.count)
+        #endif
+        return noteTimes
+    }
 
     /// Il pattern entra all'inizio della prossima battuta.
     func queuePattern(_ part: Part) { queue.async { [self] in pending = part } }
@@ -477,7 +555,11 @@ final class TX6Sequencer {
                 let note = TX6.drumNote(tr)
                 now += TX6.noteOn(note, channel: TX6.masterChannel)
                 TX6PlayedNotes.shared.add(TX6.masterChannel, note)
-                offsAt[n + 1, default: []] += TX6.noteOff(note, channel: TX6.masterChannel)
+                // col bluetooth un motore di batteria non riceve lo spegnimento: si spegne da solo, e sono un terzo
+                // dei comandi in meno (10/10/2026). Un'onda o un campione sulla riga lo riceve sempre.
+                if !(p.bluetooth && p.oneShot.indices.contains(tr - 1) && p.oneShot[tr - 1]) {
+                    offsAt[n + 1, default: []] += TX6.noteOff(note, channel: TX6.masterChannel)
+                }
                 hit.insert(tr)
             }
         }
@@ -527,13 +609,17 @@ final class TX6Sequencer {
             now += level(0)
             for k in 1...3 {
                 let x = Double(k) / 3
-                io.send(level(x), at: t + io.ticks(ms: stepMs * 4 * p.pumpRelease * x))
+                out(level(x), at: t + io.ticks(ms: stepMs * 4 * p.pumpRelease * x), p)
             }
         }
 
-        // un pacchetto solo per passo: spezzarlo non serve (CoreMIDI riunisce i pezzi con lo stesso istante) e coi pezzi
-        // sfasati di 3 ms uno spegnimento poteva arrivare prima della sua nota (9/10/2026)
-        if !now.isEmpty { io.send(now, at: t) }
+        // col cavo un pacchetto solo per passo: spezzarlo non serve (CoreMIDI riunisce i pezzi con lo stesso istante) e coi
+        // pezzi sfasati di 3 ms uno spegnimento poteva arrivare prima della sua nota (9/10/2026). Col bluetooth un gruppo
+        // per canale (TX6Wire): dentro il gruppo lo spegnimento resta prima della nota nuova, e la nota tenuta segna
+        // l'istante vero del suo gruppo, così nessuno spegnimento più tardi può precederla.
+        if !now.isEmpty {
+            for (tr, at) in out(now, at: t, p) where melodyHeld[tr]?.at == t { melodyHeld[tr]?.at = at }
+        }
         #if DEBUG
         // nel registro [diagnosi]: quanti byte al secondo partono verso il TX-6, e le note tenute in quel momento
         Diagnostics.shared.count("tx6 byte", now.count)
@@ -550,16 +636,90 @@ final class TX6Sequencer {
             bytes += TX6.cc(TX6.ccMute, p.mutes[tr - 1] ? 127 : 0, channel: tr)
             bytes += TX6.cc(TX6.Param.volume.cc, p.volumes[tr - 1], channel: tr)
         }
-        if !bytes.isEmpty { io.send(bytes, at: time) }
+        if !bytes.isEmpty { out(bytes, at: time, p) }
     }
 
     /// Manda tutti gli spegnimenti in attesa. Mentre il ritmo gira (o subito dopo lo stop) vanno dopo le note
-    /// già preparate, quindi di serie a 190 ms da adesso.
+    /// già preparate, quindi di serie a 190 ms da adesso (o dopo l'ultimo gruppo, col bluetooth).
     private func flushOffs(at time: MIDITimeStamp? = nil) {
         let bytes = offsAt.keys.sorted().flatMap { offsAt[$0] ?? [] }
             + melodyHeld.keys.sorted().flatMap { TX6.noteOff(melodyHeld[$0]!.note, channel: $0) }
         offsAt.removeAll()
         melodyHeld.removeAll()
-        if !bytes.isEmpty { io.send(bytes, at: time ?? io.now() + io.ticks(ms: lookahead + 40)) }
+        if !bytes.isEmpty { out(bytes, at: time ?? afterPrepared(), plan()) }
+    }
+}
+
+/// Il filo bluetooth verso il TX-6. Il 10/10/2026, con batteria e melodia insieme, il TX-6 col bluetooth rallentava
+/// (Bobina a 92, lui sempre più lento), poi restava una nota accesa e non rispondeva più; col cavo mai, neanche a bpm
+/// alti. Bobina mandava circa 20 comandi al secondo, ogni passo in un pacchetto con quattro o cinque canali
+/// mescolati; sola batteria (due tipi di comando per pacchetto) e sola melodia reggevano. Col bluetooth quindi:
+/// un pacchetto ha un canale solo, e i colpi dei motori di batteria non ricevono lo spegnimento.
+enum TX6Wire {
+    struct Group {
+        /// Il canale (1-16), 0 per l'orologio e lo start.
+        var channel: Int
+        /// Comandi (cc) e non note: partono prima delle note, così un passo con manopola cambia il suono prima del colpo.
+        var isCC: Bool
+        var bytes: [UInt8]
+    }
+
+    /// Fra un gruppo e l'altro dello stesso passo: più di un intervallo del bluetooth (7,5-11,25 ms), così ogni gruppo
+    /// viaggia da solo.
+    static let gapMs = 12.0
+    /// Fra un gruppo e l'altro dei cambi di suono e degli spegnimenti fuori dal ritmo.
+    static let pacedGapMs = 25.0
+
+    /// I messaggi uno per uno (Bobina scrive sempre lo stato, mai lo stato sottinteso).
+    static func messages(_ bytes: [UInt8]) -> [[UInt8]] {
+        var out: [[UInt8]] = []
+        var i = 0
+        while i < bytes.count {
+            let s = bytes[i]
+            guard s >= 0x80 else { i += 1; continue }
+            var len: Int
+            switch s {
+            case 0xC0...0xDF, 0xF1, 0xF3: len = 2
+            case 0x80...0xBF, 0xE0...0xEF, 0xF2: len = 3
+            case 0xF0:
+                var j = i + 1
+                while j < bytes.count && bytes[j] != 0xF7 { j += 1 }
+                len = j + 1 - i
+            default: len = 1
+            }
+            len = min(len, bytes.count - i)
+            out.append(Array(bytes[i..<(i + len)]))
+            i += len
+        }
+        return out
+    }
+
+    /// Un gruppo per canale: prima orologio e start, poi i comandi traccia per traccia, poi le note del canale 7 (la
+    /// batteria, che dà il tempo), poi le note delle altre tracce. Dentro un gruppo l'ordine resta quello di prima
+    /// (lo spegnimento della nota vecchia prima della nota nuova). Al massimo `perGroup` messaggi per gruppo.
+    static func groups(_ bytes: [UInt8], max perGroup: Int = .max) -> [Group] {
+        var order: [Int] = []
+        var byKey: [Int: [[UInt8]]] = [:]
+        for m in messages(bytes) {
+            let s = m[0]
+            let key = s >= 0xF0 ? -1 : (s & 0xF0 == 0xB0 ? Int(s & 0x0F) : 16 + Int(s & 0x0F))
+            if byKey[key] == nil { order.append(key) }
+            byKey[key, default: []].append(m)
+        }
+        let drums = 16 + TX6.masterChannel - 1
+        func rank(_ k: Int) -> Int { k < 0 ? 0 : k < 16 ? 1 : k == drums ? 2 : 3 }
+        let keys = order.enumerated()
+            .sorted { (rank($0.element), $0.offset) < (rank($1.element), $1.offset) }
+            .map { $0.element }
+        var out: [Group] = []
+        let size = Swift.max(1, perGroup)
+        for k in keys {
+            let ms = byKey[k] ?? []
+            for i in stride(from: 0, to: ms.count, by: size) {
+                out.append(Group(channel: k < 0 ? 0 : k % 16 + 1, isCC: (0..<16).contains(k),
+                                 bytes: ms[i..<Swift.min(ms.count, i + size)].flatMap { $0 }))
+            }
+        }
+        return out
     }
 }

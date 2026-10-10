@@ -226,10 +226,10 @@ enum TX6 {
     /// non cambiava il suono (9/10/2026). Il 6/10 la cassa sul canale 7 suonava come un tom perché la sua
     /// frequenza era rimasta a 64: i preset di cassa la mettono fra 22 e 48.
     ///
-    /// Nell'ottava più bassa (do1-la1, 24-33) e non più in quella centrale (60-69): lì suonano le melodie sui canali
-    /// 5 e 6, e il TX-6 sembra confondere gli spegnimenti di note con lo stesso numero su canali diversi. Con batteria
-    /// e melodia insieme si piantava dopo una ventina di secondi (registro del 9/10/2026: sola batteria e sola melodia
-    /// reggono); come la «cassa doppia» del 6/10. Sul canale 7 l'ottava non cambia il suono (provato il 6/10 a do2).
+    /// Nell'ottava più bassa (do1-la1, 24-33) e non più in quella centrale (60-69), lontane dalle note delle melodie
+    /// sui canali 5 e 6. Il sospetto (spegnimenti confusi fra canali) era sbagliato: il 10/10/2026 il TX-6 si piantava
+    /// lo stesso, solo col bluetooth e mai col cavo (vedi TX6Wire). L'ottava bassa resta: sul canale 7 l'ottava non
+    /// cambia il suono (provato il 6/10 a do2).
     static func drumNote(_ track: Int) -> Int { 24 + [0, 2, 4, 5, 7, 9][max(0, min(5, track - 1))] }
 
     static func noteOn(_ note: Int, channel: Int, velocity: Int = 100) -> [UInt8] {
