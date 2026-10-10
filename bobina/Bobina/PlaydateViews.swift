@@ -67,6 +67,10 @@ struct PlaydateTabs: View {
                         Text(link.destinations.isEmpty ? "nessuna macchina collegata a Bobina" : "sulla tastiera: Playdate, " + link.destinations.joined(separator: ", "))
                             .font(.footnote)
                             .foregroundStyle(Palette.dim)
+                        Text("Agli amici si offrono solo NTS-1 e OP-Z (tracce 1-8). Attento: se l'OP-Z sta registrando (REC + PLAY), le note degli amici finiscono nel suo pattern.")
+                            .font(.footnote)
+                            .foregroundStyle(Palette.dim)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     Card(title: "dov'è il ponte") {

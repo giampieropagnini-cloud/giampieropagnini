@@ -23,19 +23,30 @@ enum Playdate {
 /// premono shift e muti), TX-6 (a metà della caccia al «synth fisso»), Analogue Pocket (capisce solo il clock).
 struct FriendRule {
     var channels: ClosedRange<Int> = 1...16
+    /// La macchina ascolta un canale solo: le note degli amici vanno lì, qualunque canale abbiano scelto.
+    var fixedChannel: Int? = nil
     /// Una riga per l'amico, sotto il nome della macchina. "" = niente da dire.
     var hint = ""
 
     static func of(_ name: String) -> FriendRule? {
         let p = MIDIPort(id: 0, ref: 0, name: name)
-        if p.looksLikeNTS1 { return FriendRule() }
+        if p.looksLikeNTS1 {
+            // l'NTS-1 ascolta solo il suo canale globale, che la sezione NTS-1 legge dalla macchina
+            let channel = UserDefaults.standard.object(forKey: "bobina.nts1.canale") as? Int ?? 1
+            return FriendRule(fixedChannel: max(1, min(16, channel)), hint: "l'NTS-1 suona una nota alla volta")
+        }
         // 9-16 sono le tracce di controllo (nastro, effetti, luci): lì una nota non è una nota
         if p.looksLikeOPZ { return FriendRule(channels: 1...8, hint: "canale = traccia dell'OP-Z: 1-4 batteria, 5-8 synth") }
         return nil
     }
 
-    func allows(_ bytes: [UInt8]) -> Bool {
-        channels.contains(Int(bytes[0] & 0x0F) + 1)
+    /// La nota com'è da mandare, o nil se su questa macchina non deve passare.
+    func adapt(_ bytes: [UInt8]) -> [UInt8]? {
+        var b = bytes
+        if let f = fixedChannel { b[0] = (b[0] & 0xF0) | UInt8(f - 1) }
+        guard channels.contains(Int(b[0] & 0x0F) + 1) else { return nil }
+        if b[0] & 0xF0 == 0x90 { b[2] = min(b[2], 126) }  // velocity sotto 127, per sicurezza (chat dell'NTS-1)
+        return b
     }
 }
 
@@ -401,9 +412,9 @@ final class PlaydateLink: ObservableObject {
         guard part.first == 0x7D, currentFilter.friends,
               let obj = try? JSONSerialization.jsonObject(with: Data(part.dropFirst())) as? [String: Any],
               let machine = obj["d"] as? String, let m = obj["m"] as? [Int], m.count == 3 else { return }
-        let bytes = m.map { UInt8(clamping: $0) }
-        let kind = bytes[0] & 0xF0
-        guard kind == 0x80 || kind == 0x90, let rule = FriendRule.of(machine), rule.allows(bytes) else { return }
+        let raw = m.map { UInt8(clamping: $0) }
+        let kind = raw[0] & 0xF0
+        guard kind == 0x80 || kind == 0x90, let rule = FriendRule.of(machine), let bytes = rule.adapt(raw) else { return }
         midiSend(bytes, to: machine)
         let key = UInt16(bytes[0] & 0x0F) << 8 | UInt16(bytes[1])
         if kind == 0x90 && bytes[2] > 0 {
