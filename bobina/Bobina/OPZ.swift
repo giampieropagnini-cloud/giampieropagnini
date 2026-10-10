@@ -87,8 +87,10 @@ enum OPZ {
     /// Le manopole che sono un guadagno (il volume della traccia). Regola di Giampiero (8/10/2026): mai a salti,
     /// niente min/metà/max, niente passi né onde che le muovano; solo − e + di un passo piccolo alla volta.
     /// Un «max» sentito male dal Controllo Vocale può rompere casse e cuffie.
-    /// Anche le mandate agli effetti (13, 14), come nell'M8: una mandata al massimo può far esplodere il riverbero.
-    static let gainCCs: Set<Int> = [13, 14, 16]
+    /// 10/10/2026: Giampiero ha precisato che per l'OP-Z volume e mandate NON sono pericolosi («lascia anche 0, max
+    /// e gli altri tasti»): la regola vale solo per il guadagno vero, che l'OP-Z non ha. Quindi l'insieme è vuoto;
+    /// resta il meccanismo, se un giorno servisse.
+    static let gainCCs: Set<Int> = []
 
     /// Sull'arp le quattro manopole dell'lfo comandano l'arpeggio.
     static func paramName(_ p: Param, track: Int) -> String {

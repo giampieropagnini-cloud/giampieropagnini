@@ -183,9 +183,19 @@ struct OPZLiveKnobs: View {
             ForEach(OPZLiveKnobs.pages[pg].1, id: \.self) { cc in
                 let name = OPZ.paramName(OPZ.params[cc - 1], track: tr)
                 VStack(alignment: .leading, spacing: 3) {
+                    // il nome e lo slider sulla stessa riga: col QuadStick la manopola si muove scorrendo
                     HStack(spacing: 6) {
                         Circle().fill(OPZLiveKnobs.knob[(cc - 1) % 4]).frame(width: 10, height: 10)
-                        Text(name).font(.system(.subheadline, design: .monospaced))
+                        Text(name)
+                            .font(.system(.subheadline, design: .monospaced))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .frame(width: 112, alignment: .leading)
+                        Slider(value: Binding(get: { Double(opz.value(cc, track: tr)) },
+                                              set: { opz.slide(cc, Int($0.rounded()), track: tr) }),
+                               in: 0...127)
+                            .tint(OPZLiveKnobs.knob[(cc - 1) % 4])
+                            .accessibilityLabel("\(name), barra")
                     }
                     if OPZ.gainCCs.contains(cc) {
                         // un guadagno solo a passi piccoli: niente min, metà, max (regola dell'8/10/2026)

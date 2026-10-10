@@ -495,6 +495,10 @@ struct OPZPresetList: View {
             OPZChip(text: "annulla", height: 36) { opz.undoPreset() }
                 .disabled(!opz.canUndoPreset)
                 .accessibilityLabel("annulla la sequenza pronta")
+            if let b = opz.presetBPM {
+                OPZChip(text: "metti \(b) bpm", on: Int(opz.bpm.rounded()) == b, height: 36) { opz.setBPM(Double(b)) }
+                    .accessibilityLabel("metti il tempo a \(b)")
+            }
         }
         LazyVGrid(columns: three, spacing: 4) {
             ForEach(items.indices, id: \.self) { i in
