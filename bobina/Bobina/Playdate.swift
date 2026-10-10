@@ -194,17 +194,39 @@ final class PlaydateLink: ObservableObject {
         attachSources()
     }
 
+    /// Ascolta la macchina scelta col cavo o col bluetooth: col cavo il TX-6 si chiama «TX-6», col bluetooth
+    /// «TX-6 Bluetooth» (chat del TX-6, 10/10/2026). Se ci sono tutti e due si ascolta solo il cavo, se no ogni
+    /// nota arriverebbe due volte.
     private func attachSources() {
         for s in attached { MIDIPortDisconnectSource(inPort, s) }
         attached = []
         guard !sourceName.isEmpty else { return }
+        let wanted = PlaydateLink.family(of: sourceName)
+        var matches: [(MIDIEndpointRef, String)] = []
         for i in 0..<MIDIGetNumberOfSources() {
             let s = MIDIGetSource(i)
-            if name(of: s) == sourceName, MIDIPortConnectSource(inPort, s, nil) == noErr {
-                attached.append(s)
-            }
+            let n = name(of: s)
+            if n == sourceName || (wanted != nil && PlaydateLink.family(of: n) == wanted) { matches.append((s, n)) }
         }
-        trace("playdate: ascolto \(sourceName) (\(attached.count))")
+        let cable = matches.filter { !$0.1.lowercased().contains("bluetooth") }
+        if let pick = (cable.first ?? matches.first), MIDIPortConnectSource(inPort, pick.0, nil) == noErr {
+            attached = [pick.0]
+            trace("playdate: ascolto \(pick.1)")
+        } else {
+            trace("playdate: \(sourceName) non collegato")
+        }
+    }
+
+    /// La macchina, qualunque sia il filo: stessi nomi delle loro sezioni.
+    static func family(of name: String) -> String? {
+        let p = MIDIPort(id: 0, ref: 0, name: name)
+        if p.looksLikeTX6 { return "tx6" }
+        if p.looksLikeOPZ { return "opz" }
+        if p.looksLikeNTS1 { return "nts1" }
+        if p.looksLikeM8 { return "m8" }
+        if p.looksLikeTP7 { return "tp7" }
+        if p.looksLikePO { return "po" }
+        return nil
     }
 
     private func name(of endpoint: MIDIEndpointRef) -> String {

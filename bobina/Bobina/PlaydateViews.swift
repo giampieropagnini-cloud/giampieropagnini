@@ -23,7 +23,7 @@ struct PlaydateTabs: View {
                                 Chip(text: name, on: link.sourceName == name, color: Playdate.color) { link.sourceName = name }
                             }
                         }
-                        if !link.sourceName.isEmpty && !link.sources.contains(link.sourceName) {
+                        if !link.sourceName.isEmpty && !link.sources.contains(where: { $0 == link.sourceName || (PlaydateLink.family(of: $0) != nil && PlaydateLink.family(of: $0) == PlaydateLink.family(of: link.sourceName)) }) {
                             Text("\(link.sourceName) adesso non è collegato: appena torna, Bobina lo riascolta.")
                                 .font(.footnote)
                                 .foregroundStyle(Palette.dim)
