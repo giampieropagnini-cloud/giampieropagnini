@@ -212,7 +212,10 @@ struct TX6FxPanel: View {
                             .accessibilityLabel("FX II su \(TX6.fx2Places[i])")
                     }
                 }
-                TX6Label("Uno alla volta. Se il mix suona ovattato, di solito è il filtro di FX II rimasto acceso.")
+                // con tape e freeze la riga parla di un filtro che non c'è, e senza la pagina sta in uno schermo
+                if !scratchy {
+                    TX6Label("Uno alla volta. Se il mix suona ovattato, di solito è il filtro di FX II rimasto acceso.")
+                }
             }
         }
     }
@@ -244,14 +247,17 @@ struct TX6ScratchPanel: View {
                 TX6Mini(text: "tieni FX II", height: 48) { tx.holdFx2() }
                     .accessibilityLabel("tieni FX II")
             }
+            // la barra per il QuadStick si aggiunge ai tasti per la voce, non li sostituisce (regola di Giampiero, 11/10/2026)
+            TX6DragBar(value: tx.wheel) { tx.setWheel($0) }
+                .accessibilityLabel("rotellina")
             HStack(spacing: 4) {
-                TX6Mini(text: "−", height: 40) { tx.setWheel(tx.wheel - 8) }
-                    .frame(width: 52)
+                TX6Mini(text: "−") { tx.setWheel(tx.wheel - 8) }
                     .accessibilityLabel("rotellina indietro")
-                TX6DragBar(value: tx.wheel) { tx.setWheel($0) }
-                    .accessibilityLabel("rotellina")
-                TX6Mini(text: "+", height: 40) { tx.setWheel(tx.wheel + 8) }
-                    .frame(width: 52)
+                ForEach(TX6Jump.plain, id: \.self) { j in
+                    TX6Mini(text: j.label, on: abs(Int(tx.wheel.rounded()) - j.value) <= 4) { tx.setWheel(Double(j.value)) }
+                        .accessibilityLabel("rotellina \(j.spoken)")
+                }
+                TX6Mini(text: "+") { tx.setWheel(tx.wheel + 8) }
                     .accessibilityLabel("rotellina avanti")
             }
             HStack(spacing: 4) {
