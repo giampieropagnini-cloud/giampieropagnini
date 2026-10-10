@@ -80,11 +80,14 @@ final class PlaydateLink: ObservableObject {
     @Published var clockOn: Bool {
         didSet { UserDefaults.standard.set(clockOn, forKey: Keys.clock); updateFilter() }
     }
-    /// Le note che Crea manda al TX-6 su questa traccia (canale 1-6) suonano anche sul Playdate. 0 = spento.
-    /// Arrivano da TX6Sequencer.noteTap, con l'istante giusto: non dipendono da cosa il TX-6 rimanda fuori.
-    @Published var creaTrack: Int {
-        didSet { UserDefaults.standard.set(creaTrack, forKey: Keys.crea); updateFilter(); updateTap() }
+    /// Le tracce del TX-6 messe su «suono MIDI» suonano sul Playdate (le note di Crea, da TX6Sequencer.noteTap).
+    /// Una pronta che rimette il suono della traccia zittisce il Playdate da sola; «suono MIDI» lo riaccende.
+    /// Spento di serie: si accende con la spunta.
+    @Published var creaOn: Bool {
+        didSet { UserDefaults.standard.set(creaOn, forKey: Keys.crea); updateFilter(); updateTap() }
     }
+    /// Le tracce (1-6) che Bobina ha messo su «suono MIDI», lette da «bobina.tx6.suoni» (la sezione TX-6).
+    @Published private(set) var midiTracks: [Int] = []
     /// La tastiera degli amici (pagina /amici del ponte) può suonare le macchine collegate a Bobina.
     @Published var friendsOn: Bool {
         didSet {
@@ -101,7 +104,7 @@ final class PlaydateLink: ObservableObject {
         static let notes = "bobina.playdate.note"
         static let clock = "bobina.playdate.tempo"
         static let friends = "bobina.playdate.amici"
-        static let crea = "bobina.playdate.crea"
+        static let crea = "bobina.playdate.crea.midi"
     }
 
     /// Quello che leggono i fili di CoreMIDI e del tempo, copiato sotto lock dal main thread.
@@ -110,7 +113,7 @@ final class PlaydateLink: ObservableObject {
         var clock = false
         var channel = 0
         var friends = false
-        var crea = 0
+        var crea = false
     }
 
     private let lock = NSLock()
@@ -118,6 +121,7 @@ final class PlaydateLink: ObservableObject {
     private var held: UInt8?  // la nota accesa sul Playdate, da spegnere se Bobina va in secondo piano
     private var machineList: [String] = []  // copia di `destinations` per il filo della rete, sotto lock
     private var linkUp = false  // il ponte risponde, sotto lock: senza ponte il filo del tempo dorme
+    private var midiTrackSet: Set<Int> = []  // copia di `midiTracks` per il filo del sequencer, sotto lock
 
     private let queue = DispatchQueue(label: "bobina.playdate", qos: .userInteractive)
     private var conn: NWConnection?  // solo su `queue`
@@ -143,7 +147,7 @@ final class PlaydateLink: ObservableObject {
         clockOn = d.object(forKey: Keys.clock) as? Bool ?? false
         // spento di serie: la regola di Giampiero è «se lo voglio fare metto la spunta»
         friendsOn = d.object(forKey: Keys.friends) as? Bool ?? false
-        creaTrack = d.object(forKey: Keys.crea) as? Int ?? 0
+        creaOn = d.object(forKey: Keys.crea) as? Bool ?? false
         updateFilter()
 
         MIDIClientCreateWithBlock("Bobina Playdate" as CFString, &client) { [weak self] note in
@@ -159,6 +163,11 @@ final class PlaydateLink: ObservableObject {
         setTarget(host)
 
         updateTap()
+        readMidiTracks()
+        // la sezione TX-6 salva i suoni delle tracce a ogni cambio: una pronta, o «suono MIDI»
+        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.readMidiTracks()
+        }
 
         let tempo = Thread { [weak self] in self?.clockLoop() }
         tempo.qualityOfService = .userInteractive
@@ -249,7 +258,7 @@ final class PlaydateLink: ObservableObject {
 
     private func updateFilter() {
         lock.lock()
-        filter = Filter(notes: notesOn, clock: clockOn, channel: channel, friends: friendsOn, crea: creaTrack)
+        filter = Filter(notes: notesOn, clock: clockOn, channel: channel, friends: friendsOn, crea: creaOn)
         lock.unlock()
     }
 
@@ -312,15 +321,30 @@ final class PlaydateLink: ObservableObject {
     /// Le note di Crea dal filo del sequencer del TX-6 (aggancio della chat del TX-6, b75239f). Agganciato solo con
     /// una traccia scelta: spento, `noteTap` resta nil e il sequencer non se ne accorge.
     private func updateTap() {
-        TX6Sequencer.noteTap = creaTrack == 0 ? nil : { [weak self] channel, note, velocity, at in
+        TX6Sequencer.noteTap = !creaOn ? nil : { [weak self] channel, note, velocity, at in
             self?.creaNote(channel, note, velocity, at)
         }
+    }
+
+    /// Quali tracce sono su «suono MIDI»: lo stesso conto della sezione TX-6 (TX6.soundIndex sul valore mandato),
+    /// così se la tabella dei suoni viene corretta qui segue da sola.
+    private func readMidiTracks() {
+        let saved = UserDefaults.standard.array(forKey: "bobina.tx6.suoni") as? [Int] ?? []
+        let midi = TX6.sounds.firstIndex(of: "MIDI") ?? -1
+        let tracks = saved.enumerated().filter { $0.element >= 0 && TX6.soundIndex($0.element) == midi }.map { $0.offset + 1 }
+        lock.lock()
+        midiTrackSet = Set(tracks)
+        lock.unlock()
+        if tracks != midiTracks { midiTracks = tracks }
     }
 
     /// Filo del sequencer del TX-6: la nota arriva fino a 150 ms prima che suoni, si manda al ponte nell'istante giusto.
     private func creaNote(_ channel: Int, _ note: Int, _ velocity: Int, _ at: MIDITimeStamp) {
         let f = currentFilter
-        guard f.crea != 0, channel == f.crea, (0...127).contains(note) else { return }
+        lock.lock()
+        let isMidi = midiTrackSet.contains(channel)
+        lock.unlock()
+        guard f.crea, isMidi, (0...127).contains(note) else { return }
         let now = mach_absolute_time()
         let wait = at > now ? min(0.3, BobinaClock.ms(at - now) / 1000) : 0
         let ch = UInt8(max(1, min(16, channel)) - 1)
