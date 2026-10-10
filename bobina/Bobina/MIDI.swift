@@ -130,9 +130,14 @@ final class MIDIIO {
                 _ = MIDIPacketListAdd(list, size, first, time, b.count, base)
             }
         }
-        _ = MIDISend(outPort, destination, list)
+        let status = MIDISend(outPort, destination, list)
         #if DEBUG
         Diagnostics.shared.count("MIDI fuori " + label)
+        // un errore di CoreMIDI (per esempio il bluetooth che non accetta più): si vede nel registro [diagnosi]
+        if status != noErr {
+            Diagnostics.shared.count("MIDI errore " + label)
+            trace("MIDISend \(label): errore \(status)")
+        }
         #endif
     }
 
