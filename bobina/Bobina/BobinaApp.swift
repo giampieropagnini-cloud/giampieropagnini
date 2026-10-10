@@ -8,6 +8,7 @@ struct BobinaApp: App {
     @StateObject private var opz = OPZEngine()
     @StateObject private var m8 = M8Engine()
     @StateObject private var nts1 = NTS1Engine()
+    @StateObject private var playdate = PlaydateLink()
 
     init() {
         IOS27.install()
@@ -22,6 +23,7 @@ struct BobinaApp: App {
                 .environmentObject(opz)
                 .environmentObject(m8)
                 .environmentObject(nts1)
+                .environmentObject(playdate)
                 .preferredColorScheme(.dark)
                 .tint(Palette.accent)
                 .onAppear {
@@ -43,7 +45,7 @@ struct BobinaApp: App {
     }
 }
 
-/// La sezione della macchina scelta: TP-7, TX-6, Pocket Operator, OP-Z, M8 o NTS-1 (il tasto in alto a destra le scambia).
+/// La sezione della macchina scelta: TP-7, TX-6, Pocket Operator, OP-Z, M8, NTS-1 o Playdate (il tasto in alto a destra le scambia).
 struct ContentView: View {
     @AppStorage("bobina.macchina") private var machine = "tp7"
 
@@ -54,6 +56,7 @@ struct ContentView: View {
         case "opz": OPZTabs()
         case "m8": M8Tabs()
         case "nts1": NTS1Tabs()
+        case "playdate": PlaydateTabs()
         default: TP7Tabs()
         }
     }
