@@ -239,9 +239,10 @@ struct NTS1KnobRow: View {
                     .font(.system(.footnote, design: .monospaced))
                     .foregroundStyle(NTS1.color)
             }
-            ProgressView(value: Double(value), total: 127)
+            // lo slider è per il QuadStick; col Controllo Vocale servono i tasti sotto
+            Slider(value: Binding(get: { Double(value) }, set: { set(Int($0.rounded())) }), in: 0...127)
                 .tint(NTS1.color)
-                .accessibilityHidden(true)
+                .accessibilityLabel(knob.label)
             if knob.isGain {
                 // il volume: solo − e + a passi piccoli. Un «max» capito male dal Controllo Vocale
                 // può rompere casse e cuffie (regola di Giampiero, in LEGGIMI)
@@ -539,6 +540,9 @@ struct NTS1KnobRowPlain: View {
             Spacer()
             Text("\(value)").font(.system(.footnote, design: .monospaced)).foregroundStyle(NTS1.color)
         }
+        Slider(value: Binding(get: { Double(value) }, set: { set(Int($0.rounded())) }), in: 0...127)
+            .tint(NTS1.color)
+            .accessibilityLabel(name)
         HStack(spacing: 4) {
             NTS1SmallChip(text: "−") { set(max(0, value - 8)) }.accessibilityLabel("\(name) meno")
             ForEach(NTS1KnobRow.jumps, id: \.0) { j in
@@ -857,6 +861,10 @@ struct NTS1PresetsCard: View {
                     GridChip(text: "annulla") { player.undoPreset() }
                         .accessibilityLabel("annulla la sequenza pronta")
                 }
+            }
+            if let name = player.presetName, let p = NTS1Preset.all.first(where: { $0.name == name }), !player.presetTempo {
+                NTS1SmallChip(text: "metti \(p.bpm) bpm (\(p.name))", height: 40) { player.engine?.setBPM(p.bpm) }
+                    .accessibilityLabel("metti \(p.bpm) bpm")
             }
             ForEach(NTS1Preset.groups, id: \.self) { g in
                 Text(g)
