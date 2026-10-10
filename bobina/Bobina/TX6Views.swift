@@ -6,7 +6,7 @@ import SwiftUI
 struct MachineSwitch: View {
     @AppStorage("bobina.macchina") private var machine = "tp7"
 
-    private let machines = [("tp7", "TP-7"), ("tx6", "TX-6"), ("po", "Pocket Operator"), ("opz", "OP-Z"), ("m8", "M8"), ("nts1", "NTS-1")]
+    private let machines = [("tp7", "TP-7"), ("tx6", "TX-6"), ("po", "Pocket Operator"), ("opz", "OP-Z"), ("m8", "M8"), ("nts1", "NTS-1"), ("playdate", "Playdate")]
 
     var body: some View {
         // un menu con tre tasti, ognuno col suo nome: col Controllo Vocale «passa a…» e poi il nome
