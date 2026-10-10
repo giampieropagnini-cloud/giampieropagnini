@@ -122,6 +122,7 @@ final class PlaydateLink: ObservableObject {
     private var machineList: [String] = []  // copia di `destinations` per il filo della rete, sotto lock
     private var linkUp = false  // il ponte risponde, sotto lock: senza ponte il filo del tempo dorme
     private var midiTrackSet: Set<Int> = []  // copia di `midiTracks` per il filo del sequencer, sotto lock
+    private var listeningTX6 = false  // la macchina ascoltata è il TX-6, sotto lock
 
     private let queue = DispatchQueue(label: "bobina.playdate", qos: .userInteractive)
     private var conn: NWConnection?  // solo su `queue`
@@ -219,6 +220,9 @@ final class PlaydateLink: ObservableObject {
     private func attachSources() {
         for s in attached { MIDIPortDisconnectSource(inPort, s) }
         attached = []
+        lock.lock()
+        listeningTX6 = false
+        lock.unlock()
         guard !sourceName.isEmpty else { return }
         let wanted = PlaydateLink.family(of: sourceName)
         var matches: [(MIDIEndpointRef, String)] = []
@@ -230,6 +234,9 @@ final class PlaydateLink: ObservableObject {
         let cable = matches.filter { !$0.1.lowercased().contains("bluetooth") }
         if let pick = (cable.first ?? matches.first), MIDIPortConnectSource(inPort, pick.0, nil) == noErr {
             attached = [pick.0]
+            lock.lock()
+            listeningTX6 = PlaydateLink.family(of: pick.1) == "tx6"
+            lock.unlock()
             trace("playdate: ascolto \(pick.1)")
         } else {
             trace("playdate: \(sourceName) non collegato")
@@ -292,6 +299,15 @@ final class PlaydateLink: ObservableObject {
     /// via bluetooth faceva andare a singhiozzo i comandi, 7/10/2026).
     private func feed(_ b: UInt8, _ f: Filter) {
         if b >= 0xF8 { return }
+        // Una traccia su suono MIDI rimanda fuori le note che riceve da Bobina (misurato dalla chat TX-6, 10/10/2026).
+        // Con «tracce su suono MIDI al Playdate» quelle note arrivano già da noteTap: l'eco del TX-6 si salta,
+        // se no il Playdate le suonerebbe due volte.
+        if f.crea {
+            lock.lock()
+            let echo = listeningTX6
+            lock.unlock()
+            if echo { return }
+        }
         if b & 0x80 != 0 {
             status = b < 0xF0 ? b : 0  // SysEx e compagnia: i loro dati si saltano
             data.removeAll()
