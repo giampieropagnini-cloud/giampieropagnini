@@ -763,13 +763,11 @@ struct M8KnobValueRow: View {
         let i = knobs.selected
         let k = knobs.knobs[i]
         M8KnobRow(name: k.name, value: live.values[i]) { knobs.set(i, $0) }
-        // lo slider per il QuadStick, come nelle altre sezioni: si trascina, − e + e i salti restano sopra
-        Slider(value: Binding(get: { Double(live.values[i]) }, set: { v in
-            let n = Int(v.rounded())
+        // la barra per il QuadStick: un clic la porta lì, tenendo premuto si trascina; − e + e i salti restano sopra
+        M8DragBar(value: live.values[i]) { n in
             if n != live.values[i] { knobs.set(i, n) }
-        }), in: 0...127)
-            .tint(M8.color)
-            .accessibilityLabel("\(k.name), slider")
+        }
+        .accessibilityLabel("\(k.name), slider")
         HStack(spacing: 6) {
             M8Label(k.motion == .wave ? "CC \(k.cc) · si muove con l'onda «\(k.shape.label)»" : k.motion == .steps ? "CC \(k.cc) · si muove coi passi" : "CC \(k.cc) · ferma")
             Spacer()
@@ -777,6 +775,45 @@ struct M8KnobValueRow: View {
                 M8Chip(text: "fermala", height: 34) { knobs.toggle(k.motion) }
                     .frame(maxWidth: 100)
                     .accessibilityLabel("ferma la manopola")
+            }
+        }
+    }
+}
+
+/// Una barra da trascinare fatta per il QuadStick, come la TX6DragBar del TX-6: un clic in un punto qualsiasi
+/// porta il pallino lì, e tenendo premuto lo si trascina. Lo slider di Apple si muove solo prendendo il pallino
+/// e un clic sulla barra non fa niente: col QuadStick non si muoveva.
+struct M8DragBar: View {
+    let value: Int
+    let set: (Int) -> Void
+
+    private let knob: CGFloat = 28
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let f = CGFloat(max(0, min(127, value))) / 127
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color(white: 0.25)).frame(height: 10)
+                Capsule().fill(M8.color).frame(width: knob / 2 + (w - knob) * f, height: 10)
+                Circle().fill(Color.white).frame(width: knob, height: knob).offset(x: (w - knob) * f)
+            }
+            .frame(width: w, height: geo.size.height)
+            .contentShape(Rectangle())
+            // da 0 punti: il clic conta subito
+            .gesture(DragGesture(minimumDistance: 0).onChanged { g in
+                let x = (g.location.x - knob / 2) / max(1, w - knob)
+                set(Int((Double(max(0, min(1, x))) * 127).rounded()))
+            })
+        }
+        .frame(height: 44)
+        .accessibilityElement(children: .ignore)
+        .accessibilityValue("\(value)")
+        .accessibilityAdjustableAction { d in
+            switch d {
+            case .increment: set(min(127, value + 8))
+            case .decrement: set(max(0, value - 8))
+            @unknown default: break
             }
         }
     }
