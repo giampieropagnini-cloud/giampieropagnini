@@ -1304,8 +1304,31 @@ final class TX6Engine: ObservableObject {
 
     /// Il ritmo girava quando Bobina è andata in secondo piano: al ritorno riparte da solo.
     private var resumeAfterBackground = false
+    /// Con «resta sveglia»: un compito che scade solo se iOS sta per sospendere Bobina lo stesso.
+    private var awakeTask = UIBackgroundTaskIdentifier.invalid
+
+    /// Le spunte «resta sveglia» e «tempo: sì» del Playdate (spente di serie): Bobina gira anche dietro, col suono
+    /// muto, per suonare il Playdate da Safari a tempo (11/10/2026). Stesso controllo di PO, NTS-1, OP-Z e M8.
+    private var staysAwake: Bool {
+        let d = UserDefaults.standard
+        return d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo")
+    }
 
     private func wentToBackground() {
+        guard running || clockMode == .follow else { return }
+        guard staysAwake else { pauseForBackground(); return }
+        // il ritmo continua, anche le tracce al Playdate. Se iOS sospende Bobina lo stesso (suono muto interrotto da
+        // una telefonata, o mai partito), poco prima scade il compito: note spente e pausa come sempre, niente nota
+        // tenuta per sempre sul TX-6
+        endAwakeTask()
+        awakeTask = UIApplication.shared.beginBackgroundTask(withName: "tx6 sveglia") { [weak self] in
+            self?.pauseForBackground()
+            self?.endAwakeTask()
+        }
+        trace("TX-6: Bobina in secondo piano ma sveglia (Playdate), il ritmo continua")
+    }
+
+    private func pauseForBackground() {
         guard running || clockMode == .follow else { return }
         let task = UIApplication.shared.beginBackgroundTask(withName: "tx6 note spente")
         sequencer.suspend()
@@ -1314,7 +1337,14 @@ final class TX6Engine: ObservableObject {
         UIApplication.shared.endBackgroundTask(task)
     }
 
+    private func endAwakeTask() {
+        guard awakeTask != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(awakeTask)
+        awakeTask = .invalid
+    }
+
     private func cameBack() {
+        endAwakeTask()
         guard resumeAfterBackground else { return }
         resumeAfterBackground = false
         guard running, clockMode != .follow else { return }
