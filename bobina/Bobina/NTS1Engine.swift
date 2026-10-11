@@ -381,6 +381,10 @@ final class NTS1Engine: ObservableObject {
 
     /// Uscendo da Bobina: tempo, passi, arpeggio, onda e inclinazione fermi, note tenute lasciate.
     func pauseForBackground() {
+        // con «resta sveglia» del Playdate accesa (e il tempo al Playdate) Bobina continua a girare dietro:
+        // allora anche l'NTS-1 resta a tempo. Spunte spente di serie.
+        let d = UserDefaults.standard
+        if d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo") { return }
         stopRun()
         player.stopAll()
     }
