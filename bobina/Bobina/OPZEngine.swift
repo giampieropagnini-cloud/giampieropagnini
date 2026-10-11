@@ -202,6 +202,9 @@ final class OPZEngine: ObservableObject {
     private var timer: DispatchSourceTimer?
     private var bpmObserver: NSObjectProtocol?
     private var backgroundObserver: NSObjectProtocol?
+    private var foregroundObserver: NSObjectProtocol?
+    /// Con «resta sveglia» del Playdate: un compito che scade solo se iOS sta per sospendere Bobina lo stesso.
+    private var awakeTask = UIBackgroundTaskIdentifier.invalid
     private var loading = false
     private var taps: [Date] = []
 
@@ -272,19 +275,19 @@ final class OPZEngine: ObservableObject {
         // prima si spengono le note tenute, comprese quelle tenute a mano
         backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
             guard let self = self else { return }
-            // con «resta sveglia» del Playdate Bobina continua a suonare dietro: Crea va avanti senza buchi e
-            // i tasti tenuti restano giù (come PO e NTS-1)
             let d = UserDefaults.standard
-            if d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo") { return }
-            if self.running { self.sequencer.releaseForBackground() }
-            if !self.liveHeld.isEmpty || !self.punchHeld.isEmpty {
-                var bytes: [UInt8] = []
-                for (t, notes) in self.liveHeld { for n in notes { bytes += OPZ.noteOff(n, channel: t) } }
-                bytes += self.punchHeld.flatMap { OPZ.noteOff(OPZ.punchF + $0, channel: 13) + OPZ.noteOff(OPZ.punchF + $0 + 12, channel: 13) }
-                self.liveHeld = [:]
-                self.punchHeld.removeAll()
-                self.io.send(bytes, at: self.ms(200))
+            guard d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo") else { self.quietForBackground(); return }
+            // con «resta sveglia» del Playdate Bobina continua a suonare dietro: Crea va avanti senza buchi e i tasti
+            // tenuti restano giù (come PO e NTS-1). Se iOS la sospende lo stesso (suono muto interrotto da una
+            // telefonata, o mai partito), poco prima scade il compito: note spente come sempre (rete di sicurezza del TX-6)
+            self.endAwakeTask()
+            self.awakeTask = UIApplication.shared.beginBackgroundTask(withName: "opz sveglia") { [weak self] in
+                self?.quietForBackground(wait: true)
+                self?.endAwakeTask()
             }
+        }
+        foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.endAwakeTask()
         }
         bpmObserver = NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
             // il numero mostrato è intero: un bpm che tremola di qualche decimo non deve ridisegnare la pagina
@@ -355,6 +358,25 @@ final class OPZEngine: ObservableObject {
     }
 
     private func ms(_ v: Double) -> MIDITimeStamp { io.now() + io.ticks(ms: v) }
+
+    /// iOS sta per sospendere Bobina: si spengono le note tenute, comprese quelle tenute a mano e i punch-in.
+    /// `wait`: tutto parte prima di tornare (dal compito che scade, subito dopo iOS ferma Bobina).
+    private func quietForBackground(wait: Bool = false) {
+        if running { sequencer.releaseForBackground(wait: wait) }
+        guard !liveHeld.isEmpty || !punchHeld.isEmpty else { return }
+        var bytes: [UInt8] = []
+        for (t, notes) in liveHeld { for n in notes { bytes += OPZ.noteOff(n, channel: t) } }
+        bytes += punchHeld.flatMap { OPZ.noteOff(OPZ.punchF + $0, channel: 13) + OPZ.noteOff(OPZ.punchF + $0 + 12, channel: 13) }
+        liveHeld = [:]
+        punchHeld.removeAll()
+        io.send(bytes, at: ms(200))
+    }
+
+    private func endAwakeTask() {
+        guard awakeTask != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(awakeTask)
+        awakeTask = .invalid
+    }
 
     // MARK: play
 
