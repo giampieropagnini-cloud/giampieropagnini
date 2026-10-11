@@ -272,6 +272,10 @@ final class OPZEngine: ObservableObject {
         // prima si spengono le note tenute, comprese quelle tenute a mano
         backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
             guard let self = self else { return }
+            // con «resta sveglia» del Playdate Bobina continua a suonare dietro: Crea va avanti senza buchi e
+            // i tasti tenuti restano giù (come PO e NTS-1)
+            let d = UserDefaults.standard
+            if d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo") { return }
             if self.running { self.sequencer.releaseForBackground() }
             if !self.liveHeld.isEmpty || !self.punchHeld.isEmpty {
                 var bytes: [UInt8] = []
