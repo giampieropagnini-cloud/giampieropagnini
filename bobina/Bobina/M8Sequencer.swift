@@ -145,6 +145,11 @@ final class M8Sequencer {
 
     private var running: Bool { transport || stepsOn || knobsOn }
 
+    /// Aspetta che il filo del sequencer abbia fatto quello che gli è stato chiesto: lo stop prima che iOS sospenda Bobina.
+    func drain() {
+        queue.sync {}
+    }
+
     /// Entra sulla griglia se non c'è già; restituisce il battito da cui partire.
     private func joinIfNeeded() -> Double {
         if running {
