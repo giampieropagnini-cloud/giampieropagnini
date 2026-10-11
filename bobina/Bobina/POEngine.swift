@@ -211,19 +211,42 @@ final class POEngine: ObservableObject {
         // in secondo piano (Giampiero detta dal telefono) iOS sospende Bobina a metà nota: prima si lascia tutto
         backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
             guard let self = self, self.connected else { return }
-            // Con «resta sveglia» del Playdate Bobina continua a suonare dietro: i tasti tenuti restano giù.
             let d = UserDefaults.standard
-            if d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo") { return }
-            let task = UIApplication.shared.beginBackgroundTask(withName: "bobina.po.silenzio")
-            self.held.removeAll()
-            self.sequencer.releaseForBackground()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { UIApplication.shared.endBackgroundTask(task) }
+            guard d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo") else {
+                self.silenceForBackground(); return
+            }
+            // Con «resta sveglia» del Playdate Bobina continua a suonare dietro: i tasti tenuti restano giù.
+            // Se iOS la sospende lo stesso, poco prima scade il compito e si lascia tutto come sempre.
+            self.endAwakeTask()
+            self.awakeTask = UIApplication.shared.beginBackgroundTask(withName: "bobina.po.sveglia") { [weak self] in
+                self?.silenceForBackground()
+                self?.endAwakeTask()
+            }
+        }
+        foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.endAwakeTask()
         }
         startTimer()
     }
 
     private var bpmObserver: NSObjectProtocol?
     private var backgroundObserver: NSObjectProtocol?
+    private var foregroundObserver: NSObjectProtocol?
+    private var awakeTask = UIBackgroundTaskIdentifier.invalid
+
+    private func silenceForBackground() {
+        guard connected else { return }
+        let task = UIApplication.shared.beginBackgroundTask(withName: "bobina.po.silenzio")
+        held.removeAll()
+        sequencer.releaseForBackground()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { UIApplication.shared.endBackgroundTask(task) }
+    }
+
+    private func endAwakeTask() {
+        guard awakeTask != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(awakeTask)
+        awakeTask = .invalid
+    }
 
     /// Tolto dal banco: niente più timer né notifiche.
     func shutdown() {
@@ -232,6 +255,8 @@ final class POEngine: ObservableObject {
         stopMotion()
         if let o = bpmObserver { NotificationCenter.default.removeObserver(o) }
         if let o = backgroundObserver { NotificationCenter.default.removeObserver(o) }
+        if let o = foregroundObserver { NotificationCenter.default.removeObserver(o) }
+        endAwakeTask()
         io.use(destination: 0, source: 0)
     }
 
