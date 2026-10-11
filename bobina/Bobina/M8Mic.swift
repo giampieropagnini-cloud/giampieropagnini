@@ -51,7 +51,9 @@ final class M8Mic: ObservableObject {
             AVAudioApplication.requestRecordPermission { [weak self] ok in
                 DispatchQueue.main.async { self?.hold(granted: ok) }
             }
-        } else if active {
+        } else if active && UIApplication.shared.applicationState == .active {
+            // solo in primo piano: dietro la sessione può tenere sveglia Bobina (il suono muto del Playdate), e
+            // chiuderla lo fermerebbe. Se l'M8 si stacca lì, la si lascia al ritorno (didBecomeActive richiama apply)
             active = false
             try? session.setActive(false, options: .notifyOthersOnDeactivation)
             trace("M8 microfono: lascio la sessione")

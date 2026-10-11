@@ -282,6 +282,9 @@ final class M8Engine: ObservableObject {
     /// e i tasti o le note tenuti resterebbero giù sull'M8 (per esempio shift). Prima di uscire: stop pulito,
     /// passi fermi, tasti e note lasciati. Le manopole restano dove sono.
     private func pauseForBackground() {
+        // con «resta sveglia» del Playdate Bobina continua a suonare dietro Safari: l'M8 non si ferma, come PO e NTS-1
+        let d = UserDefaults.standard
+        if d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo") { return }
         if running { toggleRun() }
         if player.stepsOn { player.toggleSteps() }
         releaseAll()
