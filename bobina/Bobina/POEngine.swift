@@ -211,6 +211,9 @@ final class POEngine: ObservableObject {
         // in secondo piano (Giampiero detta dal telefono) iOS sospende Bobina a metà nota: prima si lascia tutto
         backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
             guard let self = self, self.connected else { return }
+            // Con «resta sveglia» del Playdate Bobina continua a suonare dietro: i tasti tenuti restano giù.
+            let d = UserDefaults.standard
+            if d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo") { return }
             let task = UIApplication.shared.beginBackgroundTask(withName: "bobina.po.silenzio")
             self.held.removeAll()
             self.sequencer.releaseForBackground()
