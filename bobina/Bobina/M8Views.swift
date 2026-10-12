@@ -166,6 +166,8 @@ struct M8TempoLine: View {
 /// Una manopola senza slider: nome e valore, poi − · 0 · ¼ · ½ · ¾ · max · +. − e + ritoccano di 8.
 struct M8KnobRow: View {
     let name: String
+    /// Accanto al nome, in piccolo: il CC e se si muove da sola.
+    var detail = ""
     let value: Int
     let set: (Int) -> Void
 
@@ -175,6 +177,13 @@ struct M8KnobRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(name).font(.system(.footnote, design: .monospaced).weight(.semibold))
+                if !detail.isEmpty {
+                    Text(detail)
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundStyle(Palette.dim)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
                 Spacer()
                 Text("\(value)").font(.system(.footnote, design: .monospaced)).foregroundStyle(M8.color)
             }
@@ -768,18 +777,19 @@ struct M8KnobValueRow: View {
     var body: some View {
         let i = knobs.selected
         let k = knobs.knobs[i]
-        M8KnobRow(name: k.name, value: live.values[i]) { knobs.set(i, $0) }
-        // la barra per il QuadStick: un clic la porta lì, tenendo premuto si trascina; − e + e i salti restano sopra
-        M8DragBar(value: live.values[i]) { n in
-            if n != live.values[i] { knobs.set(i, n) }
-        }
-        .accessibilityLabel("\(k.name), slider")
+        let status = k.motion == .wave ? "CC \(k.cc) · onda «\(k.shape.label)»" : k.motion == .steps ? "CC \(k.cc) · passi" : "CC \(k.cc) · ferma"
+        M8KnobRow(name: k.name, detail: status, value: live.values[i]) { knobs.set(i, $0) }
+        // la barra per il QuadStick: un clic la porta lì, tenendo premuto si trascina; − e + e i salti restano sopra.
+        // «fermala» le sta accanto e il CC è in alto vicino al nome: in Tasti la pagina finiva sotto la barra delle
+        // schede quando la manopola si muove da sola (regola di GP, 12/10/2026: da ferma in cima non si copre niente)
         HStack(spacing: 6) {
-            M8Label(k.motion == .wave ? "CC \(k.cc) · si muove con l'onda «\(k.shape.label)»" : k.motion == .steps ? "CC \(k.cc) · si muove coi passi" : "CC \(k.cc) · ferma")
-            Spacer()
+            M8DragBar(value: live.values[i]) { n in
+                if n != live.values[i] { knobs.set(i, n) }
+            }
+            .accessibilityLabel("\(k.name), slider")
             if k.motion != .none {
-                M8Chip(text: "fermala", height: 34) { knobs.toggle(k.motion) }
-                    .frame(maxWidth: 100)
+                M8Chip(text: "fermala", height: 44) { knobs.toggle(k.motion) }
+                    .frame(width: 96)
                     .accessibilityLabel("ferma la manopola")
             }
         }
