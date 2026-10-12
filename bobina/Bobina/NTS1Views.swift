@@ -230,17 +230,23 @@ struct NTS1KnobRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(knob.label)
-                    .font(.system(.footnote, design: .monospaced).weight(.semibold))
-                Spacer()
-                Text(knob.shown(value))
-                    .font(.system(.footnote, design: .monospaced))
-                    .foregroundStyle(NTS1.color)
+            // nome e valore a sinistra, la barra accanto: una riga in meno per manopola,
+            // così 4 manopole stanno sopra la barra delle schede (12/10/2026)
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(knob.label)
+                        .font(.system(.footnote, design: .monospaced).weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    Text(knob.shown(value))
+                        .font(.system(.footnote, design: .monospaced))
+                        .foregroundStyle(NTS1.color)
+                }
+                .frame(width: 108, alignment: .leading)
+                // la barra è per il QuadStick; col Controllo Vocale servono i tasti sotto
+                NTS1DragBar(value: value, set: set)
+                    .accessibilityLabel(knob.label)
             }
-            // lo slider è per il QuadStick; col Controllo Vocale servono i tasti sotto
-            NTS1DragBar(value: value, set: set)
-                .accessibilityLabel(knob.label)
             if knob.isGain {
                 // il volume: solo − e + a passi piccoli. Un «max» capito male dal Controllo Vocale
                 // può rompere casse e cuffie (regola di Giampiero, in LEGGIMI)
@@ -726,11 +732,47 @@ struct NTS1CollegaView: View {
 /// del cursore, che passa da solo al passo dopo. 16 note = 16 tocchi.
 struct NTS1PassiView: View {
     @EnvironmentObject var nts1: NTS1Engine
+    @AppStorage("bobina.nts1.passi.pronte") private var presets = false
 
     var body: some View {
         NTS1Page(title: "Passi", compact: true) {
-            NTS1PassiEditor(player: nts1.player)
-            NTS1PresetsCard(player: nts1.player)
+            NTS1PassiTransport(player: nts1.player)
+            // una cosa alla volta, così da ferma la pagina sta sopra la barra delle schede (12/10/2026)
+            HStack(spacing: 5) {
+                NTS1SmallChip(text: "scrivi", on: !presets, height: 40) { presets = false }
+                    .accessibilityLabel("scrivi i passi")
+                NTS1SmallChip(text: "sequenze pronte", on: presets, height: 40) { presets = true }
+                    .accessibilityLabel("sequenze pronte")
+            }
+            if presets {
+                NTS1PresetsCard(player: nts1.player)
+            } else {
+                NTS1PassiEditor(player: nts1.player)
+            }
+        }
+    }
+}
+
+/// Suona / ferma i passi e il tempo: sempre in cima alla scheda Passi.
+struct NTS1PassiTransport: View {
+    @EnvironmentObject var nts1: NTS1Engine
+    @ObservedObject var player: NTS1Player
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Button { player.toggleSteps() } label: {
+                Text(player.stepsOn ? "ferma" : "suona")
+                    .font(.system(.title3, design: .monospaced).weight(.bold))
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .vetroKey(player.stepsOn ? .red : .glass(Color(red: 0.40, green: 0.82, blue: 0.40)), radius: 16)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(player.stepsOn ? "ferma i passi" : "suona i passi")
+            VetroSmallKey(text: "−5") { nts1.setBPM(nts1.bpm - 5) }.accessibilityLabel("tempo meno 5")
+            Text("\(nts1.bpm)")
+                .font(.system(.title3, design: .monospaced).weight(.bold))
+                .frame(minWidth: 44)
+            VetroSmallKey(text: "+5") { nts1.setBPM(nts1.bpm + 5) }.accessibilityLabel("tempo più 5")
         }
     }
 }
@@ -745,23 +787,6 @@ struct NTS1PassiEditor: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            // suona / ferma, e il tempo
-            HStack(spacing: 8) {
-                Button { player.toggleSteps() } label: {
-                    Text(player.stepsOn ? "ferma" : "suona")
-                        .font(.system(.title3, design: .monospaced).weight(.bold))
-                        .frame(maxWidth: .infinity, minHeight: 52)
-                        .vetroKey(player.stepsOn ? .red : .glass(Color(red: 0.40, green: 0.82, blue: 0.40)), radius: 16)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(player.stepsOn ? "ferma i passi" : "suona i passi")
-                VetroSmallKey(text: "−5") { nts1.setBPM(nts1.bpm - 5) }.accessibilityLabel("tempo meno 5")
-                Text("\(nts1.bpm)")
-                    .font(.system(.title3, design: .monospaced).weight(.bold))
-                    .frame(minWidth: 44)
-                VetroSmallKey(text: "+5") { nts1.setBPM(nts1.bpm + 5) }.accessibilityLabel("tempo più 5")
-            }
-
             // la tastiera: 12 note, una per tasto
             LazyVGrid(columns: six, spacing: 5) {
                 ForEach(0..<12, id: \.self) { i in
@@ -845,14 +870,22 @@ struct NTS1CursorGrid: View {
     }
 }
 
-/// Le sequenze pronte, sotto i passi: un tocco le carica, «annulla» rimette quelle di prima.
+/// Le sequenze pronte, un gruppo alla volta: un tocco le carica, «annulla» rimette quelle di prima.
 struct NTS1PresetsCard: View {
     @ObservedObject var player: NTS1Player
+    @AppStorage("bobina.nts1.passi.gruppo") private var group = NTS1Preset.groups[0]
 
     private let two = Array(repeating: GridItem(.flexible(), spacing: 6), count: 2)
 
     var body: some View {
-        VetroCard(title: "sequenze pronte", note: "Tutte scure. Un tocco la mette nei passi; poi la puoi cambiare nota per nota.") {
+        VStack(alignment: .leading, spacing: 8) {
+            // i gruppi: uno alla volta, così tutte le sequenze del gruppo stanno in uno schermo
+            HStack(spacing: 5) {
+                ForEach(NTS1Preset.groups, id: \.self) { g in
+                    NTS1SmallChip(text: g, on: g == group, height: 40) { group = g }
+                        .accessibilityLabel("gruppo \(g)")
+                }
+            }
             HStack(spacing: 6) {
                 VetroGridChip(text: player.presetTempo ? "cambia anche il tempo: sì" : "cambia anche il tempo: no", on: player.presetTempo) {
                     player.presetTempo.toggle()
@@ -866,13 +899,8 @@ struct NTS1PresetsCard: View {
                 NTS1SmallChip(text: "metti \(p.bpm) bpm (\(p.name))", height: 40) { player.engine?.setBPM(p.bpm) }
                     .accessibilityLabel("metti \(p.bpm) bpm")
             }
-            ForEach(NTS1Preset.groups, id: \.self) { g in
-                Text(g)
-                    .font(.system(.caption, design: .monospaced).weight(.semibold))
-                    .foregroundStyle(NTS1.color)
-                    .padding(.top, 4)
-                LazyVGrid(columns: two, spacing: 6) {
-                    ForEach(NTS1Preset.all.filter { $0.group == g }) { p in
+            LazyVGrid(columns: two, spacing: 6) {
+                ForEach(NTS1Preset.all.filter { $0.group == group }) { p in
                         Button { player.load(p) } label: {
                             VStack(spacing: 1) {
                                 Text(p.name)
@@ -888,10 +916,12 @@ struct NTS1PresetsCard: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("sequenza \(p.name)")
-                    }
                 }
             }
         }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .vetroPanel()
     }
 }
 
