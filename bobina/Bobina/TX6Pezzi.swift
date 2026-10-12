@@ -126,6 +126,47 @@ struct TX6KnobRow: View {
     }
 }
 
+/// Una barra da trascinare, fatta per il QuadStick (10/10/2026): un clic in un punto qualsiasi porta il pallino lì,
+/// e tenendo premuto lo si trascina partendo da dove si vuole. Lo slider di Apple si muove solo prendendo il pallino
+/// e un clic sulla barra non fa niente: col QuadStick la rotellina di tape e freeze non si muoveva.
+struct TX6DragBar: View {
+    let value: Double
+    var range: ClosedRange<Double> = 0...127
+    let set: (Double) -> Void
+
+    private let knob: CGFloat = 28
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let span = range.upperBound - range.lowerBound
+            let f = CGFloat(max(0, min(1, (value - range.lowerBound) / span)))
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color(white: 0.25)).frame(height: 10)
+                Capsule().fill(Palette.accent).frame(width: knob / 2 + (w - knob) * f, height: 10)
+                Circle().fill(Color.white).frame(width: knob, height: knob).offset(x: (w - knob) * f)
+            }
+            .frame(width: w, height: geo.size.height)
+            .contentShape(Rectangle())
+            // da 0 punti: il clic conta subito, e la pagina non scorre quando si parte dalla barra
+            .gesture(DragGesture(minimumDistance: 0).onChanged { g in
+                let x = (g.location.x - knob / 2) / max(1, w - knob)
+                set(range.lowerBound + Double(max(0, min(1, x))) * span)
+            })
+        }
+        .frame(height: 44)
+        .accessibilityElement(children: .ignore)
+        .accessibilityValue("\(Int(value.rounded()))")
+        .accessibilityAdjustableAction { d in
+            switch d {
+            case .increment: set(min(range.upperBound, value + 8))
+            case .decrement: set(max(range.lowerBound, value - 8))
+            @unknown default: break
+            }
+        }
+    }
+}
+
 /// Le parti di una schermata: una fila di tasti, una parte alla volta. La scelta resta salvata da chi la usa.
 struct TX6Parts: View {
     let items: [String]
