@@ -469,36 +469,46 @@ struct NTS1PadsPanel: View {
 /// Le scelte dell'arpeggio di Bobina, in tasti piccoli.
 struct NTS1ArpChoices: View {
     @ObservedObject var player: NTS1Player
+    /// Un gruppo di scelte alla volta, così coi pad sta tutto sopra la barra delle schede (12/10/2026).
+    @AppStorage("bobina.nts1.arp.vista") private var view = 0
 
     private let four = Array(repeating: GridItem(.flexible(), spacing: 4), count: 4)
+    private static let views = ["come sale", "accordo", "ottave", "velocità"]
 
     var body: some View {
-        NTS1Label("come sale")
-        LazyVGrid(columns: four, spacing: 4) {
-            ForEach(NTS1ArpMode.allCases) { m in
-                NTS1SmallChip(text: m.label, on: player.arpMode == m) { player.arpMode = m }
-                    .accessibilityLabel("arpeggio \(m.label)")
-            }
-        }
-        NTS1Label("accordo")
-        LazyVGrid(columns: four, spacing: 4) {
-            ForEach(NTS1ArpChord.allCases) { c in
-                NTS1SmallChip(text: c.label, on: player.arpChord == c) { player.arpChord = c }
-                    .accessibilityLabel("accordo \(c.label)")
-            }
-        }
-        NTS1Label("ottave")
-        // due griglie: 1 e 2 ottave hanno gli stessi id di «quarti» (1.0) e «ottavi» (2.0) e nella stessa griglia sparirebbero
         HStack(spacing: 4) {
-            ForEach(1...3, id: \.self) { o in
-                NTS1SmallChip(text: o == 1 ? "1 ottava" : "\(o) ottave", on: player.arpOctaves == o) { player.arpOctaves = o }
+            ForEach(NTS1ArpChoices.views.indices, id: \.self) { i in
+                NTS1SmallChip(text: NTS1ArpChoices.views[i], on: view == i) { view = i }
+                    .accessibilityLabel("mostra \(NTS1ArpChoices.views[i])")
             }
         }
-        NTS1Label("una nota ogni…")
-        LazyVGrid(columns: four, spacing: 4) {
-            ForEach(NTS1Player.arpSpeeds, id: \.0) { d in
-                NTS1SmallChip(text: d.1, on: player.arpDiv == d.0) { player.arpDiv = d.0 }
-                    .accessibilityLabel("velocità \(d.1)")
+        switch view {
+        case 1:
+            LazyVGrid(columns: four, spacing: 4) {
+                ForEach(NTS1ArpChord.allCases) { c in
+                    NTS1SmallChip(text: c.label, on: player.arpChord == c) { player.arpChord = c }
+                        .accessibilityLabel("accordo \(c.label)")
+                }
+            }
+        case 2:
+            HStack(spacing: 4) {
+                ForEach(1...3, id: \.self) { o in
+                    NTS1SmallChip(text: o == 1 ? "1 ottava" : "\(o) ottave", on: player.arpOctaves == o) { player.arpOctaves = o }
+                }
+            }
+        case 3:
+            LazyVGrid(columns: four, spacing: 4) {
+                ForEach(NTS1Player.arpSpeeds, id: \.0) { d in
+                    NTS1SmallChip(text: d.1, on: player.arpDiv == d.0) { player.arpDiv = d.0 }
+                        .accessibilityLabel("velocità \(d.1)")
+                }
+            }
+        default:
+            LazyVGrid(columns: four, spacing: 4) {
+                ForEach(NTS1ArpMode.allCases) { m in
+                    NTS1SmallChip(text: m.label, on: player.arpMode == m) { player.arpMode = m }
+                        .accessibilityLabel("arpeggio \(m.label)")
+                }
             }
         }
     }
