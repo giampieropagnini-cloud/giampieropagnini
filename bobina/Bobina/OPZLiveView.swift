@@ -58,12 +58,11 @@ struct OPZLiveTop: View {
                 Text(opz.running ? "■ ferma" : "▶ suona")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
                     .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(opz.running ? Palette.rec : OPZ.tint))
-                    .foregroundStyle(Color.black)
+                    .vetroKey(opz.running ? .red : .on(OPZ.tint), radius: 16)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(opz.running ? "ferma l'OP-Z" : "fai suonare l'OP-Z")
-            SmallKey(text: "−5") { opz.setBPM(opz.bpm - 5) }.accessibilityLabel("tempo meno 5")
+            VetroSmallKey(text: "−5") { opz.setBPM(opz.bpm - 5) }.accessibilityLabel("tempo meno 5")
             VStack(spacing: 0) {
                 Text("\(Int(opz.bpm.rounded()))")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
@@ -74,7 +73,7 @@ struct OPZLiveTop: View {
                     .minimumScaleFactor(0.7)
             }
             .frame(minWidth: 56)
-            SmallKey(text: "+5") { opz.setBPM(opz.bpm + 5) }.accessibilityLabel("tempo più 5")
+            VetroSmallKey(text: "+5") { opz.setBPM(opz.bpm + 5) }.accessibilityLabel("tempo più 5")
         }
     }
 }
@@ -100,9 +99,7 @@ struct OPZLiveMutes: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, minHeight: 50)
-                        .background(RoundedRectangle(cornerRadius: 9).fill(m ? Color(white: 0.12) : OPZ.color(t.number)))
-                        .overlay(RoundedRectangle(cornerRadius: 9).stroke(OPZ.color(t.number), lineWidth: m ? 2 : 0))
-                        .foregroundStyle(m ? OPZ.color(t.number) : Color.black)
+                        .vetroKey(m ? .tinted(OPZ.color(t.number)) : .glass(OPZ.color(t.number)), radius: 16)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(t.name)
@@ -241,9 +238,7 @@ struct OPZDragBar: View {
             let w = geo.size.width
             let f = CGFloat(max(0, min(1, value / 127)))
             ZStack(alignment: .leading) {
-                Capsule().fill(Color(white: 0.25)).frame(height: 10)
-                Capsule().fill(tint).frame(width: knob / 2 + (w - knob) * f, height: 10)
-                Circle().fill(Color.white).frame(width: knob, height: knob).offset(x: (w - knob) * f)
+                VetroTrack(tint: tint, fraction: f, knob: knob, width: w)
             }
             .frame(width: w, height: geo.size.height)
             .contentShape(Rectangle())
@@ -283,9 +278,8 @@ struct OPZLivePatterns: View {
                         Text(opz.queuedPattern == n ? "\(n) ⏳" : "\(n)")
                             .font(.system(.title3, design: .monospaced).weight(opz.pattern == n ? .bold : .regular))
                             .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(RoundedRectangle(cornerRadius: 9).fill(opz.pattern == n ? OPZ.tint : Color(white: 0.18)))
-                            .overlay(RoundedRectangle(cornerRadius: 9).stroke(opz.queuedPattern == n ? Palette.accent : Palette.cardEdge, lineWidth: opz.queuedPattern == n ? 3 : 1))
-                            .foregroundStyle(opz.pattern == n ? Color.black : Color.white)
+                            .vetroKey(opz.pattern == n ? .on(OPZ.tint) : .off, radius: 16)
+                            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(opz.queuedPattern == n ? Palette.accent : Color.clear, lineWidth: 3))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("pattern \(n)")
