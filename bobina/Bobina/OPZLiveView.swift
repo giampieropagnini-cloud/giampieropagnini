@@ -191,11 +191,10 @@ struct OPZLiveKnobs: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
                             .frame(width: 112, alignment: .leading)
-                        Slider(value: Binding(get: { Double(opz.value(cc, track: tr)) },
-                                              set: { opz.slide(cc, Int($0.rounded()), track: tr) }),
-                               in: 0...127)
-                            .tint(OPZLiveKnobs.knob[(cc - 1) % 4])
-                            .accessibilityLabel("\(name), barra")
+                        OPZDragBar(value: Double(opz.value(cc, track: tr)), tint: OPZLiveKnobs.knob[(cc - 1) % 4]) {
+                            opz.slide(cc, Int($0.rounded()), track: tr)
+                        }
+                        .accessibilityLabel("\(name), barra")
                     }
                     if OPZ.gainCCs.contains(cc) {
                         // un guadagno solo a passi piccoli: niente min, metà, max (regola dell'8/10/2026)
@@ -220,6 +219,51 @@ struct OPZLiveKnobs: View {
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/// La barra di una manopola per il QuadStick (copia della TX6DragBar del TX-6, 11/10/2026): lo Slider di Apple si
+/// sposta solo prendendo il pallino, qui un clic porta il pallino lì e tenendo premuto lo si trascina.
+/// Manda solo quando il numero cambia (il primo tocco manda sempre). I tasti min − metà + max restano accanto:
+/// col solo Controllo Vocale Giampiero usa quelli.
+struct OPZDragBar: View {
+    let value: Double
+    let tint: Color
+    let set: (Double) -> Void
+
+    @State private var last: Int?
+    private let knob: CGFloat = 28
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let f = CGFloat(max(0, min(1, value / 127)))
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color(white: 0.25)).frame(height: 10)
+                Capsule().fill(tint).frame(width: knob / 2 + (w - knob) * f, height: 10)
+                Circle().fill(Color.white).frame(width: knob, height: knob).offset(x: (w - knob) * f)
+            }
+            .frame(width: w, height: geo.size.height)
+            .contentShape(Rectangle())
+            // da 0 punti: il clic conta subito, e la pagina non scorre quando si parte dalla barra
+            .gesture(DragGesture(minimumDistance: 0)
+                .onChanged { g in
+                    let x = (g.location.x - knob / 2) / max(1, w - knob)
+                    let v = Int((Double(max(0, min(1, x))) * 127).rounded())
+                    if v != last { last = v; set(Double(v)) }
+                }
+                .onEnded { _ in last = nil })
+        }
+        .frame(height: 44)
+        .accessibilityElement(children: .ignore)
+        .accessibilityValue("\(Int(value.rounded()))")
+        .accessibilityAdjustableAction { d in
+            switch d {
+            case .increment: set(min(127, value + 8))
+            case .decrement: set(max(0, value - 8))
+            @unknown default: break
             }
         }
     }

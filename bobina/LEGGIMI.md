@@ -136,6 +136,7 @@ Tieni **shift** e premi **select** per il menu, poi:
 - Il **metronomo** dell'OP-Z si spegne tenendo TEMPO e girando la manopola rossa tutta a sinistra. Se il tempo non cambia mai, è bloccato: TEMPO + SHIFT lo sblocca.
 - Gli **effetti punch-in** via MIDI sono note 5-28 sul canale 13 e lavorano sul sequencer dell'OP-Z (non sulle note di Crea). La traccia attiva si sceglie col CC 102, ma via MIDI non sposta gli effetti (misurato l'8/10/2026).
 - **Lo stop MIDI non spegne il record lock**: dopo «scrivi sull'OP-Z» Ele preme REC.
+- **Il punch va basso** (MIXER tenuto, terza manopola, la gialla): alto, il compressore abbassa tutto a ogni kick di Crea, sembra un sidechain e si sente spezzettato, anche in cuffia (misurato il 10/10/2026). Se l'OP-Z suona debole si alza il master, non il punch.
 - Lo strumento di una traccia si cambia solo sulla macchina: TRACK + i tasti della fila di sopra (strumento) o di sotto (suono).
 
 ## Preparare l'M8
