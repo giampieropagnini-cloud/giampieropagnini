@@ -20,7 +20,8 @@ struct OPZTabs: View {
             OPZCollegaView()
                 .tabItem { Label("Collega", systemImage: "cable.connector") }.tag(4)
         }
-        .tint(OPZ.tint)
+        // la pillola di vetro di iOS: la scheda accesa in bianco (Vetro, 12/10/2026)
+        .tint(Color.white)
     }
 }
 
@@ -45,6 +46,7 @@ struct OPZPage<Content: View>: View {
                 .padding(.horizontal, 14)
                 .padding(.bottom, 24)
             }
+            .vetroPage(.opz)
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { MachineSwitch() } }
@@ -63,11 +65,10 @@ struct OPZBanner: View {
                 .opacity(0.75)
             Spacer()
         }
-        .foregroundStyle(Color.black)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12).fill(OPZ.tint))
+        .vetroKey(.glass(OPZ.tint), radius: 16)
         .accessibilityElement(children: .combine)
     }
 }
@@ -128,8 +129,7 @@ struct OPZSongRow: View {
                 Text("\(song[i])")
                     .font(.system(.subheadline, design: .monospaced).weight(.semibold))
                     .frame(maxWidth: .infinity, minHeight: 32)
-                    .background(RoundedRectangle(cornerRadius: 7).fill(songOn && live.songIndex == i ? Palette.accent : Color(white: 0.16)))
-                    .foregroundStyle(songOn && live.songIndex == i ? Color.black : Color.white)
+                    .vetroKey(songOn && live.songIndex == i ? .on(Palette.accent) : .off, radius: 10)
             }
         }
         .accessibilityElement(children: .ignore)
@@ -147,7 +147,6 @@ struct OPZPunchKey: View {
     let held: Bool
 
     private var color: Color { Color(hue: Double(index) / 12, saturation: 0.55, brightness: 0.95) }
-    private var dark: Color { Color(hue: Double(index) / 12, saturation: 0.6, brightness: 0.45) }
 
     var body: some View {
         VStack(spacing: 3) {
@@ -157,9 +156,8 @@ struct OPZPunchKey: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                     .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(color))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(held ? Color.white : Palette.cardEdge, lineWidth: held ? 3 : 1))
-                    .foregroundStyle(Color.black)
+                    .vetroKey(.glass(color))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(held ? Color.white : Color.clear, lineWidth: 3))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(name)
@@ -168,8 +166,7 @@ struct OPZPunchKey: View {
                 Text(held ? "lascia" : "tieni")
                     .font(.system(.caption2, design: .monospaced).weight(held ? .bold : .regular))
                     .frame(maxWidth: .infinity, minHeight: 36)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(held ? Color.white : dark))
-                    .foregroundStyle(held ? Color.black : Color.white.opacity(0.85))
+                    .vetroKey(held ? .white : .tinted(color))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(held ? "lascia \(name)" : "tieni \(name)")
@@ -183,7 +180,7 @@ struct OPZMonitorLines: View {
     @ObservedObject var book: OPZLogBook
 
     var body: some View {
-        Card(title: "monitor", note: "→ parte da Bobina · ← arriva dall'OP-Z (le sue note e le sue manopole). Il clock non viene scritto.") {
+        VetroCard(title: "monitor", note: "→ parte da Bobina · ← arriva dall'OP-Z (le sue note e le sue manopole). Il clock non viene scritto.") {
             HStack {
                 Toggle("in pausa", isOn: $book.paused)
                     .font(.footnote)

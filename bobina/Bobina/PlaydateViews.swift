@@ -16,12 +16,13 @@ struct PlaydateTabs: View {
                     PlaydateStatusStrip()
 
                     Card(title: "le note di Crea",
-                         note: "Le tracce del TX-6 su «suono MIDI» suonano sul Playdate, a tempo. Il suono si cambia in Crea → batteria → riga della traccia. Una pronta rimette il suono del TX-6 e il Playdate tace da solo.") {
-                        Chip(text: link.creaOn ? "tracce su suono MIDI al Playdate: sì" : "tracce su suono MIDI al Playdate: no",
-                             on: link.creaOn, color: Playdate.color) { link.creaOn.toggle() }
-                        Text(link.midiTracks.isEmpty ? "nessuna traccia su suono MIDI" : "su suono MIDI adesso: traccia " + link.midiTracks.map(String.init).joined(separator: ", "))
+                         note: "Le tracce della melodia si mandano al Playdate da Crea → melodia, con la spunta «traccia al Playdate». Quelle tracce il TX-6 non le suona; se il ponte non risponde tornano da sole sul TX-6.") {
+                        Text(link.playdateTracks.isEmpty ? "nessuna traccia al Playdate"
+                             : "al Playdate: traccia " + link.playdateTracks.map(String.init).joined(separator: ", ")
+                               + (link.connected ? " · suonano sul Playdate" : " · ponte non raggiunto: suonano sul TX-6"))
                             .font(.system(.caption, design: .monospaced))
                             .foregroundStyle(Palette.dim)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     Card(title: "da quale macchina",

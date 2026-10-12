@@ -129,6 +129,7 @@ final class NTS1Engine: ObservableObject {
     @Published private(set) var bpm = Int(BobinaClock.shared.bpm.rounded())
     private var bpmObserver: NSObjectProtocol?
     private var backgroundObserver: NSObjectProtocol?
+    private var foregroundObserver: NSObjectProtocol?
 
     private var saveNext = false
     private var refreshPending = false
@@ -142,6 +143,9 @@ final class NTS1Engine: ObservableObject {
         // iOS sospende Bobina in secondo piano dopo pochi secondi: prima si ferma tutto, pulito
         backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
             self?.pauseForBackground()
+        }
+        foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.endAwakeTask()
         }
         bpmObserver = NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
             guard let self = self, let v = n.object as? Double, Int(v.rounded()) != self.bpm else { return }
@@ -381,8 +385,33 @@ final class NTS1Engine: ObservableObject {
 
     /// Uscendo da Bobina: tempo, passi, arpeggio, onda e inclinazione fermi, note tenute lasciate.
     func pauseForBackground() {
+        // con «resta sveglia» del Playdate accesa (e il tempo al Playdate) Bobina continua a girare dietro:
+        // allora anche l'NTS-1 resta a tempo. Spunte spente di serie.
+        let d = UserDefaults.standard
+        guard d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo") else {
+            stopEverything()
+            return
+        }
+        // rete di sicurezza, come il TX-6: se iOS sospende Bobina lo stesso, poco prima scade il compito
+        // e si ferma tutto, così non resta un pad tenuto per sempre
+        endAwakeTask()
+        awakeTask = UIApplication.shared.beginBackgroundTask(withName: "nts1 sveglia") { [weak self] in
+            self?.stopEverything()
+            self?.endAwakeTask()
+        }
+    }
+
+    private var awakeTask = UIBackgroundTaskIdentifier.invalid
+
+    private func stopEverything() {
         stopRun()
         player.stopAll()
+    }
+
+    private func endAwakeTask() {
+        guard awakeTask != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(awakeTask)
+        awakeTask = .invalid
     }
 
     func stopRun() {

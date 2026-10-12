@@ -19,7 +19,8 @@ struct NTS1Tabs: View {
             NTS1CollegaView()
                 .tabItem { Label("Collega", systemImage: "cable.connector") }.tag(3)
         }
-        .tint(NTS1.color)
+        // la pillola di vetro di iOS: la scheda accesa in bianco (Vetro, 12/10/2026)
+        .tint(Color.white)
     }
 }
 
@@ -43,6 +44,7 @@ struct NTS1Page<Content: View>: View {
                 .padding(.horizontal, 14)
                 .padding(.bottom, 24)
             }
+            .vetroPage(.nts1)
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { MachineSwitch() } }
@@ -60,11 +62,10 @@ struct NTS1Banner: View {
                 .opacity(0.75)
             Spacer()
         }
-        .foregroundStyle(Color.black)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12).fill(NTS1.color))
+        .vetroKey(.glass(NTS1.color), radius: 16)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("NTS-1")
     }
@@ -106,8 +107,7 @@ struct NTS1BigButton: View {
             Text(text)
                 .font(.system(.body, design: .monospaced).weight(.semibold))
                 .frame(maxWidth: .infinity, minHeight: 52)
-                .background(RoundedRectangle(cornerRadius: 10).fill(on ? Palette.rec : color))
-                .foregroundStyle(Color.black)
+                .vetroKey(on ? .red : color == NTS1.color ? .on(NTS1.color) : .glass(color), radius: 16)
         }
         .buttonStyle(.plain)
     }
@@ -215,8 +215,7 @@ struct NTS1PartPanel: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Palette.card))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.cardEdge, lineWidth: 1))
+        .vetroPanel()
     }
 }
 
@@ -240,8 +239,7 @@ struct NTS1KnobRow: View {
                     .foregroundStyle(NTS1.color)
             }
             // lo slider è per il QuadStick; col Controllo Vocale servono i tasti sotto
-            Slider(value: Binding(get: { Double(value) }, set: { set(Int($0.rounded())) }), in: 0...127)
-                .tint(NTS1.color)
+            NTS1DragBar(value: value, set: set)
                 .accessibilityLabel(knob.label)
             if knob.isGain {
                 // il volume: solo − e + a passi piccoli. Un «max» capito male dal Controllo Vocale
@@ -257,7 +255,7 @@ struct NTS1KnobRow: View {
                     NTS1SmallChip(text: "−") { set(max(0, value - 8)) }
                         .accessibilityLabel("\(knob.label) meno")
                     ForEach(NTS1KnobRow.jumps, id: \.0) { j in
-                        NTS1SmallChip(text: j.1, on: abs(value - j.0) <= 4) { set(j.0) }
+                        NTS1SmallChip(text: j.1, on: abs(value - j.0) <= 4, half: j.0 < value) { set(j.0) }
                             .accessibilityLabel("\(knob.label) \(j.2)")
                     }
                     NTS1SmallChip(text: "+") { set(min(127, value + 8)) }
@@ -273,17 +271,26 @@ struct NTS1SmallChip: View {
     let text: String
     var on = false
     var height: CGFloat = 34
+    /// I salti delle manopole fino al valore attuale: accesi a metà (solo aspetto).
+    var half = false
+    /// Silenzio e ferma: rossi (solo aspetto, il tasto resta quello).
+    var red = false
     let action: () -> Void
+
+    private var look: VetroLook {
+        if red { return .red }
+        if on { return .on(NTS1.color) }
+        return half ? .half(NTS1.color) : .off
+    }
 
     var body: some View {
         Button(action: action) {
             Text(text)
-                .font(.system(.footnote, design: .monospaced))
+                .font(.system(.footnote, design: .monospaced).weight(on || red ? .bold : .semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, minHeight: height)
-                .background(RoundedRectangle(cornerRadius: 7).fill(on ? NTS1.color : Color(white: 0.18)))
-                .foregroundStyle(on ? Color.black : Color.white)
+                .vetroKey(look)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? .isSelected : [])
@@ -313,7 +320,7 @@ struct NTS1ChoiceGrid: View {
                         if small {
                             NTS1SmallChip(text: choice.items[i], on: selected == i) { pick(i) }
                         } else {
-                            GridChip(text: choice.items[i], on: selected == i) { pick(i) }
+                            VetroGridChip(text: choice.items[i], on: selected == i) { pick(i) }
                         }
                     }
                     .accessibilityLabel("\(choice.title) \(choice.items[i])")
@@ -376,8 +383,7 @@ struct NTS1Panel<Content: View>: View {
         VStack(alignment: .leading, spacing: 8) { content() }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Palette.card))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.cardEdge, lineWidth: 1))
+            .vetroPanel()
     }
 }
 
@@ -396,18 +402,18 @@ struct NTS1TempoLine: View {
     var body: some View {
         HStack(spacing: 5) {
             if nts1.running {
-                NTS1SmallChip(text: nts1.withSequence ? "ferma l'NTS-1" : "ferma il tempo", on: true, height: 44) { nts1.stopRun() }
+                NTS1SmallChip(text: nts1.withSequence ? "ferma l'NTS-1" : "ferma il tempo", on: true, height: 44, red: true) { nts1.stopRun() }
             } else {
                 NTS1SmallChip(text: "dai il tempo", height: 44) { nts1.startClock() }
                     .accessibilityLabel("dai solo il tempo all'NTS-1")
                 NTS1SmallChip(text: "+ sequenza", height: 44) { nts1.startWithSequence() }
                     .accessibilityLabel("fai partire anche la sua sequenza")
             }
-            SmallKey(text: "−5") { nts1.setBPM(nts1.bpm - 5) }.accessibilityLabel("tempo meno 5")
+            VetroSmallKey(text: "−5") { nts1.setBPM(nts1.bpm - 5) }.accessibilityLabel("tempo meno 5")
             Text("\(nts1.bpm)")
                 .font(.system(.title3, design: .monospaced).weight(.bold))
                 .frame(minWidth: 44)
-            SmallKey(text: "+5") { nts1.setBPM(nts1.bpm + 5) }.accessibilityLabel("tempo più 5")
+            VetroSmallKey(text: "+5") { nts1.setBPM(nts1.bpm + 5) }.accessibilityLabel("tempo più 5")
         }
     }
 }
@@ -435,8 +441,7 @@ struct NTS1PadsPanel: View {
                     Text(NTS1Player.name(n))
                         .font(.system(.footnote, design: .monospaced).weight(.semibold))
                         .frame(maxWidth: .infinity, minHeight: 48)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(lit ? Color.white : NTS1.color))
-                        .foregroundStyle(Color.black)
+                        .vetroKey(lit ? .white : .glass(NTS1.color), radius: 16)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("nota \(NTS1Player.name(n))")
@@ -447,7 +452,7 @@ struct NTS1PadsPanel: View {
             NTS1SmallChip(text: "ottava −") { player.octave(-1) }
             NTS1SmallChip(text: "ottava +") { player.octave(1) }
             NTS1SmallChip(text: "lascia tutto") { player.releaseAll() }
-            NTS1SmallChip(text: "silenzio") { player.panic() }
+            NTS1SmallChip(text: "silenzio", red: true) { player.panic() }
         }
         if player.padMode == .arp {
             NTS1ArpChoices(player: player)
@@ -540,13 +545,12 @@ struct NTS1KnobRowPlain: View {
             Spacer()
             Text("\(value)").font(.system(.footnote, design: .monospaced)).foregroundStyle(NTS1.color)
         }
-        Slider(value: Binding(get: { Double(value) }, set: { set(Int($0.rounded())) }), in: 0...127)
-            .tint(NTS1.color)
+        NTS1DragBar(value: value, set: set)
             .accessibilityLabel(name)
         HStack(spacing: 4) {
             NTS1SmallChip(text: "−") { set(max(0, value - 8)) }.accessibilityLabel("\(name) meno")
             ForEach(NTS1KnobRow.jumps, id: \.0) { j in
-                NTS1SmallChip(text: j.1, on: abs(value - j.0) <= 4) { set(j.0) }
+                NTS1SmallChip(text: j.1, on: abs(value - j.0) <= 4, half: j.0 < value) { set(j.0) }
                     .accessibilityLabel("\(name) \(j.2)")
             }
             NTS1SmallChip(text: "+") { set(min(127, value + 8)) }.accessibilityLabel("\(name) più")
@@ -605,7 +609,7 @@ struct NTS1BancheView: View {
 
     var body: some View {
         NTS1Page(title: "Banche") {
-            Card(title: "salva", note: "Bobina chiede all'NTS-1 il suono di adesso e lo tiene qui, con il suo nome. Dentro c'è tutto: oscillatore, filtro, effetti, arpeggio e gli 8 passi del suo sequencer.") {
+            VetroCard(title: "salva", note: "Bobina chiede all'NTS-1 il suono di adesso e lo tiene qui, con il suo nome. Dentro c'è tutto: oscillatore, filtro, effetti, arpeggio e gli 8 passi del suo sequencer.") {
                 NTS1BigButton(text: "salva il suono di adesso") { nts1.saveCurrent() }
                 if let s = nts1.lastStatus {
                     Text(s)
@@ -614,7 +618,7 @@ struct NTS1BancheView: View {
                 }
             }
 
-            Card(title: "suoni salvati", note: nts1.saved.isEmpty ? "Ancora nessuno." : "«carica» lo manda all'NTS-1 nel suono in modifica. Per tenerlo anche sull'NTS-1, salvalo lì in un programma.") {
+            VetroCard(title: "suoni salvati", note: nts1.saved.isEmpty ? "Ancora nessuno." : "«carica» lo manda all'NTS-1 nel suono in modifica. Per tenerlo anche sull'NTS-1, salvalo lì in un programma.") {
                 ForEach(nts1.saved) { s in
                     row(s)
                 }
@@ -631,17 +635,16 @@ struct NTS1BancheView: View {
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
                     .padding(.horizontal, 12)
-                    .background(RoundedRectangle(cornerRadius: 9).fill(loaded ? NTS1.color : Color(white: 0.18)))
-                    .foregroundStyle(loaded ? Color.black : Color.white)
+                    .vetroKey(loaded ? .on(NTS1.color) : .off)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("carica \(s.name)")
             HStack(spacing: 6) {
-                GridChip(text: "su") { nts1.move(s, by: -1) }
+                VetroGridChip(text: "su") { nts1.move(s, by: -1) }
                     .accessibilityLabel("sposta su \(s.name)")
-                GridChip(text: "giù") { nts1.move(s, by: 1) }
+                VetroGridChip(text: "giù") { nts1.move(s, by: 1) }
                     .accessibilityLabel("sposta giù \(s.name)")
-                GridChip(text: deleting == s.id ? "sicuro? cancella" : "cancella", on: deleting == s.id) {
+                VetroGridChip(text: deleting == s.id ? "sicuro? cancella" : "cancella", on: deleting == s.id, color: Palette.rec) {
                     if deleting == s.id {
                         deleting = nil
                         nts1.delete(s)
@@ -664,26 +667,26 @@ struct NTS1CollegaView: View {
 
     var body: some View {
         NTS1Page(title: "Collega") {
-            Card(title: "col cavo", note: "Dalla USB-C dell'NTS-1 all'iPhone: l'iPhone lo accende anche, e Bobina lo trova da sola. Con un'altra macchina sullo stesso USB-C serve un hub. L'NTS-1 non ha il bluetooth.") {
+            VetroCard(title: "col cavo", note: "Dalla USB-C dell'NTS-1 all'iPhone: l'iPhone lo accende anche, e Bobina lo trova da sola. Con un'altra macchina sullo stesso USB-C serve un hub. L'NTS-1 non ha il bluetooth.") {
                 EmptyView()
             }
 
-            Card(title: "a chi parla", note: "Tocca la porta dell'NTS-1. Bobina sceglie da sola quella che si chiama «NTS-1».") {
+            VetroCard(title: "a chi parla", note: "Tocca la porta dell'NTS-1. Bobina sceglie da sola quella che si chiama «NTS-1».") {
                 if nts1.destinations.isEmpty {
                     Text("nessuna porta MIDI")
                         .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(Palette.dim)
                 }
                 ForEach(nts1.destinations) { p in
-                    GridChip(text: p.name, on: nts1.destinationID == p.id) { nts1.destinationID = p.id }
+                    VetroGridChip(text: p.name, on: nts1.destinationID == p.id) { nts1.destinationID = p.id }
                 }
                 HStack(spacing: 6) {
-                    GridChip(text: "prova: suona un do") { nts1.player.touch(60) }
-                    GridChip(text: "aggiorna l'elenco") { nts1.refreshPorts() }
+                    VetroGridChip(text: "prova: suona un do") { nts1.player.touch(60) }
+                    VetroGridChip(text: "aggiorna l'elenco") { nts1.refreshPorts() }
                 }
             }
 
-            Card(title: "l'NTS-1", note: "Bobina gli chiede chi è al collegamento: firmware, canale e impostazioni.") {
+            VetroCard(title: "l'NTS-1", note: "Bobina gli chiede chi è al collegamento: firmware, canale e impostazioni.") {
                 line("firmware", nts1.firmware ?? "non ha risposto")
                 line("canale", "\(nts1.channel)")
                 if let g = nts1.global {
@@ -698,7 +701,7 @@ struct NTS1CollegaView: View {
                 } else {
                     line("impostazioni", "non ancora lette")
                 }
-                Chip(text: "rileggi tutto") { nts1.readAll() }
+                VetroChip(text: "rileggi tutto") { nts1.readAll() }
             }
         }
     }
@@ -748,16 +751,15 @@ struct NTS1PassiEditor: View {
                     Text(player.stepsOn ? "ferma" : "suona")
                         .font(.system(.title3, design: .monospaced).weight(.bold))
                         .frame(maxWidth: .infinity, minHeight: 52)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(player.stepsOn ? Palette.rec : Color(red: 0.40, green: 0.82, blue: 0.40)))
-                        .foregroundStyle(Color.black)
+                        .vetroKey(player.stepsOn ? .red : .glass(Color(red: 0.40, green: 0.82, blue: 0.40)), radius: 16)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(player.stepsOn ? "ferma i passi" : "suona i passi")
-                SmallKey(text: "−5") { nts1.setBPM(nts1.bpm - 5) }.accessibilityLabel("tempo meno 5")
+                VetroSmallKey(text: "−5") { nts1.setBPM(nts1.bpm - 5) }.accessibilityLabel("tempo meno 5")
                 Text("\(nts1.bpm)")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
                     .frame(minWidth: 44)
-                SmallKey(text: "+5") { nts1.setBPM(nts1.bpm + 5) }.accessibilityLabel("tempo più 5")
+                VetroSmallKey(text: "+5") { nts1.setBPM(nts1.bpm + 5) }.accessibilityLabel("tempo più 5")
             }
 
             // la tastiera: 12 note, una per tasto
@@ -768,8 +770,7 @@ struct NTS1PassiEditor: View {
                         Text(NTS1PassiEditor.noteNames[i])
                             .font(.system(.body, design: .monospaced).weight(.semibold))
                             .frame(maxWidth: .infinity, minHeight: 50)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(black ? NTS1.color.opacity(0.55) : NTS1.color))
-                            .foregroundStyle(Color.black)
+                            .vetroKey(black ? .half(NTS1.color) : .glass(NTS1.color))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("nota \(NTS1PassiEditor.noteNames[i])")
@@ -778,24 +779,24 @@ struct NTS1PassiEditor: View {
 
             // ottava, pausa, indietro
             HStack(spacing: 5) {
-                GridChip(text: "ottava −") { player.writeOctave = max(0, player.writeOctave - 1) }
+                VetroGridChip(text: "ottava −") { player.writeOctave = max(0, player.writeOctave - 1) }
                 Text("ott. \(player.writeOctave)")
                     .font(.system(.footnote, design: .monospaced))
                     .frame(minWidth: 48)
-                GridChip(text: "ottava +") { player.writeOctave = min(8, player.writeOctave + 1) }
-                GridChip(text: "pausa") { player.rest() }
-                GridChip(text: "indietro") { player.back() }
+                VetroGridChip(text: "ottava +") { player.writeOctave = min(8, player.writeOctave + 1) }
+                VetroGridChip(text: "pausa") { player.rest() }
+                VetroGridChip(text: "indietro") { player.back() }
             }
 
             // i passi: il cursore ha il bordo bianco, quello che suona è arancio
             NTS1CursorGrid(player: player, live: player.live)
 
             HStack(spacing: 5) {
-                GridChip(text: "8 passi", on: player.stepLength == 8) { player.stepLength = 8 }
-                GridChip(text: "16 passi", on: player.stepLength == 16) { player.stepLength = 16 }
-                GridChip(text: "copia 1-8 su 9-16") { player.copyHalf() }
+                VetroGridChip(text: "8 passi", on: player.stepLength == 8) { player.stepLength = 8 }
+                VetroGridChip(text: "16 passi", on: player.stepLength == 16) { player.stepLength = 16 }
+                VetroGridChip(text: "copia 1-8 su 9-16") { player.copyHalf() }
             }
-            GridChip(text: confirmClear ? "sicuro? svuota tutti i passi" : "svuota i passi", on: confirmClear) {
+            VetroGridChip(text: confirmClear ? "sicuro? svuota tutti i passi" : "svuota i passi", on: confirmClear, color: Palette.rec) {
                 if confirmClear {
                     confirmClear = false
                     player.clearSteps()
@@ -832,9 +833,8 @@ struct NTS1CursorGrid: View {
                             .minimumScaleFactor(0.6)
                     }
                     .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(RoundedRectangle(cornerRadius: 7).fill(now ? Palette.accent : note != nil ? NTS1.color : Color(white: 0.18)))
-                    .overlay(RoundedRectangle(cornerRadius: 7).stroke(here ? Color.white : Color.clear, lineWidth: 3))
-                    .foregroundStyle(now || note != nil ? Color.black : Color.white)
+                    .vetroKey(now ? .on(Palette.accent) : note != nil ? .glass(NTS1.color) : .off, radius: 10)
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(here ? Color.white : Color.clear, lineWidth: 3))
                     .opacity(inside ? 1 : 0.3)
                 }
                 .buttonStyle(.plain)
@@ -852,13 +852,13 @@ struct NTS1PresetsCard: View {
     private let two = Array(repeating: GridItem(.flexible(), spacing: 6), count: 2)
 
     var body: some View {
-        Card(title: "sequenze pronte", note: "Tutte scure. Un tocco la mette nei passi; poi la puoi cambiare nota per nota.") {
+        VetroCard(title: "sequenze pronte", note: "Tutte scure. Un tocco la mette nei passi; poi la puoi cambiare nota per nota.") {
             HStack(spacing: 6) {
-                GridChip(text: player.presetTempo ? "cambia anche il tempo: sì" : "cambia anche il tempo: no", on: player.presetTempo) {
+                VetroGridChip(text: player.presetTempo ? "cambia anche il tempo: sì" : "cambia anche il tempo: no", on: player.presetTempo) {
                     player.presetTempo.toggle()
                 }
                 if player.undo != nil {
-                    GridChip(text: "annulla") { player.undoPreset() }
+                    VetroGridChip(text: "annulla") { player.undoPreset() }
                         .accessibilityLabel("annulla la sequenza pronta")
                 }
             }
@@ -884,13 +884,50 @@ struct NTS1PresetsCard: View {
                                     .opacity(0.7)
                             }
                             .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(player.presetName == p.name ? NTS1.color : Color(white: 0.18)))
-                            .foregroundStyle(player.presetName == p.name ? Color.black : Color.white)
+                            .vetroKey(player.presetName == p.name ? .on(NTS1.color) : .off)
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("sequenza \(p.name)")
                     }
                 }
+            }
+        }
+    }
+}
+
+/// Una barra da trascinare, fatta per il QuadStick (copia della TX6DragBar, 10/10/2026): un clic in un punto qualsiasi
+/// porta il pallino lì, e tenendo premuto lo si trascina. Lo slider di Apple si muove solo prendendo il pallino.
+struct NTS1DragBar: View {
+    let value: Int
+    let set: (Int) -> Void
+
+    private let knob: CGFloat = 28
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let f = CGFloat(max(0, min(127, value))) / 127
+            ZStack(alignment: .leading) {
+                VetroTrack(tint: NTS1.color, fraction: f, knob: knob, width: w)
+            }
+            .frame(width: w, height: geo.size.height)
+            .contentShape(Rectangle())
+            // da 0 punti: il clic conta subito, e la pagina non scorre quando si parte dalla barra
+            .gesture(DragGesture(minimumDistance: 0).onChanged { g in
+                let x = max(0, min(1, (g.location.x - knob / 2) / max(1, w - knob)))
+                let v = Int((Double(x) * 127).rounded())
+                // solo quando il numero cambia: niente messaggi uguali all'NTS-1
+                if v != value { set(v) }
+            })
+        }
+        .frame(height: 44)
+        .accessibilityElement(children: .ignore)
+        .accessibilityValue("\(value)")
+        .accessibilityAdjustableAction { d in
+            switch d {
+            case .increment: set(min(127, value + 8))
+            case .decrement: set(max(0, value - 8))
+            @unknown default: break
             }
         }
     }

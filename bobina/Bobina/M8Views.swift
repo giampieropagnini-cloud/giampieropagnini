@@ -20,7 +20,8 @@ struct M8Tabs: View {
             M8CollegaView()
                 .tabItem { Label("Collega", systemImage: "cable.connector") }.tag(1)
         }
-        .tint(M8.color)
+        // la pillola di vetro di iOS: la scheda accesa in bianco (Vetro, 12/10/2026)
+        .tint(Color.white)
     }
 }
 
@@ -39,6 +40,7 @@ struct M8Page<Content: View>: View {
                 .padding(.horizontal, 14)
                 .padding(.bottom, 16)
             }
+            .vetroPage(.m8)
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -92,17 +94,30 @@ struct M8Chip: View {
     var on = false
     var color: Color = M8.color
     var height: CGFloat = 40
+    /// I salti delle manopole fino al valore attuale: accesi a metà (solo aspetto).
+    var half = false
+    /// Silenzio: rosso anche quando non è acceso (solo aspetto, il tasto resta quello).
+    var red = false
     let action: () -> Void
+
+    /// Acceso: viola dal bianco; rosso; bianco; un tasto col suo colore (tempo, live mode) resta vetro colorato.
+    private var look: VetroLook {
+        if red { return .red }
+        if !on { return half ? .half(M8.color) : .off }
+        if color == M8.color { return .on(M8.color) }
+        if color == Palette.rec { return .red }
+        if color == .white { return .white }
+        return .glass(color)
+    }
 
     var body: some View {
         Button(action: action) {
             Text(text)
-                .font(.system(.footnote, design: .monospaced).weight(on ? .semibold : .regular))
+                .font(.system(.footnote, design: .monospaced).weight(on ? .bold : .semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, minHeight: height)
-                .background(RoundedRectangle(cornerRadius: 8).fill(on ? color : Color(white: 0.18)))
-                .foregroundStyle(on ? Color.black : Color.white)
+                .vetroKey(look)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? .isSelected : [])
@@ -117,8 +132,7 @@ struct M8Panel<Content: View>: View {
         VStack(alignment: .leading, spacing: 8) { content() }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Palette.card))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Palette.cardEdge, lineWidth: 1))
+            .vetroPanel()
     }
 }
 
@@ -138,13 +152,13 @@ struct M8TempoLine: View {
         HStack(spacing: 5) {
             M8Chip(text: m8.running ? "ferma l'M8" : "M8 a tempo", on: true, color: m8.running ? Palette.rec : Color(red: 0.40, green: 0.82, blue: 0.40), height: 44) { m8.toggleRun() }
                 .accessibilityLabel(m8.running ? "ferma l'M8" : "fai partire l'M8 a tempo")
-            SmallKey(text: "−5") { m8.setBPM(m8.bpm - 5) }.accessibilityLabel("tempo meno 5")
-            SmallKey(text: "−1") { m8.setBPM(m8.bpm - 1) }.accessibilityLabel("tempo meno 1")
+            VetroSmallKey(text: "−5") { m8.setBPM(m8.bpm - 5) }.accessibilityLabel("tempo meno 5")
+            VetroSmallKey(text: "−1") { m8.setBPM(m8.bpm - 1) }.accessibilityLabel("tempo meno 1")
             Text("\(m8.bpm)")
                 .font(.system(.title3, design: .monospaced).weight(.bold))
                 .frame(minWidth: 44)
-            SmallKey(text: "+1") { m8.setBPM(m8.bpm + 1) }.accessibilityLabel("tempo più 1")
-            SmallKey(text: "+5") { m8.setBPM(m8.bpm + 5) }.accessibilityLabel("tempo più 5")
+            VetroSmallKey(text: "+1") { m8.setBPM(m8.bpm + 1) }.accessibilityLabel("tempo più 1")
+            VetroSmallKey(text: "+5") { m8.setBPM(m8.bpm + 5) }.accessibilityLabel("tempo più 5")
         }
     }
 }
@@ -168,7 +182,7 @@ struct M8KnobRow: View {
                 M8Chip(text: "−", height: 36) { set(max(0, value - 8)) }
                     .accessibilityLabel("\(name) meno")
                 ForEach(M8KnobRow.jumps, id: \.0) { j in
-                    M8Chip(text: j.1, on: abs(value - j.0) <= 4, height: 36) { set(j.0) }
+                    M8Chip(text: j.1, on: abs(value - j.0) <= 4, height: 36, half: j.0 < value) { set(j.0) }
                         .accessibilityLabel("\(name) \(j.2)")
                 }
                 M8Chip(text: "+", height: 36) { set(min(127, value + 8)) }
@@ -193,7 +207,7 @@ struct M8TastiView: View {
             HStack(spacing: 6) {
                 M8Chip(text: "live mode", on: true, color: Color(red: 0.25, green: 0.80, blue: 0.70), height: 44) { m8.liveMode() }
                     .accessibilityLabel("live mode")
-                M8Chip(text: "silenzio", height: 44) { m8.allNotesOff() }
+                M8Chip(text: "silenzio", height: 44, red: true) { m8.allNotesOff() }
                 if !m8.held.isEmpty {
                     M8Chip(text: "lascia tutto", on: true, color: .white, height: 44) { m8.releaseAll() }
                 }
@@ -278,9 +292,8 @@ struct M8KeyButton: View {
                     }
                 }
                 .frame(maxWidth: .infinity, minHeight: 46)
-                .background(RoundedRectangle(cornerRadius: 9).fill(key.color()))
-                .overlay(RoundedRectangle(cornerRadius: 9).stroke(held ? Color.white : Palette.cardEdge, lineWidth: held ? 3 : 1))
-                .foregroundStyle(Color.black)
+                .vetroKey(.glass(key.color()))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(held ? Color.white : Color.clear, lineWidth: 3))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(key.spoken)
@@ -290,9 +303,7 @@ struct M8KeyButton: View {
                     .font(.system(.caption2, design: .monospaced).weight(held ? .bold : .regular))
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, minHeight: 32)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(held ? Color.white : key.color(dark: true)))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Palette.cardEdge, lineWidth: 1))
-                    .foregroundStyle(held ? Color.black : Color.white.opacity(0.9))
+                    .vetroKey(held ? .white : .tinted(key.color()))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(held ? "lascia \(key.spoken)" : "tieni \(key.spoken)")
@@ -326,9 +337,8 @@ struct M8TracksRows: View {
                     Text("\(t)")
                         .font(.system(.body, design: .monospaced).weight(.semibold))
                         .frame(maxWidth: .infinity, minHeight: 44)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(lit ? Color.white : color.opacity(0.85)))
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(lit ? color : Palette.cardEdge, lineWidth: lit ? 3 : 1))
-                        .foregroundStyle(Color.black)
+                        .vetroKey(lit ? .white : .glass(color))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(lit ? color : Color.clear, lineWidth: 3))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("\(name) \(t)")
@@ -426,8 +436,7 @@ struct M8PadsPanel: View {
                     Text(M8Player.name(n))
                         .font(.system(.footnote, design: .monospaced).weight(.semibold))
                         .frame(maxWidth: .infinity, minHeight: 54)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(lit ? Color.white : M8.color))
-                        .foregroundStyle(Color.black)
+                        .vetroKey(lit ? .white : .glass(M8.color), radius: 16)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("nota \(M8Player.name(n))")
@@ -438,7 +447,7 @@ struct M8PadsPanel: View {
             M8Chip(text: "ottava −") { player.octave(-1) }
             M8Chip(text: "ottava +") { player.octave(1) }
             M8Chip(text: "lascia tutto") { player.releaseAll() }
-            M8Chip(text: "silenzio") { player.engine?.allNotesOff() }
+            M8Chip(text: "silenzio", red: true) { player.engine?.allNotesOff() }
         }
         M8Label("Sull'M8, Project > MIDI > Settings, TRACK INPUT: la traccia N con CHAN N, e INST# lo strumento che suona.")
     }
@@ -454,9 +463,9 @@ struct M8TiltPanel: View {
         if player.tiltOn { M8TiltBar(live: player.live) }
         HStack(spacing: 8) {
             M8Label("CC")
-            SmallKey(text: "−") { player.tiltCC = max(0, player.tiltCC - 1) }.accessibilityLabel("CC inclinazione meno")
+            VetroSmallKey(text: "−") { player.tiltCC = max(0, player.tiltCC - 1) }.accessibilityLabel("CC inclinazione meno")
             Text("\(player.tiltCC)").font(.system(.title3, design: .monospaced)).frame(minWidth: 40)
-            SmallKey(text: "+") { player.tiltCC = min(127, player.tiltCC + 1) }.accessibilityLabel("CC inclinazione più")
+            VetroSmallKey(text: "+") { player.tiltCC = min(127, player.tiltCC + 1) }.accessibilityLabel("CC inclinazione più")
         }
         M8Label("Sull'M8: Project > MIDI Mapping, tieni OPTION sul parametro e inclina il telefono.")
     }
@@ -503,16 +512,15 @@ struct M8PassiEditor: View {
                     Text(player.stepsOn ? "ferma" : "suona")
                         .font(.system(.title3, design: .monospaced).weight(.bold))
                         .frame(maxWidth: .infinity, minHeight: 50)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(player.stepsOn ? Palette.rec : Color(red: 0.40, green: 0.82, blue: 0.40)))
-                        .foregroundStyle(Color.black)
+                        .vetroKey(player.stepsOn ? .red : .glass(Color(red: 0.40, green: 0.82, blue: 0.40)), radius: 16)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(player.stepsOn ? "ferma i passi" : "suona i passi")
-                SmallKey(text: "−5") { m8.setBPM(m8.bpm - 5) }.accessibilityLabel("tempo meno 5")
+                VetroSmallKey(text: "−5") { m8.setBPM(m8.bpm - 5) }.accessibilityLabel("tempo meno 5")
                 Text("\(m8.bpm)")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
                     .frame(minWidth: 44)
-                SmallKey(text: "+5") { m8.setBPM(m8.bpm + 5) }.accessibilityLabel("tempo più 5")
+                VetroSmallKey(text: "+5") { m8.setBPM(m8.bpm + 5) }.accessibilityLabel("tempo più 5")
             }
 
             // la traccia dell'M8 che suona i passi
@@ -526,8 +534,7 @@ struct M8PassiEditor: View {
                         Text(M8PassiEditor.noteNames[i])
                             .font(.system(.body, design: .monospaced).weight(.semibold))
                             .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(black ? M8.color.opacity(0.55) : M8.color))
-                            .foregroundStyle(Color.black)
+                            .vetroKey(black ? .half(M8.color) : .glass(M8.color))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("nota \(M8PassiEditor.noteNames[i])")
@@ -590,9 +597,8 @@ struct M8CursorGrid: View {
                             .minimumScaleFactor(0.6)
                     }
                     .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(RoundedRectangle(cornerRadius: 7).fill(now ? Palette.accent : note != nil ? M8.color : Color(white: 0.18)))
-                    .overlay(RoundedRectangle(cornerRadius: 7).stroke(here ? Color.white : Color.clear, lineWidth: 3))
-                    .foregroundStyle(now || note != nil ? Color.black : Color.white)
+                    .vetroKey(now ? .on(Palette.accent) : note != nil ? .glass(M8.color) : .off, radius: 10)
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(here ? Color.white : Color.clear, lineWidth: 3))
                     .opacity(inside ? 1 : 0.3)
                 }
                 .buttonStyle(.plain)
@@ -670,9 +676,9 @@ struct M8NumberRow: View {
                 Text(hint).font(.system(.caption2, design: .monospaced)).foregroundStyle(Palette.dim)
             }
             .frame(width: 130, alignment: .leading)
-            SmallKey(text: "−") { set(max(range.lowerBound, value - 1)) }.accessibilityLabel("\(name) meno")
+            VetroSmallKey(text: "−") { set(max(range.lowerBound, value - 1)) }.accessibilityLabel("\(name) meno")
             Text("\(value)").font(.system(.title3, design: .monospaced)).frame(minWidth: 40)
-            SmallKey(text: "+") { set(min(range.upperBound, value + 1)) }.accessibilityLabel("\(name) più")
+            VetroSmallKey(text: "+") { set(min(range.upperBound, value + 1)) }.accessibilityLabel("\(name) più")
             Spacer()
         }
     }
@@ -794,9 +800,7 @@ struct M8DragBar: View {
             let w = geo.size.width
             let f = CGFloat(max(0, min(127, value))) / 127
             ZStack(alignment: .leading) {
-                Capsule().fill(Color(white: 0.25)).frame(height: 10)
-                Capsule().fill(M8.color).frame(width: knob / 2 + (w - knob) * f, height: 10)
-                Circle().fill(Color.white).frame(width: knob, height: knob).offset(x: (w - knob) * f)
+                VetroTrack(tint: M8.color, fraction: f, knob: knob, width: w)
             }
             .frame(width: w, height: geo.size.height)
             .contentShape(Rectangle())
@@ -866,7 +870,7 @@ struct M8RangeRow: View {
                 .accessibilityLabel("\(name) meno")
             ForEach(M8Knobs.jumps.indices, id: \.self) { j in
                 let jump = M8Knobs.jumps[j]
-                M8Chip(text: jump.1, on: abs(value - jump.0) <= 4, height: 36) { set(jump.0) }
+                M8Chip(text: jump.1, on: abs(value - jump.0) <= 4, height: 36, half: jump.0 < value) { set(jump.0) }
                     .accessibilityLabel("\(name) \(jump.2)")
             }
             M8Chip(text: "+", height: 36) { set(min(127, value + 8)) }
@@ -963,9 +967,8 @@ struct M8KnobStepGrid: View {
                             .minimumScaleFactor(0.6)
                     }
                     .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(RoundedRectangle(cornerRadius: 7).fill(now ? Palette.accent : v != nil ? M8.color : Color(white: 0.18)))
-                    .overlay(RoundedRectangle(cornerRadius: 7).stroke(here ? Color.white : Color.clear, lineWidth: 3))
-                    .foregroundStyle(now || v != nil ? Color.black : Color.white)
+                    .vetroKey(now ? .on(Palette.accent) : v != nil ? .glass(M8.color) : .off, radius: 10)
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(here ? Color.white : Color.clear, lineWidth: 3))
                     .opacity(i < length ? 1 : 0.3)
                 }
                 .buttonStyle(.plain)

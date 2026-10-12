@@ -433,3 +433,7 @@ Carico sul bluetooth: **basso** = un messaggio ogni tanto · **medio** = qualche
 16. Battito SysEx di Bobina con l'app OP-Z aperta: chi vince? E la batteria `$04` arriva anche sul bluetooth?
 17. Hub USB-C con OP-Z e TX-6 sull'iPhone.
 18. Un CC resta salvato nel pattern dopo lo spegnimento?
+
+### Misurato col vero
+
+- 10/10/2026: **col punch alto (MIXER, manopola gialla) tutto pompa a ogni kick** di Crea: sembra un sidechain, filtrato e spezzettato, anche in cuffia e con una cassa esterna. Abbassando il kick cala in proporzione, col punch giù sparisce. Per un OP-Z che suona debole si alza il master, mai il punch.

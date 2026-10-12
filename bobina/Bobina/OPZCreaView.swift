@@ -33,7 +33,7 @@ struct OPZCreaView: View {
             OPZCreaTop()
             LazyVGrid(columns: four, spacing: 5) {
                 ForEach(OPZCreaPart.allCases) { p in
-                    GridChip(text: p.label, on: p == current) { part = p.rawValue }
+                    VetroGridChip(text: p.label, on: p == current) { part = p.rawValue }
                         .accessibilityLabel("parte \(p.label)")
                 }
                 OPZSilenceKey()
@@ -71,8 +71,7 @@ struct OPZCreaTop: View {
                 Text(!opz.running ? "▶ suona" : !opz.createOn ? "▶ anche Crea" : "■ ferma")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
                     .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(opz.running && opz.createOn ? Palette.rec : OPZ.tint))
-                    .foregroundStyle(Color.black)
+                    .vetroKey(opz.running && opz.createOn ? .red : .on(OPZ.tint), radius: 16)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(!opz.running ? "suona" : !opz.createOn ? "fai suonare anche Crea" : "ferma tutto")
@@ -83,13 +82,12 @@ struct OPZCreaTop: View {
                         .font(.system(.footnote, design: .monospaced).weight(.bold))
                         .multilineTextAlignment(.center)
                         .frame(width: 64, height: 50)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(OPZ.tint))
-                        .foregroundStyle(Color.black)
+                        .vetroKey(.on(OPZ.tint), radius: 16)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("spegni Crea, suona solo l'OP-Z")
             }
-            SmallKey(text: "−5") { opz.setBPM(opz.bpm - 5) }.accessibilityLabel("tempo meno 5")
+            VetroSmallKey(text: "−5") { opz.setBPM(opz.bpm - 5) }.accessibilityLabel("tempo meno 5")
             VStack(spacing: 0) {
                 Text("\(Int(opz.bpm.rounded()))")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
@@ -98,7 +96,7 @@ struct OPZCreaTop: View {
                     .foregroundStyle(Palette.dim)
             }
             .frame(minWidth: 50)
-            SmallKey(text: "+5") { opz.setBPM(opz.bpm + 5) }.accessibilityLabel("tempo più 5")
+            VetroSmallKey(text: "+5") { opz.setBPM(opz.bpm + 5) }.accessibilityLabel("tempo più 5")
         }
     }
 }
@@ -115,15 +113,13 @@ struct OPZRecordLockBanner: View {
                 Text("fatto")
                     .font(.system(.subheadline, design: .monospaced).weight(.bold))
                     .frame(width: 70, height: 44)
-                    .background(RoundedRectangle(cornerRadius: 9).fill(Color.white))
-                    .foregroundStyle(Color.black)
+                    .vetroKey(.white)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("fatto, record lock tolto")
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Palette.rec))
-        .foregroundStyle(Color.white)
+        .vetroKey(.red, radius: 16)
     }
 }
 
@@ -136,8 +132,7 @@ struct OPZSilenceKey: View {
             Text("silenzio")
                 .font(.system(.footnote, design: .monospaced).weight(.bold))
                 .frame(maxWidth: .infinity, minHeight: 38)
-                .background(RoundedRectangle(cornerRadius: 8).fill(Palette.rec))
-                .foregroundStyle(Color.white)
+                .vetroKey(.red)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("silenzio, spegni tutte le note")
@@ -152,8 +147,7 @@ struct OPZPanel<Content: View>: View {
         VStack(alignment: .leading, spacing: 7) { content() }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Palette.card))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.cardEdge, lineWidth: 1))
+            .vetroPanel()
     }
 }
 
@@ -167,6 +161,7 @@ struct OPZLabel: View {
 
 /// Un tasto piccolo e pieno se acceso, alto quanto serve al Controllo Vocale.
 struct OPZChip: View {
+    @Environment(\.vetro) private var theme
     let text: String
     var on = false
     var color: Color = Palette.accent
@@ -174,14 +169,14 @@ struct OPZChip: View {
     let action: () -> Void
 
     var body: some View {
+        let look = vetroLook(on: on, color: color, theme: theme)
         Button(action: action) {
             Text(text)
-                .font(.system(.footnote, design: .monospaced).weight(on ? .bold : .regular))
+                .font(.system(.footnote, design: .monospaced).weight(on ? .bold : .semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, minHeight: height)
-                .background(RoundedRectangle(cornerRadius: 8).fill(on ? color : Color(white: 0.18)))
-                .foregroundStyle(on ? Color.black : Color.white)
+                .vetroKey(look)
         }
         .buttonStyle(.plain)
     }
@@ -236,8 +231,7 @@ struct OPZDrumPanel: View {
                             Text("suono \(opz.drumPick[t - 1] - OPZ.keyboardF + 1)").font(.system(size: 9, design: .monospaced))
                         }
                         .frame(width: 62, height: 44)
-                        .background(RoundedRectangle(cornerRadius: 7).fill(row == t ? OPZ.color(t) : OPZ.color(t).opacity(0.2)))
-                        .foregroundStyle(row == t ? Color.black : OPZ.color(t))
+                        .vetroKey(row == t ? .on(OPZ.color(t)) : .tinted(OPZ.color(t)))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("riga \(OPZ.track(t).name)")
@@ -247,9 +241,8 @@ struct OPZDrumPanel: View {
                         let mine = cell.contains(opz.drumPick[t - 1])
                         let inside = i < len
                         Button { if inside { opz.toggleDrum(t, i) } } label: {
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(mine ? OPZ.color(t) : !cell.isEmpty ? OPZ.color(t).opacity(0.4) : Color(white: c % 4 == 0 ? 0.26 : 0.18))
-                                .overlay(RoundedRectangle(cornerRadius: 6).stroke(live.step >= 0 && live.step % max(1, len) == i ? Color.white : Color.clear, lineWidth: 2))
+                            VetroKeyBackground(look: mine ? .glass(OPZ.color(t)) : !cell.isEmpty ? .half(OPZ.color(t)) : c % 4 == 0 ? .offBeat : .off, radius: 8)
+                                .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(live.step >= 0 && live.step % max(1, len) == i ? Color.white : Color.clear, lineWidth: 2))
                                 .frame(height: 44)
                                 .opacity(inside ? 1 : 0.25)
                         }
@@ -277,9 +270,9 @@ struct OPZDrumPanel: View {
             }
             HStack(spacing: 5) {
                 OPZLabel("passi")
-                SmallKey(text: "−") { opz.length -= 1 }.accessibilityLabel("un passo in meno")
+                VetroSmallKey(text: "−") { opz.length -= 1 }.accessibilityLabel("un passo in meno")
                 Text("\(lens[row - 1])").font(.system(.body, design: .monospaced).weight(.bold)).frame(minWidth: 28)
-                SmallKey(text: "+") { opz.length += 1 }.accessibilityLabel("un passo in più")
+                VetroSmallKey(text: "+") { opz.length += 1 }.accessibilityLabel("un passo in più")
                 OPZChip(text: help ? "chiudi" : "kit?", on: help, height: 34) { help.toggle() }
                     .accessibilityLabel(help ? "chiudi aiuto" : "come cambio il kit")
                 OPZChip(text: confirmClear ? "sicuro?" : "svuota tutto", on: confirmClear, color: Palette.rec, height: 34) {
@@ -369,8 +362,7 @@ struct OPZNotePanel: View {
                         Text(OPZNotePanel.names[k])
                             .font(.system(.body, design: .monospaced).weight(.semibold))
                             .frame(maxWidth: .infinity, minHeight: 46)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(held ? Color.white : black ? OPZ.color(tr).opacity(0.5) : OPZ.color(tr)))
-                            .foregroundStyle(Color.black)
+                            .vetroKey(held ? .white : black ? .half(OPZ.color(tr)) : .glass(OPZ.color(tr)))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("nota \(OPZNotePanel.names[k])")
@@ -406,9 +398,8 @@ struct OPZNotePanel: View {
                                 .minimumScaleFactor(0.6)
                         }
                         .frame(maxWidth: .infinity, minHeight: 42)
-                        .background(RoundedRectangle(cornerRadius: 7).fill(now ? Palette.accent : !cell.isEmpty ? OPZ.color(tr) : Color(white: c % 4 == 0 ? 0.24 : 0.17)))
-                        .overlay(RoundedRectangle(cornerRadius: 7).stroke(opz.cursor == i ? Color.white : Color.clear, lineWidth: 3))
-                        .foregroundStyle(now || !cell.isEmpty ? Color.black : Color.white)
+                        .vetroKey(now ? .on(Palette.accent) : !cell.isEmpty ? .glass(OPZ.color(tr)) : c % 4 == 0 ? .offBeat : .off, radius: 10)
+                        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(opz.cursor == i ? Color.white : Color.clear, lineWidth: 3))
                         .opacity(inside ? 1 : 0.25)
                     }
                     .buttonStyle(.plain)
@@ -419,9 +410,9 @@ struct OPZNotePanel: View {
             }
             HStack(spacing: 5) {
                 OPZLabel("passi")
-                SmallKey(text: "−") { opz.length -= 1 }.accessibilityLabel("un passo in meno")
+                VetroSmallKey(text: "−") { opz.length -= 1 }.accessibilityLabel("un passo in meno")
                 Text("\(len)").font(.system(.body, design: .monospaced).weight(.bold)).frame(minWidth: 28)
-                SmallKey(text: "+") { opz.length += 1 }.accessibilityLabel("un passo in più")
+                VetroSmallKey(text: "+") { opz.length += 1 }.accessibilityLabel("un passo in più")
                 OPZLabel("dura")
                 ForEach([(1, "1"), (2, "2"), (4, "4"), (0, "tenuta")], id: \.0) { g in
                     OPZChip(text: g.1, on: opz.gate == g.0, height: 32) { opz.gate = g.0 }
@@ -517,8 +508,7 @@ struct OPZPresetList: View {
                     }
                     .padding(.horizontal, 2)
                     .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(on ? OPZ.tint : Color(white: 0.18)))
-                    .foregroundStyle(on ? Color.black : Color.white)
+                    .vetroKey(on ? .on(OPZ.tint) : .off)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(items[i].name)
@@ -655,8 +645,7 @@ struct OPZWritePanel: View {
                 Text(opz.writing ? "sto scrivendo…" : "scrivi sull'OP-Z")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
                     .frame(maxWidth: .infinity, minHeight: 54)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(opz.writing ? Palette.rec : OPZ.tint))
-                    .foregroundStyle(Color.black)
+                    .vetroKey(opz.writing ? .red : .on(OPZ.tint), radius: 16)
             }
             .buttonStyle(.plain)
             .disabled(opz.writing)
@@ -683,9 +672,8 @@ struct OPZCreaFxKey: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, minHeight: 48)
-                .background(RoundedRectangle(cornerRadius: 8).fill(fx.color))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(held ? Color.white : Palette.cardEdge, lineWidth: held ? 3 : 1))
-                .foregroundStyle(Color.black)
+                .vetroKey(.glass(fx.color))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(held ? Color.white : Color.clear, lineWidth: 3))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(fx.name)
@@ -694,8 +682,7 @@ struct OPZCreaFxKey: View {
                 Text(held ? "lascia" : "tieni")
                     .font(.system(.caption2, design: .monospaced).weight(held ? .bold : .regular))
                     .frame(maxWidth: .infinity, minHeight: 36)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(held ? Color.white : fx.dark))
-                    .foregroundStyle(held ? Color.black : Color.white.opacity(0.85))
+                    .vetroKey(held ? .white : .tinted(fx.color))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(held ? "lascia \(fx.name)" : "tieni \(fx.name)")
@@ -724,9 +711,8 @@ struct OPZFxStepCells: View {
                             .minimumScaleFactor(0.6)
                     }
                     .frame(maxWidth: .infinity, minHeight: 46)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(f?.color ?? Color(white: i % 4 == 0 ? 0.22 : 0.16)))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(live.step >= 0 && live.step % cells.count == i ? Color.white : Color.clear, lineWidth: 3))
-                    .foregroundStyle(f == nil ? Color.white : Color.black)
+                    .vetroKey(f.map { .glass($0.color) } ?? (i % 4 == 0 ? .offBeat : .off))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(live.step >= 0 && live.step % cells.count == i ? Color.white : Color.clear, lineWidth: 3))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("effetto passo \(i + 1)")
@@ -756,8 +742,7 @@ struct OPZChainRow: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, minHeight: 34)
-                        .background(RoundedRectangle(cornerRadius: 7).fill(lit ? Palette.accent : Color(white: 0.16)))
-                        .foregroundStyle(lit ? Color.black : Color.white)
+                        .vetroKey(lit ? .on(Palette.accent) : .off, radius: 10)
                 }
             }
             .accessibilityElement(children: .ignore)
@@ -785,26 +770,24 @@ struct OPZCreaMixerCard: View {
                         Text(on ? "suona" : "muta")
                             .font(.system(.footnote, design: .monospaced).weight(.semibold))
                             .frame(maxWidth: .infinity, minHeight: 40)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(on ? OPZ.color(t.number) : Color(white: 0.12)))
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(OPZ.color(t.number), lineWidth: on ? 0 : 2))
-                            .foregroundStyle(on ? Color.black : OPZ.color(t.number))
+                            .vetroKey(on ? .glass(OPZ.color(t.number)) : .tinted(OPZ.color(t.number)))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(on ? "muta \(t.name)" : "fai suonare \(t.name)")
-                    GridChip(text: "solo") { opz.soloCrea(t.number) }
+                    VetroGridChip(text: "solo") { opz.soloCrea(t.number) }
                         .frame(width: 54)
                         .accessibilityLabel("solo \(t.name)")
                     Button { opz.volumeNudge(t.number, up: false) } label: {
                         Text("−").font(.system(.title3, design: .monospaced))
                             .frame(width: 44, height: 40)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18)))
+                            .vetroKey(.off)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("volume \(t.name) meno")
                     Button { opz.volumeNudge(t.number, up: true) } label: {
                         Text("+").font(.system(.title3, design: .monospaced))
                             .frame(width: 44, height: 40)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(Color(white: 0.18)))
+                            .vetroKey(.off)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("volume \(t.name) più")
@@ -828,19 +811,17 @@ struct OPZResetRow: View {
                     Text("sì, cancella tutto")
                         .font(.system(.subheadline, design: .monospaced).weight(.bold))
                         .frame(maxWidth: .infinity, minHeight: 44)
-                        .background(RoundedRectangle(cornerRadius: 9).fill(Palette.rec))
-                        .foregroundStyle(Color.white)
+                        .vetroKey(.red)
                 }
                 .buttonStyle(.plain)
-                GridChip(text: "no, lascia stare") { asking = false }
+                VetroGridChip(text: "no, lascia stare") { asking = false }
             }
         } else {
             Button { asking = true } label: {
                 Text("ricomincia da zero")
                     .font(.system(.subheadline, design: .monospaced))
                     .frame(maxWidth: .infinity, minHeight: 40)
-                    .background(RoundedRectangle(cornerRadius: 9).stroke(Palette.rec, lineWidth: 2))
-                    .foregroundStyle(Palette.rec)
+                    .vetroKey(.tinted(Palette.rec))
             }
             .buttonStyle(.plain)
             .accessibilityHint("cancella tutti i pattern, gli effetti e la catena del progetto aperto")
@@ -905,9 +886,9 @@ struct OPZAutoCells: View {
                 let v = values[i]
                 Button { tap(i) } label: {
                     ZStack(alignment: .bottom) {
-                        RoundedRectangle(cornerRadius: 8).fill(Color(white: i % 4 == 0 ? 0.22 : 0.16))
+                        VetroKeyBackground(look: i % 4 == 0 ? .offBeat : .off)
                         if let v = v {
-                            RoundedRectangle(cornerRadius: 6).fill(OPZ.tint)
+                            VetroKeyBackground(look: .on(OPZ.tint), radius: 10)
                                 .frame(height: 46 * CGFloat(v) / 8)
                         }
                         VStack(spacing: 0) {
@@ -918,7 +899,7 @@ struct OPZAutoCells: View {
                         .foregroundStyle(v != nil && v! >= 5 ? Color.black : Color.white)
                     }
                     .frame(height: 50)
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(live.step >= 0 && live.step % values.count == i ? Color.white : Color.clear, lineWidth: 3))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(live.step >= 0 && live.step % values.count == i ? Color.white : Color.clear, lineWidth: 3))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("automazione passo \(i + 1)")
@@ -975,9 +956,8 @@ struct OPZCreaPatterns: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, minHeight: 44)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(editing ? OPZ.tint : Color(white: 0.18)))
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(playing ? Color.white : Color.clear, lineWidth: 3))
-                        .foregroundStyle(editing ? Color.black : Color.white)
+                        .vetroKey(editing ? .on(OPZ.tint) : .off)
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(playing ? Color.white : Color.clear, lineWidth: 3))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("pattern di Bobina \(n)")
