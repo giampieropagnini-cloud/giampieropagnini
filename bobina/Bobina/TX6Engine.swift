@@ -379,6 +379,11 @@ final class TX6Engine: ObservableObject {
     @Published var melodyOctaves: [Int] = Array(repeating: 4, count: 6) { didSet { save() } }
     /// Quanti sedicesimi dura ogni nota, per traccia: 0 = tenuta fino alla nota dopo.
     @Published var melodyGates: [Int] = Array(repeating: 1, count: 6) { didSet { save() } }
+    /// Le tracce della melodia che suonano sul Playdate invece che sul TX-6 (la sezione Playdate legge la stessa chiave).
+    @Published var toPlaydate: Set<Int> = Set(UserDefaults.standard.array(forKey: TX6Engine.toPlaydateKey) as? [Int] ?? []) {
+        didSet { UserDefaults.standard.set(toPlaydate.sorted(), forKey: Self.toPlaydateKey) }
+    }
+    static let toPlaydateKey = "bobina.tx6.alPlaydate"
     /// Lo swing dei passi, come sulle MPC: 0,5 dritto, 0,54-0,58 leggero, 0,62-0,66 pesante. Resta salvato.
     @Published var swing: Double = UserDefaults.standard.object(forKey: "bobina.tx6.swing") as? Double ?? 0.5 {
         didSet { UserDefaults.standard.set(swing, forKey: "bobina.tx6.swing") }
@@ -1360,6 +1365,7 @@ final class TX6Engine: ObservableObject {
         p.swing = swing
         p.bluetooth = viaBluetooth
         p.oneShot = (1...6).map { isDrumSound($0) }
+        p.toPlaydate = toPlaydate
         // il cancello vince sulla pompa: le tracce del cancello non pompano
         p.pumpTops = pumpTracks.sorted().filter { !(gateOn && gateTracks.contains($0)) }.map { tr in
             (track: tr, top: silenced(tr) ? 0 : Double(values[tr - 1][TX6.Param.volume.rawValue]) * (driftOn && driftTracks.contains(tr) ? driftLevels[tr - 1] : 1))
