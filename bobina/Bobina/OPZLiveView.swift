@@ -58,12 +58,11 @@ struct OPZLiveTop: View {
                 Text(opz.running ? "■ ferma" : "▶ suona")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
                     .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(opz.running ? Palette.rec : OPZ.tint))
-                    .foregroundStyle(Color.black)
+                    .vetroKey(opz.running ? .red : .on(OPZ.tint), radius: 16)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(opz.running ? "ferma l'OP-Z" : "fai suonare l'OP-Z")
-            SmallKey(text: "−5") { opz.setBPM(opz.bpm - 5) }.accessibilityLabel("tempo meno 5")
+            VetroSmallKey(text: "−5") { opz.setBPM(opz.bpm - 5) }.accessibilityLabel("tempo meno 5")
             VStack(spacing: 0) {
                 Text("\(Int(opz.bpm.rounded()))")
                     .font(.system(.title3, design: .monospaced).weight(.bold))
@@ -74,7 +73,7 @@ struct OPZLiveTop: View {
                     .minimumScaleFactor(0.7)
             }
             .frame(minWidth: 56)
-            SmallKey(text: "+5") { opz.setBPM(opz.bpm + 5) }.accessibilityLabel("tempo più 5")
+            VetroSmallKey(text: "+5") { opz.setBPM(opz.bpm + 5) }.accessibilityLabel("tempo più 5")
         }
     }
 }
@@ -100,9 +99,7 @@ struct OPZLiveMutes: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, minHeight: 50)
-                        .background(RoundedRectangle(cornerRadius: 9).fill(m ? Color(white: 0.12) : OPZ.color(t.number)))
-                        .overlay(RoundedRectangle(cornerRadius: 9).stroke(OPZ.color(t.number), lineWidth: m ? 2 : 0))
-                        .foregroundStyle(m ? OPZ.color(t.number) : Color.black)
+                        .vetroKey(m ? .tinted(OPZ.color(t.number)) : .glass(OPZ.color(t.number)), radius: 16)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(t.name)
@@ -191,11 +188,10 @@ struct OPZLiveKnobs: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
                             .frame(width: 112, alignment: .leading)
-                        Slider(value: Binding(get: { Double(opz.value(cc, track: tr)) },
-                                              set: { opz.slide(cc, Int($0.rounded()), track: tr) }),
-                               in: 0...127)
-                            .tint(OPZLiveKnobs.knob[(cc - 1) % 4])
-                            .accessibilityLabel("\(name), barra")
+                        OPZDragBar(value: Double(opz.value(cc, track: tr)), tint: OPZLiveKnobs.knob[(cc - 1) % 4]) {
+                            opz.slide(cc, Int($0.rounded()), track: tr)
+                        }
+                        .accessibilityLabel("\(name), barra")
                     }
                     if OPZ.gainCCs.contains(cc) {
                         // un guadagno solo a passi piccoli: niente min, metà, max (regola dell'8/10/2026)
@@ -225,6 +221,49 @@ struct OPZLiveKnobs: View {
     }
 }
 
+/// La barra di una manopola per il QuadStick (copia della TX6DragBar del TX-6, 11/10/2026): lo Slider di Apple si
+/// sposta solo prendendo il pallino, qui un clic porta il pallino lì e tenendo premuto lo si trascina.
+/// Manda solo quando il numero cambia (il primo tocco manda sempre). I tasti min − metà + max restano accanto:
+/// col solo Controllo Vocale Giampiero usa quelli.
+struct OPZDragBar: View {
+    let value: Double
+    let tint: Color
+    let set: (Double) -> Void
+
+    @State private var last: Int?
+    private let knob: CGFloat = 28
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let f = CGFloat(max(0, min(1, value / 127)))
+            ZStack(alignment: .leading) {
+                VetroTrack(tint: tint, fraction: f, knob: knob, width: w)
+            }
+            .frame(width: w, height: geo.size.height)
+            .contentShape(Rectangle())
+            // da 0 punti: il clic conta subito, e la pagina non scorre quando si parte dalla barra
+            .gesture(DragGesture(minimumDistance: 0)
+                .onChanged { g in
+                    let x = (g.location.x - knob / 2) / max(1, w - knob)
+                    let v = Int((Double(max(0, min(1, x))) * 127).rounded())
+                    if v != last { last = v; set(Double(v)) }
+                }
+                .onEnded { _ in last = nil })
+        }
+        .frame(height: 44)
+        .accessibilityElement(children: .ignore)
+        .accessibilityValue("\(Int(value.rounded()))")
+        .accessibilityAdjustableAction { d in
+            switch d {
+            case .increment: set(min(127, value + 8))
+            case .decrement: set(max(0, value - 8))
+            @unknown default: break
+            }
+        }
+    }
+}
+
 // MARK: pattern dell'OP-Z
 
 struct OPZLivePatterns: View {
@@ -239,9 +278,8 @@ struct OPZLivePatterns: View {
                         Text(opz.queuedPattern == n ? "\(n) ⏳" : "\(n)")
                             .font(.system(.title3, design: .monospaced).weight(opz.pattern == n ? .bold : .regular))
                             .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(RoundedRectangle(cornerRadius: 9).fill(opz.pattern == n ? OPZ.tint : Color(white: 0.18)))
-                            .overlay(RoundedRectangle(cornerRadius: 9).stroke(opz.queuedPattern == n ? Palette.accent : Palette.cardEdge, lineWidth: opz.queuedPattern == n ? 3 : 1))
-                            .foregroundStyle(opz.pattern == n ? Color.black : Color.white)
+                            .vetroKey(opz.pattern == n ? .on(OPZ.tint) : .off, radius: 16)
+                            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(opz.queuedPattern == n ? Palette.accent : Color.clear, lineWidth: 3))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("pattern \(n)")

@@ -80,11 +80,9 @@ final class PlaydateLink: ObservableObject {
     @Published var clockOn: Bool {
         didSet { UserDefaults.standard.set(clockOn, forKey: Keys.clock); updateFilter() }
     }
-    /// Le note che Crea manda al TX-6 su questa traccia (canale 1-6) suonano anche sul Playdate. 0 = spento.
-    /// Arrivano da TX6Sequencer.noteTap, con l'istante giusto: non dipendono da cosa il TX-6 rimanda fuori.
-    @Published var creaTrack: Int {
-        didSet { UserDefaults.standard.set(creaTrack, forKey: Keys.crea); updateFilter(); updateTap() }
-    }
+    /// Le tracce della melodia che vanno al Playdate: le sceglie Giampiero in Crea → melodia («traccia N al
+    /// Playdate», sezione TX-6, UserDefaults «bobina.tx6.alPlaydate»). Una decisione in un posto solo: qui si legge.
+    @Published private(set) var playdateTracks: [Int] = []
     /// La tastiera degli amici (pagina /amici del ponte) può suonare le macchine collegate a Bobina.
     @Published var friendsOn: Bool {
         didSet {
@@ -101,7 +99,6 @@ final class PlaydateLink: ObservableObject {
         static let notes = "bobina.playdate.note"
         static let clock = "bobina.playdate.tempo"
         static let friends = "bobina.playdate.amici"
-        static let crea = "bobina.playdate.crea"
     }
 
     /// Quello che leggono i fili di CoreMIDI e del tempo, copiato sotto lock dal main thread.
@@ -110,7 +107,6 @@ final class PlaydateLink: ObservableObject {
         var clock = false
         var channel = 0
         var friends = false
-        var crea = 0
     }
 
     private let lock = NSLock()
@@ -118,6 +114,8 @@ final class PlaydateLink: ObservableObject {
     private var held: UInt8?  // la nota accesa sul Playdate, da spegnere se Bobina va in secondo piano
     private var machineList: [String] = []  // copia di `destinations` per il filo della rete, sotto lock
     private var linkUp = false  // il ponte risponde, sotto lock: senza ponte il filo del tempo dorme
+    private var trackSet: Set<Int> = []  // copia di `playdateTracks` per i fili del sequencer e della rete, sotto lock
+    private var listeningTX6 = false  // la macchina ascoltata è il TX-6, sotto lock
 
     private let queue = DispatchQueue(label: "bobina.playdate", qos: .userInteractive)
     private var conn: NWConnection?  // solo su `queue`
@@ -143,7 +141,6 @@ final class PlaydateLink: ObservableObject {
         clockOn = d.object(forKey: Keys.clock) as? Bool ?? false
         // spento di serie: la regola di Giampiero è «se lo voglio fare metto la spunta»
         friendsOn = d.object(forKey: Keys.friends) as? Bool ?? false
-        creaTrack = d.object(forKey: Keys.crea) as? Int ?? 0
         updateFilter()
 
         MIDIClientCreateWithBlock("Bobina Playdate" as CFString, &client) { [weak self] note in
@@ -159,6 +156,11 @@ final class PlaydateLink: ObservableObject {
         setTarget(host)
 
         updateTap()
+        readPlaydateTracks()
+        // la sezione TX-6 salva le tracce scelte a ogni tocco della spunta «traccia N al Playdate»
+        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.readPlaydateTracks()
+        }
 
         let tempo = Thread { [weak self] in self?.clockLoop() }
         tempo.qualityOfService = .userInteractive
@@ -210,6 +212,9 @@ final class PlaydateLink: ObservableObject {
     private func attachSources() {
         for s in attached { MIDIPortDisconnectSource(inPort, s) }
         attached = []
+        lock.lock()
+        listeningTX6 = false
+        lock.unlock()
         guard !sourceName.isEmpty else { return }
         let wanted = PlaydateLink.family(of: sourceName)
         var matches: [(MIDIEndpointRef, String)] = []
@@ -221,6 +226,9 @@ final class PlaydateLink: ObservableObject {
         let cable = matches.filter { !$0.1.lowercased().contains("bluetooth") }
         if let pick = (cable.first ?? matches.first), MIDIPortConnectSource(inPort, pick.0, nil) == noErr {
             attached = [pick.0]
+            lock.lock()
+            listeningTX6 = PlaydateLink.family(of: pick.1) == "tx6"
+            lock.unlock()
             trace("playdate: ascolto \(pick.1)")
         } else {
             trace("playdate: \(sourceName) non collegato")
@@ -249,7 +257,7 @@ final class PlaydateLink: ObservableObject {
 
     private func updateFilter() {
         lock.lock()
-        filter = Filter(notes: notesOn, clock: clockOn, channel: channel, friends: friendsOn, crea: creaTrack)
+        filter = Filter(notes: notesOn, clock: clockOn, channel: channel, friends: friendsOn)
         lock.unlock()
     }
 
@@ -283,6 +291,13 @@ final class PlaydateLink: ObservableObject {
     /// via bluetooth faceva andare a singhiozzo i comandi, 7/10/2026).
     private func feed(_ b: UInt8, _ f: Filter) {
         if b >= 0xF8 { return }
+        // Una traccia su suono MIDI rimanda fuori le note che riceve da Bobina, sul suo canale MIDI (misurato dalla chat
+        // TX-6, 10/10/2026). Con tracce al Playdate le note di Crea arrivano già da noteTap: l'eco del TX-6 si salta,
+        // se no il Playdate le suonerebbe due volte.
+        lock.lock()
+        let echo = listeningTX6 && !trackSet.isEmpty
+        lock.unlock()
+        if echo { return }
         if b & 0x80 != 0 {
             status = b < 0xF0 ? b : 0  // SysEx e compagnia: i loro dati si saltano
             data.removeAll()
@@ -309,18 +324,45 @@ final class PlaydateLink: ObservableObject {
         }
     }
 
-    /// Le note di Crea dal filo del sequencer del TX-6 (aggancio della chat del TX-6, b75239f). Agganciato solo con
-    /// una traccia scelta: spento, `noteTap` resta nil e il sequencer non se ne accorge.
+    /// Le note di Crea dal filo del sequencer del TX-6 (aggancio della chat del TX-6, b75239f). Agganciato solo se
+    /// c'è almeno una traccia al Playdate: senza, `noteTap` resta nil e il sequencer non se ne accorge.
     private func updateTap() {
-        TX6Sequencer.noteTap = creaTrack == 0 ? nil : { [weak self] channel, note, velocity, at in
+        lock.lock()
+        let any = !trackSet.isEmpty
+        lock.unlock()
+        if !any { TX6Sequencer.playdateReady = false }  // prima si dice al sequencer di non contarci più
+        TX6Sequencer.noteTap = !any ? nil : { [weak self] channel, note, velocity, at in
             self?.creaNote(channel, note, velocity, at)
         }
+        updateReady()
+    }
+
+    /// TX6Sequencer.playdateReady (della sezione TX-6): vero solo col ponte collegato e noteTap agganciato. Falso, il
+    /// sequencer rimanda le tracce al TX-6, così una melodia non resta muta perché il Mac o il Raspberry sono spenti.
+    private func updateReady() {
+        lock.lock()
+        let ready = linkUp && !trackSet.isEmpty
+        lock.unlock()
+        TX6Sequencer.playdateReady = ready && TX6Sequencer.noteTap != nil
+    }
+
+    private func readPlaydateTracks() {
+        let tracks = (UserDefaults.standard.array(forKey: TX6Engine.toPlaydateKey) as? [Int] ?? []).filter { (1...6).contains($0) }.sorted()
+        lock.lock()
+        let changed = trackSet != Set(tracks)
+        trackSet = Set(tracks)
+        lock.unlock()
+        if tracks != playdateTracks { playdateTracks = tracks }
+        if changed { updateTap() }
     }
 
     /// Filo del sequencer del TX-6: la nota arriva fino a 150 ms prima che suoni, si manda al ponte nell'istante giusto.
     private func creaNote(_ channel: Int, _ note: Int, _ velocity: Int, _ at: MIDITimeStamp) {
-        let f = currentFilter
-        guard f.crea != 0, channel == f.crea, (0...127).contains(note) else { return }
+        lock.lock()
+        let mine = trackSet.contains(channel)
+        lock.unlock()
+        // noteTap sente anche le altre tracce (quelle che vanno al TX-6): qui passano solo quelle al Playdate
+        guard mine, (0...127).contains(note) else { return }
         let now = mach_absolute_time()
         let wait = at > now ? min(0.3, BobinaClock.ms(at - now) / 1000) : 0
         let ch = UInt8(max(1, min(16, channel)) - 1)
@@ -560,6 +602,7 @@ final class PlaydateLink: ObservableObject {
         lock.lock()
         linkUp = value
         lock.unlock()
+        updateReady()
         DispatchQueue.main.async {
             if self.connected != value { self.connected = value }
         }

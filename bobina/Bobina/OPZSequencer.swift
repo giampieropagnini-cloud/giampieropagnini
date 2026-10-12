@@ -419,14 +419,16 @@ final class OPZSequencer {
 
     /// Bobina va in secondo piano e iOS sta per sospenderla: le note tenute si spengono, dopo quelle già in coda
     /// (se no restano accese finché Bobina non torna). Il ritmo riprende da solo al ritorno.
-    func releaseForBackground() {
-        queue.async { [self] in
+    /// `wait`: le note-off partono prima di tornare, quando iOS sta già per sospendere Bobina (la coda non ferma mai il main).
+    func releaseForBackground(wait: Bool = false) {
+        let work = { [self] in
             let offs = offsAt.values.flatMap { $0 } + heldUntil.keys.flatMap { OPZ.noteOff($0 % 128, channel: $0 / 128) }
             offsAt.removeAll()
             heldUntil.removeAll()
             onsAt.removeAll()
             io.send(offs + OPZ.allNotesOff(), at: io.now() &+ io.ticks(ms: lookahead + 40))
         }
+        if wait { queue.sync(execute: work) } else { queue.async(execute: work) }
     }
 
     /// La griglia è saltata (avanti o indietro, per esempio seguendo il TX-6 che riparte): tutto quello che

@@ -127,6 +127,9 @@ final class M8Engine: ObservableObject {
     @Published private(set) var bpm = Int(BobinaClock.shared.bpm.rounded())
     private var bpmObserver: NSObjectProtocol?
     private var backgroundObserver: NSObjectProtocol?
+    private var foregroundObserver: NSObjectProtocol?
+    /// Con «resta sveglia»: un compito che scade solo se iOS sta per sospendere Bobina lo stesso.
+    private var awakeTask = UIBackgroundTaskIdentifier.invalid
 
     @Published var destinations: [MIDIPort] = []
     @Published var destinationID: MIDIUniqueID? {
@@ -164,7 +167,10 @@ final class M8Engine: ObservableObject {
         io.onSetupChanged = { [weak self] in self?.refreshPorts() }
         io.onReceive = { [weak self] bytes, _ in self?.received(bytes) }
         backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
-            self?.pauseForBackground()
+            self?.wentToBackground()
+        }
+        foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.endAwakeTask()
         }
         bpmObserver = NotificationCenter.default.addObserver(forName: .bobinaBPM, object: nil, queue: .main) { [weak self] n in
             guard let self = self, let v = n.object as? Double, Int(v.rounded()) != self.bpm else { return }
@@ -281,6 +287,31 @@ final class M8Engine: ObservableObject {
     /// iOS sospende Bobina pochi secondi dopo che esci (la lezione del TX-6): il clock si fermerebbe a metà
     /// e i tasti o le note tenuti resterebbero giù sull'M8 (per esempio shift). Prima di uscire: stop pulito,
     /// passi fermi, tasti e note lasciati. Le manopole restano dove sono.
+    private func wentToBackground() {
+        // con «resta sveglia» del Playdate Bobina continua a suonare dietro Safari: l'M8 non si ferma, come le altre.
+        // Se iOS la sospende lo stesso (suono muto interrotto o mai partito), poco prima scade il compito: stop pulito
+        // come sempre, così sull'M8 non resta un tasto o una nota tenuti (la rete di sicurezza del TX-6)
+        let d = UserDefaults.standard
+        guard d.bool(forKey: "bobina.playdate.sveglia") && d.bool(forKey: "bobina.playdate.tempo") else {
+            pauseForBackground()
+            return
+        }
+        endAwakeTask()
+        awakeTask = UIApplication.shared.beginBackgroundTask(withName: "bobina.m8.sveglia") { [weak self] in
+            self?.pauseForBackground()
+            // lo stop di trasporto e passi parte dal filo del sequencer: si aspetta che sia partito, poi si lascia sospendere
+            self?.sequencer.drain()
+            self?.endAwakeTask()
+        }
+        trace("M8: Bobina in secondo piano ma sveglia (Playdate), l'M8 continua")
+    }
+
+    private func endAwakeTask() {
+        guard awakeTask != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(awakeTask)
+        awakeTask = .invalid
+    }
+
     private func pauseForBackground() {
         if running { toggleRun() }
         if player.stepsOn { player.toggleSteps() }

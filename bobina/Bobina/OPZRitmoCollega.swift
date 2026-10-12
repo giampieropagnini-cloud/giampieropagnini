@@ -20,11 +20,11 @@ struct OPZRitmoView: View {
 
                 OPZLabel("tempo di tutta Bobina")
                 HStack(spacing: 5) {
-                    SmallKey(text: "−1") { opz.setBPM(opz.bpm - 1) }.accessibilityLabel("tempo meno 1")
+                    VetroSmallKey(text: "−1") { opz.setBPM(opz.bpm - 1) }.accessibilityLabel("tempo meno 1")
                     Text("\(Int(opz.bpm.rounded()))")
                         .font(.system(.title2, design: .monospaced).weight(.bold))
                         .frame(minWidth: 60)
-                    SmallKey(text: "+1") { opz.setBPM(opz.bpm + 1) }.accessibilityLabel("tempo più 1")
+                    VetroSmallKey(text: "+1") { opz.setBPM(opz.bpm + 1) }.accessibilityLabel("tempo più 1")
                     OPZChip(text: "tap", height: 40) { opz.tap() }
                         .accessibilityLabel("batti il tempo")
                 }
@@ -47,17 +47,17 @@ struct OPZRitmoView: View {
 
                 HStack(spacing: 5) {
                     OPZLabel("swing")
-                    SmallKey(text: "−") { opz.setSwing(opz.swing - 4) }.accessibilityLabel("swing meno")
+                    VetroSmallKey(text: "−") { opz.setSwing(opz.swing - 4) }.accessibilityLabel("swing meno")
                     Text("\(opz.swing)").font(.system(.body, design: .monospaced).weight(.bold)).frame(minWidth: 36)
-                    SmallKey(text: "+") { opz.setSwing(opz.swing + 4) }.accessibilityLabel("swing più")
+                    VetroSmallKey(text: "+") { opz.setSwing(opz.swing + 4) }.accessibilityLabel("swing più")
                     OPZChip(text: "niente", on: opz.swing == 64, height: 34) { opz.setSwing(64) }
                         .accessibilityLabel("niente swing")
                 }
                 HStack(spacing: 5) {
                     OPZLabel("anticipo")
-                    SmallKey(text: "−") { opz.leadMs = max(-100, opz.leadMs - 5) }.accessibilityLabel("anticipo meno")
+                    VetroSmallKey(text: "−") { opz.leadMs = max(-100, opz.leadMs - 5) }.accessibilityLabel("anticipo meno")
                     Text("\(Int(opz.leadMs)) ms").font(.system(.body, design: .monospaced).weight(.bold)).frame(minWidth: 62)
-                    SmallKey(text: "+") { opz.leadMs = min(200, opz.leadMs + 5) }.accessibilityLabel("anticipo più")
+                    VetroSmallKey(text: "+") { opz.leadMs = min(200, opz.leadMs + 5) }.accessibilityLabel("anticipo più")
                     OPZChip(text: "0", on: opz.leadMs == 0, height: 34) { opz.leadMs = 0 }
                         .accessibilityLabel("anticipo zero")
                 }
@@ -112,8 +112,7 @@ struct OPZCollegaView: View {
                         Text("cerca l'OP-Z (bluetooth)")
                             .font(.system(.title3, design: .monospaced).weight(.bold))
                             .frame(maxWidth: .infinity, minHeight: 54)
-                            .background(RoundedRectangle(cornerRadius: 10).fill(OPZ.tint))
-                            .foregroundStyle(Color.black)
+                            .vetroKey(.on(OPZ.tint), radius: 16)
                     }
                     .buttonStyle(.plain)
                     OPZLabel("la prima volta: Ele tiene il tasto di pairing sotto l'OP-Z finché la luce lampeggia blu · l'app ufficiale OP-Z va chiusa")

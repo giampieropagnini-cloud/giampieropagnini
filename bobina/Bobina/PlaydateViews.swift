@@ -16,14 +16,13 @@ struct PlaydateTabs: View {
                     PlaydateStatusStrip()
 
                     Card(title: "le note di Crea",
-                         note: "Bobina suona la traccia scelta del TX-6 anche sul Playdate, a tempo. Per sentirla solo sul Playdate metti quella traccia su «suono MIDI» (Crea → batteria → riga 6). Prima della prova lunga del TX-6 rimetti la pronta di melodia.") {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 56), spacing: 8)], alignment: .leading, spacing: 8) {
-                            Chip(text: "spento", on: link.creaTrack == 0, color: Playdate.color) { link.creaTrack = 0 }
-                            ForEach(1...6, id: \.self) { t in
-                                Chip(text: "\(t)", on: link.creaTrack == t, color: Playdate.color) { link.creaTrack = t }
-                                    .accessibilityLabel("traccia \(t) al Playdate")
-                            }
-                        }
+                         note: "Le tracce della melodia si mandano al Playdate da Crea → melodia, con la spunta «traccia al Playdate». Quelle tracce il TX-6 non le suona; se il ponte non risponde tornano da sole sul TX-6.") {
+                        Text(link.playdateTracks.isEmpty ? "nessuna traccia al Playdate"
+                             : "al Playdate: traccia " + link.playdateTracks.map(String.init).joined(separator: ", ")
+                               + (link.connected ? " · suonano sul Playdate" : " · ponte non raggiunto: suonano sul TX-6"))
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(Palette.dim)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     Card(title: "da quale macchina",

@@ -76,6 +76,16 @@ final class M8Sequencer {
         }
     }
 
+    /// Un valore messo a mano (già mandato all'M8): da qui riparte una manopola che poi si muove da sola,
+    /// e non si rimanda uguale.
+    func setKnobValue(_ k: Int, _ v: Int) {
+        queue.async { [self] in
+            guard k >= 0 && k < 8 else { return }
+            knobValues[k] = v
+            knobSent[k] = v
+        }
+    }
+
     private func plan() -> (Plan, [M8Knob], Int) {
         lock.lock()
         defer { lock.unlock() }
@@ -134,6 +144,11 @@ final class M8Sequencer {
     }
 
     private var running: Bool { transport || stepsOn || knobsOn }
+
+    /// Aspetta che il filo del sequencer abbia fatto quello che gli è stato chiesto: lo stop prima che iOS sospenda Bobina.
+    func drain() {
+        queue.sync {}
+    }
 
     /// Entra sulla griglia se non c'è già; restituisce il battito da cui partire.
     private func joinIfNeeded() -> Double {
